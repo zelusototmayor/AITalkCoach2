@@ -57,7 +57,8 @@ RSpec.describe 'Sessions', type: :request do
           title: 'Test Recording Session',
           language: 'en',
           media_kind: 'audio',
-          target_seconds: 60
+          target_seconds: 60,
+          media_files: [fixture_file_upload('test_audio.webm', 'audio/webm')]
         }
       }
     end

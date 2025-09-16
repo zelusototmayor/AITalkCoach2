@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["recordBtn", "status", "statusText", "indicator", "preview", "form", "timer", "progressBar", "videoPreview", "audioPreview", "fileInput", "submitBtn"]
+  static targets = ["recordBtn", "status", "statusText", "indicator", "preview", "form", "timer", "progressBar", "videoPreview", "audioPreview", "fileInput", "submitBtn", "countdownDisplay", "durationInput"]
   static values = { 
     maxDurationSec: Number, 
     maxFileSizeMb: Number,
@@ -16,6 +16,8 @@ export default class extends Controller {
     this.stream = null
     this.startTime = null
     this.maxDurationTimer = null
+    this.countdownTimer = null
+    this.selectedDuration = 60 // Default duration
   }
 
   connect() {
@@ -26,6 +28,31 @@ export default class extends Controller {
     this.videoHeightValue = this.videoHeightValue || 480
 
     this.updateUI("ready")
+  }
+
+  selectDuration(event) {
+    const duration = parseInt(event.target.dataset.duration)
+    this.selectedDuration = duration
+    this.maxDurationSecValue = duration
+    
+    // Update hidden form field
+    if (this.hasDurationInputTarget) {
+      this.durationInputTarget.value = duration
+    }
+    
+    // Update active button
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.classList.remove('active')
+    })
+    event.target.classList.add('active')
+    
+    // Update button text if recording
+    if (this.hasRecordBtnTarget && this.recordBtnTarget.querySelector('.btn-text')) {
+      const btnText = this.recordBtnTarget.querySelector('.btn-text')
+      if (btnText.textContent.includes('Start')) {
+        btnText.textContent = `Start ${duration}s Recording`
+      }
+    }
   }
 
   disconnect() {
@@ -268,11 +295,17 @@ export default class extends Controller {
           this.recordBtnTarget.classList.add('recording')
         }
         if (hasStatusText) {
-          this.statusTextTarget.textContent = `Recording... (max ${this.maxDurationSecValue}s)`
+          this.statusTextTarget.textContent = `Recording... ${this.formatTime(this.maxDurationSecValue)} remaining`
           this.startRecordingTimer()
         }
         if (hasIndicator) this.indicatorTarget.className = "status-indicator recording"
-        if (hasTimer) this.timerTarget.style.display = "block"
+        if (hasTimer) {
+          this.timerTarget.style.display = "block"
+          // Initialize countdown display
+          if (this.hasCountdownDisplayTarget) {
+            this.countdownDisplayTarget.textContent = this.formatTime(this.maxDurationSecValue)
+          }
+        }
         break
         
       case "processing":
@@ -313,36 +346,57 @@ export default class extends Controller {
   startRecordingTimer() {
     if (!this.hasStatusTextTarget) return
     
-    this.recordingTimer = setInterval(() => {
+    this.countdownTimer = setInterval(() => {
       const elapsed = Math.floor((Date.now() - this.startTime) / 1000)
       const remaining = this.maxDurationSecValue - elapsed
       
       if (this.hasStatusTextTarget) {
-        this.statusTextTarget.textContent = `Recording... ${this.formatTime(elapsed)} / ${this.formatTime(this.maxDurationSecValue)}`
+        this.statusTextTarget.textContent = `Recording... ${this.formatTime(remaining)} remaining`
         
         if (remaining <= 10) {
           this.statusTextTarget.className = this.statusTextTarget.className.replace(/text-\w+-\d+/, 'text-orange-600')
         }
       }
       
-      if (this.hasTimerTarget) {
-        const timerDisplay = this.timerTarget.querySelector('.timer-display')
-        if (timerDisplay) {
-          timerDisplay.textContent = this.formatTime(elapsed)
+      // Update countdown display
+      if (this.hasCountdownDisplayTarget) {
+        this.countdownDisplayTarget.textContent = this.formatTime(remaining)
+        
+        // Add visual warnings
+        this.countdownDisplayTarget.classList.remove('warning', 'critical')
+        if (remaining <= 10) {
+          this.countdownDisplayTarget.classList.add('critical')
+        } else if (remaining <= 30) {
+          this.countdownDisplayTarget.classList.add('warning')
         }
       }
       
+      // Update progress bar (countdown style)
       if (this.hasProgressBarTarget) {
-        const progress = (elapsed / this.maxDurationSecValue) * 100
-        this.progressBarTarget.style.width = `${Math.min(progress, 100)}%`
+        const progress = (remaining / this.maxDurationSecValue) * 100
+        this.progressBarTarget.style.width = `${Math.max(progress, 0)}%`
+        
+        // Change color based on remaining time
+        if (remaining <= 10) {
+          this.progressBarTarget.style.background = '#dc2626'
+        } else if (remaining <= 30) {
+          this.progressBarTarget.style.background = '#f59e0b'
+        } else {
+          this.progressBarTarget.style.background = '#2563eb'
+        }
+      }
+      
+      // Auto-stop when time runs out
+      if (remaining <= 0) {
+        this.stopRecording()
       }
     }, 1000)
   }
 
   stopRecordingTimer() {
-    if (this.recordingTimer) {
-      clearInterval(this.recordingTimer)
-      this.recordingTimer = null
+    if (this.countdownTimer) {
+      clearInterval(this.countdownTimer)
+      this.countdownTimer = null
     }
   }
 

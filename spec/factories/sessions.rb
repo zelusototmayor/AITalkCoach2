@@ -10,6 +10,20 @@ FactoryBot.define do
     target_seconds { 30 }
     analysis_json { "{}" }
     
+    # Add a mock media file for testing
+    after(:build) do |session|
+      # Create a temporary audio file for testing
+      temp_file = Tempfile.new(['test_audio', '.webm'])
+      temp_file.write("fake audio content")
+      temp_file.rewind
+      
+      session.media_files.attach(
+        io: temp_file,
+        filename: 'test_audio.webm',
+        content_type: 'audio/webm'
+      )
+    end
+    
     trait :completed do
       processing_state { "completed" }
       completed { true }
