@@ -1,0 +1,349 @@
+<% content_for :title, @session.title %>
+
+<div class="session-show" 
+     data-controller="player transcript insights session progress"
+     data-session-id-value="<%= @session.id %>"
+     data-progress-session-id-value="<%= @session.id %>"
+     data-insights-timeframe-value="7d"
+     data-insights-show-trends-value="true">
+  
+  <div class="session-header">
+    <div class="session-title-section">
+      <h1><%= @session.title %></h1>
+      <div class="session-meta">
+        <span class="language-badge"><%= @session.language.upcase %></span>
+        <span class="media-type"><%= @session.media_kind.capitalize %></span>
+        <span class="session-date">
+          <%= @session.created_at.strftime("%B %d, %Y at %l:%M %p") %>
+        </span>
+      </div>
+    </div>
+
+    <div class="session-actions">
+      <%= link_to "← Back to Sessions", sessions_path, class: "btn btn-secondary" %>
+      <div class="action-menu">
+        <button type="button" class="btn btn-outline" data-action="click->session#exportSession">
+          📊 Export
+        </button>
+        <button type="button" class="btn btn-outline" data-action="click->session#reprocess">
+          🔄 Reprocess
+        </button>
+        <%= button_to "🗑 Delete", session_path(@session), method: :delete,
+              confirm: "Are you sure? This action cannot be undone.",
+              class: "btn btn-danger" %>
+      </div>
+    </div>
+  </div>
+
+  <% if @session.processing_state != 'completed' %>
+    <div class="processing-status status-<%= @session.processing_state %>" 
+         data-progress-target="status">
+      <% case @session.processing_state %>
+      <% when 'pending' %>
+        <div class="status-card">
+          <span class="status-icon">⏳</span>
+          <div class="status-content">
+            <h3 data-progress-target="step">Analysis Pending</h3>
+            <p data-progress-target="statusText">Your session is queued for processing. This usually takes 1-2 minutes.</p>
+            
+            <!-- Progress Bar -->
+            <div class="progress-container">
+              <div class="progress-bar-bg">
+                <div class="progress-bar" data-progress-target="progressBar" 
+                     style="width: 5%" role="progressbar" 
+                     aria-valuenow="5" aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+              <small class="progress-text">
+                <span data-progress-target="estimatedTime">Starting soon...</span>
+              </small>
+            </div>
+          </div>
+        </div>
+      <% when 'processing' %>
+        <div class="status-card">
+          <span class="status-icon">⚡</span>
+          <div class="status-content">
+            <h3 data-progress-target="step">Processing Audio</h3>
+            <p data-progress-target="statusText">AI is analyzing your speech patterns, clarity, and providing feedback...</p>
+            
+            <!-- Progress Bar -->
+            <div class="progress-container">
+              <div class="progress-bar-bg">
+                <div class="progress-bar" data-progress-target="progressBar" 
+                     style="width: 30%" role="progressbar" 
+                     aria-valuenow="30" aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+              <small class="progress-text">
+                <span data-progress-target="estimatedTime">Analyzing...</span>
+              </small>
+            </div>
+          </div>
+        </div>
+      <% when 'failed' %>
+        <div class="status-card error">
+          <span class="status-icon">❌</span>
+          <div class="status-content">
+            <h3 data-progress-target="step">Analysis Failed</h3>
+            <p data-progress-target="statusText"><%= @session.incomplete_reason || "An unexpected error occurred during processing." %></p>
+            <div class="error-actions">
+              <button class="btn btn-primary" data-action="click->session#reprocess">
+                🔄 Try Again
+              </button>
+              <button class="btn btn-secondary" data-action="click->progress#forceRefresh">
+                🔃 Refresh Page
+              </button>
+              <%= link_to "🎙️ Record New Session", new_session_path, class: "btn btn-outline" %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+
+  <% if @session.completed? %>
+    <!-- Media Player Section -->
+    <div class="media-player-section">
+      <div class="player-container">
+        <% if @session.media_files.attached? %>
+          <% media_file = @session.media_files.first %>
+          <% if @session.media_kind == 'video' %>
+            <video data-player-target="video" 
+                   data-transcript-target="media"
+                   controls preload="metadata"
+                   class="media-player">
+              <%= video_tag media_file, controls: false %>
+            </video>
+          <% else %>
+            <audio data-player-target="audio"
+                   data-transcript-target="media"
+                   controls preload="metadata"
+                   class="media-player">
+              <%= audio_tag media_file, controls: false %>
+            </audio>
+          <% end %>
+        <% end %>
+
+        <!-- Issue Markers on Timeline -->
+        <div class="timeline-markers" data-player-target="timeline">
+          <% @issues.each do |issue| %>
+            <button class="issue-marker marker-<%= issue.category.parameterize %>"
+                    data-timestamp="<%= issue.start_ms %>"
+                    data-action="click->player#seekTo"
+                    title="<%= issue.category.humanize %>: <%= truncate(issue.text, length: 50) %>"
+                    style="left: <%= (issue.start_ms.to_f / (@session.analysis_data['duration_ms'] || 120000)) * 100 %>%">
+            </button>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Player Controls -->
+      <div class="player-controls">
+        <button class="control-btn" data-player-target="playBtn" data-action="click->player#togglePlay">
+          <span data-player-target="playIcon">▶️</span>
+        </button>
+        
+        <div class="time-display">
+          <span data-player-target="currentTime">00:00</span>
+          /
+          <span data-player-target="duration">--:--</span>
+        </div>
+
+        <div class="playback-speed">
+          <label>Speed:</label>
+          <select data-player-target="speedSelect" data-action="change->player#changeSpeed">
+            <option value="0.75">0.75x</option>
+            <option value="1" selected>1x</option>
+            <option value="1.25">1.25x</option>
+            <option value="1.5">1.5x</option>
+          </select>
+        </div>
+
+        <button class="control-btn" data-action="click->player#skipBack" title="Skip back 10s">
+          ⏪
+        </button>
+        <button class="control-btn" data-action="click->player#skipForward" title="Skip forward 10s">
+          ⏩
+        </button>
+      </div>
+    </div>
+
+    <!-- Analysis Dashboard -->
+    <div class="analysis-dashboard">
+      <!-- Key Metrics -->
+      <div class="metrics-grid">
+        <% if @session.analysis_data['wpm'] %>
+          <div class="metric-card">
+            <div class="metric-value"><%= @session.analysis_data['wpm'].to_i %></div>
+            <div class="metric-label">Words/Min</div>
+            <div class="metric-context">
+              <% wpm = @session.analysis_data['wpm'].to_i %>
+              <% if wpm < 140 %>
+                <span class="context-slow">Slower pace - good for emphasis</span>
+              <% elsif wpm > 180 %>
+                <span class="context-fast">Fast pace - ensure clarity</span>
+              <% else %>
+                <span class="context-good">Natural pace ✓</span>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+
+        <% if @session.analysis_data['filler_rate'] %>
+          <div class="metric-card">
+            <div class="metric-value"><%= (@session.analysis_data['filler_rate'] * 100).round(1) %>%</div>
+            <div class="metric-label">Filler Words</div>
+            <div class="metric-context">
+              <% filler_rate = @session.analysis_data['filler_rate'] %>
+              <% if filler_rate < 0.02 %>
+                <span class="context-good">Excellent fluency ✓</span>
+              <% elsif filler_rate > 0.05 %>
+                <span class="context-needs-work">Focus on reducing fillers</span>
+              <% else %>
+                <span class="context-ok">Normal range</span>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+
+        <% if @session.analysis_data['clarity_score'] %>
+          <div class="metric-card">
+            <div class="metric-value"><%= (@session.analysis_data['clarity_score'] * 100).round %>%</div>
+            <div class="metric-label">Clarity Score</div>
+            <div class="metric-context">
+              <% clarity = @session.analysis_data['clarity_score'] %>
+              <% if clarity > 0.8 %>
+                <span class="context-good">Very clear ✓</span>
+              <% elsif clarity < 0.6 %>
+                <span class="context-needs-work">Work on enunciation</span>
+              <% else %>
+                <span class="context-ok">Generally clear</span>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+
+        <div class="metric-card">
+          <div class="metric-value"><%= @issues.count %></div>
+          <div class="metric-label">Issues Found</div>
+          <div class="metric-context">
+            <% if @issues.count == 0 %>
+              <span class="context-good">Great job! ✓</span>
+            <% elsif @issues.count < 5 %>
+              <span class="context-ok">Few areas to improve</span>
+            <% else %>
+              <span class="context-needs-work">Multiple improvement areas</span>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Issues Breakdown -->
+      <% if @issues.any? %>
+        <div class="issues-section">
+          <h3>Speech Analysis & Feedback</h3>
+          
+          <div class="issue-categories">
+            <% @issues.group_by(&:category).each do |category, category_issues| %>
+              <div class="issue-category">
+                <div class="category-header">
+                  <h4><%= category.humanize.pluralize %> (<%= category_issues.count %>)</h4>
+                  <button class="toggle-btn" data-action="click->insights#toggleCategory">
+                    <span>Show/Hide</span>
+                  </button>
+                </div>
+
+                <div class="category-issues">
+                  <% category_issues.each do |issue| %>
+                    <div class="issue-item" 
+                         data-start="<%= issue.start_ms %>"
+                         data-end="<%= issue.end_ms %>">
+                      <div class="issue-timing">
+                        <button class="time-link" 
+                                data-action="click->player#seekTo"
+                                data-timestamp="<%= issue.start_ms %>">
+                          <%= Time.at(issue.start_ms / 1000.0).utc.strftime("%M:%S") %>
+                        </button>
+                      </div>
+
+                      <div class="issue-content">
+                        <div class="issue-text">
+                          "<%= issue.text %>"
+                        </div>
+                        
+                        <% if issue.coaching_note.present? %>
+                          <div class="coaching-note">
+                            <strong>💡 Coach says:</strong> <%= issue.coaching_note %>
+                          </div>
+                        <% end %>
+
+                        <% if issue.severity %>
+                          <div class="issue-severity severity-<%= issue.severity %>">
+                            <%= issue.severity.capitalize %> Priority
+                          </div>
+                        <% end %>
+                      </div>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% else %>
+        <div class="no-issues">
+          <div class="success-icon">🎉</div>
+          <h3>Excellent Performance!</h3>
+          <p>No major speech issues detected. Your clarity, pace, and fluency are all in good range.</p>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Insights & Trends Section -->
+    <div class="insights-section">
+      <div class="insights-header">
+        <h3>Progress Insights</h3>
+        <div class="insights-controls">
+          <select data-insights-target="dateRange" 
+                  data-action="change->insights#changeTimeframe" 
+                  class="form-select">
+            <option value="7d">Last 7 days</option>
+            <option value="30d">Last 30 days</option>
+            <option value="90d">Last 90 days</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="insights-content">
+        <div class="sparklines-grid" data-insights-target="sparkline"></div>
+        <div class="trends-section" data-insights-target="trend"></div>
+        <div class="ai-insights" data-insights-target="insights"></div>
+      </div>
+    </div>
+
+    <!-- Transcript Section -->
+    <% if @session.analysis_data['transcript'] %>
+      <div class="transcript-section">
+        <div class="transcript-header">
+          <h3>Full Transcript</h3>
+          <div class="transcript-controls">
+            <input type="search" 
+                   placeholder="Search transcript..." 
+                   data-transcript-target="searchInput"
+                   data-action="input->transcript#search">
+            <button class="btn btn-sm" data-action="click->transcript#toggleHighlights">
+              Toggle Issue Highlights
+            </button>
+          </div>
+        </div>
+
+        <div class="transcript-content" 
+             data-transcript-target="content"
+             data-session-id="<%= @session.id %>">
+          <%= simple_format(@session.analysis_data['transcript']) %>
+        </div>
+      </div>
+    <% end %>
+
+  <% end %> <!-- End completed check -->
+
+</div>

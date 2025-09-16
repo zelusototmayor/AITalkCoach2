@@ -1,0 +1,329 @@
+<% content_for :title, "Practice Prompts" %>
+
+<div class="prompts-index" data-controller="prompts">
+  <div class="page-header">
+    <h1>Practice Prompts</h1>
+    <p>Choose from our library of speaking scenarios to improve your communication skills</p>
+  </div>
+
+  <% if @adaptive_prompts.any? %>
+    <div class="adaptive-prompts-section">
+      <div class="section-header">
+        <h2>🎯 Recommended for You</h2>
+        <p class="section-description">
+          Based on your recent sessions, these prompts will help you work on:
+          <% @user_weaknesses.each_with_index do |weakness, index| %>
+            <span class="weakness-tag"><%= weakness.humanize %></span><%= ', ' unless index == @user_weaknesses.length - 1 %>
+          <% end %>
+        </p>
+      </div>
+      
+      <div class="adaptive-prompts-grid">
+        <% @adaptive_prompts.each do |category, prompts| %>
+          <% prompts.first(2).each_with_index do |prompt, index| %>
+            <div class="prompt-card adaptive-prompt" 
+                 data-category="recommended"
+                 data-prompts-target="card"
+                 data-prompt-id="adaptive_<%= category %>_<%= index %>">
+              
+              <div class="prompt-header">
+                <div class="prompt-meta">
+                  <span class="prompt-category category-recommended">
+                    🎯 Recommended
+                  </span>
+                  <span class="improvement-tag">
+                    Improves <%= category.humanize %>
+                  </span>
+                </div>
+                
+                <h3 class="prompt-title"><%= prompt['title'] %></h3>
+                <p class="prompt-description"><%= prompt['description'] %></p>
+              </div>
+
+              <div class="prompt-content">
+                <div class="prompt-text">
+                  <p><%= prompt['prompt'] %></p>
+                </div>
+
+                <div class="prompt-details">
+                  <div class="detail-item">
+                    <span class="detail-label">Duration:</span>
+                    <span class="detail-value">
+                      <%= distance_of_time_in_words(prompt['target_seconds']) %>
+                    </span>
+                  </div>
+                  
+                  <% if prompt['focus_areas'] %>
+                    <div class="detail-item">
+                      <span class="detail-label">Focus Areas:</span>
+                      <div class="skill-tags">
+                        <% prompt['focus_areas'].each do |area| %>
+                          <span class="skill-tag focus-area-tag"><%= area %></span>
+                        <% end %>
+                      </div>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+
+              <div class="prompt-actions">
+                <%= link_to new_session_path(adaptive_prompt: true, category: category, index: index), 
+                      class: "btn btn-primary btn-block" do %>
+                  🎯 Practice This Recommended Prompt
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="prompts-controls">
+    <div class="search-filter">
+      <input type="search" 
+             placeholder="Search prompts..." 
+             class="search-input"
+             data-prompts-target="searchInput"
+             data-action="input->prompts#filterPrompts">
+    </div>
+
+    <div class="category-filters">
+      <button type="button" 
+              class="filter-btn active" 
+              data-action="click->prompts#filterCategory"
+              data-category="all"
+              data-prompts-target="filterBtn">
+        All Categories
+      </button>
+      <% @categories.each do |category| %>
+        <button type="button" 
+                class="filter-btn"
+                data-action="click->prompts#filterCategory"
+                data-category="<%= category %>"
+                data-prompts-target="filterBtn">
+          <%= category.humanize %>
+        </button>
+      <% end %>
+    </div>
+
+    <div class="view-options">
+      <button type="button" 
+              class="btn btn-secondary"
+              data-action="click->prompts#shuffleRandom">
+        🎲 Random Prompt
+      </button>
+      <button type="button"
+              class="btn btn-secondary" 
+              data-action="click->prompts#toggleFavorites">
+        ⭐ Favorites Only
+      </button>
+    </div>
+  </div>
+
+  <div class="prompts-grid" data-prompts-target="grid">
+    <% @prompts.each do |category, category_prompts| %>
+      <% category_prompts.each_with_index do |prompt, index| %>
+        <div class="prompt-card" 
+             data-category="<%= category %>"
+             data-prompts-target="card"
+             data-prompt-id="<%= "#{category}_#{index}" %>">
+          
+          <div class="prompt-header">
+            <div class="prompt-meta">
+              <span class="prompt-category category-<%= category.parameterize %>">
+                <%= category.humanize %>
+              </span>
+              <button type="button" 
+                      class="favorite-btn"
+                      data-action="click->prompts#toggleFavorite"
+                      data-prompt-id="<%= "#{category}_#{index}" %>"
+                      title="Add to favorites">
+                ☆
+              </button>
+            </div>
+            
+            <h3 class="prompt-title"><%= prompt['title'] %></h3>
+            <p class="prompt-description"><%= prompt['description'] %></p>
+          </div>
+
+          <div class="prompt-content">
+            <div class="prompt-text">
+              <p><%= prompt['prompt'] %></p>
+            </div>
+
+            <div class="prompt-details">
+              <div class="detail-item">
+                <span class="detail-label">Duration:</span>
+                <span class="detail-value">
+                  <%= distance_of_time_in_words(prompt['target_seconds']) %>
+                </span>
+              </div>
+              
+              <div class="detail-item">
+                <span class="detail-label">Difficulty:</span>
+                <span class="detail-value difficulty-<%= prompt['difficulty'] || 'intermediate' %>">
+                  <%= (prompt['difficulty'] || 'intermediate').humanize %>
+                </span>
+              </div>
+
+              <% if prompt['skills'] %>
+                <div class="detail-item">
+                  <span class="detail-label">Focus Areas:</span>
+                  <div class="skill-tags">
+                    <% prompt['skills'].each do |skill| %>
+                      <span class="skill-tag"><%= skill %></span>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+
+          <div class="prompt-actions">
+            <%= link_to new_session_path(prompt_id: "#{category}_#{index}"), 
+                  class: "btn btn-primary btn-block" do %>
+              🎤 Practice This Prompt
+            <% end %>
+            
+            <div class="secondary-actions">
+              <button type="button" 
+                      class="action-btn"
+                      data-action="click->prompts#previewPrompt"
+                      data-prompt-id="<%= "#{category}_#{index}" %>"
+                      title="Preview">
+                👁️ Preview
+              </button>
+              
+              <button type="button"
+                      class="action-btn" 
+                      data-action="click->prompts#sharePrompt"
+                      data-prompt-id="<%= "#{category}_#{index}" %>"
+                      title="Share">
+                📤 Share
+              </button>
+
+              <button type="button"
+                      class="action-btn"
+                      data-action="click->prompts#addToPlaylist" 
+                      data-prompt-id="<%= "#{category}_#{index}" %>"
+                      title="Add to practice playlist">
+                📋 Add to List
+              </button>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+
+  <!-- Empty States -->
+  <div class="empty-state" data-prompts-target="noResults" style="display: none;">
+    <div class="empty-icon">🔍</div>
+    <h3>No prompts found</h3>
+    <p>Try adjusting your search or filter criteria.</p>
+    <button type="button" class="btn btn-secondary" data-action="click->prompts#clearFilters">
+      Clear All Filters
+    </button>
+  </div>
+
+  <div class="empty-state" data-prompts-target="noFavorites" style="display: none;">
+    <div class="empty-icon">⭐</div>
+    <h3>No favorites yet</h3>
+    <p>Mark prompts as favorites using the ☆ button to see them here.</p>
+    <button type="button" class="btn btn-secondary" data-action="click->prompts#toggleFavorites">
+      Show All Prompts
+    </button>
+  </div>
+
+  <!-- Quick Practice Section -->
+  <div class="quick-practice-section">
+    <h2>🚀 Quick Practice Options</h2>
+    <div class="quick-options-grid">
+      <div class="quick-option">
+        <h4>Random Challenge</h4>
+        <p>Get a random prompt from any category</p>
+        <button type="button" class="btn btn-outline" data-action="click->prompts#startRandomPractice">
+          Try Random Prompt
+        </button>
+      </div>
+
+      <div class="quick-option">
+        <h4>Daily Practice</h4>
+        <p>Today's recommended prompt based on your history</p>
+        <button type="button" class="btn btn-outline" data-action="click->prompts#startDailyPractice">
+          Today's Prompt
+        </button>
+      </div>
+
+      <div class="quick-option">
+        <h4>Improvement Focus</h4>
+        <p>Prompts targeting your common speech patterns</p>
+        <button type="button" class="btn btn-outline" data-action="click->prompts#startFocusedPractice">
+          Work on Weak Areas
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tips Section -->
+  <div class="prompts-tips">
+    <h3>💡 How to Use Practice Prompts</h3>
+    <div class="tips-grid">
+      <div class="tip-item">
+        <div class="tip-icon">📝</div>
+        <div class="tip-content">
+          <h4>Prepare First</h4>
+          <p>Read the prompt carefully and take a moment to organize your thoughts before recording.</p>
+        </div>
+      </div>
+      
+      <div class="tip-item">
+        <div class="tip-icon">🎯</div>
+        <div class="tip-content">
+          <h4>Stay Focused</h4>
+          <p>Address the specific scenario in the prompt. Don't drift off-topic.</p>
+        </div>
+      </div>
+      
+      <div class="tip-item">
+        <div class="tip-icon">🔄</div>
+        <div class="tip-content">
+          <h4>Practice Repeatedly</h4>
+          <p>Try the same prompt multiple times to track your improvement over time.</p>
+        </div>
+      </div>
+
+      <div class="tip-item">
+        <div class="tip-icon">📊</div>
+        <div class="tip-content">
+          <h4>Review Feedback</h4>
+          <p>Pay attention to the AI analysis to identify patterns in your speaking style.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Preview Modal (hidden by default) -->
+<div class="modal-overlay" data-prompts-target="modalOverlay" style="display: none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 data-prompts-target="modalTitle">Prompt Preview</h3>
+      <button type="button" class="modal-close" data-action="click->prompts#closeModal">×</button>
+    </div>
+    
+    <div class="modal-body" data-prompts-target="modalBody">
+      <!-- Dynamic content loaded here -->
+    </div>
+    
+    <div class="modal-actions">
+      <button type="button" class="btn btn-secondary" data-action="click->prompts#closeModal">
+        Close
+      </button>
+      <button type="button" class="btn btn-primary" data-prompts-target="modalPracticeBtn">
+        🎤 Practice This Prompt
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,102 @@
+pt:
+  filler_words:
+    - pattern: '\b(eh|é|ah|hm|ahn)\b'
+      severity: 'medium'
+      description: 'Palavras de preenchimento comuns que podem distrair da mensagem'
+      tip: 'Tente pausar ao invés de usar palavras de preenchimento. O silêncio pode ser mais poderoso que "eh" ou "ah".'
+      
+    - pattern: '\b(tipo|né|então|assim|sei lá)\b'
+      severity: 'low'
+      description: 'Expressões casuais usadas em excesso'
+      tip: 'Varie seu vocabulário e reduza expressões repetitivas para uma comunicação mais clara.'
+      
+    - pattern: '\b(meio que|tipo assim|mais ou menos)\b'
+      severity: 'low'
+      description: 'Qualificadores fracos que reduzem a confiança'
+      tip: 'Seja mais definitivo em suas declarações. Diga o que você quer dizer diretamente.'
+      
+  pace_issues:
+    - pattern: 'speaking_rate_below_120'
+      severity: 'medium'
+      description: 'Falar muito devagar pode perder a atenção da audiência'
+      tip: 'Considere falar um pouco mais rápido para manter o engajamento mantendo a clareza.'
+      
+    - pattern: 'speaking_rate_above_180'
+      severity: 'medium'
+      description: 'Falar muito rapidamente pode ser difícil de acompanhar'
+      tip: 'Diminua a velocidade para garantir que sua audiência possa processar sua mensagem efetivamente.'
+      
+    - pattern: 'long_pause_over_3s'
+      severity: 'low'
+      description: 'Pausas prolongadas podem indicar incerteza'
+      tip: 'Use pausas estratégicas para ênfase, mas evite silêncios longos que podem confundir os ouvintes.'
+      
+  clarity_issues:
+    - pattern: '\b(tô|tá|pra|pro|num|duma)\b'
+      severity: 'low'
+      description: 'Contrações informais em contextos profissionais'
+      tip: 'Use "estou", "está", "para", "para o", "não", "de uma" para comunicação profissional mais clara.'
+      
+    - pattern: '(\w)\1{2,}'
+      severity: 'medium'
+      description: 'Sons repetidos ou gagueira'
+      tip: 'Respire fundo e fale mais deliberadamente para evitar sons repetidos.'
+      
+    - pattern: '\b(eu acho|acredito|talvez|pode ser)\s*(eu acho|acredito|talvez|pode ser)'
+      severity: 'low'
+      description: 'Múltiplos marcadores de incerteza enfraquecem sua mensagem'
+      tip: 'Escolha uma forma de expressar incerteza, ou melhor ainda, declare seu ponto com confiança.'
+      
+  professional_issues:
+    - pattern: '\b(beleza|massa|show|maneiro)\b'
+      severity: 'low'
+      description: 'Expressões muito casuais em contextos profissionais'
+      tip: 'Use "certamente", "excelente", "perfeito", ou "ótimo" para comunicação mais profissional.'
+      
+    - pattern: '\b(cara|mano|véi|brother)\b'
+      severity: 'medium'
+      description: 'Formas de tratamento muito casuais'
+      tip: 'Use nomes próprios, "colega", ou formas de tratamento mais formais em ambiente profissional.'
+      
+    - pattern: '\b(super|mega|hiper|ultra)\b'
+      severity: 'low'
+      description: 'Intensificadores que podem soar pouco profissionais'
+      tip: 'Use advérbios mais precisos ou deixe suas palavras falarem por si mesmas.'
+      
+  articulation_issues:
+    - pattern: '\b(mermo|mesmo assim|vorta|volta)\b'
+      severity: 'medium'
+      description: 'Sons de consoantes perdidos afetam a clareza'
+      tip: 'Articule claramente todas as consoantes para melhor compreensão.'
+      
+    - pattern: '\b(\w+)ando\b.*\b(\w+)endo\b'
+      severity: 'low'
+      description: 'Terminações de gerúndio mal articuladas'
+      tip: 'Complete suas terminações de gerúndio: "falando" não "falanu", "correndo" não "correnu".'
+      
+    - pattern: '\b(di|li|ni)\s'
+      severity: 'low'
+      description: 'Vogais adicionais em preposições'
+      tip: 'Pronuncie "de", "lhe", "ne" sem vogais extras para maior clareza.'
+      
+  repetition_issues:
+    - pattern: '(\b\w+\b)(\s+\1){2,}'
+      severity: 'medium'
+      description: 'Palavras repetidas indicam incerteza ou nervosismo'
+      tip: 'Tome um momento para organizar seus pensamentos antes de falar para evitar repetição.'
+      
+    - pattern: '(\b\w{4,}\b).*\1.*\1'
+      severity: 'low'
+      description: 'Uso excessivo de palavras específicas em curto período'
+      tip: 'Varie seu vocabulário para manter sua fala envolvente e profissional.'
+      
+  cultural_specifics:
+    - pattern: '\b(oxe|eita|uai|tchê)\b'
+      severity: 'low'
+      description: 'Regionalismos que podem não ser compreendidos em contexto nacional'
+      tip: 'Em apresentações nacionais ou internacionais, use expressões mais universais.'
+      
+    - pattern: '\b(poxa|caramba|nossa)\s*(poxa|caramba|nossa)'
+      severity: 'low'
+      description: 'Exclamações repetidas reduzem o impacto'
+      tip: 'Use exclamações com moderação e varie suas expressões de surpresa ou ênfase.'

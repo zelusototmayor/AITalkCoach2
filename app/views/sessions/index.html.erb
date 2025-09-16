@@ -1,0 +1,113 @@
+<% content_for :title, "Sessions" %>
+
+<div class="sessions-index">
+  <div class="page-header">
+    <h1>Your Sessions</h1>
+    <%= link_to "New Session", new_session_path, class: "btn btn-primary" %>
+  </div>
+
+  <% if @sessions.any? %>
+    <div class="sessions-grid">
+      <% @sessions.each do |session| %>
+        <div class="session-card" data-state="<%= session.processing_state %>">
+          <div class="session-header">
+            <h3 class="session-title">
+              <%= link_to session.title, session_path(session) %>
+            </h3>
+            <div class="session-meta">
+              <span class="session-language"><%= session.language.upcase %></span>
+              <span class="session-type"><%= session.media_kind.capitalize %></span>
+            </div>
+          </div>
+
+          <div class="session-status">
+            <% case session.processing_state %>
+            <% when 'pending' %>
+              <div class="status-badge status-pending">
+                <span class="status-icon">⏳</span>
+                <span>Pending</span>
+              </div>
+            <% when 'processing' %>
+              <div class="status-badge status-processing">
+                <span class="status-icon">⚡</span>
+                <span>Processing</span>
+              </div>
+            <% when 'completed' %>
+              <div class="status-badge status-completed">
+                <span class="status-icon">✅</span>
+                <span>Complete</span>
+              </div>
+            <% when 'failed' %>
+              <div class="status-badge status-failed">
+                <span class="status-icon">❌</span>
+                <span>Failed</span>
+              </div>
+            <% end %>
+          </div>
+
+          <% if session.completed? %>
+            <div class="session-preview">
+              <% if session.analysis_data.any? %>
+                <div class="quick-metrics">
+                  <% if session.analysis_data['wpm'] %>
+                    <div class="metric">
+                      <span class="metric-label">WPM</span>
+                      <span class="metric-value"><%= session.analysis_data['wpm'].to_i %></span>
+                    </div>
+                  <% end %>
+                  <% if session.analysis_data['filler_rate'] %>
+                    <div class="metric">
+                      <span class="metric-label">Fillers</span>
+                      <span class="metric-value"><%= (session.analysis_data['filler_rate'] * 100).round(1) %>%</span>
+                    </div>
+                  <% end %>
+                  <% if session.analysis_data['clarity_score'] %>
+                    <div class="metric">
+                      <span class="metric-label">Clarity</span>
+                      <span class="metric-value"><%= (session.analysis_data['clarity_score'] * 100).round %>%</span>
+                    </div>
+                  <% end %>
+                </div>
+              <% end %>
+
+              <% if session.issues.any? %>
+                <div class="issue-summary">
+                  <span class="issue-count"><%= session.issues.count %> issues found</span>
+                  <div class="issue-types">
+                    <% session.issues.group(:category).count.each do |category, count| %>
+                      <span class="issue-tag"><%= category.humanize %> (<%= count %>)</span>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          <% elsif session.processing_state == 'failed' %>
+            <div class="session-error">
+              <p class="error-message">
+                <%= session.incomplete_reason || "Processing failed unexpectedly" %>
+              </p>
+            </div>
+          <% end %>
+
+          <div class="session-footer">
+            <div class="session-date">
+              <%= time_ago_in_words(session.created_at) %> ago
+            </div>
+            <div class="session-actions">
+              <%= link_to "View", session_path(session), class: "btn btn-sm" %>
+              <%= button_to "Delete", session_path(session), method: :delete,
+                    confirm: "Are you sure?", class: "btn btn-sm btn-danger" %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="empty-state">
+      <div class="empty-icon">🎤</div>
+      <h2>No sessions yet</h2>
+      <p>Start your first recording session to get AI-powered speech feedback.</p>
+      <%= link_to "Create Your First Session", new_session_path, class: "btn btn-primary btn-lg" %>
+    </div>
+  <% end %>
+</div>

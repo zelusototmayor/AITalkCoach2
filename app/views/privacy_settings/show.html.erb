@@ -1,0 +1,233 @@
+<% content_for :title, "Privacy Settings" %>
+
+<div class="privacy-settings" data-controller="privacy">
+  <div class="page-header">
+    <h1>🔐 Privacy Settings</h1>
+    <p>Control how your audio recordings and personal data are handled</p>
+  </div>
+
+  <%= form_with model: @user, url: privacy_settings_path, method: :patch, local: true, 
+                class: "privacy-form", data: { turbo: false } do |form| %>
+    
+    <% if @user.errors.any? %>
+      <div class="error-summary">
+        <h4>Please correct the following errors:</h4>
+        <ul>
+          <% @user.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <!-- Audio Retention Settings -->
+    <div class="settings-section">
+      <div class="section-header">
+        <h2>🎵 Audio File Retention</h2>
+        <p>Control how long your audio recordings are kept on our servers</p>
+      </div>
+
+      <div class="setting-card">
+        <div class="setting-info">
+          <label for="user_auto_delete_audio_days" class="setting-label">
+            Automatic Audio Deletion
+          </label>
+          <p class="setting-description">
+            Automatically delete your audio recordings after a specified number of days.
+            Analysis results and transcripts will be preserved.
+          </p>
+        </div>
+        
+        <div class="setting-control">
+          <%= form.select :auto_delete_audio_days, 
+                options_for_select([
+                  ['Never delete', nil],
+                  ['7 days', 7],
+                  ['30 days', 30],
+                  ['90 days', 90],
+                  ['180 days', 180],
+                  ['365 days', 365]
+                ], @user.auto_delete_audio_days),
+                {},
+                { class: "form-select", data: { action: "change->privacy#updateRetentionPreview" } } %>
+        </div>
+      </div>
+
+      <div class="setting-card">
+        <div class="setting-info">
+          <label for="user_delete_processed_audio" class="setting-label">
+            Delete Processed Audio
+          </label>
+          <p class="setting-description">
+            Automatically delete audio files after analysis is complete.
+            This helps protect your privacy while preserving insights.
+          </p>
+        </div>
+        
+        <div class="setting-control">
+          <div class="toggle-switch">
+            <%= form.check_box :delete_processed_audio, 
+                  class: "toggle-checkbox",
+                  data: { action: "change->privacy#toggleProcessedDeletion" } %>
+            <label for="user_delete_processed_audio" class="toggle-label">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Privacy Mode -->
+    <div class="settings-section">
+      <div class="section-header">
+        <h2>🛡️ Privacy Mode</h2>
+        <p>Enhanced privacy features for sensitive recordings</p>
+      </div>
+
+      <div class="setting-card">
+        <div class="setting-info">
+          <label for="user_privacy_mode" class="setting-label">
+            Enhanced Privacy Mode
+          </label>
+          <p class="setting-description">
+            Enables additional privacy protections, including immediate processing
+            and reduced data retention. Recommended for confidential content.
+          </p>
+        </div>
+        
+        <div class="setting-control">
+          <div class="toggle-switch">
+            <%= form.check_box :privacy_mode, 
+                  class: "toggle-checkbox",
+                  data: { action: "change->privacy#togglePrivacyMode" } %>
+            <label for="user_privacy_mode" class="toggle-label">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="privacy-mode-details" data-privacy-target="privacyModeDetails" 
+           style="<%= @user.privacy_mode? ? '' : 'display: none;' %>">
+        <div class="info-card info-card-warning">
+          <div class="info-icon">⚠️</div>
+          <div class="info-content">
+            <h4>Privacy Mode Active</h4>
+            <ul>
+              <li>Audio files are processed immediately and then deleted</li>
+              <li>Transcripts are stored with additional encryption</li>
+              <li>Usage analytics are anonymized</li>
+              <li>Export capabilities may be limited</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Current Data Overview -->
+    <div class="settings-section">
+      <div class="section-header">
+        <h2>📊 Your Data Overview</h2>
+        <p>Current status of your stored data</p>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value"><%= @audio_file_stats[:total_sessions] %></div>
+          <div class="stat-label">Total Sessions</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-value"><%= @audio_file_stats[:sessions_with_audio] %></div>
+          <div class="stat-label">Sessions with Audio</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-value"><%= @audio_file_stats[:sessions_audio_deleted] %></div>
+          <div class="stat-label">Auto-Deleted</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-value"><%= @audio_file_stats[:sessions_processed_deleted] %></div>
+          <div class="stat-label">Processed & Deleted</div>
+        </div>
+      </div>
+
+      <% if @audio_file_stats[:oldest_session] %>
+        <div class="data-timeline">
+          <p>
+            <strong>Account Activity:</strong>
+            Your oldest session was on <%= @audio_file_stats[:oldest_session].strftime("%B %d, %Y") %>
+            <% if @audio_file_stats[:newest_session] %>
+              and your most recent session was on <%= @audio_file_stats[:newest_session].strftime("%B %d, %Y") %>.
+            <% end %>
+          </p>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Retention Preview -->
+    <div class="retention-preview" data-privacy-target="retentionPreview">
+      <% if @user.auto_delete_audio_days %>
+        <div class="info-card info-card-info">
+          <div class="info-icon">📅</div>
+          <div class="info-content">
+            <h4>Current Retention Policy</h4>
+            <p>
+              Audio files are automatically deleted after <strong><%= @user.auto_delete_audio_days %> days</strong>.
+              <% cutoff_date = @user.auto_delete_audio_days.days.ago %>
+              Files older than <%= cutoff_date.strftime("%B %d, %Y") %> will be removed in the next cleanup.
+            </p>
+          </div>
+        </div>
+      <% else %>
+        <div class="info-card info-card-neutral">
+          <div class="info-icon">♾️</div>
+          <div class="info-content">
+            <h4>No Automatic Deletion</h4>
+            <p>Your audio files are kept indefinitely. You can change this setting above for better privacy.</p>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="form-actions">
+      <%= form.submit "Save Privacy Settings", class: "btn btn-primary btn-large" %>
+      
+      <div class="secondary-actions">
+        <%= link_to "Back to Dashboard", root_path, class: "btn btn-secondary" %>
+        
+        <button type="button" class="btn btn-outline" 
+                data-action="click->privacy#exportData">
+          📄 Export My Data
+        </button>
+        
+        <button type="button" class="btn btn-outline btn-danger" 
+                data-action="click->privacy#requestDataDeletion"
+                data-confirm="Are you sure? This will delete all your data permanently.">
+          🗑️ Delete All Data
+        </button>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- GDPR Notice -->
+  <div class="gdpr-notice">
+    <h3>🇪🇺 Data Protection Rights</h3>
+    <p>
+      Under GDPR and similar privacy laws, you have the right to:
+    </p>
+    <ul>
+      <li><strong>Access</strong> - View all data we have about you</li>
+      <li><strong>Rectification</strong> - Correct inaccurate personal data</li>
+      <li><strong>Erasure</strong> - Delete your personal data ("right to be forgotten")</li>
+      <li><strong>Portability</strong> - Export your data in a machine-readable format</li>
+      <li><strong>Restriction</strong> - Limit how we process your data</li>
+    </ul>
+    <p>
+      For any data protection requests or questions, please contact us at 
+      <a href="mailto:privacy@aitalkcoach.com">privacy@aitalkcoach.com</a>
+    </p>
+  </div>
+</div>

@@ -1,0 +1,86 @@
+en:
+  filler_words:
+    - pattern: '\b(um|uh|er|ah)\b'
+      severity: 'medium'
+      description: 'Common filler words that can distract from your message'
+      tip: 'Try pausing instead of using filler words. Silence can be more powerful than "um" or "uh".'
+      
+    - pattern: '\b(like|you know|so|basically|actually)\b'
+      severity: 'low'
+      description: 'Overused casual expressions'
+      tip: 'Vary your vocabulary and reduce repetitive expressions for clearer communication.'
+      
+    - pattern: '\b(kind of|sort of)\b'
+      severity: 'low'
+      description: 'Weak qualifiers that reduce confidence'
+      tip: 'Be more definitive in your statements. Say what you mean directly.'
+      
+  pace_issues:
+    - pattern: 'speaking_rate_below_120'
+      severity: 'medium'
+      description: 'Speaking too slowly may lose audience attention'
+      tip: 'Consider speaking a bit faster to maintain engagement while remaining clear.'
+      
+    - pattern: 'speaking_rate_above_180'
+      severity: 'medium'
+      description: 'Speaking too quickly may be hard to follow'
+      tip: 'Slow down to ensure your audience can process your message effectively.'
+      
+    - pattern: 'long_pause_over_3s'
+      severity: 'low'
+      description: 'Extended pauses may indicate uncertainty'
+      tip: 'Use strategic pauses for emphasis, but avoid lengthy silences that may confuse listeners.'
+      
+  clarity_issues:
+    - pattern: '\b(gonna|wanna|gotta)\b'
+      severity: 'low'
+      description: 'Informal contractions in professional settings'
+      tip: 'Use "going to", "want to", "have to" for clearer professional communication.'
+      
+    - pattern: '(\w)\1{2,}'
+      severity: 'medium'
+      description: 'Repeated sounds or stuttering'
+      tip: 'Take a breath and speak more deliberately to avoid repeated sounds.'
+      
+    - pattern: '\b(I think|I believe|maybe|perhaps|possibly)\s*(I think|I believe|maybe|perhaps|possibly)'
+      severity: 'low'
+      description: 'Multiple uncertainty markers weaken your message'
+      tip: 'Choose one way to express uncertainty, or better yet, state your point confidently.'
+      
+  professional_issues:
+    - pattern: '\b(yeah|yep|nope|nah)\b'
+      severity: 'low'
+      description: 'Very casual responses in professional contexts'
+      tip: 'Use "yes", "no", "certainly", or "absolutely" for more professional communication.'
+      
+    - pattern: '\b(awesome|cool|sick|sweet)\b'
+      severity: 'low'
+      description: 'Very casual positive expressions'
+      tip: 'Try "excellent", "outstanding", "impressive", or "remarkable" for professional settings.'
+      
+    - pattern: '\b(totally|super|really really)\b'
+      severity: 'low'
+      description: 'Intensifiers that may sound unprofessional'
+      tip: 'Use more precise adverbs or let your words speak for themselves.'
+      
+  articulation_issues:
+    - pattern: '\b(dis|dat|dese|dose)\b'
+      severity: 'medium'
+      description: 'Dropped consonant sounds affect clarity'
+      tip: 'Enunciate clearly: "this", "that", "these", "those" for better understanding.'
+      
+    - pattern: '(\w+)in\b'
+      severity: 'low'
+      description: 'Dropped "g" sounds in "-ing" words'
+      tip: 'Complete your "-ing" endings: "running" not "runnin", "going" not "goin".'
+      
+  repetition_issues:
+    - pattern: '(\b\w+\b)(\s+\1){2,}'
+      severity: 'medium'
+      description: 'Repeated words indicate uncertainty or nervousness'
+      tip: 'Take a moment to collect your thoughts before speaking to avoid repetition.'
+      
+    - pattern: '(\b\w{4,}\b).*\1.*\1'
+      severity: 'low'
+      description: 'Overuse of specific words within a short span'
+      tip: 'Vary your vocabulary to keep your speech engaging and professional.'
