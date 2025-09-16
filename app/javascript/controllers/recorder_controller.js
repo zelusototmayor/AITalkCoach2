@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["recordBtn", "status", "statusText", "indicator", "preview", "form", "timer", "progressBar", "videoPreview", "audioPreview", "fileInput", "submitBtn", "countdownDisplay", "durationInput"]
+  static targets = ["recordBtn", "status", "statusText", "indicator", "preview", "form", "timer", "progressBar", "videoPreview", "audioPreview", "fileInput", "submitBtn", "countdownDisplay", "durationInput", "titleInput", "titleError", "titleField", "languageSelect", "languageField", "mediaKindSelect", "mediaKindField"]
   static values = { 
     maxDurationSec: Number, 
     maxFileSizeMb: Number,
@@ -325,6 +325,7 @@ export default class extends Controller {
         if (hasIndicator) this.indicatorTarget.className = "status-indicator ready"
         if (hasSubmitBtn) this.submitBtnTarget.disabled = false
         this.showPreview()
+        this.clearTitleError() // Clear any previous errors
         break
         
       case "error":
@@ -448,8 +449,74 @@ export default class extends Controller {
   }
 
   submitRecording() {
+    // Validate title before submitting
+    if (!this.validateTitle()) {
+      return
+    }
+    
+    // Update hidden form fields with values from the post-recording interface
+    this.updateFormFields()
+    
     if (this.hasSubmitBtnTarget) {
       this.submitBtnTarget.click()
+    }
+  }
+
+  validateTitle() {
+    const title = this.hasTitleInputTarget ? this.titleInputTarget.value.trim() : ''
+    
+    if (!title) {
+      this.showTitleError("You need to insert a title to be able to create a new session.")
+      return false
+    }
+    
+    this.clearTitleError()
+    return true
+  }
+
+  showTitleError(message) {
+    if (this.hasTitleErrorTarget) {
+      this.titleErrorTarget.textContent = message
+      this.titleErrorTarget.style.display = "block"
+    }
+    
+    if (this.hasTitleInputTarget) {
+      this.titleInputTarget.classList.add('error')
+    }
+  }
+
+  clearTitleError() {
+    if (this.hasTitleErrorTarget) {
+      this.titleErrorTarget.style.display = "none"
+      this.titleErrorTarget.textContent = ""
+    }
+    
+    if (this.hasTitleInputTarget) {
+      this.titleInputTarget.classList.remove('error')
+    }
+  }
+
+  updateFormFields() {
+    // Update title field
+    if (this.hasTitleInputTarget && this.hasTitleFieldTarget) {
+      this.titleFieldTarget.value = this.titleInputTarget.value.trim()
+    }
+    
+    // Update language field
+    if (this.hasLanguageSelectTarget && this.hasLanguageFieldTarget) {
+      this.languageFieldTarget.value = this.languageSelectTarget.value
+    }
+    
+    // Update media kind field
+    if (this.hasMediaKindSelectTarget && this.hasMediaKindFieldTarget) {
+      this.mediaKindFieldTarget.value = this.mediaKindSelectTarget.value
+    }
+  }
+
+  replayAudio() {
+    if (this.hasAudioPreviewTarget) {
+      this.audioPreviewTarget.currentTime = 0
+      this.audioPreviewTarget.play()
     }
   }
 

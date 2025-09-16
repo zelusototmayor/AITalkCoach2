@@ -17,7 +17,7 @@
       <!-- Recording Interface - Now Primary -->
       <div class="form-section recording-primary">
         <div class="recording-interface">
-          <div class="recorder-status" data-recorder-target="status">
+          <div class="recorder-status" data-recorder-target="status" style="display: none;">
             <div class="status-indicator" data-recorder-target="indicator"></div>
             <span class="status-text" data-recorder-target="statusText">Ready to record</span>
           </div>
@@ -52,17 +52,52 @@
           </div>
 
           <div class="recording-preview" data-recorder-target="preview" style="display: none;">
-            <video data-recorder-target="videoPreview" style="display: none;" controls></video>
-            <audio data-recorder-target="audioPreview" style="display: none;" controls></audio>
+            <!-- Session Details Form -->
+            <div class="session-details-form">
+              <h3>Session Details</h3>
+              <div class="form-group">
+                <label class="form-label">Title *</label>
+                <input type="text" class="form-input session-title-input" 
+                       placeholder="e.g., Presentation practice, Interview prep"
+                       data-recorder-target="titleInput"
+                       data-action="input->recorder#clearTitleError">
+                <div class="field-error" data-recorder-target="titleError" style="display: none;"></div>
+              </div>
+              
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Language</label>
+                  <select class="form-select" data-recorder-target="languageSelect">
+                    <option value="en">English</option>
+                    <option value="pt">Portuguese</option>
+                    <option value="es">Spanish</option>
+                  </select>
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">Recording Type</label>
+                  <select class="form-select" data-recorder-target="mediaKindSelect">
+                    <option value="audio">Audio Only</option>
+                    <option value="video">Video</option>
+                  </select>
+                </div>
+              </div>
+            </div>
             
+            <!-- Audio Preview -->
+            <div class="audio-preview">
+              <audio data-recorder-target="audioPreview" controls></audio>
+            </div>
+            
+            <!-- Action Buttons -->
             <div class="preview-actions">
-              <button type="button" class="btn btn-secondary"
-                      data-action="click->recorder#retake">
-                🔄 Retake
+              <button type="button" class="btn btn-secondary btn-replay"
+                      data-action="click->recorder#replayAudio">
+                🔄 Replay
               </button>
-              <button type="button" class="btn btn-primary"
+              <button type="button" class="btn btn-primary btn-use-recording"
                       data-action="click->recorder#submitRecording">
-                ✓ Create Session
+                ✓ Use This Recording
               </button>
             </div>
           </div>
@@ -111,47 +146,11 @@
         <input type="hidden" name="selected_prompt_id" data-prompts-target="selectedId">
       </div>
 
-      <!-- Session Configuration - Secondary -->
-      <div class="form-section session-config">
-        <h3>Session Configuration</h3>
-        <div class="form-group">
-          <%= f.label :title, class: "form-label" %>
-          <%= f.text_field :title, class: "form-input", 
-                placeholder: "e.g., Presentation practice, Interview prep" %>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <%= f.label :language, class: "form-label" %>
-            <%= f.select :language, 
-                  options_for_select([
-                    ['English', 'en'],
-                    ['Portuguese', 'pt'],
-                    ['Spanish', 'es']
-                  ], 'en'),
-                  {}, { class: "form-select" } %>
-          </div>
-
-          <div class="form-group">
-            <%= f.label :media_kind, "Recording Type", class: "form-label" %>
-            <%= f.select :media_kind,
-                  options_for_select([
-                    ['Audio Only', 'audio'],
-                    ['Video', 'video']
-                  ], 'audio'),
-                  {}, { 
-                    class: "form-select",
-                    data: { 
-                      recorder_target: "mediaKindSelect",
-                      action: "change->recorder#updateMediaKind"
-                    }
-                  } %>
-          </div>
-        </div>
-        
-        <!-- Hidden duration field -->
-        <%= f.hidden_field :target_seconds, value: 60, data: { recorder_target: "durationInput" } %>
-      </div>
+      <!-- Hidden form fields -->
+      <%= f.hidden_field :title, data: { recorder_target: "titleField" } %>
+      <%= f.hidden_field :language, value: "en", data: { recorder_target: "languageField" } %>
+      <%= f.hidden_field :media_kind, value: "audio", data: { recorder_target: "mediaKindField" } %>
+      <%= f.hidden_field :target_seconds, value: 60, data: { recorder_target: "durationInput" } %>
 
       <div class="form-actions">
         <% if @session.errors.any? %>
