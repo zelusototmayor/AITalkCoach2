@@ -17,14 +17,8 @@
       <!-- Recording Interface - Now Primary -->
       <div class="form-section recording-primary">
         <div class="recording-interface">
-          <div class="recorder-status" data-recorder-target="status" style="display: none;">
-            <div class="status-indicator" data-recorder-target="indicator"></div>
-            <span class="status-text" data-recorder-target="statusText">Ready to record</span>
-          </div>
-
           <!-- Duration Presets -->
           <div class="duration-presets">
-            <h3>Select Duration</h3>
             <div class="preset-buttons">
               <button type="button" class="preset-btn" data-duration="30" data-action="click->recorder#selectDuration">30s</button>
               <button type="button" class="preset-btn" data-duration="45" data-action="click->recorder#selectDuration">45s</button>
@@ -51,6 +45,7 @@
             </div>
           </div>
 
+          <!-- Post-Recording Interface -->
           <div class="recording-preview" data-recorder-target="preview" style="display: none;">
             <!-- Session Details Form -->
             <div class="session-details-form">
@@ -146,11 +141,47 @@
         <input type="hidden" name="selected_prompt_id" data-prompts-target="selectedId">
       </div>
 
-      <!-- Hidden form fields -->
-      <%= f.hidden_field :title, data: { recorder_target: "titleField" } %>
-      <%= f.hidden_field :language, value: "en", data: { recorder_target: "languageField" } %>
-      <%= f.hidden_field :media_kind, value: "audio", data: { recorder_target: "mediaKindField" } %>
-      <%= f.hidden_field :target_seconds, value: 60, data: { recorder_target: "durationInput" } %>
+      <!-- Session Configuration - Secondary -->
+      <div class="form-section session-config">
+        <h3>Session Configuration</h3>
+        <div class="form-group">
+          <%= f.label :title, class: "form-label" %>
+          <%= f.text_field :title, class: "form-input", 
+                placeholder: "e.g., Presentation practice, Interview prep" %>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <%= f.label :language, class: "form-label" %>
+            <%= f.select :language, 
+                  options_for_select([
+                    ['English', 'en'],
+                    ['Portuguese', 'pt'],
+                    ['Spanish', 'es']
+                  ], 'en'),
+                  {}, { class: "form-select" } %>
+          </div>
+
+          <div class="form-group">
+            <%= f.label :media_kind, "Recording Type", class: "form-label" %>
+            <%= f.select :media_kind,
+                  options_for_select([
+                    ['Audio Only', 'audio'],
+                    ['Video', 'video']
+                  ], 'audio'),
+                  {}, { 
+                    class: "form-select",
+                    data: { 
+                      recorder_target: "mediaKindSelect",
+                      action: "change->recorder#updateMediaKind"
+                    }
+                  } %>
+          </div>
+        </div>
+        
+        <!-- Hidden duration field -->
+        <%= f.hidden_field :target_seconds, value: 60, data: { recorder_target: "durationInput" } %>
+      </div>
 
       <div class="form-actions">
         <% if @session.errors.any? %>

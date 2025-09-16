@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["recordBtn", "status", "statusText", "indicator", "preview", "form", "timer", "progressBar", "videoPreview", "audioPreview", "fileInput", "submitBtn", "countdownDisplay", "durationInput", "titleInput", "titleError", "titleField", "languageSelect", "languageField", "mediaKindSelect", "mediaKindField"]
+  static targets = ["recordBtn", "status", "statusText", "indicator", "preview", "form", "timer", "progressBar", "videoPreview", "audioPreview", "fileInput", "submitBtn", "countdownDisplay", "durationInput", "titleInput", "titleError", "languageSelect", "mediaKindSelect"]
   static values = { 
     maxDurationSec: Number, 
     maxFileSizeMb: Number,
@@ -325,7 +325,6 @@ export default class extends Controller {
         if (hasIndicator) this.indicatorTarget.className = "status-indicator ready"
         if (hasSubmitBtn) this.submitBtnTarget.disabled = false
         this.showPreview()
-        this.clearTitleError() // Clear any previous errors
         break
         
       case "error":
@@ -498,18 +497,26 @@ export default class extends Controller {
 
   updateFormFields() {
     // Update title field
-    if (this.hasTitleInputTarget && this.hasTitleFieldTarget) {
-      this.titleFieldTarget.value = this.titleInputTarget.value.trim()
+    const titleInput = this.hasTitleInputTarget ? this.titleInputTarget.value.trim() : ''
+    const titleField = this.formTarget.querySelector('input[name="session[title]"]')
+    if (titleField) {
+      titleField.value = titleInput
     }
     
     // Update language field
-    if (this.hasLanguageSelectTarget && this.hasLanguageFieldTarget) {
-      this.languageFieldTarget.value = this.languageSelectTarget.value
+    if (this.hasLanguageSelectTarget) {
+      const languageField = this.formTarget.querySelector('select[name="session[language]"]')
+      if (languageField) {
+        languageField.value = this.languageSelectTarget.value
+      }
     }
     
     // Update media kind field
-    if (this.hasMediaKindSelectTarget && this.hasMediaKindFieldTarget) {
-      this.mediaKindFieldTarget.value = this.mediaKindSelectTarget.value
+    if (this.hasMediaKindSelectTarget) {
+      const mediaKindField = this.formTarget.querySelector('select[name="session[media_kind]"]')
+      if (mediaKindField) {
+        mediaKindField.value = this.mediaKindSelectTarget.value
+      }
     }
   }
 
