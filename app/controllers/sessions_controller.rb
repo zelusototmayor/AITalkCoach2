@@ -34,7 +34,32 @@ class SessionsController < ApplicationController
   
   def show
     @issues = @session.issues.order(:start_ms)
-    # User sessions will be loaded via AJAX for better performance
+
+    # Prepare sessions data for insights controller
+    @user_sessions = @current_user.sessions
+                                  .where(completed: true)
+                                  .where('created_at > ?', 90.days.ago)
+                                  .order(created_at: :desc)
+                                  .limit(50)
+                                  .includes(:issues)
+                                  .map do |session|
+      {
+        id: session.id,
+        created_at: session.created_at,
+        analysis_data: session.analysis_data || {},
+        duration: session.analysis_data&.dig('duration_seconds') || 0,
+        metrics: {
+          clarity_score: session.analysis_data&.dig('clarity_score'),
+          wpm: session.analysis_data&.dig('wpm'),
+          filler_rate: session.analysis_data&.dig('filler_rate'),
+          pace_consistency: session.analysis_data&.dig('pace_consistency'),
+          volume_consistency: session.analysis_data&.dig('speech_to_silence_ratio'),
+          engagement_score: session.analysis_data&.dig('engagement_score'),
+          fluency_score: session.analysis_data&.dig('fluency_score'),
+          overall_score: session.analysis_data&.dig('overall_score')
+        }
+      }
+    end
   end
   
   def destroy

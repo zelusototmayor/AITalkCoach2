@@ -127,6 +127,8 @@ module Stt
         'audio/flac'
       when '.ogg'
         'audio/ogg'
+      when '.webm'
+        'audio/webm'
       else
         'audio/wav' # Default fallback
       end

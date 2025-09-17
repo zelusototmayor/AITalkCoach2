@@ -22,11 +22,13 @@ export default class extends Controller {
     this.sparklineWidth = 100
     this.colors = {
       clarity_score: '#10b981',
-      wpm: '#3b82f6', 
+      wpm: '#3b82f6',
       filler_rate: '#ef4444',
       pace_consistency: '#8b5cf6',
       volume_consistency: '#f59e0b',
-      engagement_score: '#ec4899'
+      engagement_score: '#ec4899',
+      fluency_score: '#06b6d4',
+      overall_score: '#6366f1'
     }
   }
 
@@ -69,7 +71,7 @@ export default class extends Controller {
     )
 
     const groupedData = {}
-    const metricKeys = ['clarity_score', 'wpm', 'filler_rate', 'pace_consistency', 'volume_consistency', 'engagement_score']
+    const metricKeys = ['clarity_score', 'wpm', 'filler_rate', 'pace_consistency', 'volume_consistency', 'engagement_score', 'fluency_score', 'overall_score']
     
     metricKeys.forEach(metric => {
       groupedData[metric] = this.createTimeSeriesData(filteredSessions, metric, timeframeDays)
@@ -121,8 +123,31 @@ export default class extends Controller {
   }
 
   getMetricValue(session, metric) {
+    // First try the flat structure that we now store in analysis_data
+    if (session.analysis_data) {
+      switch (metric) {
+        case 'clarity_score':
+          return session.analysis_data.clarity_score
+        case 'wpm':
+          return session.analysis_data.wpm
+        case 'filler_rate':
+          return session.analysis_data.filler_rate
+        case 'pace_consistency':
+          return session.analysis_data.pace_consistency
+        case 'volume_consistency':
+          return session.analysis_data.volume_consistency || session.analysis_data.speech_to_silence_ratio
+        case 'engagement_score':
+          return session.analysis_data.engagement_score
+        case 'fluency_score':
+          return session.analysis_data.fluency_score
+        case 'overall_score':
+          return session.analysis_data.overall_score
+      }
+    }
+
+    // Fallback to nested metrics structure
     if (!session.metrics) return null
-    
+
     switch (metric) {
       case 'clarity_score':
         return session.metrics.clarity_score
@@ -433,7 +458,9 @@ export default class extends Controller {
       filler_rate: 'Filler Rate',
       pace_consistency: 'Pace',
       volume_consistency: 'Volume',
-      engagement_score: 'Engagement'
+      engagement_score: 'Engagement',
+      fluency_score: 'Fluency',
+      overall_score: 'Overall Score'
     }
     return names[metric] || metric
   }
@@ -489,6 +516,8 @@ export default class extends Controller {
       case 'pace_consistency':
       case 'volume_consistency':
       case 'engagement_score':
+      case 'fluency_score':
+      case 'overall_score':
         return (value * 100).toFixed(0) + '%'
       case 'wpm':
         return Math.round(value)

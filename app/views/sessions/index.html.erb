@@ -75,7 +75,7 @@
                   <span class="issue-count"><%= session.issues.count %> issues found</span>
                   <div class="issue-types">
                     <% session.issues.group(:category).count.each do |category, count| %>
-                      <span class="issue-tag"><%= category.humanize %> (<%= count %>)</span>
+                      <span class="issue-tag"><%= (category.present? ? category.humanize : 'Uncategorized') %> (<%= count %>)</span>
                     <% end %>
                   </div>
                 </div>

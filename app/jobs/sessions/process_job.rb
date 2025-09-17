@@ -15,12 +15,13 @@ module Sessions
       @session = Session.find(session_id)
       @options = options.with_indifferent_access
       @start_time = Time.current
-      
-      Rails.logger.info "Starting speech analysis for session #{session_id}"
-      
+
+      Rails.logger.info "Starting speech analysis for session #{session_id} - Job execution confirmed"
+
       begin
-        # Update session state
+        # Update session state and record job execution time
         update_session_state('processing', nil)
+        @session.update_column(:updated_at, Time.current) # Heartbeat for monitoring
         
         # Execute the analysis pipeline
         @pipeline_result = execute_analysis_pipeline
@@ -145,15 +146,14 @@ module Sessions
         media_data[:file_path],
         transcription_options
       )
-      
-      unless transcription_result[:success]
-        raise TranscriptionError, "Transcription failed: #{transcription_result[:error]}"
-      end
-      
+
       # Validate transcription quality
-      validate_transcription_quality(transcription_result[:data])
-      
-      transcription_result[:data]
+      validate_transcription_quality(transcription_result)
+
+      # Store transcript immediately after successful transcription
+      @session.update!(analysis_data: { 'transcript' => transcription_result[:transcript] })
+
+      transcription_result
     end
     
     def analyze_with_rules(transcript_data)
@@ -267,9 +267,7 @@ module Sessions
           rationale: issue_data[:rationale],
           tip: issue_data[:tip],
           severity: issue_data[:severity],
-          pattern: issue_data[:pattern],
-          category: issue_data[:category],
-          metadata: extract_issue_metadata(issue_data)
+          category: issue_data[:category]
         }
         
         Issue.create!(issue_attributes)
@@ -277,11 +275,61 @@ module Sessions
     end
     
     def finalize_session(pipeline_result)
-      # Build comprehensive analysis data
+      # Extract metrics for easier UI access
+      metrics = pipeline_result[:metrics] || {}
+      speaking_metrics = metrics[:speaking_metrics] || {}
+      clarity_metrics = metrics[:clarity_metrics] || {}
+      fluency_metrics = metrics[:fluency_metrics] || {}
+      engagement_metrics = metrics[:engagement_metrics] || {}
+      overall_scores = metrics[:overall_scores] || {}
+      basic_metrics = metrics[:basic_metrics] || {}
+
+      # Build comprehensive analysis data with both nested and flat structure for UI compatibility
       analysis_data = {
+        # Original transcript
         transcript: pipeline_result.dig(:transcription, :transcript),
         processing_state: 'completed',
-        overall_score: pipeline_result.dig(:metrics, :overall_scores, :overall_score) || 0,
+
+        # Flat structure for UI compatibility (existing UI expects these)
+        wpm: speaking_metrics[:words_per_minute],
+        filler_rate: clarity_metrics.dig(:filler_metrics, :filler_rate_percentage) ?
+          clarity_metrics.dig(:filler_metrics, :filler_rate_percentage) / 100.0 : nil,
+        clarity_score: clarity_metrics[:clarity_score] ? clarity_metrics[:clarity_score] / 100.0 : nil,
+        overall_score: overall_scores[:overall_score] || 0,
+
+        # Additional flat metrics for enhanced UI display
+        fluency_score: fluency_metrics[:fluency_score],
+        engagement_score: engagement_metrics[:engagement_score],
+        pace_consistency: speaking_metrics[:pace_consistency],
+        speaking_rate_assessment: speaking_metrics[:speaking_rate_assessment],
+        effective_wpm: speaking_metrics[:effective_words_per_minute],
+        speech_to_silence_ratio: speaking_metrics[:speech_to_silence_ratio],
+
+        # Duration and timing metrics
+        duration_ms: basic_metrics[:duration_ms],
+        duration_seconds: basic_metrics[:duration_seconds],
+        speaking_time_ms: basic_metrics[:speaking_time_ms],
+        pause_time_ms: basic_metrics[:pause_time_ms],
+        word_count: basic_metrics[:word_count],
+
+        # Pause analysis
+        average_pause_ms: clarity_metrics.dig(:pause_metrics, :average_pause_ms),
+        longest_pause_ms: clarity_metrics.dig(:pause_metrics, :longest_pause_ms),
+        long_pause_count: clarity_metrics.dig(:pause_metrics, :long_pause_count),
+        pause_quality_score: clarity_metrics.dig(:pause_metrics, :pause_quality_score),
+
+        # Filler word details
+        total_filler_count: clarity_metrics.dig(:filler_metrics, :total_filler_count),
+        filler_rate_per_minute: clarity_metrics.dig(:filler_metrics, :filler_rate_per_minute),
+        filler_breakdown: clarity_metrics.dig(:filler_metrics, :filler_breakdown),
+
+        # Overall assessment
+        grade: overall_scores[:grade],
+        component_scores: overall_scores[:component_scores],
+        strengths: overall_scores[:strengths],
+        areas_for_improvement: overall_scores[:areas_for_improvement],
+
+        # Complete nested structure for advanced features
         metrics: pipeline_result[:metrics],
         pipeline_metadata: pipeline_result[:processing_metadata],
         ai_insights: pipeline_result.dig(:ai_refinement, :ai_insights) || [],

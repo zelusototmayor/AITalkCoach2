@@ -15,7 +15,7 @@ module Ai
     DEFAULT_CACHE_TTL = 7.days
     BATCH_SIZE = 100 # Process embeddings in batches
     
-    def initialize(model: DEFAULT_MODEL, options = {})
+    def initialize(model: DEFAULT_MODEL, options: {})
       @model = model
       @options = options
       @ai_client = Client.new
