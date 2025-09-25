@@ -275,6 +275,9 @@ module Sessions
     end
     
     def finalize_session(pipeline_result)
+      # Check duration compliance for enforced sessions
+      validate_minimum_duration_compliance(pipeline_result)
+
       # Extract metrics for easier UI access
       metrics = pipeline_result[:metrics] || {}
       speaking_metrics = metrics[:speaking_metrics] || {}
@@ -284,52 +287,39 @@ module Sessions
       overall_scores = metrics[:overall_scores] || {}
       basic_metrics = metrics[:basic_metrics] || {}
 
-      # Build comprehensive analysis data with both nested and flat structure for UI compatibility
+      # Build streamlined analysis data - store complete metrics, use accessors for flat data
       analysis_data = {
-        # Original transcript
+        # Core data
         transcript: pipeline_result.dig(:transcription, :transcript),
         processing_state: 'completed',
 
-        # Flat structure for UI compatibility (existing UI expects these)
+        # Essential flat metrics for UI compatibility
         wpm: speaking_metrics[:words_per_minute],
-        filler_rate: clarity_metrics.dig(:filler_metrics, :filler_rate_percentage) ?
-          clarity_metrics.dig(:filler_metrics, :filler_rate_percentage) / 100.0 : nil,
-        clarity_score: clarity_metrics[:clarity_score] ? clarity_metrics[:clarity_score] / 100.0 : nil,
-        overall_score: overall_scores[:overall_score] || 0,
+        filler_rate: clarity_metrics.dig(:filler_metrics, :filler_rate_decimal), # Already stored as decimal (0.01 = 1%)
+        clarity_score: clarity_metrics[:clarity_score] || 0, # Already stored as decimal (0.85 = 85%)
+        fluency_score: fluency_metrics[:fluency_score] || 0, # Already stored as decimal
+        engagement_score: engagement_metrics[:engagement_score] || 0, # Already stored as decimal
+        pace_consistency: speaking_metrics[:pace_consistency] || 0, # Already stored as decimal
+        overall_score: overall_scores[:overall_score] || 0, # Already stored as decimal
 
-        # Additional flat metrics for enhanced UI display
-        fluency_score: fluency_metrics[:fluency_score],
-        engagement_score: engagement_metrics[:engagement_score],
-        pace_consistency: speaking_metrics[:pace_consistency],
-        speaking_rate_assessment: speaking_metrics[:speaking_rate_assessment],
-        effective_wpm: speaking_metrics[:effective_words_per_minute],
-        speech_to_silence_ratio: speaking_metrics[:speech_to_silence_ratio],
-
-        # Duration and timing metrics
-        duration_ms: basic_metrics[:duration_ms],
+        # Timing essentials
         duration_seconds: basic_metrics[:duration_seconds],
         speaking_time_ms: basic_metrics[:speaking_time_ms],
         pause_time_ms: basic_metrics[:pause_time_ms],
-        word_count: basic_metrics[:word_count],
 
-        # Pause analysis
+        # Key pause metrics
         average_pause_ms: clarity_metrics.dig(:pause_metrics, :average_pause_ms),
         longest_pause_ms: clarity_metrics.dig(:pause_metrics, :longest_pause_ms),
         long_pause_count: clarity_metrics.dig(:pause_metrics, :long_pause_count),
         pause_quality_score: clarity_metrics.dig(:pause_metrics, :pause_quality_score),
 
-        # Filler word details
-        total_filler_count: clarity_metrics.dig(:filler_metrics, :total_filler_count),
-        filler_rate_per_minute: clarity_metrics.dig(:filler_metrics, :filler_rate_per_minute),
-        filler_breakdown: clarity_metrics.dig(:filler_metrics, :filler_breakdown),
-
-        # Overall assessment
+        # Assessment results
         grade: overall_scores[:grade],
         component_scores: overall_scores[:component_scores],
         strengths: overall_scores[:strengths],
         areas_for_improvement: overall_scores[:areas_for_improvement],
 
-        # Complete nested structure for advanced features
+        # Complete structured data for advanced features
         metrics: pipeline_result[:metrics],
         pipeline_metadata: pipeline_result[:processing_metadata],
         ai_insights: pipeline_result.dig(:ai_refinement, :ai_insights) || [],
@@ -603,9 +593,38 @@ module Sessions
       end
     end
     
+    def validate_minimum_duration_compliance(pipeline_result)
+      return unless @session.minimum_duration_enforced?
+      return unless @session.target_seconds.present?
+
+      # Get actual duration from the processed audio
+      actual_duration_seconds = pipeline_result.dig(:metrics, :basic_metrics, :duration_seconds) ||
+                               pipeline_result.dig(:media_extraction, :duration) || 0
+
+      target_duration_seconds = @session.target_seconds
+
+      # Check if session meets minimum duration requirement (allow 5 second tolerance)
+      if actual_duration_seconds < (target_duration_seconds - 5)
+        shortfall_seconds = target_duration_seconds - actual_duration_seconds
+
+        Rails.logger.warn "Session #{@session.id} incomplete: #{actual_duration_seconds}s vs required #{target_duration_seconds}s"
+
+        # Mark session as incomplete with specific reason
+        @session.update!(
+          completed: false,
+          incomplete_reason: "Session stopped early. Recorded #{actual_duration_seconds.round}s of #{target_duration_seconds}s required (#{shortfall_seconds.round}s short)."
+        )
+
+        # Still allow processing to complete so user gets partial feedback
+        Rails.logger.info "Continuing analysis for incomplete session #{@session.id} to provide partial feedback"
+      else
+        Rails.logger.info "Session #{@session.id} meets duration requirement: #{actual_duration_seconds}s >= #{target_duration_seconds}s"
+      end
+    end
+
     def cleanup_temp_files(pipeline_result)
       return unless pipeline_result&.dig(:media_extraction, :temp_file_ref)
-      
+
       begin
         temp_file = pipeline_result[:media_extraction][:temp_file_ref]
         if temp_file.respond_to?(:close!) && temp_file.respond_to?(:unlink)

@@ -1,0 +1,83 @@
+<% content_for :title, "History" %>
+
+<div class="history-page" data-controller="session-history"
+     data-session-history-auto-refresh-value="true"
+     data-session-history-refresh-interval-value="30000">
+
+  <!-- Breadcrumbs -->
+  <nav class="breadcrumbs" aria-label="Breadcrumb">
+    <%= link_to root_path, class: "breadcrumb-link" do %>
+      <span class="breadcrumb-icon">🎤</span> Practice
+    <% end %>
+    <span class="breadcrumb-separator">›</span>
+    <span class="breadcrumb-current">History</span>
+  </nav>
+
+  <!-- Header with subtle styling -->
+  <div class="history-header">
+    <h1>History</h1>
+    <p class="history-subtitle">Track your progress across all practice sessions</p>
+  </div>
+
+  <!-- Stats Overview -->
+  <div class="stats-overview">
+    <div class="stat-card">
+      <div class="stat-label">TOTAL SESSIONS</div>
+      <div class="stat-value"><%= @current_user.sessions.count %></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">COMPLETED</div>
+      <div class="stat-value"><%= @current_user.sessions.where(processing_state: 'completed').count %></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">THIS WEEK</div>
+      <div class="stat-value"><%= @current_user.sessions.where('created_at >= ?', 1.week.ago).count %></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">AVG WPM</div>
+      <div class="stat-value">
+        <%
+          completed_sessions = @current_user.sessions.completed.where.not(analysis_json: [nil, ''])
+          wpm_values = completed_sessions.map { |s| s.analysis_data['wpm']&.to_f }.compact
+          avg_wpm = wpm_values.any? ? (wpm_values.sum / wpm_values.size) : 0
+        %>
+        <%= avg_wpm.round %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sessions Sections -->
+  <% if @sessions.any? %>
+    <% sessions_today = @sessions.select { |s| s.created_at.to_date == Date.current } %>
+    <% sessions_this_month = @sessions.select { |s| s.created_at.to_date >= Date.current.beginning_of_month && s.created_at.to_date < Date.current } %>
+
+    <% if sessions_today.any? %>
+      <div class="sessions-section">
+        <h2 class="section-title">Today</h2>
+        <div class="sessions-row">
+          <% sessions_today.each do |session| %>
+            <%= render 'session_card_modern', session: session %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <% if sessions_this_month.any? %>
+      <div class="sessions-section">
+        <h2 class="section-title">This Month</h2>
+        <div class="sessions-row">
+          <% sessions_this_month.each do |session| %>
+            <%= render 'session_card_modern', session: session %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  <% else %>
+    <div class="empty-state">
+      <div class="empty-icon">🎤</div>
+      <h2>No sessions yet</h2>
+      <p>Start your first recording session to get AI-powered speech feedback.</p>
+      <%= link_to "← Back to Practice", root_path, class: "btn btn-primary btn-lg" %>
+    </div>
+  <% end %>
+</div>

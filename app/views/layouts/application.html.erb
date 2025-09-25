@@ -99,23 +99,23 @@
         <div class="nav-menu" id="nav-menu" data-navigation-target="menu">
           <ul class="nav-links" role="menubar">
             <li class="nav-item" role="none">
-              <%= link_to sessions_path, 
-                    class: "nav-link #{'active' if current_page?(sessions_path)}",
+              <%= link_to root_path,
+                    class: "nav-link #{'active' if current_page?(root_path)}",
                     role: "menuitem",
-                    "aria-current": (current_page?(sessions_path) ? "page" : nil),
+                    "aria-current": (current_page?(root_path) ? "page" : nil),
                     data: { action: "click->navigation#closeMenu" } do %>
-                <span class="nav-icon" aria-hidden="true">📊</span>
-                <span class="nav-text">Sessions</span>
+                <span class="nav-icon" aria-hidden="true">🎤</span>
+                <span class="nav-text">Practice</span>
               <% end %>
             </li>
             <li class="nav-item" role="none">
-              <%= link_to new_session_path, 
-                    class: "nav-link #{'active' if current_page?(new_session_path)}",
+              <%= link_to history_sessions_path,
+                    class: "nav-link #{'active' if current_page?(history_sessions_path)}",
                     role: "menuitem",
-                    "aria-current": (current_page?(new_session_path) ? "page" : nil),
+                    "aria-current": (current_page?(history_sessions_path) ? "page" : nil),
                     data: { action: "click->navigation#closeMenu" } do %>
-                <span class="nav-icon" aria-hidden="true">🎤</span>
-                <span class="nav-text">Record</span>
+                <span class="nav-icon" aria-hidden="true">📊</span>
+                <span class="nav-text">History</span>
               <% end %>
             </li>
             <li class="nav-item" role="none">

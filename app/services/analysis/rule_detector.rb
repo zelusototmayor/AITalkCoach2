@@ -35,21 +35,6 @@ module Analysis
       issues.sort_by { |issue| issue[:start_ms] }
     end
     
-    def calculate_metrics
-      full_transcript = extract_full_transcript
-      words = extract_words
-      duration_ms = @transcript_data[:metadata][:duration] * 1000
-      
-      {
-        word_count: words.length,
-        duration_ms: duration_ms.to_i,
-        speaking_rate_wpm: calculate_speaking_rate(words, duration_ms),
-        filler_word_rate: calculate_filler_rate(full_transcript, words.length),
-        average_pause_duration: calculate_average_pause_duration,
-        longest_pause_duration: calculate_longest_pause_duration,
-        clarity_score: calculate_clarity_score
-      }
-    end
     
     private
     
@@ -133,39 +118,45 @@ module Analysis
     end
     
     def detect_slow_speaking_rate(rule, category)
-      metrics = calculate_metrics
-      
-      if metrics[:speaking_rate_wpm] < 120
+      words = extract_words
+      duration_ms = @transcript_data[:metadata][:duration] * 1000
+      speaking_rate = calculate_speaking_rate(words, duration_ms)
+
+      if speaking_rate < Analysis::Metrics::SLOW_WPM_THRESHOLD
         [{
           kind: 'pace_too_slow',
           start_ms: 0,
-          end_ms: metrics[:duration_ms],
+          end_ms: duration_ms.to_i,
           text: extract_full_transcript[0..100] + '...',
           source: 'rule',
           rationale: rule[:description],
           tip: rule[:tip],
           severity: rule[:severity],
-          speaking_rate: metrics[:speaking_rate_wpm]
+          category: category,
+          speaking_rate: speaking_rate
         }]
       else
         []
       end
     end
-    
+
     def detect_fast_speaking_rate(rule, category)
-      metrics = calculate_metrics
-      
-      if metrics[:speaking_rate_wpm] > 180
+      words = extract_words
+      duration_ms = @transcript_data[:metadata][:duration] * 1000
+      speaking_rate = calculate_speaking_rate(words, duration_ms)
+
+      if speaking_rate > Analysis::Metrics::FAST_WPM_THRESHOLD
         [{
           kind: 'pace_too_fast',
           start_ms: 0,
-          end_ms: metrics[:duration_ms],
+          end_ms: duration_ms.to_i,
           text: extract_full_transcript[0..100] + '...',
           source: 'rule',
           rationale: rule[:description],
           tip: rule[:tip],
           severity: rule[:severity],
-          speaking_rate: metrics[:speaking_rate_wpm]
+          category: category,
+          speaking_rate: speaking_rate
         }]
       else
         []
@@ -189,6 +180,7 @@ module Analysis
             rationale: rule[:description],
             tip: rule[:tip],
             severity: rule[:severity],
+            category: category,
             pause_duration_ms: pause_duration_ms
           }
           
@@ -269,61 +261,14 @@ module Analysis
     
     def calculate_speaking_rate(words, duration_ms)
       return 0 if words.empty? || duration_ms <= 0
-      
-      duration_minutes = duration_ms / 60_000.0
-      words.length / duration_minutes
+
+      # Use speaking time instead of total duration for more accurate assessment
+      speaking_time_ms = words.sum { |word| word[:end] - word[:start] }
+      return 0 if speaking_time_ms <= 0
+
+      speaking_minutes = speaking_time_ms / 60_000.0
+      words.length / speaking_minutes
     end
     
-    def calculate_filler_rate(transcript, word_count)
-      return 0 if word_count == 0
-      
-      filler_patterns = @rules['filler_words'] || []
-      total_fillers = 0
-      
-      filler_patterns.each do |rule|
-        next unless rule[:regex].is_a?(Regexp)
-        matches = transcript.scan(rule[:regex])
-        total_fillers += matches.length
-      end
-      
-      (total_fillers.to_f / word_count) * 100
-    end
-    
-    def calculate_average_pause_duration
-      words = extract_words
-      return 0 if words.length < 2
-      
-      pauses = []
-      words.each_cons(2) do |current, next_word|
-        pause_ms = next_word[:start] - current[:end]
-        pauses << pause_ms if pause_ms > 100 # Ignore very short gaps
-      end
-      
-      pauses.empty? ? 0 : pauses.sum / pauses.length
-    end
-    
-    def calculate_longest_pause_duration
-      words = extract_words
-      return 0 if words.length < 2
-      
-      longest_pause = 0
-      words.each_cons(2) do |current, next_word|
-        pause_ms = next_word[:start] - current[:end]
-        longest_pause = [longest_pause, pause_ms].max
-      end
-      
-      longest_pause
-    end
-    
-    def calculate_clarity_score
-      # Basic clarity score based on detected issues
-      total_issues = @detected_issues.length
-      issue_penalty = total_issues * 5
-      
-      base_score = 100
-      clarity_score = [base_score - issue_penalty, 0].max
-      
-      clarity_score
-    end
   end
 end

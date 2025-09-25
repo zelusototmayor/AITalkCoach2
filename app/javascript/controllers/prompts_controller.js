@@ -2,8 +2,9 @@ import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   static targets = [
-    "category", "prompt", "selected", "shuffle", "filter", "search", 
-    "favorite", "difficulty", "tags", "timer", "practiceMode", "selectedId"
+    "category", "prompt", "selected", "shuffle", "filter", "search",
+    "favorite", "difficulty", "tags", "timer", "practiceMode", "selectedId",
+    "display", "content", "library", "targetTime"
   ]
   static values = { 
     selectedPrompt: Object,
@@ -285,6 +286,86 @@ export default class extends Controller {
         </div>
       </div>
     `
+
+    // Update practice interface display if present
+    this.updatePracticeDisplay()
+  }
+
+  updatePracticeDisplay() {
+    if (!this.hasContentTarget || !this.selectedPromptValue) return
+
+    this.contentTarget.innerHTML = `<p>${this.selectedPromptValue.text}</p>`
+
+    // Update target time display if present
+    if (this.hasTargetTimeTarget) {
+      const targetSeconds = this.selectedPromptValue.estimatedTime || this.selectedPromptValue.target_seconds || 60
+      this.targetTimeTarget.innerHTML = `⏱️ ~${targetSeconds}s`
+    }
+  }
+
+  usePrompt(event) {
+    const promptText = event.target.dataset.prompt
+    if (!promptText) return
+
+    // Try to find the full prompt data to get the target time
+    let estimatedTime = 60
+    const promptElement = event.target.closest('.prompt-item')
+
+    // Look for the prompt in our data
+    if (this.promptsValue && typeof this.promptsValue === 'object') {
+      for (const [category, categoryPrompts] of Object.entries(this.promptsValue)) {
+        if (Array.isArray(categoryPrompts)) {
+          const foundPrompt = categoryPrompts.find(p =>
+            (typeof p === 'string' && p === promptText) ||
+            (typeof p === 'object' && p.prompt === promptText)
+          )
+          if (foundPrompt && typeof foundPrompt === 'object') {
+            estimatedTime = foundPrompt.target_seconds || 60
+            break
+          }
+        }
+      }
+    }
+
+    // Create a simple prompt object
+    const prompt = {
+      id: Date.now(),
+      text: promptText,
+      category: promptElement?.dataset.category || 'general',
+      difficulty: 'medium',
+      estimatedTime: estimatedTime
+    }
+
+    this.selectedPromptValue = prompt
+    this.updatePracticeDisplay()
+
+    this.dispatch('prompt-selected', {
+      detail: { prompt },
+      bubbles: true
+    })
+  }
+
+  selectCategory(event) {
+    const category = event.target.dataset.category
+
+    // Update active tab
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.classList.remove('active')
+    })
+    event.target.classList.add('active')
+
+    // Filter prompt items
+    if (this.hasLibraryTarget) {
+      const promptItems = this.libraryTarget.querySelectorAll('.prompt-item')
+      promptItems.forEach(item => {
+        const itemCategory = item.dataset.category
+        if (category === 'any' || itemCategory === category) {
+          item.style.display = 'block'
+        } else {
+          item.style.display = 'none'
+        }
+      })
+    }
   }
 
   clearSelection() {
@@ -298,30 +379,78 @@ export default class extends Controller {
   }
 
   shufflePrompt() {
-    let availablePrompts = this.filteredPrompts.filter(p => !this.usedPrompts.has(p.id))
-    
-    if (availablePrompts.length === 0) {
-      this.resetUsedPrompts()
-      availablePrompts = this.filteredPrompts
-    }
+    // For the new practice interface, shuffle from all available prompts
+    const allPrompts = this.getAllAvailablePrompts()
 
-    if (availablePrompts.length === 0) {
+    if (allPrompts.length === 0) {
       console.warn('No prompts available to shuffle')
       return
     }
 
-    const randomIndex = Math.floor(Math.random() * availablePrompts.length)
-    const prompt = availablePrompts[randomIndex]
-    
+    const randomIndex = Math.floor(Math.random() * allPrompts.length)
+    const selectedPrompt = allPrompts[randomIndex]
+
+    // Create a normalized prompt object
+    const prompt = {
+      id: Date.now(),
+      text: selectedPrompt.text || selectedPrompt,
+      category: selectedPrompt.category || 'general',
+      difficulty: selectedPrompt.difficulty || 'medium',
+      estimatedTime: selectedPrompt.estimatedTime || 60
+    }
+
     this.selectedPromptValue = prompt
-    this.markPromptAsUsed(prompt)
-    this.renderPrompts()
-    this.updateSelectedDisplay()
-    
+    this.updatePracticeDisplay()
+
     this.dispatch('prompt-shuffled', {
       detail: { prompt },
       bubbles: true
     })
+  }
+
+  getAllAvailablePrompts() {
+    const prompts = []
+
+    // Add prompts from the main prompts data
+    if (this.promptsValue && typeof this.promptsValue === 'object') {
+      for (const [category, categoryPrompts] of Object.entries(this.promptsValue)) {
+        if (Array.isArray(categoryPrompts)) {
+          categoryPrompts.forEach(prompt => {
+            prompts.push({
+              text: typeof prompt === 'string' ? prompt : prompt.prompt || prompt.text,
+              category: category,
+              difficulty: prompt.difficulty || 'medium',
+              estimatedTime: prompt.target_seconds || 60
+            })
+          })
+        }
+      }
+    }
+
+    // Add some default prompts if none are loaded
+    if (prompts.length === 0) {
+      const defaultPrompts = [
+        "What trade-off did you make recently and why?",
+        "Tell me about a time you influenced a decision without authority.",
+        "Explain your startup to a 10-year-old in 30s.",
+        "Describe a failure that changed your perspective.",
+        "What's the most important lesson you learned this year?",
+        "How do you handle difficult conversations?",
+        "What motivates you to do your best work?",
+        "Describe a time you had to adapt quickly to change."
+      ]
+
+      defaultPrompts.forEach(text => {
+        prompts.push({
+          text: text,
+          category: 'general',
+          difficulty: 'medium',
+          estimatedTime: 60
+        })
+      })
+    }
+
+    return prompts
   }
 
   resetUsedPrompts() {

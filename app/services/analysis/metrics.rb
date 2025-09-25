@@ -69,12 +69,12 @@ module Analysis
       # Core speaking rate calculations
       wpm = calculate_words_per_minute(words, duration_ms)
       effective_wpm = calculate_effective_wpm(words, speaking_time_ms)
-      
+
       {
         words_per_minute: wpm.round(1),
         effective_words_per_minute: effective_wpm.round(1),
         speaking_rate_assessment: assess_speaking_rate(wpm),
-        pace_consistency: calculate_pace_consistency(words),
+        pace_consistency: (calculate_pace_consistency(words) / 100.0).round(4),
         pace_variation_coefficient: calculate_pace_variation_coefficient(words),
         speech_to_silence_ratio: calculate_speech_to_silence_ratio(speaking_time_ms, duration_ms)
       }
@@ -87,19 +87,19 @@ module Analysis
       pause_metrics = calculate_pause_metrics(words)
       articulation_score = calculate_articulation_score
       
-      # Weighted clarity score
+      # Weighted clarity score (ensure all components are 0-100)
       clarity_components = {
-        filler_penalty: (100 - filler_metrics[:filler_rate_percentage]).clamp(0, 100),
-        pace_score: calculate_pace_clarity_score,
-        pause_score: pause_metrics[:pause_quality_score],
-        articulation_score: articulation_score,
-        fluency_score: calculate_fluency_score(words)
+        filler_rate: (100 - filler_metrics[:filler_rate_percentage]).clamp(0, 100),
+        pace_consistency: calculate_pace_clarity_score.clamp(0, 100),
+        pause_quality: (pause_metrics[:pause_quality_score] || 50).clamp(0, 100),
+        articulation: articulation_score.clamp(0, 100),
+        fluency: calculate_fluency_score(words).clamp(0, 100)
       }
-      
-      weighted_clarity = calculate_weighted_score(clarity_components, CLARITY_WEIGHTS)
+
+      weighted_clarity = calculate_weighted_score(clarity_components, CLARITY_WEIGHTS).clamp(0, 100)
       
       {
-        clarity_score: weighted_clarity.round(1),
+        clarity_score: (weighted_clarity / 100.0).round(4),
         clarity_components: clarity_components,
         filler_metrics: filler_metrics,
         pause_metrics: pause_metrics,
@@ -111,7 +111,7 @@ module Analysis
       words = extract_words
       
       {
-        fluency_score: calculate_fluency_score(words),
+        fluency_score: (calculate_fluency_score(words) / 100.0).round(4),
         hesitation_count: count_hesitations,
         restart_count: count_restarts,
         incomplete_thoughts: count_incomplete_thoughts,
@@ -129,7 +129,7 @@ module Analysis
         emphasis_patterns: detect_emphasis_patterns,
         question_usage: count_questions,
         exclamation_usage: count_exclamations,
-        engagement_score: calculate_overall_engagement_score
+        engagement_score: (calculate_overall_engagement_score / 100.0).round(4)
       }
     end
     
@@ -162,12 +162,12 @@ module Analysis
       ).round(1)
       
       {
-        overall_score: overall_score,
+        overall_score: (overall_score / 100.0).round(4),
         component_scores: {
-          pace_score: pace_score,
-          clarity_score: clarity_score,
-          fluency_score: fluency_score,
-          engagement_score: engagement_score
+          pace_score: (pace_score / 100.0).round(4),
+          clarity_score: (clarity_score / 100.0).round(4),
+          fluency_score: (fluency_score / 100.0).round(4),
+          engagement_score: (engagement_score / 100.0).round(4)
         },
         grade: score_to_grade(overall_score),
         improvement_potential: calculate_improvement_potential(overall_score),
@@ -234,7 +234,7 @@ module Analysis
     
     def calculate_words_per_minute(words, duration_ms)
       return 0 if words.empty? || duration_ms <= 0
-      
+
       duration_minutes = duration_ms / 60_000.0
       words.length / duration_minutes
     end
@@ -322,9 +322,9 @@ module Analysis
       transcript = extract_transcript_text.downcase
       total_words = words.length
       
-      # Common filler words and patterns
+      # Common filler words and patterns (non-overlapping)
       filler_patterns = {
-        'um' => /\b(um|uhm|uh)\b/i,
+        'um' => /\b(um|uhm)\b/i,
         'uh' => /\b(uh|er|ah)\b/i,
         'like' => /\blike\b/i,
         'you_know' => /\byou know\b/i,
@@ -342,14 +342,17 @@ module Analysis
         total_fillers += matches
       end
       
-      filler_rate = total_words > 0 ? (total_fillers.to_f / total_words * 100) : 0
-      
+      # Calculate filler rate as a decimal (0.01 = 1%)
+      filler_rate_decimal = total_words > 0 ? (total_fillers.to_f / total_words) : 0
+      filler_rate_percentage = filler_rate_decimal * 100
+
       {
         total_filler_count: total_fillers,
-        filler_rate_percentage: filler_rate.round(2),
+        filler_rate_percentage: filler_rate_percentage.round(2),
+        filler_rate_decimal: filler_rate_decimal.round(4), # For storage as decimal
         filler_rate_per_minute: calculate_fillers_per_minute(total_fillers),
         filler_breakdown: filler_counts,
-        filler_density: assess_filler_density(filler_rate)
+        filler_density: assess_filler_density(filler_rate_percentage)
       }
     end
     
@@ -465,17 +468,19 @@ module Analysis
     
     def calculate_fluency_score(words)
       base_score = 100
-      
+
       # Factor in hesitations and restarts
       base_score -= count_hesitations * 5
       base_score -= count_restarts * 8
       base_score -= count_incomplete_thoughts * 10
-      
-      # Factor in speech smoothness
+
+      # Factor in speech smoothness (using weighted contribution, not multiplication)
       smoothness = calculate_speech_smoothness(words)
-      base_score = base_score * (smoothness / 100.0)
-      
-      [base_score, 0].max.round(1)
+      smoothness_adjustment = (smoothness - 70) * 0.2 # Only adjust if above/below average
+      base_score += smoothness_adjustment
+
+      # Ensure score stays within valid range
+      [[base_score, 0].max, 100].min.round(1)
     end
     
     def count_hesitations
@@ -508,9 +513,11 @@ module Analysis
     end
     
     def count_flow_interruptions
-      # Count various types of interruptions to flow
-      count_hesitations + count_restarts + count_incomplete_thoughts +
-      @issues.count { |i| ['long_pause', 'filler_word'].include?(i[:kind]) }
+      # Count only unique flow interruptions, avoid double counting with fluency deductions
+      long_pause_issues = @issues.count { |i| i[:kind] == 'long_pause' }
+      unusual_patterns = count_restarts + count_incomplete_thoughts
+
+      long_pause_issues + unusual_patterns
     end
     
     def calculate_speech_smoothness(words)

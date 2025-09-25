@@ -1,6 +1,6 @@
 class Api::SessionsController < ApplicationController
   before_action :set_guest_user
-  before_action :set_session
+  before_action :set_session, except: [:count]
   
   def timeline
     issues = @session.issues.order(:start_ms)
@@ -146,6 +146,11 @@ class Api::SessionsController < ApplicationController
       updated_at: @session.updated_at,
       progress_info: get_progress_info(@session)
     }
+  end
+
+  def count
+    total_count = @current_user.sessions.count
+    render json: { count: total_count }
   end
   
   private

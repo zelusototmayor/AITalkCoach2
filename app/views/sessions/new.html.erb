@@ -30,11 +30,16 @@
           </div>
 
           <div class="recorder-controls">
-            <button type="button" class="btn btn-record btn-record-primary" 
+            <div class="recording-status">
+              <span class="status-indicator ready" data-recorder-target="indicator"></span>
+              <span class="status-text" data-recorder-target="statusText">Ready to record your response</span>
+            </div>
+
+            <button type="button" class="btn btn-record recorder-btn ready"
                     data-recorder-target="recordBtn"
                     data-action="click->recorder#toggleRecording">
               <span class="btn-icon">🎤</span>
-              <span class="btn-text">Start Recording</span>
+              <span class="btn-text">🎙️ Start Recording</span>
             </button>
 
             <div class="recording-timer" data-recorder-target="timer" style="display: none;">
@@ -80,19 +85,24 @@
             </div>
             
             <!-- Audio Preview -->
-            <div class="audio-preview">
-              <audio data-recorder-target="audioPreview" controls></audio>
+            <div class="audio-preview-section">
+              <h4>🎧 Your Recording</h4>
+              <div class="audio-preview">
+                <audio data-recorder-target="audioPreview" controls></audio>
+              </div>
+              <p class="preview-note">Listen to your recording above. You can record again or proceed with analysis.</p>
             </div>
-            
+
             <!-- Action Buttons -->
             <div class="preview-actions">
               <button type="button" class="btn btn-secondary btn-replay"
-                      data-action="click->recorder#replayAudio">
-                🔄 Replay
+                      data-action="click->recorder#retake">
+                🔄 Record Again
               </button>
-              <button type="button" class="btn btn-primary btn-use-recording"
+              <button type="button" class="btn btn-primary recorder-btn btn-analyze"
+                      data-recorder-target="submitBtn"
                       data-action="click->recorder#submitRecording">
-                ✓ Use This Recording
+                <span class="btn-text">📊 Analyze Recording</span>
               </button>
             </div>
           </div>
@@ -153,7 +163,7 @@
         <div class="form-row">
           <div class="form-group">
             <%= f.label :language, class: "form-label" %>
-            <%= f.select :language, 
+            <%= f.select :language,
                   options_for_select([
                     ['English', 'en'],
                     ['Portuguese', 'pt'],
@@ -177,8 +187,23 @@
                     }
                   } %>
           </div>
+
+          <div class="form-group">
+            <%= f.label :speech_context, "Speech Context", class: "form-label" %>
+            <%= f.select :speech_context,
+                  options_for_select([
+                    ['General Practice', 'general'],
+                    ['Job Interview', 'interview'],
+                    ['Business Presentation', 'presentation'],
+                    ['Casual Conversation', 'conversation'],
+                    ['Public Speaking', 'public_speaking'],
+                    ['Academic Presentation', 'academic']
+                  ], 'general'),
+                  {}, { class: "form-select" } %>
+            <small class="form-help">This helps tailor the analysis to your specific speaking context</small>
+          </div>
         </div>
-        
+
         <!-- Hidden duration field -->
         <%= f.hidden_field :target_seconds, value: 60, data: { recorder_target: "durationInput" } %>
       </div>
@@ -196,8 +221,19 @@
         <% end %>
 
         <%= link_to "Cancel", sessions_path, class: "btn btn-secondary" %>
-        <%= f.submit "Create Session", class: "btn btn-primary", 
+        <%= f.submit "Create Session", class: "btn btn-primary",
               data: { recorder_target: "submitBtn" }, style: "display: none;" %>
+
+        <div class="workflow-help">
+          <p><strong>Simple Workflow:</strong></p>
+          <ol>
+            <li>🎙️ Click "Start Recording" to begin</li>
+            <li>🔴 Speak your response (up to selected duration)</li>
+            <li>⏹️ Click "Stop Recording" when finished</li>
+            <li>🎧 Review your recording below</li>
+            <li>📊 Click "Analyze Recording" for AI feedback</li>
+          </ol>
+        </div>
       </div>
     </div>
   <% end %>

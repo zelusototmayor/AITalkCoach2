@@ -1,0 +1,975 @@
+<% content_for :title, @session.title %>
+
+<div class="session-show"
+     data-controller="player transcript insights session progress"
+     data-session-id-value="<%= @session.id %>"
+     data-progress-session-id-value="<%= @session.id %>"
+     data-insights-timeframe-value="7d"
+     data-insights-show-trends-value="true"
+     data-insights-sessions-value="<%= escape_javascript(@user_sessions.to_json) %>"
+     data-insights-metrics-value="<%= ['clarity_score', 'wpm', 'filler_rate', 'pace_consistency', 'engagement_score', 'fluency_score', 'overall_score'].to_json.html_safe %>"
+     <% if @session.processing_state != 'completed' && @session.processing_state != 'failed' %>
+     data-refresh-url="<%= session_path(@session) %>"
+     data-auto-refresh="true"
+     data-refresh-interval="5000"
+     <% end %>>
+  
+  <div class="session-header">
+    <div class="session-title-section">
+      <h1><%= @session.title %></h1>
+      <div class="session-meta">
+        <span class="language-badge"><%= @session.language.upcase %></span>
+        <span class="media-type"><%= @session.media_kind.capitalize %></span>
+        <span class="session-date">
+          <%= @session.created_at.strftime("%B %d, %Y at %l:%M %p") %>
+        </span>
+      </div>
+    </div>
+
+    <div class="session-actions">
+      <%= link_to "← Back to Sessions", sessions_path, class: "btn btn-secondary" %>
+    </div>
+  </div>
+
+  <% if @session.processing_state != 'completed' %>
+    <div class="processing-status status-<%= @session.processing_state %>" 
+         data-progress-target="status">
+      <% case @session.processing_state %>
+      <% when 'pending' %>
+        <div class="status-card">
+          <span class="status-icon">⏳</span>
+          <div class="status-content">
+            <h3 data-progress-target="step">Analysis Pending</h3>
+            <p data-progress-target="statusText">Your session is queued for processing. This usually takes 1-2 minutes.</p>
+            
+            <!-- Progress Bar -->
+            <div class="progress-container">
+              <div class="progress-bar-bg">
+                <div class="progress-bar" data-progress-target="progressBar" 
+                     style="width: 5%" role="progressbar" 
+                     aria-valuenow="5" aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+              <small class="progress-text">
+                <span data-progress-target="estimatedTime">Starting soon...</span>
+              </small>
+            </div>
+          </div>
+        </div>
+      <% when 'processing' %>
+        <div class="status-card">
+          <span class="status-icon">⚡</span>
+          <div class="status-content">
+            <h3 data-progress-target="step">Processing Audio</h3>
+            <p data-progress-target="statusText">AI is analyzing your speech patterns, clarity, and providing feedback...</p>
+            
+            <!-- Progress Bar -->
+            <div class="progress-container">
+              <div class="progress-bar-bg">
+                <div class="progress-bar" data-progress-target="progressBar" 
+                     style="width: 30%" role="progressbar" 
+                     aria-valuenow="30" aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+              <small class="progress-text">
+                <span data-progress-target="estimatedTime">Analyzing...</span>
+              </small>
+            </div>
+          </div>
+        </div>
+      <% when 'failed' %>
+        <div class="status-card error">
+          <span class="status-icon">❌</span>
+          <div class="status-content">
+            <h3 data-progress-target="step">Analysis Failed</h3>
+            <p data-progress-target="statusText"><%= @session.incomplete_reason || "An unexpected error occurred during processing." %></p>
+            <div class="error-actions">
+              <button class="btn btn-primary" data-action="click->session#reprocess">
+                🔄 Try Again
+              </button>
+              <button class="btn btn-secondary" data-action="click->progress#forceRefresh">
+                🔃 Refresh Page
+              </button>
+              <%= link_to "🎙️ Record New Session", new_session_path, class: "btn btn-outline" %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+
+  <!-- Show transcript even for failed sessions -->
+  <% if @session.processing_state == 'failed' && @session.analysis_data&.dig('transcript').present? %>
+    <div class="transcript-section">
+      <div class="transcript-header">
+        <h3>Transcript (Partial Results)</h3>
+        <p class="transcript-note">The audio was successfully transcribed, but analysis failed. You can see the transcript below:</p>
+      </div>
+
+      <div class="transcript-content">
+        <%= simple_format(@session.analysis_data['transcript']) %>
+      </div>
+    </div>
+  <% end %>
+
+  <% if @session.completed? %>
+    <!-- Media Player Section -->
+    <div class="media-player-section">
+      <div class="player-container">
+        <% if @session.media_files.attached? %>
+          <% media_file = @session.media_files.first %>
+          <% if @session.media_kind == 'video' %>
+            <video data-player-target="video"
+                   data-transcript-target="media"
+                   controls preload="metadata"
+                   class="media-player">
+              <%= video_tag media_file, controls: false %>
+            </video>
+          <% else %>
+            <audio data-player-target="audio"
+                   data-transcript-target="media"
+                   controls preload="metadata"
+                   class="media-player">
+              <%= audio_tag media_file, controls: false %>
+            </audio>
+          <% end %>
+        <% end %>
+
+        <!-- Issue Markers on Timeline -->
+        <div class="timeline-markers" data-player-target="timeline">
+          <% @issues.each do |issue| %>
+            <button class="issue-marker marker-<%= (issue.category.present? ? issue.category.parameterize : 'uncategorized') %>"
+                    data-timestamp="<%= issue.start_ms %>"
+                    data-action="click->player#seekTo"
+                    title="<%= (issue.category.present? ? issue.category.humanize : 'Uncategorized') %>: <%= truncate(issue.text, length: 50) %>"
+                    style="left: <%= (issue.start_ms.to_f / (@session.analysis_data['duration_ms'] || 120000)) * 100 %>%">
+            </button>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Player Controls -->
+      <div class="player-controls">
+        <button class="control-btn" data-player-target="playBtn" data-action="click->player#togglePlay">
+          <span data-player-target="playIcon">▶️</span>
+        </button>
+
+        <div class="time-display">
+          <span data-player-target="currentTime">00:00</span>
+          /
+          <span data-player-target="duration">--:--</span>
+        </div>
+
+        <div class="playback-speed">
+          <label>Speed:</label>
+          <select data-player-target="speedSelect" data-action="change->player#changeSpeed">
+            <option value="0.75">0.75x</option>
+            <option value="1" selected>1x</option>
+            <option value="1.25">1.25x</option>
+            <option value="1.5">1.5x</option>
+          </select>
+        </div>
+
+        <button class="control-btn" data-action="click->player#skipBack" title="Skip back 10s">
+          ⏪
+        </button>
+        <button class="control-btn" data-action="click->player#skipForward" title="Skip forward 10s">
+          ⏩
+        </button>
+      </div>
+    </div>
+
+    <!-- Transcript Section -->
+    <% if @session.analysis_data['transcript']&.present? %>
+      <div class="transcript-section">
+        <div class="transcript-header">
+          <h3>Full Transcript</h3>
+          <div class="transcript-controls">
+            <input type="search"
+                   placeholder="Search transcript..."
+                   data-transcript-target="searchInput"
+                   data-action="input->transcript#search">
+            <button class="btn btn-sm" data-action="click->transcript#toggleHighlights">
+              Toggle Issue Highlights
+            </button>
+          </div>
+        </div>
+
+        <div class="transcript-content"
+             data-transcript-target="content"
+             data-session-id="<%= @session.id %>">
+          <%= simple_format(@session.analysis_data['transcript']) %>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Tabbed Analysis Interface -->
+    <div class="analysis-tabs-container">
+      <!-- Tab Navigation -->
+      <div class="tab-navigation">
+        <button class="tab-btn active" data-tab="analysis">Analysis</button>
+        <button class="tab-btn" data-tab="progress">Progress Plan</button>
+        <button class="tab-btn" data-tab="transcript">Transcript</button>
+      </div>
+
+      <!-- Analysis Tab Content -->
+      <div class="tab-content active" id="analysis-tab">
+        <!-- Clean Metrics Overview -->
+        <div class="metrics-overview">
+          <div class="primary-metrics">
+            <% if @session.analysis_data['clarity_score']&.present? %>
+              <div class="metric-card-circular primary">
+                <div class="circular-progress" data-percentage="<%= normalize_metric_for_display(@session, 'clarity_score') %>">
+                  <div class="circle">
+                    <div class="mask full">
+                      <div class="fill"></div>
+                    </div>
+                    <div class="mask half">
+                      <div class="fill"></div>
+                    </div>
+                    <div class="inside-circle">
+                      <div class="percentage"><%= normalize_metric_for_display(@session, 'clarity_score').round %>%</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="metric-details">
+                  <div class="metric-name">CLARITY</div>
+                  <div class="metric-description">
+                    <% clarity_percent = normalize_metric_for_display(@session, 'clarity_score') %>
+                    <% if clarity_percent > 85 %>
+                      Very clear
+                    <% elsif clarity_percent > 70 %>
+                      Generally clear
+                    <% else %>
+                      Needs improvement
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+
+          <div class="secondary-metrics">
+            <% if @session.analysis_data['filler_rate']&.present? %>
+              <div class="metric-card-simple">
+                <div class="metric-header">
+                  <span class="metric-indicator"></span>
+                  <span class="metric-label">Filler %</span>
+                </div>
+                <div class="metric-value-large"><%= normalize_metric_for_display(@session, 'filler_rate').round(1) %>%</div>
+                <div class="metric-target">
+                  <% filler_rate = normalize_metric_for_display(@session, 'filler_rate') %>
+                  <% if filler_rate < 3 %>
+                    Excellent target
+                  <% else %>
+                    &lt;3% target
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+
+            <% if @session.analysis_data['wpm']&.present? %>
+              <div class="metric-card-simple">
+                <div class="metric-header">
+                  <span class="metric-indicator"></span>
+                  <span class="metric-label">Pace</span>
+                </div>
+                <div class="metric-value-large"><%= @session.analysis_data['wpm'].to_i %> wpm</div>
+                <div class="metric-target">
+                  <% wpm = @session.analysis_data['wpm'].to_i %>
+                  <% if wpm >= 140 && wpm <= 180 %>
+                    Natural range
+                  <% elsif wpm < 140 %>
+                    Too slow
+                  <% else %>
+                    Too fast
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <!-- Next Steps Section (Like Coach in screenshot) -->
+        <% if @priority_recommendations&.dig(:focus_this_week)&.any? %>
+          <div class="next-steps-section">
+            <div class="section-header">
+              <span class="section-label">NEXT STEP</span>
+              <h3>Coach</h3>
+            </div>
+
+            <% top_recommendation = @priority_recommendations[:focus_this_week].first %>
+            <div class="action-card">
+              <div class="action-header">
+                <span class="action-label">ACTION</span>
+                <button class="re-run-btn">Re-run</button>
+              </div>
+              <div class="action-title"><%= humanize_improvement_type(top_recommendation[:type]) %></div>
+              <div class="action-description">
+                <%= top_recommendation[:actionable_steps].first %>
+              </div>
+              <button class="start-drill-btn">Start 30s Drill</button>
+            </div>
+          </div>
+        <% end %>
+
+        <!-- Issues Section (Clean, like screenshot) -->
+        <div class="issues-section-clean">
+          <div class="section-header">
+            <span class="section-label">WHAT TO FIX</span>
+            <h3>Issues</h3>
+          </div>
+
+          <div class="issue-filters">
+            <div class="filter-tags">
+              <button class="filter-tag active">All <%= @issues.count %></button>
+              <% @issues.group_by(&:category).each do |category, category_issues| %>
+                <button class="filter-tag">
+                  <%= (category.to_s.present? ? category.to_s : 'uncategorized').humanize.pluralize %>
+                  <%= category_issues.count %>
+                </button>
+              <% end %>
+            </div>
+          </div>
+
+          <div class="issues-list-clean">
+            <% @issues.limit(5).each do |issue| %>
+              <div class="issue-item-clean">
+                <div class="issue-timestamp">
+                  <button class="timestamp-btn"
+                          data-action="click->player#seekTo"
+                          data-timestamp="<%= issue.start_ms %>">
+                    <%= Time.at(issue.start_ms / 1000.0).utc.strftime("%M:%S") %>
+                  </button>
+                </div>
+                <div class="issue-content">
+                  <div class="issue-text">"<%= issue.text %>"</div>
+                  <div class="issue-priority">
+                    <% case issue.severity %>
+                    <% when 'high' %>
+                      <span class="priority-badge high">High priority</span>
+                    <% when 'medium' %>
+                      <span class="priority-badge medium">Medium priority</span>
+                    <% else %>
+                      <span class="priority-badge low">Low priority</span>
+                    <% end %>
+                  </div>
+                </div>
+                <button class="jump-btn">Jump</button>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <!-- Secondary Insights (Like screenshot) -->
+        <div class="secondary-insights">
+          <div class="section-header">
+            <span class="section-label">CONTEXT</span>
+            <h3>Secondary insights</h3>
+          </div>
+
+          <div class="insights-grid">
+            <% if @session.analysis_data['pace_consistency']&.present? %>
+              <div class="insight-row">
+                <span class="insight-label">Consistency</span>
+                <span class="insight-value"><%= normalize_metric_for_display(@session, 'pace_consistency').round %>%</span>
+              </div>
+            <% end %>
+
+            <% if @session.analysis_data['longest_pause_ms']&.present? %>
+              <div class="insight-row">
+                <span class="insight-label">Longest pause</span>
+                <span class="insight-value"><%= (@session.analysis_data['longest_pause_ms'] / 1000.0).round(1) %>s</span>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress Tab Content -->
+      <div class="tab-content" id="progress-tab">
+        <div class="progress-plan-content">
+            <div class="metric-context">
+              <% wpm = @session.analysis_data['wpm'].to_i %>
+              <% if wpm < 140 %>
+                <span class="context-slow">Slower pace - good for emphasis</span>
+              <% elsif wpm > 180 %>
+                <span class="context-fast">Fast pace - ensure clarity</span>
+              <% else %>
+                <span class="context-good">Natural pace ✓</span>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+
+        <% if @session.analysis_data['filler_rate']&.present? %>
+          <div class="metric-card">
+            <div class="metric-value"><%= normalize_metric_for_display(@session, 'filler_rate').round(1) %>%</div>
+            <div class="metric-label">Filler Words</div>
+            <div class="metric-context">
+              <% filler_rate_percent = normalize_metric_for_display(@session, 'filler_rate') %>
+              <% if filler_rate_percent < 2 %>
+                <span class="context-good">Excellent fluency ✓</span>
+              <% elsif filler_rate_percent > 5 %>
+                <span class="context-needs-work">Focus on reducing fillers</span>
+              <% else %>
+                <span class="context-ok">Normal range</span>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+
+        <% if @session.analysis_data['clarity_score']&.present? %>
+          <div class="metric-card">
+            <div class="metric-value"><%= normalize_metric_for_display(@session, 'clarity_score').round %>%</div>
+            <div class="metric-label">Clarity Score</div>
+            <div class="metric-context">
+              <% clarity_percent = normalize_metric_for_display(@session, 'clarity_score') %>
+              <% if clarity_percent > 80 %>
+                <span class="context-good">Very clear ✓</span>
+              <% elsif clarity_percent < 60 %>
+                <span class="context-needs-work">Work on enunciation</span>
+              <% else %>
+                <span class="context-ok">Generally clear</span>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+
+        <% if @session.analysis_data['fluency_score']&.present? %>
+          <div class="metric-card">
+            <div class="metric-value"><%= normalize_metric_for_display(@session, 'fluency_score').round %>%</div>
+            <div class="metric-label">Fluency Score</div>
+            <div class="metric-context">
+              <% fluency_percent = normalize_metric_for_display(@session, 'fluency_score') %>
+              <% if fluency_percent > 80 %>
+                <span class="context-good">Excellent flow ✓</span>
+              <% elsif fluency_percent < 60 %>
+                <span class="context-needs-work">Work on smoothness</span>
+              <% else %>
+                <span class="context-ok">Good flow</span>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+
+        <% if @session.analysis_data['engagement_score']&.present? %>
+          <div class="metric-card">
+            <div class="metric-value"><%= normalize_metric_for_display(@session, 'engagement_score').round %>%</div>
+            <div class="metric-label">Engagement</div>
+            <div class="metric-context">
+              <% engagement_percent = normalize_metric_for_display(@session, 'engagement_score') %>
+              <% if engagement_percent > 75 %>
+                <span class="context-good">Very engaging ✓</span>
+              <% elsif engagement_percent < 50 %>
+                <span class="context-needs-work">Add more energy</span>
+              <% else %>
+                <span class="context-ok">Good energy</span>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+
+        <% if @session.analysis_data['pace_consistency']&.present? %>
+          <div class="metric-card">
+            <div class="metric-value"><%= normalize_metric_for_display(@session, 'pace_consistency').round %>%</div>
+            <div class="metric-label">Pace Consistency</div>
+            <div class="metric-context">
+              <% consistency_percent = normalize_metric_for_display(@session, 'pace_consistency') %>
+              <% if consistency_percent > 80 %>
+                <span class="context-good">Very consistent ✓</span>
+              <% elsif consistency_percent < 60 %>
+                <span class="context-needs-work">Vary pace less</span>
+              <% else %>
+                <span class="context-ok">Generally consistent</span>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+
+        <div class="metric-card">
+          <div class="metric-value"><%= @issues.count %></div>
+          <div class="metric-label">Issues Found</div>
+          <div class="metric-context">
+            <% if @issues.count == 0 %>
+              <span class="context-good">Great job! ✓</span>
+            <% elsif @issues.count < 5 %>
+              <span class="context-ok">Few areas to improve</span>
+            <% else %>
+              <span class="context-needs-work">Multiple improvement areas</span>
+            <% end %>
+          </div>
+        </div>
+
+        <% if @session.analysis_data['overall_score']&.present? %>
+          <div class="metric-card overall-score">
+            <div class="metric-value"><%= normalize_metric_for_display(@session, 'overall_score').round %>%</div>
+            <div class="metric-label">Overall Score</div>
+            <div class="metric-context">
+              <% score_percent = normalize_metric_for_display(@session, 'overall_score') %>
+              <% if @session.analysis_data['grade'] %>
+                <span class="grade-badge grade-<%= @session.analysis_data['grade'].downcase %>">
+                  Grade: <%= @session.analysis_data['grade'] %>
+                </span>
+              <% else %>
+                <% if score_percent >= 90 %>
+                  <span class="context-good">Excellent performance ✓</span>
+                <% elsif score_percent >= 75 %>
+                  <span class="context-ok">Good performance</span>
+                <% else %>
+                  <span class="context-needs-work">Room for improvement</span>
+                <% end %>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Detailed Timing Metrics -->
+      <% if @session.analysis_data['duration_seconds']&.present? %>
+        <div class="timing-metrics">
+          <h3>Session Timing Analysis</h3>
+          <div class="timing-grid">
+            <div class="timing-card">
+              <div class="timing-value"><%= (@session.analysis_data['duration_seconds'] / 60.0).round(1) %>min</div>
+              <div class="timing-label">Total Duration</div>
+            </div>
+
+            <% if @session.analysis_data['speaking_time_ms']&.present? %>
+              <div class="timing-card">
+                <div class="timing-value"><%= (@session.analysis_data['speaking_time_ms'] / 60000.0).round(1) %>min</div>
+                <div class="timing-label">Speaking Time</div>
+              </div>
+            <% end %>
+
+            <% if @session.analysis_data['pause_time_ms']&.present? %>
+              <div class="timing-card">
+                <div class="timing-value"><%= (@session.analysis_data['pause_time_ms'] / 1000.0).round(1) %>s</div>
+                <div class="timing-label">Total Pauses</div>
+              </div>
+            <% end %>
+
+            <% if @session.analysis_data['speech_to_silence_ratio'] %>
+              <div class="timing-card">
+                <div class="timing-value"><%= @session.analysis_data['speech_to_silence_ratio'].round(1) %>:1</div>
+                <div class="timing-label">Speech:Silence</div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Pause Analysis -->
+      <% if @session.analysis_data['average_pause_ms']&.present? %>
+        <div class="pause-analysis">
+          <h3>Pause Quality Analysis</h3>
+          <div class="pause-metrics-grid">
+            <div class="pause-metric">
+              <span class="pause-label">Average Pause:</span>
+              <span class="pause-value"><%= (@session.analysis_data['average_pause_ms'] / 1000.0).round(1) %>s</span>
+            </div>
+
+            <% if @session.analysis_data['longest_pause_ms']&.present? %>
+              <div class="pause-metric">
+                <span class="pause-label">Longest Pause:</span>
+                <span class="pause-value"><%= (@session.analysis_data['longest_pause_ms'] / 1000.0).round(1) %>s</span>
+              </div>
+            <% end %>
+
+            <% if @session.analysis_data['long_pause_count']&.present? %>
+              <div class="pause-metric">
+                <span class="pause-label">Long Pauses (>3s):</span>
+                <span class="pause-value"><%= @session.analysis_data['long_pause_count'] %></span>
+              </div>
+            <% end %>
+
+            <% if @session.analysis_data['pause_quality_score']&.present? %>
+              <div class="pause-metric">
+                <span class="pause-label">Pause Quality:</span>
+                <span class="pause-value"><%= @session.analysis_data['pause_quality_score'].round %>%</span>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Issues Breakdown -->
+      <% if @issues.any? %>
+        <div class="issues-section">
+          <h3>Speech Analysis & Feedback</h3>
+          
+          <div class="issue-categories">
+            <% @issues.group_by(&:category).each do |category, category_issues| %>
+              <div class="issue-category">
+                <div class="category-header">
+                  <h4><%= (category.to_s.present? ? category.to_s : 'uncategorized').humanize.pluralize %> (<%= category_issues.count %>)</h4>
+                  <button class="toggle-btn" data-action="click->insights#toggleCategory">
+                    <span>Show/Hide</span>
+                  </button>
+                </div>
+
+                <div class="category-issues">
+                  <% category_issues.each do |issue| %>
+                    <div class="issue-item" 
+                         data-start="<%= issue.start_ms %>"
+                         data-end="<%= issue.end_ms %>">
+                      <div class="issue-timing">
+                        <button class="time-link" 
+                                data-action="click->player#seekTo"
+                                data-timestamp="<%= issue.start_ms %>">
+                          <%= Time.at(issue.start_ms / 1000.0).utc.strftime("%M:%S") %>
+                        </button>
+                      </div>
+
+                      <div class="issue-content">
+                        <div class="issue-text">
+                          "<%= issue.text %>"
+                        </div>
+                        
+                        <% if issue.coaching_note.present? %>
+                          <div class="coaching-note">
+                            <strong>💡 Coach says:</strong> <%= issue.coaching_note %>
+                          </div>
+                        <% end %>
+
+                        <% if issue.severity %>
+                          <div class="issue-severity severity-<%= issue.severity %>">
+                            <%= issue.severity.capitalize %> Priority
+                          </div>
+                        <% end %>
+                      </div>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% else %>
+        <div class="no-issues">
+          <div class="success-icon">🎉</div>
+          <h3>Excellent Performance!</h3>
+          <p>No major speech issues detected. Your clarity, pace, and fluency are all in good range.</p>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Priority-Based Improvement Recommendations -->
+    <% if @priority_recommendations&.any? %>
+      <div class="priority-recommendations-section">
+        <h3>🎯 Your Personalized Improvement Plan</h3>
+
+        <!-- Focus This Week -->
+        <% if @priority_recommendations[:focus_this_week]&.any? %>
+          <div class="focus-this-week">
+            <h4>🔥 Focus This Week (High Impact)</h4>
+            <div class="focus-areas-grid">
+              <% @priority_recommendations[:focus_this_week].each do |area| %>
+                <div class="focus-area-card priority-<%= area[:severity] %>">
+                  <div class="focus-header">
+                    <div class="focus-title"><%= humanize_improvement_type(area[:type]) %></div>
+                    <div class="focus-metrics">
+                      <span class="current-metric">
+                        <%= format_metric_value(area[:current_value], area[:type]) %>
+                      </span>
+                      <span class="arrow">→</span>
+                      <span class="target-metric">
+                        <%= format_metric_value(area[:target_value], area[:type]) %>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="focus-impact">
+                    <span class="impact-score">Impact: +<%= (area[:potential_improvement] * 100).round %>pts</span>
+                    <span class="effort-level">Effort: <%= format_effort_level(area[:effort_level]) %></span>
+                    <span class="timeline"><%= area[:estimated_weeks] %> weeks</span>
+                  </div>
+
+                  <div class="actionable-steps">
+                    <strong>Action Steps:</strong>
+                    <ul>
+                      <% area[:actionable_steps].first(3).each do |step| %>
+                        <li><%= step %></li>
+                      <% end %>
+                    </ul>
+                  </div>
+
+                  <% if area[:specific_issues]&.any? %>
+                    <div class="specific-examples">
+                      <strong>Examples from your speech:</strong>
+                      <% area[:specific_issues].first(2).each do |issue| %>
+                        <div class="issue-example">
+                          <span class="issue-text">"<%= issue[0] %>"</span>
+                          <% if issue[1] %>
+                            <button class="time-link-small"
+                                    data-action="click->player#seekTo"
+                                    data-timestamp="<%= issue[1] %>">
+                              <%= Time.at(issue[1] / 1000.0).utc.strftime("%M:%S") %>
+                            </button>
+                          <% end %>
+                        </div>
+                      <% end %>
+                    </div>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+
+        <!-- Quick Wins -->
+        <% if @priority_recommendations[:quick_wins]&.any? %>
+          <div class="quick-wins">
+            <h4>⚡ Quick Wins (Easy Improvements)</h4>
+            <div class="quick-wins-list">
+              <% @priority_recommendations[:quick_wins].each do |area| %>
+                <div class="quick-win-item">
+                  <div class="quick-win-title"><%= humanize_improvement_type(area[:type]) %></div>
+                  <div class="quick-win-description">
+                    <% area[:actionable_steps].first(2).each do |step| %>
+                      <p>• <%= step %></p>
+                    <% end %>
+                  </div>
+                  <div class="quick-win-impact">Expected improvement: +<%= (area[:potential_improvement] * 100).round %>pts in <%= area[:estimated_weeks] %> weeks</div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+
+        <!-- Practice Plan -->
+        <% if @priority_recommendations[:practice_plan]&.any? %>
+          <div class="practice-plan">
+            <h4>📅 Your Daily Practice Plan</h4>
+
+            <div class="practice-sections">
+              <% if @priority_recommendations[:practice_plan][:daily_practice]&.any? %>
+                <div class="daily-practice-section">
+                  <h5>Daily Practice (10-15 minutes)</h5>
+                  <ul class="practice-list">
+                    <% @priority_recommendations[:practice_plan][:daily_practice].each do |practice| %>
+                      <li><%= practice %></li>
+                    <% end %>
+                  </ul>
+                </div>
+              <% end %>
+
+              <% if @priority_recommendations[:practice_plan][:weekly_goals]&.any? %>
+                <div class="weekly-goals-section">
+                  <h5>Weekly Goals</h5>
+                  <ul class="goals-list">
+                    <% @priority_recommendations[:practice_plan][:weekly_goals].each do |goal| %>
+                      <li><%= goal %></li>
+                    <% end %>
+                  </ul>
+                </div>
+              <% end %>
+
+              <% if @priority_recommendations[:practice_plan][:progress_tracking]&.any? %>
+                <div class="progress-tracking-section">
+                  <h5>Track Your Progress</h5>
+                  <ul class="tracking-list">
+                    <% @priority_recommendations[:practice_plan][:progress_tracking].each do |track| %>
+                      <li><%= track %></li>
+                    <% end %>
+                  </ul>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+
+        <!-- Secondary Focus -->
+        <% if @priority_recommendations[:secondary_focus]&.any? %>
+          <div class="secondary-focus">
+            <h4>📈 Secondary Focus Areas</h4>
+            <div class="secondary-areas-grid">
+              <% @priority_recommendations[:secondary_focus].each do |area| %>
+                <div class="secondary-area-card">
+                  <div class="secondary-title"><%= humanize_improvement_type(area[:type]) %></div>
+                  <div class="secondary-metrics">
+                    <span class="improvement-potential">+<%= (area[:potential_improvement] * 100).round %>pts potential</span>
+                    <span class="timeline"><%= area[:estimated_weeks] %> weeks</span>
+                  </div>
+                  <div class="secondary-note">
+                    <%= area[:actionable_steps].first %>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <!-- AI Insights & Coaching Recommendations -->
+    <% if @session.analysis_data['ai_insights']&.any? || @session.analysis_data['coaching_recommendations']&.any? %>
+      <div class="ai-coaching-section">
+        <h3>🤖 AI Coach Insights</h3>
+
+        <!-- AI Generated Insights -->
+        <% if @session.analysis_data['ai_insights']&.any? %>
+          <div class="ai-insights-container">
+            <h4>Key Observations</h4>
+            <div class="insights-list">
+              <% @session.analysis_data['ai_insights'].each do |insight| %>
+                <div class="insight-item">
+                  <div class="insight-icon">💡</div>
+                  <div class="insight-content">
+                    <p><%= insight %></p>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+
+        <!-- Coaching Recommendations -->
+        <% if @session.analysis_data['coaching_recommendations'] %>
+          <div class="coaching-recommendations">
+            <% recommendations = @session.analysis_data['coaching_recommendations'] %>
+
+            <% if recommendations['focus_areas']&.any? %>
+              <div class="focus-areas">
+                <h4>Focus Areas for Improvement</h4>
+                <div class="focus-areas-grid">
+                  <% recommendations['focus_areas'].each do |area| %>
+                    <div class="focus-area-card">
+                      <div class="focus-skill"><%= area['skill']&.humanize || 'General Improvement' %></div>
+                      <div class="focus-target"><%= area['target_improvement'] || 'Continue practicing' %></div>
+                      <div class="focus-timeline">
+                        <small>Timeline: <%= area['timeline'] || '1-2 weeks' %></small>
+                      </div>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+
+            <% if recommendations['weekly_goals']&.any? %>
+              <div class="weekly-goals">
+                <h4>This Week's Goals</h4>
+                <div class="goals-list">
+                  <% recommendations['weekly_goals'].each do |goal| %>
+                    <div class="goal-item">
+                      <div class="goal-header">
+                        <span class="goal-title"><%= goal['goal'] %></span>
+                        <span class="goal-difficulty difficulty-<%= goal['difficulty'] || 'medium' %>">
+                          <%= (goal['difficulty'] || 'medium').capitalize %>
+                        </span>
+                      </div>
+
+                      <% if goal['strategies']&.any? %>
+                        <div class="goal-strategies">
+                          <strong>Strategies:</strong>
+                          <ul>
+                            <% goal['strategies'].each do |strategy| %>
+                              <li><%= strategy %></li>
+                            <% end %>
+                          </ul>
+                        </div>
+                      <% end %>
+
+                      <% if goal['measurement'] %>
+                        <div class="goal-measurement">
+                          <strong>Track progress:</strong> <%= goal['measurement'] %>
+                        </div>
+                      <% end %>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+
+            <% if recommendations['motivation_message'] %>
+              <div class="motivation-message">
+                <div class="motivation-icon">🌟</div>
+                <div class="motivation-text">
+                  <%= recommendations['motivation_message'] %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <!-- Performance Strengths & Areas for Improvement -->
+    <% if @session.analysis_data['strengths']&.any? || @session.analysis_data['areas_for_improvement']&.any? %>
+      <div class="performance-breakdown">
+        <h3>Performance Analysis</h3>
+
+        <div class="performance-grid">
+          <% if @session.analysis_data['strengths']&.any? %>
+            <div class="strengths-section">
+              <h4>💪 Your Strengths</h4>
+              <div class="strengths-list">
+                <% @session.analysis_data['strengths'].each do |strength| %>
+                  <div class="strength-item">
+                    <span class="strength-icon">✅</span>
+                    <span class="strength-text"><%= strength %></span>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+
+          <% if @session.analysis_data['areas_for_improvement']&.any? %>
+            <div class="improvements-section">
+              <h4>🎯 Areas to Work On</h4>
+              <div class="improvements-list">
+                <% @session.analysis_data['areas_for_improvement'].each do |area| %>
+                  <div class="improvement-item">
+                    <span class="improvement-icon">🔸</span>
+                    <span class="improvement-text"><%= area %></span>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Component Scores Breakdown -->
+    <% if @session.analysis_data['component_scores'] %>
+      <div class="component-scores">
+        <h3>Detailed Component Scores</h3>
+        <div class="component-scores-grid">
+          <% @session.analysis_data['component_scores'].each do |component, score| %>
+            <div class="component-score-card">
+              <div class="component-name"><%= component.to_s.humanize %></div>
+              <div class="component-value"><%= score.round %>%</div>
+              <div class="component-bar">
+                <div class="component-fill" style="width: <%= score %>%"></div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Insights & Trends Section -->
+    <div class="insights-section">
+      <div class="insights-header">
+        <h3>Progress Insights</h3>
+        <div class="insights-controls">
+          <select data-insights-target="dateRange"
+                  data-action="change->insights#changeTimeframe"
+                  class="form-select">
+            <option value="7d">Last 7 days</option>
+            <option value="30d">Last 30 days</option>
+            <option value="90d">Last 90 days</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="insights-content">
+        <div class="sparklines-grid" data-insights-target="sparkline"></div>
+        <div class="trends-section" data-insights-target="trend"></div>
+        <div class="ai-insights" data-insights-target="insights"></div>
+      </div>
+    </div>
+
+
+  <% end %> <!-- End completed check -->
+
+</div>

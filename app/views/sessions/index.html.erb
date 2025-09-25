@@ -1,113 +1,337 @@
-<% content_for :title, "Sessions" %>
+<% content_for :title, "Practice" %>
 
-<div class="sessions-index">
-  <div class="page-header">
-    <h1>Your Sessions</h1>
-    <%= link_to "New Session", new_session_path, class: "btn btn-primary" %>
-  </div>
+<div class="practice-interface"
+     data-controller="recorder prompts insights practice-timer"
+     data-recorder-audio-only-value="true"
+     data-recorder-max-duration-sec-value="180"
+     data-practice-timer-default-duration-value="60">
 
-  <% if @sessions.any? %>
-    <div class="sessions-grid">
-      <% @sessions.each do |session| %>
-        <div class="session-card" data-state="<%= session.processing_state %>">
-          <div class="session-header">
-            <h3 class="session-title">
-              <%= link_to session.title, session_path(session) %>
-            </h3>
-            <div class="session-meta">
-              <span class="session-language"><%= session.language.upcase %></span>
-              <span class="session-type"><%= session.media_kind.capitalize %></span>
-            </div>
+  <div class="practice-layout">
+    <!-- Left Panel - Practice Interface -->
+    <div class="practice-panel">
+      <div class="practice-header">
+        <h1>🎤 Practice</h1>
+        <p>Start practicing immediately with AI-powered feedback</p>
+      </div>
+
+      <!-- Current Prompt Display -->
+      <div class="prompt-display" data-prompts-target="display">
+        <div class="prompt-header">
+          <h3>PROMPT</h3>
+          <div class="prompt-actions">
+            <span class="prompt-target-time" data-prompts-target="targetTime">⏱️ ~<%= @default_prompt_data[:target_seconds] %>s</span>
+            <button type="button" class="shuffle-btn"
+                    data-action="click->prompts#shufflePrompt"
+                    title="Get a random prompt">
+              🎲 Shuffle
+            </button>
+          </div>
+        </div>
+        <div class="prompt-content" data-prompts-target="content">
+          <p><%= @default_prompt %></p>
+        </div>
+      </div>
+
+      <!-- Timer Presets -->
+      <div class="timer-presets">
+        <h4>TIMER PRESETS</h4>
+        <div class="preset-buttons">
+          <button type="button" class="preset-btn"
+                  data-duration="30"
+                  data-action="click->practice-timer#selectDuration">30s</button>
+          <button type="button" class="preset-btn active"
+                  data-duration="60"
+                  data-action="click->practice-timer#selectDuration">60s</button>
+          <button type="button" class="preset-btn"
+                  data-duration="120"
+                  data-action="click->practice-timer#selectDuration">120s</button>
+          <button type="button" class="preset-btn"
+                  data-duration="180"
+                  data-action="click->practice-timer#selectDuration">180s</button>
+        </div>
+      </div>
+
+      <!-- Countdown Timer -->
+      <div class="countdown-timer" data-practice-timer-target="display">
+        <div class="timer-circle">
+          <svg class="timer-svg" viewBox="0 0 120 120">
+            <circle class="timer-track" cx="60" cy="60" r="54"></circle>
+            <circle class="timer-progress"
+                    cx="60" cy="60" r="54"
+                    data-practice-timer-target="progressCircle"></circle>
+          </svg>
+          <div class="timer-content">
+            <div class="timer-percentage" data-practice-timer-target="percentage">0%</div>
+            <div class="timer-status" data-practice-timer-target="status">Ready</div>
+          </div>
+        </div>
+        <div class="timer-time" data-practice-timer-target="timeDisplay">0s / 60s</div>
+      </div>
+
+      <!-- Recording Controls -->
+      <div class="recording-controls">
+        <button type="button" class="start-btn"
+                data-practice-timer-target="startBtn"
+                data-action="click->practice-timer#startSession">
+          ▶ Start <span data-practice-timer-target="durationText">60s</span>
+        </button>
+
+        <!-- Recording actions removed - handled automatically by practice timer -->
+      </div>
+
+      <!-- Enforcement Notice -->
+      <div class="enforcement-notice">
+        <p><small>Minimum time is enforced. Stopping early will mark the session as incomplete.</small></p>
+      </div>
+
+      <!-- Pre-Recording Setup Form -->
+      <div class="pre-recording-setup" data-practice-timer-target="setup">
+        <h4>📝 Setup Your Session</h4>
+        <div class="setup-notice">
+          <p><strong>Complete these details before recording:</strong></p>
+        </div>
+        <div class="session-details-form">
+          <div class="form-group">
+            <label class="form-label">Session Title *</label>
+            <input type="text" class="form-input session-title-input"
+                   placeholder="e.g., Presentation practice, Interview prep"
+                   data-recorder-target="titleInput"
+                   data-action="input->recorder#clearTitleError"
+                   required>
+            <div class="field-error" data-recorder-target="titleError" style="display: none;"></div>
+            <small class="field-help">Give your session a descriptive name to track your progress</small>
           </div>
 
-          <div class="session-status">
-            <% case session.processing_state %>
-            <% when 'pending' %>
-              <div class="status-badge status-pending">
-                <span class="status-icon">⏳</span>
-                <span>Pending</span>
-              </div>
-            <% when 'processing' %>
-              <div class="status-badge status-processing">
-                <span class="status-icon">⚡</span>
-                <span>Processing</span>
-              </div>
-            <% when 'completed' %>
-              <div class="status-badge status-completed">
-                <span class="status-icon">✅</span>
-                <span>Complete</span>
-              </div>
-            <% when 'failed' %>
-              <div class="status-badge status-failed">
-                <span class="status-icon">❌</span>
-                <span>Failed</span>
-              </div>
-            <% end %>
-          </div>
-
-          <% if session.completed? %>
-            <div class="session-preview">
-              <% if session.analysis_data.any? %>
-                <div class="quick-metrics">
-                  <% if session.analysis_data['wpm'] %>
-                    <div class="metric">
-                      <span class="metric-label">WPM</span>
-                      <span class="metric-value"><%= session.analysis_data['wpm'].to_i %></span>
-                    </div>
-                  <% end %>
-                  <% if session.analysis_data['filler_rate'] %>
-                    <div class="metric">
-                      <span class="metric-label">Fillers</span>
-                      <span class="metric-value"><%= (session.analysis_data['filler_rate'] * 100).round(1) %>%</span>
-                    </div>
-                  <% end %>
-                  <% if session.analysis_data['clarity_score'] %>
-                    <div class="metric">
-                      <span class="metric-label">Clarity</span>
-                      <span class="metric-value"><%= (session.analysis_data['clarity_score'] * 100).round %>%</span>
-                    </div>
-                  <% end %>
-                </div>
-              <% end %>
-
-              <% if session.issues.any? %>
-                <div class="issue-summary">
-                  <span class="issue-count"><%= session.issues.count %> issues found</span>
-                  <div class="issue-types">
-                    <% session.issues.group(:category).count.each do |category, count| %>
-                      <span class="issue-tag"><%= (category.present? ? category.humanize : 'Uncategorized') %> (<%= count %>)</span>
-                    <% end %>
-                  </div>
-                </div>
-              <% end %>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Language</label>
+              <select class="form-select" data-recorder-target="languageSelect">
+                <option value="en">English</option>
+                <option value="pt">Portuguese</option>
+                <option value="es">Spanish</option>
+              </select>
+              <small class="field-help">Language for analysis</small>
             </div>
-          <% elsif session.processing_state == 'failed' %>
-            <div class="session-error">
-              <p class="error-message">
-                <%= session.incomplete_reason || "Processing failed unexpectedly" %>
-              </p>
-            </div>
-          <% end %>
 
-          <div class="session-footer">
-            <div class="session-date">
-              <%= time_ago_in_words(session.created_at) %> ago
-            </div>
-            <div class="session-actions">
-              <%= link_to "View", session_path(session), class: "btn btn-sm" %>
-              <%= button_to "Delete", session_path(session), method: :delete,
-                    confirm: "Are you sure?", class: "btn btn-sm btn-danger" %>
+            <div class="form-group">
+              <label class="form-label">Recording Type</label>
+              <select class="form-select" data-recorder-target="mediaKindSelect">
+                <option value="audio">Audio Only</option>
+                <option value="video">Video</option>
+              </select>
+              <small class="field-help">Audio is recommended</small>
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Post-Recording Form (appears after recording) -->
+      <div class="recording-preview" data-recorder-target="preview" style="display: none;">
+        <h4>🎯 Recording Complete!</h4>
+        <div class="completion-message">
+          <p>Your recording is ready. Review the details below and submit when ready.</p>
+        </div>
+        <div class="session-details-form">
+          <div class="form-group">
+            <label class="form-label">Session Title *</label>
+            <input type="text" class="form-input session-title-input"
+                   placeholder="e.g., Presentation practice, Interview prep"
+                   data-recorder-target="titleInputPreview"
+                   data-action="input->recorder#clearTitleError"
+                   readonly>
+            <small class="field-help">Copied from your pre-recording setup</small>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Language</label>
+              <select class="form-select" data-recorder-target="languageSelectPreview" disabled>
+                <option value="en">English</option>
+                <option value="pt">Portuguese</option>
+                <option value="es">Spanish</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Recording Type</label>
+              <select class="form-select" data-recorder-target="mediaKindSelectPreview" disabled>
+                <option value="audio">Audio Only</option>
+                <option value="video">Video</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Audio Preview -->
+        <div class="audio-preview">
+          <audio data-recorder-target="audioPreview" controls></audio>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="preview-actions">
+          <button type="button" class="btn btn-secondary btn-replay"
+                  data-action="click->recorder#replayAudio">
+            🔄 Replay
+          </button>
+          <button type="button" class="btn btn-primary btn-use-recording"
+                  data-action="click->recorder#submitRecording">
+            ✓ Upload & Analyze
+          </button>
+        </div>
+      </div>
+
+      <!-- Session Report (appears after completion) -->
+      <div class="session-report" data-practice-timer-target="report" style="display: none;">
+        <h4>📊 Session Report</h4>
+        <div class="report-content">
+          <!-- Will be populated by JavaScript after session completion -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel - Insights & Library -->
+    <div class="insights-panel">
+      <!-- Quick Metrics -->
+      <div class="insights-card">
+        <h3>📊 Insights</h3>
+        <div class="metrics-grid">
+          <div class="metric">
+            <div class="metric-label">Avg WPM</div>
+            <div class="metric-value">
+              <%= @quick_metrics[:avg_wpm] || 0 %>
+            </div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Filter %</div>
+            <div class="metric-value">
+              <%= @quick_metrics[:filler_rate] || 0 %>%
+            </div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Clarity</div>
+            <div class="metric-value">
+              <%= @quick_metrics[:clarity_score] || 0 %>
+            </div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Streak</div>
+            <div class="metric-value">
+              <%= @current_streak %> days
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Focus Areas -->
+      <% if @focus_areas.any? %>
+        <div class="focus-areas-card">
+          <h4>🎯 Focus Areas</h4>
+          <ul class="focus-list">
+            <% @focus_areas.each do |area| %>
+              <li>• <%= area %></li>
+            <% end %>
+          </ul>
+        </div>
       <% end %>
+
+
+      <!-- Prompt Library -->
+      <div class="prompt-library-card">
+        <h4>⭐ Prompt Library</h4>
+
+        <div class="library-tabs">
+          <button type="button" class="tab-btn active"
+                  data-action="click->prompts#selectCategory"
+                  data-category="any">Any</button>
+          <button type="button" class="tab-btn"
+                  data-action="click->prompts#selectCategory"
+                  data-category="interviews">Interviews</button>
+          <button type="button" class="tab-btn"
+                  data-action="click->prompts#selectCategory"
+                  data-category="pitching">Pitching</button>
+          <button type="button" class="tab-btn"
+                  data-action="click->prompts#selectCategory"
+                  data-category="story">Story</button>
+        </div>
+
+        <div class="library-content">
+          <div class="fluency-section">
+            <h5>Fluency</h5>
+            <div class="prompt-list" data-prompts-target="library">
+              <!-- Interviews Category -->
+              <div class="prompt-item" data-category="interviews">
+                <div class="prompt-text">Tell me about a time you influenced a decision without authority.</div>
+                <button type="button" class="use-btn"
+                        data-action="click->prompts#usePrompt"
+                        data-prompt="Tell me about a time you influenced a decision without authority.">Use</button>
+              </div>
+
+              <!-- Pitching Category -->
+              <div class="prompt-item" data-category="pitching">
+                <div class="prompt-text">Explain your startup to a 10-year-old in 30s.</div>
+                <button type="button" class="use-btn"
+                        data-action="click->prompts#usePrompt"
+                        data-prompt="Explain your startup to a 10-year-old in 30s.">Use</button>
+              </div>
+
+              <!-- Story Category -->
+              <div class="prompt-item" data-category="story">
+                <div class="prompt-text">Describe a failure that changed your perspective.</div>
+                <button type="button" class="use-btn"
+                        data-action="click->prompts#usePrompt"
+                        data-prompt="Describe a failure that changed your perspective.">Use</button>
+              </div>
+
+              <!-- Load more prompts dynamically -->
+              <% @prompts.each do |category, prompts_list| %>
+                <% next unless prompts_list.is_a?(Array) %>
+                <% prompts_list.first(3).each do |prompt| %>
+                  <div class="prompt-item" data-category="<%= category.downcase %>">
+                    <div class="prompt-text">
+                      <% if prompt.is_a?(Hash) %>
+                        <strong><%= prompt['title'] %></strong>
+                        <p class="prompt-description"><%= prompt['description'] %></p>
+                      <% else %>
+                        <%= prompt %>
+                      <% end %>
+                    </div>
+                    <button type="button" class="use-btn"
+                            data-action="click->prompts#usePrompt"
+                            data-prompt="<%= prompt.is_a?(Hash) ? prompt['prompt'] : prompt %>">Use</button>
+                  </div>
+                <% end %>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-  <% else %>
-    <div class="empty-state">
-      <div class="empty-icon">🎤</div>
-      <h2>No sessions yet</h2>
-      <p>Start your first recording session to get AI-powered speech feedback.</p>
-      <%= link_to "Create Your First Session", new_session_path, class: "btn btn-primary btn-lg" %>
-    </div>
+  </div>
+
+  <!-- Hidden form for session creation -->
+  <%= form_with model: Session.new, local: true, multipart: true, class: "hidden-form",
+        data: { practice_timer_target: "form", turbo: false } do |f| %>
+    <%= f.hidden_field :title, data: { practice_timer_target: "titleInput" } %>
+    <%= f.hidden_field :language, value: "en" %>
+    <%= f.hidden_field :media_kind, value: "audio" %>
+    <%= f.hidden_field :target_seconds, data: { practice_timer_target: "durationInput" } %>
+    <%= f.hidden_field :minimum_duration_enforced, value: "true" %>
+    <%= f.file_field :media_files, multiple: true,
+          data: { recorder_target: "fileInput" }, style: "display: none;" %>
+    <%= f.submit "Create Session", data: { practice_timer_target: "submitBtn" },
+          style: "display: none;" %>
   <% end %>
 </div>
+
+<!-- Data for JavaScript controllers -->
+<script type="application/json" id="prompts-data">
+<%= raw @prompts.to_json %>
+</script>
+
+<script type="application/json" id="adaptive-prompts-data">
+<%= raw @adaptive_prompts.to_json %>
+</script>
+
+<script type="application/json" id="categories-data">
+<%= raw @categories.to_json %>
+</script>

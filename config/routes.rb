@@ -14,6 +14,9 @@ Rails.application.routes.draw do
   
   # Core application routes
   resources :sessions, except: [:edit, :update] do
+    collection do
+      get :history
+    end
     member do
       delete :destroy
     end
@@ -27,6 +30,9 @@ Rails.application.routes.draw do
   # API routes
   namespace :api do
     resources :sessions, only: [] do
+      collection do
+        get :count
+      end
       member do
         get :timeline
         get :export

@@ -1,0 +1,69 @@
+<div class="session-card-modern" data-state="<%= session.processing_state %>">
+  <div class="card-header">
+    <div class="card-title">
+      <%= session.title %>
+    </div>
+    <div class="card-meta">
+      <span class="session-date"><%= session.created_at.strftime("%b %d, %Y at %I:%M %p") %></span>
+      <span class="session-language"><%= session.language.upcase %></span>
+    </div>
+    <div class="completion-badge">
+      <% case session.processing_state %>
+      <% when 'completed' %>
+        <span class="badge badge-completed">DONE</span>
+      <% when 'processing' %>
+        <span class="badge badge-processing">PROCESSING</span>
+      <% when 'pending' %>
+        <span class="badge badge-pending">PENDING</span>
+      <% when 'failed' %>
+        <span class="badge badge-failed">FAILED</span>
+      <% end %>
+    </div>
+  </div>
+
+  <% if session.completed? %>
+    <div class="card-metrics">
+      <% if session.analysis_data.any? %>
+        <% if session.analysis_data['wpm'] %>
+          <div class="metric-item">
+            <div class="metric-icon">⚡</div>
+            <div class="metric-content">
+              <div class="metric-value"><%= session.analysis_data['wpm'].to_i %></div>
+              <div class="metric-label">WPM</div>
+            </div>
+          </div>
+        <% end %>
+        <% if session.analysis_data['filler_rate'] %>
+          <div class="metric-item">
+            <div class="metric-icon">🎯</div>
+            <div class="metric-content">
+              <div class="metric-value"><%= normalize_metric_for_display(session, 'filler_rate').round(1) %>%</div>
+              <div class="metric-label">FILLER</div>
+            </div>
+          </div>
+        <% end %>
+        <% if session.analysis_data['clarity_score'] %>
+          <div class="metric-item">
+            <div class="metric-icon">💧</div>
+            <div class="metric-content">
+              <div class="metric-value"><%= normalize_metric_for_display(session, 'clarity_score').round %></div>
+              <div class="metric-label">CLARITY</div>
+            </div>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  <% elsif session.processing_state == 'failed' %>
+    <div class="card-error">
+      <p class="error-message">
+        <%= session.incomplete_reason || "Processing failed unexpectedly" %>
+      </p>
+    </div>
+  <% end %>
+
+  <div class="card-actions">
+    <%= link_to "View Details", session_path(session), class: "btn-details" %>
+    <%= button_to "Delete", session_path(session), method: :delete,
+          confirm: "Are you sure?", class: "btn-delete" %>
+  </div>
+</div>

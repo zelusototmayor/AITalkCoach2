@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["recordBtn", "status", "statusText", "indicator", "preview", "form", "timer", "progressBar", "videoPreview", "audioPreview", "fileInput", "submitBtn", "countdownDisplay", "durationInput", "titleInput", "titleError", "languageSelect", "mediaKindSelect"]
+  static targets = ["recordBtn", "status", "statusText", "indicator", "preview", "form", "timer", "progressBar", "videoPreview", "audioPreview", "fileInput", "submitBtn", "countdownDisplay", "durationInput", "titleInput", "titleError", "languageSelect", "mediaKindSelect", "titleInputPreview", "languageSelectPreview", "mediaKindSelectPreview"]
   static values = { 
     maxDurationSec: Number, 
     maxFileSizeMb: Number,
@@ -26,6 +26,12 @@ export default class extends Controller {
     this.audioOnlyValue = this.audioOnlyValue ?? false
     this.videoWidthValue = this.videoWidthValue || 640
     this.videoHeightValue = this.videoHeightValue || 480
+
+    // Set up global reference for practice timer integration
+    window.recorderController = this
+
+    // Check if we're in a practice timer context
+    this.isPracticeTimerMode = document.querySelector('[data-controller*="practice-timer"]') !== null
 
     this.updateUI("ready")
   }
@@ -177,18 +183,25 @@ export default class extends Controller {
   }
 
   processRecording() {
-    const blob = new Blob(this.recordedChunks, { 
-      type: this.getSupportedMimeType() 
+    const blob = new Blob(this.recordedChunks, {
+      type: this.getSupportedMimeType()
     })
-    
+
     if (this.validateFileSize(blob)) {
       this.createPreview(blob)
       this.attachToForm(blob)
-      this.updateUI("ready_to_submit")
+
+      // In practice timer mode, don't show the recorder UI
+      if (this.isPracticeTimerMode) {
+        // Just mark as ready for submission, practice timer will handle UI
+        console.log('Recorder: Recording complete in practice timer mode')
+      } else {
+        this.updateUI("ready_to_submit")
+      }
     } else {
       this.updateUI("error", `File too large (${(blob.size / 1024 / 1024).toFixed(1)}MB). Maximum: ${this.maxFileSizeMbValue}MB`)
     }
-    
+
     this.releaseStream()
   }
 
@@ -237,16 +250,23 @@ export default class extends Controller {
   }
 
   attachToForm(blob) {
-    if (!this.hasFileInputTarget) return
-    
-    const file = new File([blob], this.generateFileName(), { 
-      type: blob.type 
+    if (!this.hasFileInputTarget) {
+      console.error('File input target not found')
+      return
+    }
+
+    const file = new File([blob], this.generateFileName(), {
+      type: blob.type
     })
-    
+
+    console.log('Attaching file to form:', file.name, file.size, 'bytes')
+
     const dataTransfer = new DataTransfer()
     dataTransfer.items.add(file)
-    
+
     this.fileInputTarget.files = dataTransfer.files
+
+    console.log('File attached. Input files:', this.fileInputTarget.files.length)
   }
 
   generateFileName() {
@@ -268,76 +288,116 @@ export default class extends Controller {
     const hasIndicator = this.hasIndicatorTarget
     const hasTimer = this.hasTimerTarget
     const hasSubmitBtn = this.hasSubmitBtnTarget
-    
+
+    // When ready to submit, populate preview form
+    if (state === "ready_to_submit") {
+      this.populatePreviewForm()
+    }
+
     switch (state) {
       case "ready":
         if (hasRecordBtn) {
           this.recordBtnTarget.disabled = false
-          this.recordBtnTarget.querySelector('.btn-text').textContent = "Start Recording"
-          this.recordBtnTarget.classList.remove('recording')
+          const btnText = this.recordBtnTarget.querySelector('.btn-text')
+          if (btnText) btnText.textContent = "🎙️ Start Recording"
+          this.recordBtnTarget.classList.remove('recording', 'processing')
+          this.recordBtnTarget.classList.add('ready')
         }
-        if (hasStatusText) this.statusTextTarget.textContent = "Ready to record"
+        if (hasStatusText) this.statusTextTarget.textContent = "Ready to record your response"
         if (hasIndicator) this.indicatorTarget.className = "status-indicator ready"
         if (hasTimer) this.timerTarget.style.display = "none"
         if (hasSubmitBtn) this.submitBtnTarget.disabled = true
         break
-        
+
       case "requesting":
-        if (hasRecordBtn) this.recordBtnTarget.disabled = true
-        if (hasStatusText) this.statusTextTarget.textContent = "Requesting camera/microphone access..."
+        if (hasRecordBtn) {
+          this.recordBtnTarget.disabled = true
+          const btnText = this.recordBtnTarget.querySelector('.btn-text')
+          if (btnText) btnText.textContent = "🔐 Requesting Permissions..."
+          this.recordBtnTarget.classList.add('requesting')
+        }
+        if (hasStatusText) this.statusTextTarget.textContent = "Requesting microphone access..."
         if (hasIndicator) this.indicatorTarget.className = "status-indicator requesting"
         break
-        
+
       case "recording":
         if (hasRecordBtn) {
           this.recordBtnTarget.disabled = false
-          this.recordBtnTarget.querySelector('.btn-text').textContent = "Stop Recording"
+          const btnText = this.recordBtnTarget.querySelector('.btn-text')
+          if (btnText) btnText.textContent = "⏹️ Stop Recording"
+          this.recordBtnTarget.classList.remove('ready', 'requesting')
           this.recordBtnTarget.classList.add('recording')
         }
         if (hasStatusText) {
-          this.statusTextTarget.textContent = `Recording... ${this.formatTime(this.maxDurationSecValue)} remaining`
+          this.statusTextTarget.textContent = `🔴 Recording... ${this.formatTime(this.maxDurationSecValue)} remaining`
           this.startRecordingTimer()
         }
-        if (hasIndicator) this.indicatorTarget.className = "status-indicator recording"
+        if (hasIndicator) {
+          this.indicatorTarget.className = "status-indicator recording"
+          // Add pulsing animation
+          this.indicatorTarget.style.animation = "pulse 1.5s ease-in-out infinite"
+        }
         if (hasTimer) {
           this.timerTarget.style.display = "block"
-          // Initialize countdown display
           if (this.hasCountdownDisplayTarget) {
             this.countdownDisplayTarget.textContent = this.formatTime(this.maxDurationSecValue)
           }
         }
         break
-        
+
       case "processing":
-        if (hasRecordBtn) this.recordBtnTarget.disabled = true
-        if (hasStatusText) this.statusTextTarget.textContent = "Processing recording..."
-        if (hasIndicator) this.indicatorTarget.className = "status-indicator processing"
+        if (hasRecordBtn) {
+          this.recordBtnTarget.disabled = true
+          const btnText = this.recordBtnTarget.querySelector('.btn-text')
+          if (btnText) btnText.textContent = "⚙️ Processing..."
+          this.recordBtnTarget.classList.remove('recording')
+          this.recordBtnTarget.classList.add('processing')
+        }
+        if (hasStatusText) this.statusTextTarget.textContent = "Processing your recording..."
+        if (hasIndicator) {
+          this.indicatorTarget.className = "status-indicator processing"
+          this.indicatorTarget.style.animation = "spin 2s linear infinite"
+        }
         this.stopRecordingTimer()
         break
-        
+
       case "ready_to_submit":
         if (hasRecordBtn) {
           this.recordBtnTarget.disabled = false
-          this.recordBtnTarget.querySelector('.btn-text').textContent = "Record Again"
-          this.recordBtnTarget.classList.remove('recording')
+          const btnText = this.recordBtnTarget.querySelector('.btn-text')
+          if (btnText) btnText.textContent = "🔄 Record Again"
+          this.recordBtnTarget.classList.remove('recording', 'processing')
+          this.recordBtnTarget.classList.add('ready')
         }
-        if (hasStatusText) this.statusTextTarget.textContent = "Recording ready! You can submit or record again."
-        if (hasIndicator) this.indicatorTarget.className = "status-indicator ready"
-        if (hasSubmitBtn) this.submitBtnTarget.disabled = false
+        if (hasStatusText) this.statusTextTarget.textContent = "✅ Recording complete! Review below or record again."
+        if (hasIndicator) {
+          this.indicatorTarget.className = "status-indicator ready"
+          this.indicatorTarget.style.animation = "none"
+        }
+        if (hasSubmitBtn) {
+          this.submitBtnTarget.disabled = false
+          const btnText = this.submitBtnTarget.querySelector('.btn-text')
+          if (btnText) btnText.textContent = "📊 Analyze Recording"
+        }
         this.showPreview()
         break
-        
+
       case "error":
         if (hasRecordBtn) {
           this.recordBtnTarget.disabled = false
-          this.recordBtnTarget.querySelector('.btn-text').textContent = "Try Again"
-          this.recordBtnTarget.classList.remove('recording')
+          const btnText = this.recordBtnTarget.querySelector('.btn-text')
+          if (btnText) btnText.textContent = "🔄 Try Again"
+          this.recordBtnTarget.classList.remove('recording', 'processing')
+          this.recordBtnTarget.classList.add('error')
         }
         if (hasStatusText) {
-          this.statusTextTarget.textContent = `Error: ${message}`
+          this.statusTextTarget.textContent = `❌ Error: ${message}`
           this.statusTextTarget.className = this.statusTextTarget.className.replace(/text-\w+-\d+/, 'text-red-600')
         }
-        if (hasIndicator) this.indicatorTarget.className = "status-indicator error"
+        if (hasIndicator) {
+          this.indicatorTarget.className = "status-indicator error"
+          this.indicatorTarget.style.animation = "none"
+        }
         this.stopRecordingTimer()
         break
     }
@@ -352,38 +412,17 @@ export default class extends Controller {
       
       if (this.hasStatusTextTarget) {
         this.statusTextTarget.textContent = `Recording... ${this.formatTime(remaining)} remaining`
-        
-        if (remaining <= 10) {
-          this.statusTextTarget.className = this.statusTextTarget.className.replace(/text-\w+-\d+/, 'text-orange-600')
-        }
       }
       
       // Update countdown display
       if (this.hasCountdownDisplayTarget) {
         this.countdownDisplayTarget.textContent = this.formatTime(remaining)
-        
-        // Add visual warnings
-        this.countdownDisplayTarget.classList.remove('warning', 'critical')
-        if (remaining <= 10) {
-          this.countdownDisplayTarget.classList.add('critical')
-        } else if (remaining <= 30) {
-          this.countdownDisplayTarget.classList.add('warning')
-        }
       }
       
       // Update progress bar (countdown style)
       if (this.hasProgressBarTarget) {
         const progress = (remaining / this.maxDurationSecValue) * 100
         this.progressBarTarget.style.width = `${Math.max(progress, 0)}%`
-        
-        // Change color based on remaining time
-        if (remaining <= 10) {
-          this.progressBarTarget.style.background = '#dc2626'
-        } else if (remaining <= 30) {
-          this.progressBarTarget.style.background = '#f59e0b'
-        } else {
-          this.progressBarTarget.style.background = '#2563eb'
-        }
       }
       
       // Auto-stop when time runs out
@@ -417,7 +456,27 @@ export default class extends Controller {
   showPreview() {
     if (this.hasPreviewTarget) {
       this.previewTarget.style.display = "block"
+      // Add smooth slide-in animation
+      this.previewTarget.style.opacity = "0"
+      this.previewTarget.style.transform = "translateY(20px)"
+
+      // Trigger animation after a brief delay
+      setTimeout(() => {
+        this.previewTarget.style.transition = "all 0.3s ease-out"
+        this.previewTarget.style.opacity = "1"
+        this.previewTarget.style.transform = "translateY(0)"
+      }, 50)
     }
+
+    // Scroll to preview section smoothly
+    setTimeout(() => {
+      if (this.hasPreviewTarget) {
+        this.previewTarget.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest'
+        })
+      }
+    }, 100)
   }
 
   retake() {
@@ -445,6 +504,9 @@ export default class extends Controller {
       this.previewTarget.style.display = "none"
     }
     this.updateUI("ready_to_submit")
+
+    // Automatically submit the recording after accepting it
+    this.submitRecording()
   }
 
   submitRecording() {
@@ -452,24 +514,94 @@ export default class extends Controller {
     if (!this.validateTitle()) {
       return
     }
-    
+
+    // Validate that we have a recording
+    if (!this.validateRecording()) {
+      return
+    }
+
+    // Update submit button to show uploading state
+    if (this.hasSubmitBtnTarget) {
+      this.submitBtnTarget.disabled = true
+      const btnText = this.submitBtnTarget.querySelector('.btn-text')
+      if (btnText) btnText.textContent = "📤 Uploading & Analyzing..."
+      this.submitBtnTarget.classList.add('uploading')
+    }
+
     // Update hidden form fields with values from the post-recording interface
     this.updateFormFields()
-    
+
+    // Find submit button - could be submitBtnTarget or practice-timer submit button
+    let submitBtn = null
     if (this.hasSubmitBtnTarget) {
-      this.submitBtnTarget.click()
+      submitBtn = this.submitBtnTarget
+    } else {
+      submitBtn = document.querySelector('[data-practice-timer-target="submitBtn"]')
+    }
+
+    if (submitBtn) {
+      console.log('Submitting recording with form:', submitBtn.closest('form'))
+
+      // Show uploading notification with better messaging
+      this.showNotification('📤 Uploading your recording for AI analysis...', 'info', 8000)
+
+      // Ensure the file is attached before submitting
+      setTimeout(() => {
+        const form = submitBtn.closest('form')
+        if (form) {
+          console.log('Form data before submit:', new FormData(form))
+
+          // Add form submit listener to handle response
+          this.addFormSubmitHandler(form)
+
+          submitBtn.click()
+        } else {
+          console.error('Form not found for submit button')
+          this.showNotification('❌ Upload failed: Form not found', 'error')
+          this.resetSubmitButton()
+        }
+      }, 100)
+    } else {
+      console.error('No submit button found')
+      this.showNotification('❌ Upload failed: Submit button not found', 'error')
+      this.resetSubmitButton()
     }
   }
 
   validateTitle() {
     const title = this.hasTitleInputTarget ? this.titleInputTarget.value.trim() : ''
-    
+
     if (!title) {
       this.showTitleError("You need to insert a title to be able to create a new session.")
       return false
     }
-    
+
     this.clearTitleError()
+    return true
+  }
+
+  validateRecording() {
+    // Check if file input has files
+    if (!this.hasFileInputTarget) {
+      console.error('File input not found')
+      this.showNotification('Recording error: File input not found', 'error')
+      return false
+    }
+
+    if (!this.fileInputTarget.files || this.fileInputTarget.files.length === 0) {
+      console.error('No recording file attached')
+      this.showNotification('Please record audio before submitting', 'error')
+      return false
+    }
+
+    const file = this.fileInputTarget.files[0]
+    if (!file || file.size === 0) {
+      console.error('Recording file is empty')
+      this.showNotification('Recording file is empty. Please record again.', 'error')
+      return false
+    }
+
+    console.log('Recording validation passed:', file.name, file.size, 'bytes')
     return true
   }
 
@@ -489,34 +621,91 @@ export default class extends Controller {
       this.titleErrorTarget.style.display = "none"
       this.titleErrorTarget.textContent = ""
     }
-    
+
     if (this.hasTitleInputTarget) {
       this.titleInputTarget.classList.remove('error')
     }
   }
 
+  populatePreviewForm() {
+    // Copy values from setup form to preview form
+    const titleInput = this.hasTitleInputTarget ? this.titleInputTarget.value : ''
+    const languageValue = this.hasLanguageSelectTarget ? this.languageSelectTarget.value : 'en'
+    const mediaKindValue = this.hasMediaKindSelectTarget ? this.mediaKindSelectTarget.value : 'audio'
+
+    // Update preview form fields
+    if (this.hasTitleInputPreviewTarget) {
+      this.titleInputPreviewTarget.value = titleInput
+    }
+
+    if (this.hasLanguageSelectPreviewTarget) {
+      this.languageSelectPreviewTarget.value = languageValue
+    }
+
+    if (this.hasMediaKindSelectPreviewTarget) {
+      this.mediaKindSelectPreviewTarget.value = mediaKindValue
+    }
+  }
+
   updateFormFields() {
-    // Update title field
-    const titleInput = this.hasTitleInputTarget ? this.titleInputTarget.value.trim() : ''
-    const titleField = this.formTarget.querySelector('input[name="session[title]"]')
+    // Find the form - could be formTarget (new session) or practice-timer form (practice interface)
+    let form = null
+    if (this.hasFormTarget) {
+      form = this.formTarget
+    } else {
+      // Look for practice-timer form
+      form = document.querySelector('[data-practice-timer-target="form"]')
+    }
+
+    if (!form) {
+      console.error('No form found to update')
+      return
+    }
+
+    // Get values from the current active form (either setup or preview)
+    let titleValue = ''
+    let languageValue = 'en'
+    let mediaKindValue = 'audio'
+
+    // Try to get from preview form first (post-recording)
+    const titleInputPreview = this.hasTitleInputPreviewTarget ? this.titleInputPreviewTarget.value.trim() : ''
+    if (titleInputPreview) {
+      titleValue = titleInputPreview
+    } else {
+      // Fall back to main input
+      titleValue = this.hasTitleInputTarget ? this.titleInputTarget.value.trim() : ''
+    }
+
+    // Get language from appropriate select
+    if (this.hasLanguageSelectPreviewTarget && this.languageSelectPreviewTarget.value) {
+      languageValue = this.languageSelectPreviewTarget.value
+    } else if (this.hasLanguageSelectTarget) {
+      languageValue = this.languageSelectTarget.value
+    }
+
+    // Get media kind from appropriate select
+    if (this.hasMediaKindSelectPreviewTarget && this.mediaKindSelectPreviewTarget.value) {
+      mediaKindValue = this.mediaKindSelectPreviewTarget.value
+    } else if (this.hasMediaKindSelectTarget) {
+      mediaKindValue = this.mediaKindSelectTarget.value
+    }
+
+    // Update hidden form fields
+    const titleField = form.querySelector('input[name="session[title]"]')
     if (titleField) {
-      titleField.value = titleInput
+      titleField.value = titleValue
     }
-    
-    // Update language field
-    if (this.hasLanguageSelectTarget) {
-      const languageField = this.formTarget.querySelector('select[name="session[language]"]')
-      if (languageField) {
-        languageField.value = this.languageSelectTarget.value
-      }
+
+    const languageField = form.querySelector('select[name="session[language]"]') ||
+                          form.querySelector('input[name="session[language]"]')
+    if (languageField) {
+      languageField.value = languageValue
     }
-    
-    // Update media kind field
-    if (this.hasMediaKindSelectTarget) {
-      const mediaKindField = this.formTarget.querySelector('select[name="session[media_kind]"]')
-      if (mediaKindField) {
-        mediaKindField.value = this.mediaKindSelectTarget.value
-      }
+
+    const mediaKindField = form.querySelector('select[name="session[media_kind]"]') ||
+                           form.querySelector('input[name="session[media_kind]"]')
+    if (mediaKindField) {
+      mediaKindField.value = mediaKindValue
     }
   }
 
@@ -565,6 +754,126 @@ export default class extends Controller {
     this.showNotification(userMessage, 'error')
   }
 
+  addFormSubmitHandler(form) {
+    // Add listener for successful form submission
+    form.addEventListener('turbo:submit-end', this.handleFormSubmitEnd.bind(this), { once: true })
+  }
+
+  handleFormSubmitEnd(event) {
+    console.log('Form submit end event:', event)
+
+    if (event.detail.success) {
+      console.log('Form submission successful')
+
+      // Show success message
+      this.showNotification('Recording uploaded successfully! Redirecting to analysis...', 'success')
+
+      // Extract session data from response if available
+      const sessionData = this.extractSessionDataFromResponse(event)
+
+      // Notify the practice timer that recording was uploaded successfully
+      this.notifyPracticeTimer(sessionData)
+
+      // If we got a redirect URL, follow it immediately
+      const response = event.detail.formSubmission?.result?.response
+      if (response?.redirected && response.url) {
+        console.log('Following redirect to:', response.url)
+        window.location.href = response.url
+      } else {
+        // Fallback: look for session ID in URL after a brief delay
+        setTimeout(() => {
+          if (window.location.pathname.match(/\/sessions\/\d+/)) {
+            // We're already on the session page, good!
+            console.log('Successfully redirected to session page')
+          } else {
+            console.warn('No redirect detected, something may be wrong')
+          }
+        }, 500)
+      }
+    } else {
+      console.error('Form submission failed:', event.detail)
+      this.showNotification('Upload failed. Please try again.', 'error')
+    }
+  }
+
+  extractSessionDataFromResponse(event) {
+    // Try to extract session ID from redirect URL or response
+    const response = event.detail.formSubmission?.result?.response
+    if (response?.redirected && response.url) {
+      const urlMatch = response.url.match(/\/sessions\/(\d+)/)
+      if (urlMatch) {
+        return { id: parseInt(urlMatch[1]) }
+      }
+    }
+
+    // Fallback: try to get from current page URL after redirect
+    setTimeout(() => {
+      const currentUrlMatch = window.location.pathname.match(/\/sessions\/(\d+)/)
+      if (currentUrlMatch) {
+        const sessionData = { id: parseInt(currentUrlMatch[1]) }
+        this.notifyPracticeTimer(sessionData)
+      }
+    }, 100)
+
+    return null
+  }
+
+  notifyPracticeTimer(sessionData) {
+    // Try multiple approaches to find and notify the practice timer controller
+    console.log('Attempting to notify practice timer of successful upload:', sessionData)
+
+    // Method 1: Direct controller property access
+    const practiceTimerElement = document.querySelector('[data-controller*="practice-timer"]')
+    if (practiceTimerElement) {
+      // Try direct property access
+      if (practiceTimerElement.practiceTimerController) {
+        console.log('Method 1: Found practice timer via direct property')
+        practiceTimerElement.practiceTimerController.onRecordingUploaded(sessionData)
+        return
+      }
+
+      // Method 2: Use Stimulus application API
+      const application = this.application
+      if (application) {
+        try {
+          const controller = application.getControllerForElementAndIdentifier(practiceTimerElement, 'practice-timer')
+          if (controller) {
+            console.log('Method 2: Found practice timer via Stimulus API')
+            controller.onRecordingUploaded(sessionData)
+            return
+          }
+        } catch (e) {
+          console.log('Method 2 failed:', e.message)
+        }
+      }
+
+      // Method 3: Custom event dispatch
+      console.log('Method 3: Dispatching custom event')
+      const customEvent = new CustomEvent('recording:uploaded', {
+        detail: sessionData,
+        bubbles: true
+      })
+      practiceTimerElement.dispatchEvent(customEvent)
+    }
+
+    // Method 4: Global fallback using window
+    if (window.practiceTimerController) {
+      console.log('Method 4: Found practice timer via global reference')
+      window.practiceTimerController.onRecordingUploaded(sessionData)
+    } else {
+      console.warn('Could not find practice timer controller to notify')
+    }
+  }
+
+  resetSubmitButton() {
+    if (this.hasSubmitBtnTarget) {
+      this.submitBtnTarget.disabled = false
+      const btnText = this.submitBtnTarget.querySelector('.btn-text')
+      if (btnText) btnText.textContent = "📊 Analyze Recording"
+      this.submitBtnTarget.classList.remove('uploading')
+    }
+  }
+
   showNotification(message, type = 'info', duration = 5000) {
     // Remove any existing notifications
     const existingNotifications = document.querySelectorAll('.recorder-notification')
@@ -572,39 +881,45 @@ export default class extends Controller {
 
     const notification = document.createElement('div')
     notification.className = `recorder-notification notification-${type}`
-    notification.textContent = message
-    
+    notification.innerHTML = message // Use innerHTML to support emojis
+
     notification.style.cssText = `
       position: fixed;
       top: 20px;
       right: 20px;
-      padding: 12px 20px;
-      border-radius: 6px;
+      padding: 16px 24px;
+      border-radius: 8px;
       color: white;
       font-weight: 500;
       z-index: 1001;
-      max-width: 400px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      animation: slideInRight 0.3s ease-out;
+      max-width: 450px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+      animation: slideInRight 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      font-size: 14px;
+      line-height: 1.4;
     `
-    
+
     // Set background color based on type
     switch (type) {
       case 'success':
         notification.style.backgroundColor = '#10b981'
+        notification.style.borderLeft = '4px solid #059669'
         break
       case 'error':
         notification.style.backgroundColor = '#ef4444'
+        notification.style.borderLeft = '4px solid #dc2626'
         break
       case 'warning':
         notification.style.backgroundColor = '#f59e0b'
+        notification.style.borderLeft = '4px solid #d97706'
         break
       default:
         notification.style.backgroundColor = '#3b82f6'
+        notification.style.borderLeft = '4px solid #2563eb'
     }
-    
+
     document.body.appendChild(notification)
-    
+
     // Auto-remove after specified duration
     setTimeout(() => {
       if (notification.parentNode) {

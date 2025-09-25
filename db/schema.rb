@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_15_205125) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_25_162057) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -60,12 +60,14 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_15_205125) do
     t.text "tip"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "category"
+    t.string "category", null: false
     t.string "severity"
     t.text "coaching_note"
     t.index ["category"], name: "index_issues_on_category"
+    t.index ["session_id", "category", "severity"], name: "index_issues_on_session_category_severity"
     t.index ["session_id", "category"], name: "index_issues_on_session_and_category"
     t.index ["session_id", "start_ms"], name: "index_issues_on_session_and_start_ms"
+    t.index ["session_id", "start_ms"], name: "index_issues_on_session_start_time"
     t.index ["session_id"], name: "index_issues_on_session_id"
     t.index ["severity"], name: "index_issues_on_severity"
   end
@@ -85,10 +87,18 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_15_205125) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "processed_at"
+    t.boolean "minimum_duration_enforced", default: true, null: false
+    t.string "speech_context"
+    t.index ["analysis_json"], name: "index_sessions_on_analysis_json_gin"
     t.index ["completed", "created_at"], name: "index_sessions_on_completed_and_created_at"
+    t.index ["created_at", "completed"], name: "index_sessions_on_date_completed"
+    t.index ["minimum_duration_enforced"], name: "index_sessions_on_duration_enforced"
+    t.index ["minimum_duration_enforced"], name: "index_sessions_on_minimum_duration_enforced"
     t.index ["processing_state"], name: "index_sessions_on_processing_state"
+    t.index ["user_id", "completed", "created_at"], name: "index_sessions_on_user_completed_date"
     t.index ["user_id", "completed"], name: "index_sessions_on_user_and_completed"
     t.index ["user_id", "created_at"], name: "index_sessions_on_user_and_created_at"
+    t.index ["user_id", "processing_state"], name: "index_sessions_on_user_processing_state"
     t.index ["user_id"], name: "index_sessions_on_user_id"
   end
 
@@ -98,6 +108,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_15_205125) do
     t.text "payload"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["user_id", "created_at"], name: "index_embeddings_on_user_date"
     t.index ["user_id", "created_at"], name: "index_user_embeddings_on_user_and_created_at"
     t.index ["user_id"], name: "index_user_issue_embeddings_on_user_id"
   end

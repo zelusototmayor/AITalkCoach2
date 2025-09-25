@@ -33,21 +33,26 @@ export default class extends Controller {
   }
 
   connect() {
-    this.sessionsValue = this.sessionsValue || []
-    this.metricsValue = this.metricsValue || []
-    this.timeframeValue = this.timeframeValue || '7d'
-    this.showTrendsValue = this.showTrendsValue ?? true
-    this.autoRefreshValue = this.autoRefreshValue ?? false
-    this.refreshIntervalValue = this.refreshIntervalValue || 30
+    try {
+      this.sessionsValue = this.sessionsValue || []
+      this.metricsValue = this.metricsValue || []
+      this.timeframeValue = this.timeframeValue || '7d'
+      this.showTrendsValue = this.showTrendsValue ?? true
+      this.autoRefreshValue = this.autoRefreshValue ?? false
+      this.refreshIntervalValue = this.refreshIntervalValue || 30
 
-    this.processData()
-    this.renderSparklines()
-    this.renderMetrics()
-    this.renderTrends()
-    this.generateInsights()
-    
-    if (this.autoRefreshValue) {
-      this.startAutoRefresh()
+      this.processData()
+      this.renderSparklines()
+      this.renderMetrics()
+      this.renderTrends()
+      this.generateInsights()
+
+      if (this.autoRefreshValue) {
+        this.startAutoRefresh()
+      }
+    } catch (error) {
+      console.error('Error connecting insights controller:', error)
+      this.showErrorMessage('Failed to load insights data')
     }
   }
 
@@ -702,17 +707,48 @@ export default class extends Controller {
       timeframe: this.timeframeValue,
       exportDate: new Date().toISOString()
     }
-    
+
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
-    
+
     const a = document.createElement('a')
     a.href = url
     a.download = `insights-${this.timeframeValue}-${new Date().toISOString().split('T')[0]}.json`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
-    
+
     URL.revokeObjectURL(url)
+  }
+
+  toggleCategory(event) {
+    const button = event.currentTarget
+    const categoryHeader = button.closest('.category-header')
+    const categoryIssues = categoryHeader.nextElementSibling
+
+    if (categoryIssues && categoryIssues.classList.contains('category-issues')) {
+      const isVisible = categoryIssues.style.display !== 'none'
+
+      if (isVisible) {
+        categoryIssues.style.display = 'none'
+        button.querySelector('span').textContent = 'Show'
+      } else {
+        categoryIssues.style.display = 'block'
+        button.querySelector('span').textContent = 'Hide'
+      }
+    }
+  }
+
+  showErrorMessage(message) {
+    if (this.hasInsightsTarget) {
+      this.insightsTarget.innerHTML = `
+        <div class="error-message p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div class="flex items-center">
+            <span class="text-red-600 mr-2">⚠️</span>
+            <span class="text-red-800">${message}</span>
+          </div>
+        </div>
+      `
+    }
   }
 }

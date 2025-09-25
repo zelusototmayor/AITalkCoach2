@@ -62,7 +62,6 @@ Building a web-first, AI-powered speech coaching app that provides instant feedb
 - [x] config/clarity/pt.yml (Portuguese speech patterns)
 - [x] Rule validation and testing utilities
 
-### ✅ Phase 9: Advanced Features (COMPLETED)
 - [x] Export functionality (JSON/transcript)
 - [x] Session insights and trends (7-day sparklines)
 - [x] Adaptive prompting based on user weaknesses
