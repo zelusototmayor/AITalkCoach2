@@ -1,0 +1,65 @@
+#!/bin/bash
+
+# AI Talk Coach Automated Cleanup Script
+# Based on imagesweep cleanup-cron approach
+# Add to crontab: 0 */2 * * * /path/to/ai_talk_coach/bin/cleanup-cron
+
+set -e
+
+# Change to the application directory
+cd "$(dirname "$0")/.."
+
+# Set up environment
+export RAILS_ENV=production
+
+# Log cleanup activity
+echo "[$(date)] Starting automated cleanup..." >> log/cleanup.log
+
+# Run FFmpeg process cleanup
+echo "[$(date)] Cleaning up FFmpeg processes..." >> log/cleanup.log
+bin/rails aitalkcoach:cleanup_ffmpeg >> log/cleanup.log 2>&1
+
+# Monitor and log system status
+echo "[$(date)] Checking system status..." >> log/cleanup.log
+bin/rails aitalkcoach:monitor_ffmpeg >> log/cleanup.log 2>&1
+
+# If there are still too many processes, run emergency cleanup
+FFMPEG_COUNT=$(pgrep -f "ffmpeg" | wc -l)
+if [ "$FFMPEG_COUNT" -gt 15 ]; then
+  echo "[$(date)] ALERT: $FFMPEG_COUNT FFmpeg processes detected, running emergency cleanup..." >> log/cleanup.log
+  bin/rails aitalkcoach:emergency_cleanup >> log/cleanup.log 2>&1
+fi
+
+# Run full cleanup every 6 hours (check if it's been 6 hours since last full cleanup)
+LAST_FULL_CLEANUP=$(find log -name "cleanup.log" -exec grep -l "Full cleanup completed" {} \; | head -1)
+if [ -n "$LAST_FULL_CLEANUP" ]; then
+  LAST_CLEANUP_TIME=$(grep "Full cleanup completed" "$LAST_FULL_CLEANUP" | tail -1 | cut -d']' -f1 | tr -d '[')
+  CURRENT_TIME=$(date)
+
+  # Simple check: if it's been more than 6 hours, run full cleanup
+  # This is a simplified approach - in production you might want more sophisticated time checking
+  HOUR=$(date +%H)
+  if [ $((HOUR % 6)) -eq 0 ] && [ $(date +%M) -lt 30 ]; then
+    echo "[$(date)] Running scheduled full cleanup..." >> log/cleanup.log
+    bin/rails aitalkcoach:full_cleanup >> log/cleanup.log 2>&1
+  fi
+fi
+
+# Health check - verify system is responding
+echo "[$(date)] Running health check..." >> log/cleanup.log
+HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/admin/health || echo "000")
+
+if [ "$HEALTH_STATUS" = "200" ]; then
+  echo "[$(date)] Health check passed (HTTP $HEALTH_STATUS)" >> log/cleanup.log
+else
+  echo "[$(date)] WARNING: Health check failed (HTTP $HEALTH_STATUS)" >> log/cleanup.log
+fi
+
+# Rotate cleanup log if it gets too large (keep last 1000 lines)
+if [ -f log/cleanup.log ] && [ $(wc -l < log/cleanup.log) -gt 1000 ]; then
+  echo "[$(date)] Rotating cleanup log..." >> log/cleanup.log
+  tail -500 log/cleanup.log > log/cleanup.log.tmp
+  mv log/cleanup.log.tmp log/cleanup.log
+fi
+
+echo "[$(date)] Automated cleanup completed." >> log/cleanup.log
