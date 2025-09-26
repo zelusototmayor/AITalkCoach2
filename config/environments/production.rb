@@ -59,14 +59,6 @@ Rails.application.configure do
   config.active_storage.variant_processor = :mini_magick
   config.active_storage.precompile_assets = true
   
-  # Memory and garbage collection optimizations
-  if ENV['RUBY_GC_HEAP_GROWTH_FACTOR']
-    GC.tune_heap_growth_factor = ENV['RUBY_GC_HEAP_GROWTH_FACTOR'].to_f
-  end
-  
-  if ENV['RUBY_GC_MALLOC_LIMIT']
-    GC.tune_malloc_limit = ENV['RUBY_GC_MALLOC_LIMIT'].to_i
-  end
 
   # Replace the default in-process memory cache store with a durable alternative.
   config.cache_store = :solid_cache_store
