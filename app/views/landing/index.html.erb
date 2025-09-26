@@ -1,0 +1,323 @@
+<% content_for :title, "AI Talk Coach - Master Your Communication Skills with AI-Powered Feedback" %>
+
+<div class="landing-page">
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-container">
+      <div class="hero-content">
+        <div class="hero-badge">
+          <span class="badge-icon">✨</span>
+          AI-powered speech coaching
+        </div>
+
+        <h1 class="hero-title">
+          Speak clearly. Practice faster.
+          <span class="hero-highlight">Get instant feedback.</span>
+        </h1>
+
+        <p class="hero-description">
+          AI Talk Coach helps you practice 30–180 second responses, detect filler words,
+          measure clarity & pace, and gives you targeted coaching—anytime, in your browser.
+        </p>
+
+        <div class="hero-actions">
+          <%= link_to practice_path, class: "btn btn-primary btn-large" do %>
+            <span class="btn-icon">▶</span>
+            Start Practicing Now
+          <% end %>
+
+          <a href="#demo" class="btn btn-secondary btn-large">
+            <span class="btn-icon">👁️</span>
+            See Live Demo
+          </a>
+        </div>
+
+        <div class="hero-features">
+          <div class="feature-item">
+            <span class="feature-icon">🎤</span>
+            In‑browser recording
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">⚡</span>
+            Real‑time analysis
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">🎯</span>
+            Actionable coaching
+          </div>
+        </div>
+      </div>
+
+      <!-- Demo Preview Card -->
+      <div class="hero-demo">
+        <div class="demo-card">
+          <div class="demo-header">
+            <h3>Practice Session Preview</h3>
+            <span class="demo-badge">Live from your app</span>
+          </div>
+
+          <div class="demo-prompt">
+            "Describe a challenging project you completed recently.
+            Keep it under 60 seconds and focus on the outcome."
+          </div>
+
+          <div class="demo-controls">
+            <div class="timer-presets">
+              <button class="preset-btn">30s</button>
+              <button class="preset-btn active">60s</button>
+              <button class="preset-btn">120s</button>
+            </div>
+            <button class="record-btn">
+              <span class="btn-icon">🎤</span>
+              Start Recording
+            </button>
+          </div>
+
+          <div class="demo-metrics">
+            <div class="metric">
+              <div class="metric-label">WPM</div>
+              <div class="metric-value"><%= @sample_session[:wpm] %></div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Filler %</div>
+              <div class="metric-value"><%= @sample_session[:filler_rate] %>%</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Clarity</div>
+              <div class="metric-value"><%= @sample_session[:clarity_score] %></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Social Proof -->
+  <section class="stats-section">
+    <div class="stats-container">
+      <div class="stat-card">
+        <div class="stat-number"><%= @total_practice_minutes %>+</div>
+        <div class="stat-label">practice minutes tracked</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number"><%= @average_filler_reduction %>%</div>
+        <div class="stat-label">avg. filler reduction in 2 weeks</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number"><%= @median_clarity_score %></div>
+        <div class="stat-label">median clarity score after 10 sessions</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="how-it-works">
+    <div class="section-container">
+      <h2 class="section-title">How it works</h2>
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-icon">
+            <span>⏱️</span>
+          </div>
+          <h3>Pick your focus</h3>
+          <p>Choose 30–180 second practice sessions. Select from interview prep, presentation skills, or conversation practice.</p>
+        </div>
+
+        <div class="step-card">
+          <div class="step-icon">
+            <span>🎤</span>
+          </div>
+          <h3>Record & speak</h3>
+          <p>Practice in your browser with real-time guidance. No downloads, no setup—just click and start speaking.</p>
+        </div>
+
+        <div class="step-card">
+          <div class="step-icon">
+            <span>📊</span>
+          </div>
+          <h3>Get AI feedback</h3>
+          <p>Instant analysis of pace, clarity, filler words, and engagement with specific improvement suggestions.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="features-section">
+    <div class="section-container">
+      <h2 class="section-title">What you'll improve</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <span>🎯</span>
+          </div>
+          <h3>AI clarity coaching</h3>
+          <p>Get specific suggestions to remove filler words, improve pacing, and make your message more direct and engaging.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <span>⚡</span>
+          </div>
+          <h3>Real-time detection</h3>
+          <p>Automatic identification of "um," "uh," pace issues, and long pauses with timestamps for focused improvement.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <span>📚</span>
+          </div>
+          <h3>Practice library</h3>
+          <p>Curated scenarios for interviews, pitches, storytelling, and professional conversations.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <span>📈</span>
+          </div>
+          <h3>Progress tracking</h3>
+          <p>Monitor your improvement over time with detailed analytics and personalized coaching insights.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <span>🌐</span>
+          </div>
+          <h3>Web-first platform</h3>
+          <p>No apps to install. Practice anywhere with just a browser and microphone. Works on all devices.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <span>🔒</span>
+          </div>
+          <h3>Privacy focused</h3>
+          <p>Your recordings stay private. Delete any session anytime. Full control over your practice data.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Live Demo Section -->
+  <section id="demo" class="demo-section">
+    <div class="section-container">
+      <div class="demo-content">
+        <div class="demo-text">
+          <h2>Try it live right now</h2>
+          <p>Experience the full coaching interface with real AI feedback. No account required—just click and start practicing.</p>
+
+          <%= link_to practice_path, class: "btn btn-primary btn-large" do %>
+            <span class="btn-icon">🚀</span>
+            Launch Practice Interface
+          <% end %>
+
+          <div class="demo-features">
+            <div class="demo-feature">
+              <span class="feature-dot"></span>
+              Filler word detection with timestamps
+            </div>
+            <div class="demo-feature">
+              <span class="feature-dot"></span>
+              Speaking pace and clarity analysis
+            </div>
+            <div class="demo-feature">
+              <span class="feature-dot"></span>
+              Personalized improvement suggestions
+            </div>
+          </div>
+        </div>
+
+        <div class="demo-preview">
+          <div class="preview-card">
+            <div class="preview-header">
+              <h4>What you'll see in action</h4>
+            </div>
+            <div class="preview-content">
+              <div class="preview-item">
+                <span class="preview-icon">🎤</span>
+                <span>Real-time recording with visual feedback</span>
+              </div>
+              <div class="preview-item">
+                <span class="preview-icon">📊</span>
+                <span>Instant metrics: WPM, clarity, filler rate</span>
+              </div>
+              <div class="preview-item">
+                <span class="preview-icon">💡</span>
+                <span>AI coaching suggestions for improvement</span>
+              </div>
+              <div class="preview-item">
+                <span class="preview-icon">📈</span>
+                <span>Progress tracking across sessions</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section class="faq-section">
+    <div class="section-container">
+      <h2 class="section-title">Frequently asked questions</h2>
+      <div class="faq-grid">
+        <div class="faq-item">
+          <h3>What platforms are supported?</h3>
+          <p>AI Talk Coach works in any modern web browser on desktop, tablet, or mobile. No apps to download—just visit our website and start practicing.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>How accurate is the AI feedback?</h3>
+          <p>Our AI combines advanced speech recognition with linguistic analysis to provide precise feedback on pace, clarity, and speaking patterns. It's trained on thousands of professional presentations.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>Do you store my recordings?</h3>
+          <p>Your recordings are temporarily processed for analysis, then you can choose to save them in your account or delete them immediately. You have full control over your data.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>Is there a free version?</h3>
+          <p>Yes! Start practicing immediately with our free tier. Get instant feedback on your speaking and track your progress over time.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>What languages are supported?</h3>
+          <p>Currently supporting English, Portuguese, and Spanish with high accuracy. More languages coming based on user demand.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>How quickly will I see improvement?</h3>
+          <p>Most users see measurable improvement in filler word usage within their first week. Significant clarity improvements typically happen within 2-3 weeks of regular practice.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <div class="cta-container">
+      <div class="cta-content">
+        <h2>Ready to transform your communication skills?</h2>
+        <p>Join <%= @active_users %>+ people already improving their speaking with AI-powered coaching.</p>
+
+        <div class="cta-actions">
+          <%= link_to practice_path, class: "btn btn-primary btn-large" do %>
+            <span class="btn-icon">🎤</span>
+            Start Your First Practice
+          <% end %>
+
+          <%= link_to history_sessions_path, class: "btn btn-secondary-outline btn-large" do %>
+            <span class="btn-icon">📊</span>
+            View Session History
+          <% end %>
+        </div>
+
+        <div class="cta-note">
+          <span class="note-icon">🔒</span>
+          No account required to start. Your privacy is protected.
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

@@ -99,10 +99,10 @@
         <div class="nav-menu" id="nav-menu" data-navigation-target="menu">
           <ul class="nav-links" role="menubar">
             <li class="nav-item" role="none">
-              <%= link_to root_path,
-                    class: "nav-link #{'active' if current_page?(root_path)}",
+              <%= link_to practice_path,
+                    class: "nav-link #{'active' if current_page?(practice_path)}",
                     role: "menuitem",
-                    "aria-current": (current_page?(root_path) ? "page" : nil),
+                    "aria-current": (current_page?(practice_path) ? "page" : nil),
                     data: { action: "click->navigation#closeMenu" } do %>
                 <span class="nav-icon" aria-hidden="true">🎤</span>
                 <span class="nav-text">Practice</span>

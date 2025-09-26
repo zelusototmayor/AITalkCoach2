@@ -148,7 +148,7 @@ class SessionsController < ApplicationController
   
   def destroy
     @session.destroy
-    redirect_to sessions_path, notice: 'Session deleted successfully.'
+    redirect_to practice_path, notice: 'Session deleted successfully.'
   end
   
   # Make the helper methods available to views
