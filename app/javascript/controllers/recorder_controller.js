@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["recordBtn", "status", "statusText", "indicator", "preview", "form", "timer", "progressBar", "videoPreview", "audioPreview", "fileInput", "submitBtn", "countdownDisplay", "durationInput", "titleInput", "titleError", "languageSelect", "mediaKindSelect", "titleInputPreview", "languageSelectPreview", "mediaKindSelectPreview"]
+  static targets = ["recordBtn", "status", "statusText", "indicator", "preview", "form", "timer", "progressBar", "videoPreview", "audioPreview", "fileInput", "submitBtn", "countdownDisplay", "durationInput", "titleInput", "titleError", "languageSelect", "mediaKindSelect", "titleInputPreview", "languageSelectPreview", "mediaKindSelectPreview", "sessionConfig"]
   static values = { 
     maxDurationSec: Number, 
     maxFileSizeMb: Number,
@@ -32,6 +32,9 @@ export default class extends Controller {
 
     // Check if we're in a practice timer context
     this.isPracticeTimerMode = document.querySelector('[data-controller*="practice-timer"]') !== null
+
+    // Listen for title generation events from prompts controller
+    this.element.addEventListener('title-generated', this.handleTitleGenerated.bind(this))
 
     this.updateUI("ready")
   }
@@ -931,5 +934,50 @@ export default class extends Controller {
         }, 300)
       }
     }, duration)
+  }
+
+  toggleSessionConfig() {
+    if (!this.hasSessionConfigTarget) return
+
+    const content = this.sessionConfigTarget
+    const header = content.previousElementSibling
+    const icon = header.querySelector('.config-toggle-icon')
+
+    if (content.style.display === 'none' || content.style.display === '') {
+      content.style.display = 'block'
+      content.style.opacity = '0'
+      content.style.maxHeight = '0'
+      content.style.overflow = 'hidden'
+      content.style.transition = 'all 0.3s ease-out'
+
+      // Trigger animation
+      setTimeout(() => {
+        content.style.opacity = '1'
+        content.style.maxHeight = '500px'
+      }, 10)
+
+      if (icon) icon.textContent = '▲'
+    } else {
+      content.style.opacity = '0'
+      content.style.maxHeight = '0'
+
+      setTimeout(() => {
+        content.style.display = 'none'
+      }, 300)
+
+      if (icon) icon.textContent = '▼'
+    }
+  }
+
+  handleTitleGenerated(event) {
+    const { title } = event.detail
+
+    // Update the title input if we have one
+    if (this.hasTitleInputTarget) {
+      this.titleInputTarget.value = title
+    }
+
+    // Clear any title errors since we now have a valid title
+    this.clearTitleError()
   }
 }

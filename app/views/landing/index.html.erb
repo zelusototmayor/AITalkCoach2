@@ -21,9 +21,16 @@
         </p>
 
         <div class="hero-actions">
-          <%= link_to practice_path, class: "btn btn-primary btn-large" do %>
-            <span class="btn-icon">▶</span>
-            Start Practicing Now
+          <% if logged_in? %>
+            <%= link_to practice_path, class: "btn btn-primary btn-large" do %>
+              <span class="btn-icon">▶</span>
+              Continue Practicing
+            <% end %>
+          <% else %>
+            <%= link_to signup_path, class: "btn btn-primary btn-large" do %>
+              <span class="btn-icon">▶</span>
+              Start Practicing Now
+            <% end %>
           <% end %>
 
           <a href="#demo" class="btn btn-secondary btn-large">
@@ -206,9 +213,16 @@
           <h2>Try it live right now</h2>
           <p>Experience the full coaching interface with real AI feedback. No account required—just click and start practicing.</p>
 
-          <%= link_to practice_path, class: "btn btn-primary btn-large" do %>
-            <span class="btn-icon">🚀</span>
-            Launch Practice Interface
+          <% if logged_in? %>
+            <%= link_to practice_path, class: "btn btn-primary btn-large" do %>
+              <span class="btn-icon">🚀</span>
+              Launch Practice Interface
+            <% end %>
+          <% else %>
+            <%= link_to signup_path, class: "btn btn-primary btn-large" do %>
+              <span class="btn-icon">🚀</span>
+              Get Started Free
+            <% end %>
           <% end %>
 
           <div class="demo-features">
@@ -302,20 +316,36 @@
         <p>Join <%= @active_users %>+ people already improving their speaking with AI-powered coaching.</p>
 
         <div class="cta-actions">
-          <%= link_to practice_path, class: "btn btn-primary btn-large" do %>
-            <span class="btn-icon">🎤</span>
-            Start Your First Practice
-          <% end %>
+          <% if logged_in? %>
+            <%= link_to practice_path, class: "btn btn-primary btn-large" do %>
+              <span class="btn-icon">🎤</span>
+              Continue Your Practice
+            <% end %>
 
-          <%= link_to history_sessions_path, class: "btn btn-secondary-outline btn-large" do %>
-            <span class="btn-icon">📊</span>
-            View Session History
+            <%= link_to history_sessions_path, class: "btn btn-secondary-outline btn-large" do %>
+              <span class="btn-icon">📊</span>
+              View Session History
+            <% end %>
+          <% else %>
+            <%= link_to signup_path, class: "btn btn-primary btn-large" do %>
+              <span class="btn-icon">🎤</span>
+              Start Your First Practice
+            <% end %>
+
+            <%= link_to login_path, class: "btn btn-secondary-outline btn-large" do %>
+              <span class="btn-icon">🔑</span>
+              Already Have Account?
+            <% end %>
           <% end %>
         </div>
 
         <div class="cta-note">
           <span class="note-icon">🔒</span>
-          No account required to start. Your privacy is protected.
+          <% if logged_in? %>
+            Welcome back, <%= current_user.name %>! Your data is safe and secure.
+          <% else %>
+            Create your free account in 30 seconds. Your privacy is protected.
+          <% end %>
         </div>
       </div>
     </div>

@@ -587,15 +587,27 @@
 }
 
 .practice-layout {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2rem;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 1.5rem !important;
+  min-height: 70vh;
+  width: 100% !important;
 }
 
-@media (min-width: 768px) {
+/* Force two-column layout on screens 640px and wider */
+@media (min-width: 640px) {
   .practice-layout {
-    grid-template-columns: 1fr 400px;
-    gap: 3rem;
+    grid-template-columns: 1fr 380px !important;
+    gap: 2.5rem !important;
+    align-items: start !important;
+  }
+}
+
+/* Enhanced layout for larger screens */
+@media (min-width: 1200px) {
+  .practice-layout {
+    grid-template-columns: 1fr 420px !important;
+    gap: 3rem !important;
   }
 }
 
@@ -605,6 +617,12 @@
   border-radius: 12px;
   padding: 2rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  min-height: 600px;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  width: 100% !important;
+  overflow: hidden;
 }
 
 .practice-header h1 {
@@ -929,9 +947,11 @@
 
 /* Insights Panel (Right Side) */
 .insights-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1.5rem !important;
+  width: 100% !important;
+  min-width: 300px !important;
 }
 
 .insights-card,
@@ -1332,6 +1352,51 @@ h4 { font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem; }
   border-radius: 0.75rem;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   margin-bottom: 1.5rem;
+}
+
+/* Session Configuration Collapsible Styles */
+.session-config-header {
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 16px 20px;
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+}
+
+.session-config-header:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.session-config-header h3 {
+  margin: 0;
+  color: #334155;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.config-note {
+  margin: 4px 0 0 0;
+  font-size: 0.875rem;
+  color: #64748b;
+  font-style: italic;
+}
+
+.config-toggle-icon {
+  font-size: 1.2rem;
+  color: #64748b;
+  transition: transform 0.2s ease;
+  margin-left: 12px;
+}
+
+.session-config-content {
+  overflow: hidden;
+  transition: all 0.3s ease-out;
 }
 
 .form-actions {
@@ -4867,5 +4932,557 @@ textarea:focus {
 
   .issue-timestamp {
     align-self: flex-start;
+  }
+}
+/* ===== UI IMPROVEMENT STYLES ===== */
+
+/* Compact Timer Controls */
+.timer-controls-compact {
+  margin-bottom: 1.5rem;
+}
+
+.timer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.timer-header h5 {
+  margin: 0;
+  color: #374151;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.preset-buttons-horizontal {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.countdown-timer-compact {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.timer-circle-small {
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+
+.timer-circle-small .timer-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.timer-circle-small .timer-percentage {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #374151;
+}
+
+.timer-circle-small .timer-status {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+/* Enhanced Metrics Grid */
+.metrics-grid-enhanced {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.metrics-grid-enhanced .metric {
+  text-align: center;
+  padding: 0.75rem 0.5rem;
+  background: #f8fafc;
+  border-radius: 6px;
+}
+
+.metrics-grid-enhanced .metric-label {
+  font-size: 0.65rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+}
+
+.metrics-grid-enhanced .metric-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* Recent Sessions Card */
+.recent-sessions-card {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.recent-sessions-card h5 {
+  margin: 0 0 0.75rem 0;
+  color: #374151;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.recent-sessions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.recent-session-item {
+  border-bottom: 1px solid #f3f4f6;
+  padding-bottom: 0.5rem;
+}
+
+.recent-session-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.session-link {
+  text-decoration: none;
+  display: block;
+}
+
+.session-link:hover {
+  color: #3b82f6;
+}
+
+.session-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.25rem;
+}
+
+.session-meta {
+  font-size: 0.75rem;
+  color: #6b7280;
+  display: flex;
+  justify-content: space-between;
+}
+
+.session-duration {
+  font-weight: 500;
+}
+
+/* Practice Panel Improvements */
+.practice-panel {
+  gap: 1.5rem !important;
+  padding: 1.5rem !important;
+}
+
+.practice-header h2 {
+  margin-bottom: 1rem;
+  color: #1f2937;
+  font-size: 1.5rem;
+}
+
+/* Enhanced Insights Panel - Right Sidebar */
+.insights-panel {
+  gap: 1.5rem !important;
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  max-height: 100vh;
+  overflow-y: auto;
+}
+
+/* New Insights Header Card */
+.insights-header-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
+}
+
+.insights-header-card h3 {
+  color: #1f2937;
+  margin: 0 0 1rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+/* Key Metrics Row Layout (Similar to screenshot) */
+.key-metrics-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.key-metrics-row.secondary-row {
+  margin-bottom: 0;
+}
+
+.key-metric {
+  flex: 1;
+  text-align: center;
+}
+
+.key-metric .metric-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
+}
+
+.key-metric .metric-value-large {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1;
+}
+
+/* Performance Metrics Card */
+.performance-metrics-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
+}
+
+.performance-metrics-card h4 {
+  color: #1f2937;
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.metrics-grid-enhanced {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.metric-item {
+  text-align: center;
+}
+
+.metric-item .metric-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+}
+
+.metric-item .metric-value {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* Enhanced Prompt Library */
+.prompt-library-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
+}
+
+.prompt-library-card h4 {
+  color: #1f2937;
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.library-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.tab-btn.active {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: white;
+}
+
+.fluency-section,
+.elevator-pitch-section {
+  margin-bottom: 1.5rem;
+}
+
+.fluency-section:last-child,
+.elevator-pitch-section:last-child {
+  margin-bottom: 0;
+}
+
+.fluency-section h5,
+.elevator-pitch-section h5 {
+  color: #1f2937;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem 0;
+}
+
+.prompt-item {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
+}
+
+.prompt-item:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.prompt-item.featured {
+  background: #fef3c7;
+  border-color: #fbbf24;
+}
+
+.prompt-item:last-child {
+  margin-bottom: 0;
+}
+
+.prompt-text {
+  font-size: 0.875rem;
+  color: #374151;
+  line-height: 1.4;
+  margin-bottom: 0.5rem;
+}
+
+.use-btn {
+  background: #6b7280;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.use-btn:hover {
+  background: #4b5563;
+}
+
+.use-btn.primary {
+  background: #3b82f6;
+}
+
+.use-btn.primary:hover {
+  background: #2563eb;
+}
+
+/* Other cards styling */
+.insights-card, .focus-areas-card, .recent-sessions-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
+}
+
+/* Compact Session Setup Styling */
+.pre-recording-setup-compact {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.session-config-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.config-row {
+  display: flex;
+  gap: 1rem;
+  align-items: end;
+}
+
+.config-row.secondary-settings {
+  opacity: 0.8;
+}
+
+.config-group {
+  flex: 1;
+}
+
+.config-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.config-input,
+.config-select {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  background: white;
+  transition: border-color 0.2s ease;
+}
+
+.config-input:focus,
+.config-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 1px #3b82f6;
+}
+
+.config-select {
+  cursor: pointer;
+}
+
+/* Responsive adjustments for compact form */
+@media (max-width: 640px) {
+  .config-row {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .config-row.secondary-settings {
+    flex-direction: row;
+  }
+}
+
+/* Mobile Responsive Improvements */
+@media (max-width: 767px) {
+  .metrics-grid-enhanced {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  .timer-controls-compact .countdown-timer-compact {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .preset-buttons-horizontal {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* Mobile adjustments for insights */
+  .insights-panel {
+    gap: 1rem !important;
+  }
+
+  .insights-header-card,
+  .performance-metrics-card,
+  .prompt-library-card {
+    padding: 1rem;
+  }
+
+  .key-metrics-row {
+    gap: 0.75rem;
+  }
+
+  .key-metric .metric-value-large {
+    font-size: 1.5rem;
+  }
+
+  /* Mobile friendly prompt items */
+  .prompt-item {
+    padding: 0.625rem;
+  }
+
+  .prompt-text {
+    font-size: 0.8125rem;
+  }
+}
+
+/* Timer and Start Button Horizontal Layout */
+.timer-start-layout {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.start-btn-compact {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
+.start-btn-compact:hover {
+  background: #059669;
+}
+
+.countdown-timer-compact {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.countdown-timer-compact .timer-time {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* Mobile adjustments for timer layout */
+@media (max-width: 767px) {
+  .timer-start-layout {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .start-btn-compact {
+    padding: 1rem 2rem;
+    font-size: 1rem;
   }
 }

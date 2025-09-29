@@ -1,5 +1,5 @@
 class Api::SessionsController < ApplicationController
-  before_action :set_guest_user
+  before_action :require_login
   before_action :set_session, except: [:count]
   
   def timeline
@@ -114,7 +114,7 @@ class Api::SessionsController < ApplicationController
     else 30
     end
     
-    user_sessions = @current_user.sessions
+    user_sessions = current_user.sessions
       .where(completed: true)
       .where('created_at >= ?', days.days.ago)
       .includes(:issues)
@@ -133,7 +133,7 @@ class Api::SessionsController < ApplicationController
     render json: {
       sessions: user_sessions,
       timeframe: timeframe,
-      total_count: @current_user.sessions.where(completed: true).count
+      total_count: current_user.sessions.where(completed: true).count
     }
   end
   
@@ -149,25 +149,16 @@ class Api::SessionsController < ApplicationController
   end
 
   def count
-    total_count = @current_user.sessions.count
+    total_count = current_user.sessions.count
     render json: { count: total_count }
   end
   
   private
   
   def set_session
-    return if @current_user.nil?
-    @session = @current_user.sessions.find(params[:id])
+    @session = current_user.sessions.find(params[:id])
   end
   
-  def set_guest_user
-    @current_user = User.find_by(email: 'guest@aitalkcoach.local')
-    
-    unless @current_user
-      render json: { error: 'Guest user not found' }, status: :unauthorized
-      return false
-    end
-  end
   
   def generate_transcript_export
     # Safely access analysis_data to avoid circular references

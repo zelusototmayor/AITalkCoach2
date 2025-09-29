@@ -9,6 +9,9 @@ class ApplicationController < ActionController::Base
   
   # Request tracking
   before_action :set_request_context
+
+  # Authentication
+  helper_method :current_user, :logged_in?
   
   private
   
@@ -52,6 +55,37 @@ class ApplicationController < ActionController::Base
           user_agent: request.user_agent&.truncate(100)
         })
       end
+    end
+  end
+
+  # Authentication methods
+  def current_user
+    @current_user ||= User.find(session[:user_id]) if session[:user_id]
+  end
+
+  def logged_in?
+    !!current_user
+  end
+
+  def require_login
+    unless logged_in?
+      store_location
+      redirect_to login_path, alert: 'Please login to continue'
+    end
+  end
+
+  def store_location
+    session[:forwarding_url] = request.original_url if request.get?
+  end
+
+  def redirect_back_or(default)
+    redirect_to(session[:forwarding_url] || default)
+    session.delete(:forwarding_url)
+  end
+
+  def require_logout
+    if logged_in?
+      redirect_to practice_path, notice: 'You are already logged in'
     end
   end
 end

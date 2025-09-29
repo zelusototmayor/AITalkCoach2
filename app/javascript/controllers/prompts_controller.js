@@ -50,7 +50,26 @@ export default class extends Controller {
       if (!this.selectedPromptValue && this.promptsValue.length > 0) {
         this.selectedPromptValue = this.promptsValue[0]
         this.updateSelectedDisplay()
+        this.autoGenerateSessionTitle(this.selectedPromptValue)
+      } else if (!this.selectedPromptValue) {
+        // Create a fallback prompt if no prompts are available
+        const fallbackPrompt = {
+          id: 'fallback',
+          text: 'What trade-off did you make recently and why?',
+          title: 'Quick Question',
+          category: 'general',
+          difficulty: 'medium',
+          estimatedTime: 60
+        }
+        this.selectedPromptValue = fallbackPrompt
+        this.updateSelectedDisplay()
+        this.autoGenerateSessionTitle(fallbackPrompt)
       }
+
+      // Also auto-generate title on page load if we have a prompt from URL params
+      setTimeout(() => {
+        this.ensureSessionTitleIsPopulated()
+      }, 100)
 
       if (this.autoShuffleValue) {
         this.startAutoShuffle()
@@ -243,13 +262,14 @@ export default class extends Controller {
     event.stopPropagation()
     const promptId = parseInt(event.currentTarget.dataset.promptId)
     const prompt = this.promptsValue.find(p => p.id === promptId)
-    
+
     if (prompt) {
       this.selectedPromptValue = prompt
       this.markPromptAsUsed(prompt)
       this.renderPrompts()
       this.updateSelectedDisplay()
-      
+      this.autoGenerateSessionTitle(prompt)
+
       this.dispatch('prompt-selected', {
         detail: { prompt },
         bubbles: true
@@ -309,6 +329,7 @@ export default class extends Controller {
 
     // Try to find the full prompt data to get the target time
     let estimatedTime = 60
+    let title = 'Practice Prompt'
     const promptElement = event.target.closest('.prompt-item')
 
     // Look for the prompt in our data
@@ -321,6 +342,7 @@ export default class extends Controller {
           )
           if (foundPrompt && typeof foundPrompt === 'object') {
             estimatedTime = foundPrompt.target_seconds || 60
+            title = foundPrompt.title || 'Practice Prompt'
             break
           }
         }
@@ -331,6 +353,7 @@ export default class extends Controller {
     const prompt = {
       id: Date.now(),
       text: promptText,
+      title: title,
       category: promptElement?.dataset.category || 'general',
       difficulty: 'medium',
       estimatedTime: estimatedTime
@@ -338,6 +361,7 @@ export default class extends Controller {
 
     this.selectedPromptValue = prompt
     this.updatePracticeDisplay()
+    this.autoGenerateSessionTitle(prompt)
 
     this.dispatch('prompt-selected', {
       detail: { prompt },
@@ -394,6 +418,7 @@ export default class extends Controller {
     const prompt = {
       id: Date.now(),
       text: selectedPrompt.text || selectedPrompt,
+      title: selectedPrompt.title || 'Random Prompt',
       category: selectedPrompt.category || 'general',
       difficulty: selectedPrompt.difficulty || 'medium',
       estimatedTime: selectedPrompt.estimatedTime || 60
@@ -401,6 +426,7 @@ export default class extends Controller {
 
     this.selectedPromptValue = prompt
     this.updatePracticeDisplay()
+    this.autoGenerateSessionTitle(prompt)
 
     this.dispatch('prompt-shuffled', {
       detail: { prompt },
@@ -716,14 +742,14 @@ export default class extends Controller {
     try {
       const promptsScript = document.getElementById('prompts-data')
       const categoriesScript = document.getElementById('categories-data')
-      
+
       if (promptsScript && promptsScript.textContent) {
         const parsedPrompts = JSON.parse(promptsScript.textContent)
         this.promptsValue = parsedPrompts || []
       } else {
         this.promptsValue = []
       }
-      
+
       if (categoriesScript && categoriesScript.textContent) {
         const parsedCategories = JSON.parse(categoriesScript.textContent)
         this.categoriesValue = parsedCategories || []
@@ -734,6 +760,114 @@ export default class extends Controller {
       console.error('Error loading data from script tags:', error)
       this.promptsValue = []
       this.categoriesValue = []
+    }
+  }
+
+  autoGenerateSessionTitle(prompt) {
+    const baseTitle = this.getBaseTitle(prompt)
+    const uniqueIdentifier = this.getUniqueIdentifier()
+    const generatedTitle = `${baseTitle} ${uniqueIdentifier}`
+
+    // Update title inputs in both form sections
+    this.updateTitleInputs(generatedTitle)
+
+    // Dispatch event to notify other controllers
+    this.dispatch('title-generated', {
+      detail: { title: generatedTitle, prompt },
+      bubbles: true
+    })
+  }
+
+  getBaseTitle(prompt) {
+    // Prioritize prompt title, fall back to shortened text, then default
+    if (prompt.title) {
+      return prompt.title
+    }
+
+    if (prompt.text) {
+      // Use first part of prompt text, shortened to reasonable length
+      const text = prompt.text.trim()
+      if (text.length > 40) {
+        return text.substring(0, 37) + '...'
+      }
+      return text
+    }
+
+    // Fallback based on category
+    const category = prompt.category || 'general'
+    const categoryTitles = {
+      'interviews': 'Interview Practice',
+      'pitching': 'Pitch Practice',
+      'story': 'Storytelling Practice',
+      'general': 'Practice Session'
+    }
+
+    return categoryTitles[category] || 'Practice Session'
+  }
+
+  getUniqueIdentifier() {
+    const now = new Date()
+
+    // Check if we already have a session today
+    const today = now.toDateString()
+    const sessionKey = `session_count_${today}`
+    let sessionCount = parseInt(localStorage.getItem(sessionKey) || '0') + 1
+    localStorage.setItem(sessionKey, sessionCount.toString())
+
+    // Format: #1, #2, etc. for multiple sessions same day, or just date for first
+    if (sessionCount === 1) {
+      return `- ${now.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric'
+      })}`
+    } else {
+      return `#${sessionCount} - ${now.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric'
+      })}`
+    }
+  }
+
+  updateTitleInputs(title) {
+    // Update main session form title input
+    const mainTitleInput = document.querySelector('input[name="session[title]"]')
+    if (mainTitleInput) {
+      mainTitleInput.value = title
+    }
+
+    // Update post-recording form title input (used by recorder controller)
+    const recorderTitleInput = document.querySelector('[data-recorder-target="titleInput"]')
+    if (recorderTitleInput) {
+      recorderTitleInput.value = title
+    }
+
+    // Update any other title inputs that might exist
+    const allTitleInputs = document.querySelectorAll('input[type="text"][placeholder*="title"], input[type="text"][placeholder*="Title"]')
+    allTitleInputs.forEach(input => {
+      if (input.name && input.name.includes('title')) {
+        input.value = title
+      }
+    })
+  }
+
+  ensureSessionTitleIsPopulated() {
+    // Check if any title input is empty and populate it
+    const titleInputs = [
+      document.querySelector('input[name="session[title]"]'),
+      document.querySelector('[data-recorder-target="titleInput"]')
+    ].filter(Boolean)
+
+    const hasEmptyTitle = titleInputs.some(input => !input.value.trim())
+
+    if (hasEmptyTitle && this.selectedPromptValue) {
+      this.autoGenerateSessionTitle(this.selectedPromptValue)
+    } else if (hasEmptyTitle) {
+      // Generate a basic title if no prompt is available
+      const fallbackTitle = `Practice Session - ${new Date().toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric'
+      })}`
+      this.updateTitleInputs(fallbackTitle)
     }
   }
 

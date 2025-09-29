@@ -1,5 +1,4 @@
 class LandingController < ApplicationController
-  before_action :set_guest_user
 
   def index
     # Calculate real metrics from the database for social proof
@@ -15,27 +14,20 @@ class LandingController < ApplicationController
 
   private
 
-  def set_guest_user
-    # For v1, we'll use the guest user
-    @current_user = User.find_by(email: 'guest@aitalkcoach.local')
-
-    if @current_user.nil?
-      # Create guest user on the fly if missing
-      @current_user = User.create!(
-        email: 'guest@aitalkcoach.local',
-        name: 'Guest User'
-      )
-    end
-  end
 
   def calculate_total_practice_minutes
-    # Sum up duration from all completed sessions
-    total_ms = Session.where(completed: true)
+    # Sum up duration from all completed sessions - process in Ruby for Rails 8 compatibility
+    sessions = Session.where(completed: true)
                      .where.not(analysis_json: nil)
-                     .sum(Arel.sql("CAST(json_extract(analysis_json, '$.duration_seconds') AS INTEGER)"))
+                     .select(:analysis_json)
+
+    total_seconds = sessions.sum do |session|
+      analysis_data = JSON.parse(session.analysis_json) rescue {}
+      (analysis_data['duration_seconds'] || 0).to_f
+    end
 
     # Convert to minutes and format nicely
-    minutes = (total_ms / 60.0).round
+    minutes = (total_seconds / 60.0).round
     format_large_number(minutes)
   end
 
@@ -60,8 +52,18 @@ class LandingController < ApplicationController
         early_sessions = sessions.limit(3)
         recent_sessions = sessions.limit(3).reverse_order
 
-        early_filler = early_sessions.average(Arel.sql("CAST(json_extract(analysis_json, '$.filler_rate') AS REAL)")) || 0
-        recent_filler = recent_sessions.average(Arel.sql("CAST(json_extract(analysis_json, '$.filler_rate') AS REAL)")) || 0
+        # Calculate averages in Ruby to avoid Rails 8 security restrictions
+        early_filler_values = early_sessions.filter_map do |session|
+          analysis_data = JSON.parse(session.analysis_json) rescue {}
+          analysis_data['filler_rate']&.to_f
+        end
+        recent_filler_values = recent_sessions.filter_map do |session|
+          analysis_data = JSON.parse(session.analysis_json) rescue {}
+          analysis_data['filler_rate']&.to_f
+        end
+
+        early_filler = early_filler_values.any? ? early_filler_values.sum / early_filler_values.count : 0
+        recent_filler = recent_filler_values.any? ? recent_filler_values.sum / recent_filler_values.count : 0
 
         if early_filler > 0
           improvement = ((early_filler - recent_filler) / early_filler) * 100
@@ -75,11 +77,15 @@ class LandingController < ApplicationController
   end
 
   def calculate_median_clarity_score
-    clarity_scores = Session.where(completed: true)
-                           .where.not(analysis_json: nil)
-                           .where.not(Arel.sql("json_extract(analysis_json, '$.clarity_score') IS NULL"))
-                           .pluck(Arel.sql("CAST(json_extract(analysis_json, '$.clarity_score') AS REAL)"))
-                           .compact
+    # Load all sessions and process in Ruby to avoid Rails 8 security restrictions
+    sessions = Session.where(completed: true)
+                     .where.not(analysis_json: nil)
+                     .select(:analysis_json)
+
+    clarity_scores = sessions.filter_map do |session|
+      analysis_data = JSON.parse(session.analysis_json) rescue {}
+      analysis_data['clarity_score']&.to_f
+    end
 
     if clarity_scores.any?
       # Convert to percentage and find median
@@ -116,19 +122,27 @@ class LandingController < ApplicationController
   end
 
   def get_sample_session_data
-    # Get a good example session for the preview
-    sample = Session.where(completed: true)
-                   .where.not(analysis_json: nil)
-                   .where("CAST(json_extract(analysis_json, '$.wpm') AS REAL) BETWEEN 120 AND 180")
-                   .where("CAST(json_extract(analysis_json, '$.clarity_score') AS REAL) > 0.7")
-                   .order('RANDOM()')
-                   .first
+    # Get a good example session for the preview - process in Ruby for Rails 8 compatibility
+    sessions = Session.where(completed: true)
+                     .where.not(analysis_json: nil)
+                     .select(:analysis_json)
+
+    # Filter in Ruby to avoid SQL security restrictions
+    good_sessions = sessions.select do |session|
+      analysis_data = JSON.parse(session.analysis_json) rescue {}
+      wpm = analysis_data['wpm']&.to_f || 0
+      clarity = analysis_data['clarity_score']&.to_f || 0
+      wpm.between?(120, 180) && clarity > 0.7
+    end
+
+    sample = good_sessions.sample
 
     if sample
+      analysis_data = JSON.parse(sample.analysis_json) rescue {}
       {
-        wpm: sample.analysis_data['wpm']&.round || 145,
-        filler_rate: ((sample.analysis_data['filler_rate'] || 0.03) * 100).round(1),
-        clarity_score: ((sample.analysis_data['clarity_score'] || 0.85) * 100).round
+        wpm: analysis_data['wpm']&.round || 145,
+        filler_rate: ((analysis_data['filler_rate'] || 0.03) * 100).round(1),
+        clarity_score: ((analysis_data['clarity_score'] || 0.85) * 100).round
       }
     else
       # Fallback demo data

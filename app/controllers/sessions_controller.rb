@@ -1,5 +1,5 @@
 class SessionsController < ApplicationController
-  before_action :set_guest_user
+  before_action :require_login
   before_action :set_session, only: [:show, :destroy]
   
   def index
@@ -10,7 +10,7 @@ class SessionsController < ApplicationController
     @user_weaknesses = analyze_user_weaknesses
 
     # Quick metrics for insights panel
-    @recent_sessions = @current_user.sessions
+    @recent_sessions = current_user.sessions
                                    .where(completed: true)
                                    .where('sessions.created_at > ?', 30.days.ago)
                                    .order('sessions.created_at DESC')
@@ -41,27 +41,20 @@ class SessionsController < ApplicationController
   def history
     # Force fresh data by disabling query cache and ensuring latest data
     ActiveRecord::Base.uncached do
-      @sessions = @current_user.sessions
+      @sessions = current_user.sessions
                               .order(created_at: :desc)
                               .includes(:issues)
                               .limit(50) # Reasonable limit for performance
     end
 
     # Clear any relevant cache keys for this user
-    Rails.cache.delete("user_#{@current_user.id}_sessions_count")
-    Rails.cache.delete("user_#{@current_user.id}_recent_sessions")
+    Rails.cache.delete("user_#{current_user.id}_sessions_count")
+    Rails.cache.delete("user_#{current_user.id}_recent_sessions")
   end
   
-  def new
-    @session = @current_user.sessions.build
-    @prompts = load_prompts_from_config
-    @adaptive_prompts = get_adaptive_prompts
-    @categories = (@prompts.keys + ['recommended']).uniq.sort
-    @user_weaknesses = analyze_user_weaknesses
-  end
   
   def create
-    @session = @current_user.sessions.build(session_params)
+    @session = current_user.sessions.build(session_params)
     @session.processing_state = 'pending'
     @session.completed = false
 
@@ -73,8 +66,8 @@ class SessionsController < ApplicationController
 
     if @session.save
       # Clear cache to ensure history page shows new session
-      Rails.cache.delete("user_#{@current_user.id}_sessions_count")
-      Rails.cache.delete("user_#{@current_user.id}_recent_sessions")
+      Rails.cache.delete("user_#{current_user.id}_sessions_count")
+      Rails.cache.delete("user_#{current_user.id}_recent_sessions")
 
       # Enqueue background job for processing
       Sessions::ProcessJob.perform_later(@session.id)
@@ -116,7 +109,7 @@ class SessionsController < ApplicationController
 
     # Prepare sessions data for insights controller
     begin
-      @user_sessions = @current_user.sessions
+      @user_sessions = current_user.sessions
                                     .where(completed: true)
                                     .where('sessions.created_at > ?', 90.days.ago)
                                     .order('sessions.created_at DESC')
@@ -157,8 +150,7 @@ class SessionsController < ApplicationController
   private
 
   def set_session
-    return if @current_user.nil?
-    @session = @current_user.sessions.find(params[:id])
+    @session = current_user.sessions.find(params[:id])
   end
 
   # Helper method to convert decimal metrics to percentage for display
@@ -215,24 +207,6 @@ class SessionsController < ApplicationController
     end
   end
 
-  def set_guest_user
-    # For v1, we'll use the guest user
-    @current_user = User.find_by(email: 'guest@aitalkcoach.local')
-
-    if @current_user.nil?
-      # Don't redirect to root_path if we're already there to avoid infinite loop
-      if request.path != '/'
-        redirect_to root_path, alert: 'Guest user not found. Please run db:seed.'
-        return false
-      else
-        # Create guest user on the fly if missing
-        @current_user = User.create!(
-          email: 'guest@aitalkcoach.local',
-          name: 'Guest User'
-        )
-      end
-    end
-  end
   
   def session_params
     params.require(:session).permit(:title, :language, :media_kind, :target_seconds, :minimum_duration_enforced, :speech_context, media_files: [])
@@ -303,7 +277,7 @@ class SessionsController < ApplicationController
   end
   
   def get_adaptive_prompts
-    return {} unless @current_user
+    return {} unless current_user
     
     config = YAML.load_file(Rails.root.join('config', 'prompts.yml'))
     weaknesses = analyze_user_weaknesses
@@ -322,10 +296,10 @@ class SessionsController < ApplicationController
   end
   
   def analyze_user_weaknesses
-    return [] unless @current_user
+    return [] unless current_user
     
     # Get recent sessions for analysis
-    recent_sessions = @current_user.sessions
+    recent_sessions = current_user.sessions
       .where(completed: true)
       .where('sessions.created_at >= ?', 30.days.ago)
       .includes(:issues)
@@ -395,10 +369,10 @@ class SessionsController < ApplicationController
 
     # Use caching for expensive calculations
     # Get the latest updated_at from sessions without the join to avoid ambiguity
-    latest_update = @current_user.sessions
+    latest_update = current_user.sessions
                                  .where(id: sessions.map(&:id))
                                  .maximum('sessions.updated_at')
-    cache_key = "user_#{@current_user.id}_quick_metrics_#{latest_update&.to_i}"
+    cache_key = "user_#{current_user.id}_quick_metrics_#{latest_update&.to_i}"
 
     Rails.cache.fetch(cache_key, expires_in: 15.minutes) do
       total_sessions = sessions.count
@@ -435,10 +409,10 @@ class SessionsController < ApplicationController
 
   def calculate_current_streak
     # Cache streak calculation since it's expensive and doesn't change often
-    cache_key = "user_#{@current_user.id}_current_streak_#{Date.current.to_s}"
+    cache_key = "user_#{current_user.id}_current_streak_#{Date.current.to_s}"
 
     Rails.cache.fetch(cache_key, expires_in: 1.hour) do
-      sessions = @current_user.sessions
+      sessions = current_user.sessions
                               .where(completed: true)
                               .order(created_at: :desc)
                               .limit(30)
@@ -463,10 +437,10 @@ class SessionsController < ApplicationController
   end
 
   def calculate_enforcement_analytics
-    return {} unless @current_user
+    return {} unless current_user
 
     # Get recent enforced sessions for analytics
-    enforced_sessions = @current_user.sessions
+    enforced_sessions = current_user.sessions
                                     .where(minimum_duration_enforced: true)
                                     .where('sessions.created_at > ?', 30.days.ago)
 

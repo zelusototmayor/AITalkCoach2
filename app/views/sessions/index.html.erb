@@ -10,20 +10,19 @@
     <!-- Left Panel - Practice Interface -->
     <div class="practice-panel">
       <div class="practice-header">
-        <h1>🎤 Practice</h1>
-        <p>Start practicing immediately with AI-powered feedback</p>
+        <h2>Practice Session</h2>
       </div>
 
       <!-- Current Prompt Display -->
       <div class="prompt-display" data-prompts-target="display">
         <div class="prompt-header">
-          <h3>PROMPT</h3>
+          <h4>Current Prompt</h4>
           <div class="prompt-actions">
-            <span class="prompt-target-time" data-prompts-target="targetTime">⏱️ ~<%= @default_prompt_data[:target_seconds] %>s</span>
+            <span class="prompt-target-time" data-prompts-target="targetTime">~<%= @default_prompt_data[:target_seconds] %>s</span>
             <button type="button" class="shuffle-btn"
                     data-action="click->prompts#shufflePrompt"
                     title="Get a random prompt">
-              🎲 Shuffle
+              Shuffle
             </button>
           </div>
         </div>
@@ -32,51 +31,49 @@
         </div>
       </div>
 
-      <!-- Timer Presets -->
-      <div class="timer-presets">
-        <h4>TIMER PRESETS</h4>
-        <div class="preset-buttons">
-          <button type="button" class="preset-btn"
-                  data-duration="30"
-                  data-action="click->practice-timer#selectDuration">30s</button>
-          <button type="button" class="preset-btn active"
-                  data-duration="60"
-                  data-action="click->practice-timer#selectDuration">60s</button>
-          <button type="button" class="preset-btn"
-                  data-duration="120"
-                  data-action="click->practice-timer#selectDuration">120s</button>
-          <button type="button" class="preset-btn"
-                  data-duration="180"
-                  data-action="click->practice-timer#selectDuration">180s</button>
-        </div>
-      </div>
-
-      <!-- Countdown Timer -->
-      <div class="countdown-timer" data-practice-timer-target="display">
-        <div class="timer-circle">
-          <svg class="timer-svg" viewBox="0 0 120 120">
-            <circle class="timer-track" cx="60" cy="60" r="54"></circle>
-            <circle class="timer-progress"
-                    cx="60" cy="60" r="54"
-                    data-practice-timer-target="progressCircle"></circle>
-          </svg>
-          <div class="timer-content">
-            <div class="timer-percentage" data-practice-timer-target="percentage">0%</div>
-            <div class="timer-status" data-practice-timer-target="status">Ready</div>
+      <!-- Timer Controls - Compact Layout -->
+      <div class="timer-controls-compact">
+        <div class="timer-header">
+          <h5>Duration</h5>
+          <div class="preset-buttons-horizontal">
+            <button type="button" class="preset-btn"
+                    data-duration="30"
+                    data-action="click->practice-timer#selectDuration">30s</button>
+            <button type="button" class="preset-btn active"
+                    data-duration="60"
+                    data-action="click->practice-timer#selectDuration">60s</button>
+            <button type="button" class="preset-btn"
+                    data-duration="120"
+                    data-action="click->practice-timer#selectDuration">120s</button>
+            <button type="button" class="preset-btn"
+                    data-duration="180"
+                    data-action="click->practice-timer#selectDuration">180s</button>
           </div>
         </div>
-        <div class="timer-time" data-practice-timer-target="timeDisplay">0s / 60s</div>
-      </div>
 
-      <!-- Recording Controls -->
-      <div class="recording-controls">
-        <button type="button" class="start-btn"
-                data-practice-timer-target="startBtn"
-                data-action="click->practice-timer#startSession">
-          ▶ Start <span data-practice-timer-target="durationText">60s</span>
-        </button>
+        <div class="timer-start-layout">
+          <button type="button" class="start-btn-compact"
+                  data-practice-timer-target="startBtn"
+                  data-action="click->practice-timer#startSession">
+            ▶ Start <span data-practice-timer-target="durationText">60s</span>
+          </button>
 
-        <!-- Recording actions removed - handled automatically by practice timer -->
+          <div class="countdown-timer-compact" data-practice-timer-target="display">
+            <div class="timer-circle-small">
+              <svg class="timer-svg" viewBox="0 0 80 80">
+                <circle class="timer-track" cx="40" cy="40" r="36"></circle>
+                <circle class="timer-progress"
+                        cx="40" cy="40" r="36"
+                        data-practice-timer-target="progressCircle"></circle>
+              </svg>
+              <div class="timer-content">
+                <div class="timer-percentage" data-practice-timer-target="percentage">0%</div>
+                <div class="timer-status" data-practice-timer-target="status">Ready</div>
+              </div>
+            </div>
+            <div class="timer-time" data-practice-timer-target="timeDisplay">0s / 60s</div>
+          </div>
+        </div>
       </div>
 
       <!-- Enforcement Notice -->
@@ -84,42 +81,36 @@
         <p><small>Minimum time is enforced. Stopping early will mark the session as incomplete.</small></p>
       </div>
 
-      <!-- Pre-Recording Setup Form -->
-      <div class="pre-recording-setup" data-practice-timer-target="setup">
-        <h4>📝 Setup Your Session</h4>
-        <div class="setup-notice">
-          <p><strong>Complete these details before recording:</strong></p>
-        </div>
-        <div class="session-details-form">
-          <div class="form-group">
-            <label class="form-label">Session Title *</label>
-            <input type="text" class="form-input session-title-input"
-                   placeholder="e.g., Presentation practice, Interview prep"
-                   data-recorder-target="titleInput"
-                   data-action="input->recorder#clearTitleError"
-                   required>
-            <div class="field-error" data-recorder-target="titleError" style="display: none;"></div>
-            <small class="field-help">Give your session a descriptive name to track your progress</small>
+      <!-- Streamlined Pre-Recording Setup -->
+      <div class="pre-recording-setup-compact" data-practice-timer-target="setup">
+        <div class="session-config-compact">
+          <div class="config-row">
+            <div class="config-group">
+              <label class="config-label">Session Title</label>
+              <input type="text" class="config-input"
+                     placeholder="e.g., Interview practice"
+                     data-recorder-target="titleInput"
+                     data-action="input->recorder#clearTitleError"
+                     required>
+              <div class="field-error" data-recorder-target="titleError" style="display: none;"></div>
+            </div>
           </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Language</label>
-              <select class="form-select" data-recorder-target="languageSelect">
+          <div class="config-row secondary-settings">
+            <div class="config-group">
+              <label class="config-label">Language</label>
+              <select class="config-select" data-recorder-target="languageSelect">
                 <option value="en">English</option>
                 <option value="pt">Portuguese</option>
                 <option value="es">Spanish</option>
               </select>
-              <small class="field-help">Language for analysis</small>
             </div>
-
-            <div class="form-group">
-              <label class="form-label">Recording Type</label>
-              <select class="form-select" data-recorder-target="mediaKindSelect">
-                <option value="audio">Audio Only</option>
+            <div class="config-group">
+              <label class="config-label">Type</label>
+              <select class="config-select" data-recorder-target="mediaKindSelect">
+                <option value="audio">Audio</option>
                 <option value="video">Video</option>
               </select>
-              <small class="field-help">Audio is recommended</small>
             </div>
           </div>
         </div>
@@ -127,7 +118,7 @@
 
       <!-- Post-Recording Form (appears after recording) -->
       <div class="recording-preview" data-recorder-target="preview" style="display: none;">
-        <h4>🎯 Recording Complete!</h4>
+        <h5>Recording Complete!</h5>
         <div class="completion-message">
           <p>Your recording is ready. Review the details below and submit when ready.</p>
         </div>
@@ -171,18 +162,18 @@
         <div class="preview-actions">
           <button type="button" class="btn btn-secondary btn-replay"
                   data-action="click->recorder#replayAudio">
-            🔄 Replay
+            Replay
           </button>
           <button type="button" class="btn btn-primary btn-use-recording"
                   data-action="click->recorder#submitRecording">
-            ✓ Upload & Analyze
+            Upload & Analyze
           </button>
         </div>
       </div>
 
       <!-- Session Report (appears after completion) -->
       <div class="session-report" data-practice-timer-target="report" style="display: none;">
-        <h4>📊 Session Report</h4>
+        <h5>Session Report</h5>
         <div class="report-content">
           <!-- Will be populated by JavaScript after session completion -->
         </div>
@@ -191,41 +182,84 @@
 
     <!-- Right Panel - Insights & Library -->
     <div class="insights-panel">
-      <!-- Quick Metrics -->
-      <div class="insights-card">
+      <!-- Key Insights Header (Similar to screenshot) -->
+      <div class="insights-header-card">
         <h3>📊 Insights</h3>
-        <div class="metrics-grid">
-          <div class="metric">
-            <div class="metric-label">Avg WPM</div>
-            <div class="metric-value">
+        <div class="key-metrics-row">
+          <div class="key-metric">
+            <div class="metric-label">AVG WPM</div>
+            <div class="metric-value-large">
               <%= @quick_metrics[:avg_wpm] || 0 %>
             </div>
           </div>
-          <div class="metric">
-            <div class="metric-label">Filter %</div>
-            <div class="metric-value">
+          <div class="key-metric">
+            <div class="metric-label">FILLER %</div>
+            <div class="metric-value-large">
               <%= @quick_metrics[:filler_rate] || 0 %>%
             </div>
           </div>
-          <div class="metric">
-            <div class="metric-label">Clarity</div>
-            <div class="metric-value">
+        </div>
+        <div class="key-metrics-row secondary-row">
+          <div class="key-metric">
+            <div class="metric-label">CLARITY</div>
+            <div class="metric-value-large">
               <%= @quick_metrics[:clarity_score] || 0 %>
             </div>
           </div>
-          <div class="metric">
-            <div class="metric-label">Streak</div>
-            <div class="metric-value">
+          <div class="key-metric">
+            <div class="metric-label">STREAK</div>
+            <div class="metric-value-large">
               <%= @current_streak %> days
             </div>
           </div>
         </div>
       </div>
 
+      <!-- Detailed Performance Metrics -->
+      <div class="performance-metrics-card">
+        <h4>Performance Metrics</h4>
+        <div class="metrics-grid-enhanced">
+          <div class="metric-item">
+            <div class="metric-label">Sessions</div>
+            <div class="metric-value">
+              <%= @recent_sessions.count %>
+            </div>
+          </div>
+          <div class="metric-item">
+            <div class="metric-label">Total Time</div>
+            <div class="metric-value">
+              <%= (@recent_sessions.sum { |s| s.duration_seconds || 0 } / 60).round %>m
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Sessions Quick Access -->
+      <% if @recent_sessions.any? %>
+        <div class="recent-sessions-card">
+          <h5>Recent Sessions</h5>
+          <div class="recent-sessions-list">
+            <% @recent_sessions.first(3).each do |session| %>
+              <div class="recent-session-item">
+                <a href="<%= session_path(session) %>" class="session-link">
+                  <div class="session-title"><%= session.title.truncate(25) %></div>
+                  <div class="session-meta">
+                    <%= time_ago_in_words(session.created_at) %> ago
+                    <span class="session-duration">
+                      <%= session.duration_seconds ? "#{(session.duration_seconds / 60.0).round(1)}m" : "N/A" %>
+                    </span>
+                  </div>
+                </a>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
       <!-- Focus Areas -->
       <% if @focus_areas.any? %>
         <div class="focus-areas-card">
-          <h4>🎯 Focus Areas</h4>
+          <h5>Focus Areas</h5>
           <ul class="focus-list">
             <% @focus_areas.each do |area| %>
               <li>• <%= area %></li>
@@ -235,7 +269,7 @@
       <% end %>
 
 
-      <!-- Prompt Library -->
+      <!-- Prompt Library (Enhanced to match screenshot) -->
       <div class="prompt-library-card">
         <h4>⭐ Prompt Library</h4>
 
@@ -258,39 +292,36 @@
           <div class="fluency-section">
             <h5>Fluency</h5>
             <div class="prompt-list" data-prompts-target="library">
-              <!-- Interviews Category -->
-              <div class="prompt-item" data-category="interviews">
+              <!-- Featured prompts with Use buttons -->
+              <div class="prompt-item featured" data-category="interviews">
                 <div class="prompt-text">Tell me about a time you influenced a decision without authority.</div>
-                <button type="button" class="use-btn"
+                <button type="button" class="use-btn primary"
                         data-action="click->prompts#usePrompt"
                         data-prompt="Tell me about a time you influenced a decision without authority.">Use</button>
               </div>
 
-              <!-- Pitching Category -->
-              <div class="prompt-item" data-category="pitching">
+              <div class="prompt-item featured" data-category="pitching">
                 <div class="prompt-text">Explain your startup to a 10-year-old in 30s.</div>
-                <button type="button" class="use-btn"
+                <button type="button" class="use-btn primary"
                         data-action="click->prompts#usePrompt"
                         data-prompt="Explain your startup to a 10-year-old in 30s.">Use</button>
               </div>
 
-              <!-- Story Category -->
-              <div class="prompt-item" data-category="story">
+              <div class="prompt-item featured" data-category="story">
                 <div class="prompt-text">Describe a failure that changed your perspective.</div>
-                <button type="button" class="use-btn"
+                <button type="button" class="use-btn primary"
                         data-action="click->prompts#usePrompt"
                         data-prompt="Describe a failure that changed your perspective.">Use</button>
               </div>
 
-              <!-- Load more prompts dynamically -->
+              <!-- Dynamic prompts from configuration -->
               <% @prompts.each do |category, prompts_list| %>
                 <% next unless prompts_list.is_a?(Array) %>
-                <% prompts_list.first(3).each do |prompt| %>
+                <% prompts_list.first(2).each do |prompt| %>
                   <div class="prompt-item" data-category="<%= category.downcase %>">
                     <div class="prompt-text">
                       <% if prompt.is_a?(Hash) %>
-                        <strong><%= prompt['title'] %></strong>
-                        <p class="prompt-description"><%= prompt['description'] %></p>
+                        <%= prompt['prompt'] %>
                       <% else %>
                         <%= prompt %>
                       <% end %>
@@ -301,6 +332,19 @@
                   </div>
                 <% end %>
               <% end %>
+            </div>
+          </div>
+
+          <!-- Elevator Pitch section -->
+          <div class="elevator-pitch-section">
+            <h5>Elevator Pitch</h5>
+            <div class="prompt-list">
+              <div class="prompt-item featured" data-category="pitching">
+                <div class="prompt-text">Imagine you are in an elevator with someone who could fund your project. You have 30 seconds to explain what you are working on and why it matters.</div>
+                <button type="button" class="use-btn primary"
+                        data-action="click->prompts#usePrompt"
+                        data-prompt="Imagine you are in an elevator with someone who could fund your project. You have 30 seconds to explain what you are working on and why it matters.">Use</button>
+              </div>
             </div>
           </div>
         </div>

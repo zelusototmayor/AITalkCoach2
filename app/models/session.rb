@@ -24,4 +24,13 @@ class Session < ApplicationRecord
   def analysis_data=(data)
     self.analysis_json = data.to_json
   end
+
+  def duration_seconds
+    # First try to get duration from analysis data
+    analysis_duration = analysis_data['duration_seconds']
+    return analysis_duration.to_f if analysis_duration.present?
+
+    # Fallback to converting duration_ms to seconds
+    return (duration_ms || 0) / 1000.0
+  end
 end

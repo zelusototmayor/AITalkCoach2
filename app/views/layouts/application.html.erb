@@ -129,7 +129,7 @@
               <% end %>
             </li>
             <li class="nav-item" role="none">
-              <%= link_to privacy_settings_path, 
+              <%= link_to privacy_settings_path,
                     class: "nav-link #{'active' if current_page?(privacy_settings_path)}",
                     role: "menuitem",
                     "aria-current": (current_page?(privacy_settings_path) ? "page" : nil),
@@ -138,6 +138,47 @@
                 <span class="nav-text">Privacy</span>
               <% end %>
             </li>
+
+            <!-- Authentication Links -->
+            <% if logged_in? %>
+              <li class="nav-item nav-user" role="none">
+                <span class="nav-link user-info">
+                  <span class="nav-icon" aria-hidden="true">👤</span>
+                  <span class="nav-text"><%= current_user.name %></span>
+                </span>
+              </li>
+              <li class="nav-item" role="none">
+                <%= link_to logout_path,
+                      method: :delete,
+                      class: "nav-link logout-link",
+                      role: "menuitem",
+                      data: { action: "click->navigation#closeMenu", confirm: "Are you sure you want to logout?" } do %>
+                  <span class="nav-icon" aria-hidden="true">🚪</span>
+                  <span class="nav-text">Logout</span>
+                <% end %>
+              </li>
+            <% else %>
+              <li class="nav-item" role="none">
+                <%= link_to login_path,
+                      class: "nav-link #{'active' if current_page?(login_path)}",
+                      role: "menuitem",
+                      "aria-current": (current_page?(login_path) ? "page" : nil),
+                      data: { action: "click->navigation#closeMenu" } do %>
+                  <span class="nav-icon" aria-hidden="true">🔑</span>
+                  <span class="nav-text">Login</span>
+                <% end %>
+              </li>
+              <li class="nav-item" role="none">
+                <%= link_to signup_path,
+                      class: "nav-link signup-link #{'active' if current_page?(signup_path)}",
+                      role: "menuitem",
+                      "aria-current": (current_page?(signup_path) ? "page" : nil),
+                      data: { action: "click->navigation#closeMenu" } do %>
+                  <span class="nav-icon" aria-hidden="true">✨</span>
+                  <span class="nav-text">Sign Up</span>
+                <% end %>
+              </li>
+            <% end %>
           </ul>
         </div>
       </nav>

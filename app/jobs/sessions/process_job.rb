@@ -2,7 +2,7 @@ module Sessions
   class ProcessJob < ApplicationJob
     queue_as :speech_analysis
     
-    retry_on StandardError, wait: :exponentially_longer, attempts: 3
+    retry_on StandardError, wait: :polynomially_longer, attempts: 3
     discard_on ActiveRecord::RecordNotFound
     
     # Custom error classes
@@ -362,6 +362,12 @@ module Sessions
           "Transcription service is busy. Please try again in a few moments."
         elsif error.message.include?("Invalid API key")
           "Speech recognition service is temporarily unavailable. Please try again later."
+        elsif error.message.include?("No speech detected")
+          error.message # Use the detailed message we crafted
+        elsif error.message.include?("too short or unclear")
+          error.message # Use the detailed message we crafted
+        elsif error.message.include?("too quiet or unclear")
+          error.message # Use the detailed message we crafted
         else
           "Unable to transcribe your speech. Please ensure you spoke clearly and try again."
         end
@@ -487,23 +493,25 @@ module Sessions
     def validate_transcription_quality(transcript_data)
       # Basic validation
       unless transcript_data[:transcript].present?
-        raise TranscriptionError, "Empty transcript received"
+        raise TranscriptionError, "No speech detected in the recording. Please ensure you spoke clearly and check your microphone settings."
       end
-      
+
       unless transcript_data[:words].present?
-        raise TranscriptionError, "No word-level timing data received"
+        raise TranscriptionError, "No word-level timing data received. The audio may be too quiet or unclear."
       end
-      
+
       # Check minimum quality thresholds
       word_count = transcript_data[:words].length
-      if word_count < 5
+      if word_count < 2
+        raise TranscriptionError, "Recording too short or unclear. Please speak for at least a few seconds with clear audio."
+      elsif word_count < 5
         Rails.logger.warn "Very short transcription (#{word_count} words) - results may be inaccurate"
       end
-      
+
       # Check for timing data quality
       words_with_timing = transcript_data[:words].count { |w| w[:start] && w[:end] }
       timing_ratio = words_with_timing.to_f / word_count
-      
+
       if timing_ratio < 0.8
         Rails.logger.warn "Poor timing data quality (#{(timing_ratio * 100).round}% coverage)"
       end

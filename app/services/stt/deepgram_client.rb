@@ -18,7 +18,7 @@ module Stt
     
     def transcribe_file(file_path, options = {})
       validate_file!(file_path)
-      
+
       default_options = {
         model: 'nova-3',
         language: 'en-US',
@@ -31,8 +31,13 @@ module Stt
         filler_words: true,
         profanity_filter: false
       }
-      
+
       merged_options = default_options.merge(options)
+
+      # Map language code to Deepgram format
+      if merged_options[:language]
+        merged_options[:language] = map_language_code(merged_options[:language])
+      end
       
       # Use enhanced retry mechanism with rate limiting
       retry_handler = Networking::RetryHandler.new(:api_call)
@@ -65,8 +70,13 @@ module Stt
         filler_words: true,
         profanity_filter: false
       }
-      
+
       merged_options = default_options.merge(options)
+
+      # Map language code to Deepgram format
+      if merged_options[:language]
+        merged_options[:language] = map_language_code(merged_options[:language])
+      end
       
       with_retries do
         response = send_url_transcription_request(audio_url, merged_options)
@@ -75,7 +85,19 @@ module Stt
     end
     
     private
-    
+
+    def map_language_code(lang)
+      case lang
+      when 'pt' then 'pt-PT'    # Portuguese (Portugal)
+      when 'en' then 'en-US'    # English (US)
+      when 'es' then 'es-US'    # Spanish (US)
+      when 'fr' then 'fr-FR'    # French (France)
+      when 'de' then 'de-DE'    # German (Germany)
+      when 'it' then 'it-IT'    # Italian (Italy)
+      else lang                 # Pass through if already in correct format
+      end
+    end
+
     def send_transcription_request(file_path, options)
       url = build_url(options)
       content_type = content_type_for_file(file_path)

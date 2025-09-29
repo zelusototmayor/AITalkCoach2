@@ -12,11 +12,24 @@ Rails.application.routes.draw do
   # Root route - landing page
   root "landing#index"
 
+  # Authentication routes
+  namespace :auth do
+    resources :registrations, only: [:new, :create], path: 'signup'
+    resources :sessions, only: [:new, :create, :destroy], path: 'login'
+  end
+
+  # Convenient aliases
+  get '/login', to: 'auth/sessions#new'
+  post '/login', to: 'auth/sessions#create'
+  delete '/logout', to: 'auth/sessions#destroy'
+  get '/signup', to: 'auth/registrations#new'
+  post '/signup', to: 'auth/registrations#create'
+
   # Practice route - the main app interface
   get "practice", to: "sessions#index"
 
   # Core application routes
-  resources :sessions, except: [:edit, :update] do
+  resources :sessions, except: [:edit, :update, :new] do
     collection do
       get :history
     end

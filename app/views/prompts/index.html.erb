@@ -67,7 +67,7 @@
               </div>
 
               <div class="prompt-actions">
-                <%= link_to root_path(adaptive_prompt: true, category: category, index: index),
+                <%= link_to practice_path(adaptive_prompt: true, category: category, index: index),
                       class: "btn btn-primary btn-block" do %>
                   🎯 Practice This Recommended Prompt
                 <% end %>
@@ -181,7 +181,7 @@
           </div>
 
           <div class="prompt-actions">
-            <%= link_to root_path(prompt_id: "#{category}_#{index}"),
+            <%= link_to practice_path(prompt_id: "#{category}_#{index}"),
                   class: "btn btn-primary btn-block" do %>
               🎤 Practice This Prompt
             <% end %>

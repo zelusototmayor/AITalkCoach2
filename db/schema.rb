@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_25_162057) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_27_201121) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -120,6 +120,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_25_162057) do
     t.integer "auto_delete_audio_days", default: 30
     t.boolean "privacy_mode", default: false
     t.boolean "delete_processed_audio", default: true
+    t.string "name"
+    t.string "password_digest"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
