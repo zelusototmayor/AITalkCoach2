@@ -234,8 +234,8 @@ export default class extends Controller {
 
   showTimerCompletionNotification() {
     this.showNotification(
-      `Time's up! Now record your ${this.selectedDuration}s response to complete the session.`,
-      'info'
+      `Recording complete! Your ${this.selectedDuration}s session is ready for analysis.`,
+      'success'
     )
   }
 
@@ -254,46 +254,33 @@ export default class extends Controller {
   }
 
   showRecordingChoiceInterface() {
-    if (!this.hasReportTarget) return
+    // Use the new post-recording actions section instead of the report
+    const postRecordingActions = document.querySelector('[data-recorder-target="postRecordingActions"]')
+    if (postRecordingActions) {
+      // Update duration info
+      const durationElement = postRecordingActions.querySelector('[data-recorder-target="recordingDuration"]')
+      if (durationElement) {
+        durationElement.textContent = `Duration: ${this.currentTime}s`
+      }
 
-    // Show simplified recording complete interface
-    const reportHTML = `
-      <div class="report-metrics">
-        <div class="metric">
-          <span class="metric-label">Duration</span>
-          <span class="metric-value">${this.currentTime}s</span>
-        </div>
-        <div class="metric">
-          <span class="metric-label">Target</span>
-          <span class="metric-value">${this.selectedDuration}s</span>
-        </div>
-        <div class="metric">
-          <span class="metric-label">Status</span>
-          <span class="metric-value">✅ Recording Complete</span>
-        </div>
-      </div>
+      // Show the post-recording actions
+      postRecordingActions.style.display = 'block'
 
-      <div class="audio-preview-container" id="timer-audio-preview">
-        <!-- Audio will be inserted here by recorder controller -->
-      </div>
+      // Add smooth animation
+      postRecordingActions.style.opacity = '0'
+      postRecordingActions.style.transform = 'translateY(10px)'
 
-      <div class="recording-choice-actions">
-        <button type="button" class="btn btn-secondary"
-                data-action="click->practice-timer#recordAgain">
-          🔄 Record Again
-        </button>
-        <button type="button" class="btn btn-primary btn-analyze"
-                data-action="click->practice-timer#analyzeRecording">
-          📊 Analyze This Recording
-        </button>
-      </div>
-    `
+      setTimeout(() => {
+        postRecordingActions.style.transition = 'all 0.3s ease-out'
+        postRecordingActions.style.opacity = '1'
+        postRecordingActions.style.transform = 'translateY(0)'
+      }, 50)
+    }
 
-    this.reportTarget.querySelector('.report-content').innerHTML = reportHTML
-    this.reportTarget.style.display = 'block'
-
-    // Request audio preview from recorder controller
-    this.requestAudioPreview()
+    // Also hide the old report if it exists
+    if (this.hasReportTarget) {
+      this.reportTarget.style.display = 'none'
+    }
   }
 
   showSessionReport() {
@@ -638,6 +625,12 @@ export default class extends Controller {
     this.updateButtonState('ready')
     this.updateDisplay()
     this.hideReport()
+
+    // Hide the new post-recording actions
+    const postRecordingActions = document.querySelector('[data-recorder-target="postRecordingActions"]')
+    if (postRecordingActions) {
+      postRecordingActions.style.display = 'none'
+    }
 
     // Clear any existing audio preview
     const container = document.getElementById('timer-audio-preview')

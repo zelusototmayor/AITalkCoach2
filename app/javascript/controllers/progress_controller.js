@@ -1,8 +1,10 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static values = { 
+  static values = {
     sessionId: Number,
+    sessionToken: String,
+    apiEndpoint: String,
     pollInterval: Number,
     autoRefresh: Boolean
   }
@@ -17,7 +19,8 @@ export default class extends Controller {
   }
 
   connect() {
-    console.log(`[Progress Controller] Connected for session ${this.sessionIdValue}`)
+    const identifier = this.sessionIdValue || this.sessionTokenValue || 'unknown'
+    console.log(`[Progress Controller] Connected for session ${identifier}`)
     if (this.shouldStartPolling()) {
       console.log('[Progress Controller] Starting polling')
       this.startPolling()
@@ -31,11 +34,11 @@ export default class extends Controller {
   }
 
   startPolling() {
-    if (this.isPolling || !this.sessionIdValue) return
-    
+    if (this.isPolling || (!this.sessionIdValue && !this.sessionTokenValue)) return
+
     this.isPolling = true
     this.poll() // Initial poll
-    
+
     this.pollTimer = setInterval(() => {
       this.poll()
     }, this.pollIntervalValue)
@@ -51,9 +54,13 @@ export default class extends Controller {
 
   async poll() {
     try {
-      console.log(`[Progress Controller] Polling status for session ${this.sessionIdValue}`)
-      
-      const response = await fetch(`/api/sessions/${this.sessionIdValue}/status`, {
+      const identifier = this.sessionIdValue || this.sessionTokenValue
+      console.log(`[Progress Controller] Polling status for session ${identifier}`)
+
+      // Use custom API endpoint if provided (for trial sessions), otherwise use default
+      const apiUrl = this.apiEndpointValue || `/api/sessions/${this.sessionIdValue}/status`
+
+      const response = await fetch(apiUrl, {
         headers: {
           'Accept': 'application/json',
           'X-Requested-With': 'XMLHttpRequest'
@@ -145,16 +152,16 @@ export default class extends Controller {
   }
 
   shouldStartPolling() {
-    // Only poll if we have a session ID and the initial state indicates processing
-    if (!this.sessionIdValue) return false
-    
+    // Only poll if we have a session ID or token and the initial state indicates processing
+    if (!this.sessionIdValue && !this.sessionTokenValue) return false
+
     // Check if there's a processing status element indicating we should poll
     const statusElement = document.querySelector('.processing-status')
     if (!statusElement) return false
-    
-    const currentState = statusElement.classList.contains('status-pending') || 
+
+    const currentState = statusElement.classList.contains('status-pending') ||
                         statusElement.classList.contains('status-processing')
-    
+
     return currentState
   }
 

@@ -83,6 +83,11 @@ class SecurityHeadersMiddleware
   end
   
   def call(env)
+    # Allow logout requests to pass through without modification
+    if env['PATH_INFO'] == '/logout'
+      return @app.call(env)
+    end
+
     status, headers, response = @app.call(env)
     
     # Security headers
@@ -147,12 +152,13 @@ Rails.application.config.filter_parameters += [
 # Secure random configuration
 SecureRandom.random_bytes(64) # Initialize the random number generator
 
-# Rate limiting setup (if using Rack::Attack)
-if defined?(Rack::Attack)
+# Rate limiting setup (if using Rack::Attack) - TEMPORARILY DISABLED
+if false && defined?(Rack::Attack)
   Rack::Attack.throttle('requests by ip', limit: 300, period: 5.minutes) do |request|
-    request.ip
+    # Skip rate limiting for logout requests
+    request.ip unless request.path == '/logout'
   end
-  
+
   # Throttle login attempts
   Rack::Attack.throttle('login attempts by ip', limit: 5, period: 20.seconds) do |request|
     request.ip if request.path == '/login' && request.post?

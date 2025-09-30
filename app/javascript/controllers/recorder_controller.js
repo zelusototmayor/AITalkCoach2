@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["recordBtn", "status", "statusText", "indicator", "preview", "form", "timer", "progressBar", "videoPreview", "audioPreview", "fileInput", "submitBtn", "countdownDisplay", "durationInput", "titleInput", "titleError", "languageSelect", "mediaKindSelect", "titleInputPreview", "languageSelectPreview", "mediaKindSelectPreview", "sessionConfig"]
+  static targets = ["recordBtn", "status", "statusText", "indicator", "preview", "form", "timer", "progressBar", "videoPreview", "audioPreview", "fileInput", "submitBtn", "countdownDisplay", "durationInput", "titleInput", "titleError", "languageSelect", "mediaKindSelect", "titleInputPreview", "languageSelectPreview", "mediaKindSelectPreview", "sessionConfig", "postRecordingActions", "recordingDuration", "recordingTarget"]
   static values = { 
     maxDurationSec: Number, 
     maxFileSizeMb: Number,
@@ -192,14 +192,21 @@ export default class extends Controller {
 
     if (this.validateFileSize(blob)) {
       this.createPreview(blob)
-      this.attachToForm(blob)
+      const attachmentSuccess = this.attachToForm(blob)
 
-      // In practice timer mode, don't show the recorder UI
+      if (!attachmentSuccess) {
+        this.updateUI("error", "Failed to attach recording file. Please try recording again.")
+        this.releaseStream()
+        return
+      }
+
+      // In practice timer mode, let practice timer handle the UI
       if (this.isPracticeTimerMode) {
-        // Just mark as ready for submission, practice timer will handle UI
         console.log('Recorder: Recording complete in practice timer mode')
+        // Practice timer will show the new post-recording actions
       } else {
-        this.updateUI("ready_to_submit")
+        // For standalone recorder, show the new post-recording actions
+        this.showPostRecordingActions()
       }
     } else {
       this.updateUI("error", `File too large (${(blob.size / 1024 / 1024).toFixed(1)}MB). Maximum: ${this.maxFileSizeMbValue}MB`)
@@ -255,21 +262,60 @@ export default class extends Controller {
   attachToForm(blob) {
     if (!this.hasFileInputTarget) {
       console.error('File input target not found')
-      return
+      return false
     }
 
     const file = new File([blob], this.generateFileName(), {
       type: blob.type
     })
 
-    console.log('Attaching file to form:', file.name, file.size, 'bytes')
+    console.log('Attaching file to form:', file.name, file.size, 'bytes', 'blob type:', blob.type)
 
-    const dataTransfer = new DataTransfer()
-    dataTransfer.items.add(file)
+    // Try multiple attachment methods for better compatibility
+    try {
+      const dataTransfer = new DataTransfer()
+      dataTransfer.items.add(file)
+      this.fileInputTarget.files = dataTransfer.files
+    } catch (e) {
+      console.warn('DataTransfer method failed, trying direct assignment:', e)
+      // Fallback: try setting files directly (may not work in all browsers)
+      try {
+        Object.defineProperty(this.fileInputTarget, 'files', {
+          value: [file],
+          writable: false
+        })
+      } catch (e2) {
+        console.error('Direct file assignment also failed:', e2)
+        return false
+      }
+    }
 
-    this.fileInputTarget.files = dataTransfer.files
+    // Verify the file was attached successfully with multiple checks
+    const hasFiles = this.fileInputTarget.files && this.fileInputTarget.files.length > 0
+    const hasValidFile = hasFiles && this.fileInputTarget.files[0].size > 0
+    const typeMatches = hasValidFile && this.fileInputTarget.files[0].type === blob.type
 
-    console.log('File attached. Input files:', this.fileInputTarget.files.length)
+    console.log('File attachment verification:', {
+      hasFiles,
+      hasValidFile,
+      typeMatches,
+      fileCount: this.fileInputTarget.files?.length || 0,
+      fileSize: this.fileInputTarget.files?.[0]?.size || 0,
+      fileType: this.fileInputTarget.files?.[0]?.type || 'none'
+    })
+
+    const attachedSuccessfully = hasFiles && hasValidFile
+
+    if (attachedSuccessfully) {
+      // Store reference to the blob for later verification
+      this.attachedBlob = blob
+      this.attachedFile = file
+      console.log('✓ File successfully attached to form')
+    } else {
+      console.error('✗ File attachment failed')
+    }
+
+    return attachedSuccessfully
   }
 
   generateFileName() {
@@ -456,6 +502,37 @@ export default class extends Controller {
     }
   }
 
+  showPostRecordingActions() {
+    if (this.hasPostRecordingActionsTarget) {
+      // Calculate recording duration
+      const duration = this.startTime ? Math.floor((Date.now() - this.startTime) / 1000) : 0
+
+      // Update duration display
+      if (this.hasRecordingDurationTarget) {
+        this.recordingDurationTarget.textContent = `Duration: ${duration}s`
+      }
+
+      // Show the post-recording actions with animation
+      this.postRecordingActionsTarget.style.display = "block"
+      this.postRecordingActionsTarget.style.opacity = "0"
+      this.postRecordingActionsTarget.style.transform = "translateY(10px)"
+
+      setTimeout(() => {
+        this.postRecordingActionsTarget.style.transition = "all 0.3s ease-out"
+        this.postRecordingActionsTarget.style.opacity = "1"
+        this.postRecordingActionsTarget.style.transform = "translateY(0)"
+      }, 50)
+
+      // Scroll to the new actions smoothly
+      setTimeout(() => {
+        this.postRecordingActionsTarget.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest'
+        })
+      }, 100)
+    }
+  }
+
   showPreview() {
     if (this.hasPreviewTarget) {
       this.previewTarget.style.display = "block"
@@ -483,20 +560,26 @@ export default class extends Controller {
   }
 
   retake() {
+    // Hide old preview
     if (this.hasPreviewTarget) {
       this.previewTarget.style.display = "none"
     }
-    
+
+    // Hide new post-recording actions
+    if (this.hasPostRecordingActionsTarget) {
+      this.postRecordingActionsTarget.style.display = "none"
+    }
+
     if (this.hasVideoPreviewTarget) {
       this.videoPreviewTarget.style.display = "none"
       this.videoPreviewTarget.src = ""
     }
-    
+
     if (this.hasAudioPreviewTarget) {
       this.audioPreviewTarget.style.display = "none"
       this.audioPreviewTarget.src = ""
     }
-    
+
     this.recordedChunks = []
     this.releaseStream()
     this.updateUI("ready")
@@ -548,25 +631,166 @@ export default class extends Controller {
       // Show uploading notification with better messaging
       this.showNotification('📤 Uploading your recording for AI analysis...', 'info', 8000)
 
-      // Ensure the file is attached before submitting
+      // Use AJAX submission to preserve the blob instead of traditional form submission
       setTimeout(() => {
+        // Re-validate just before submission
+        if (!this.validateRecording()) {
+          this.resetSubmitButton()
+          return
+        }
+
         const form = submitBtn.closest('form')
         if (form) {
-          console.log('Form data before submit:', new FormData(form))
-
-          // Add form submit listener to handle response
-          this.addFormSubmitHandler(form)
-
-          submitBtn.click()
+          this.submitFormWithAjax(form)
         } else {
           console.error('Form not found for submit button')
           this.showNotification('❌ Upload failed: Form not found', 'error')
           this.resetSubmitButton()
         }
-      }, 100)
+      }, 250)
     } else {
       console.error('No submit button found')
       this.showNotification('❌ Upload failed: Submit button not found', 'error')
+      this.resetSubmitButton()
+    }
+  }
+
+  submitFormWithAjax(form) {
+    try {
+      // Create FormData from form
+      const formData = new FormData(form)
+
+      // Ensure the audio file is included in FormData
+      if (this.attachedFile) {
+        // Remove any existing media_files and add our blob
+        formData.delete('session[media_files][]')
+        formData.append('session[media_files][]', this.attachedFile, this.attachedFile.name)
+        console.log('Added audio file to FormData:', this.attachedFile.name, this.attachedFile.size, 'bytes')
+      } else if (this.attachedBlob) {
+        // Fallback to blob if file not available
+        formData.delete('session[media_files][]')
+        const fileName = this.generateFileName()
+        formData.append('session[media_files][]', this.attachedBlob, fileName)
+        console.log('Added audio blob to FormData:', fileName, this.attachedBlob.size, 'bytes')
+      } else {
+        console.error('No audio file or blob available for submission')
+        this.showNotification('❌ No recording found. Please record again.', 'error')
+        this.resetSubmitButton()
+        return
+      }
+
+      // Get CSRF token with better error handling
+      const csrfMetaTag = document.querySelector('meta[name="csrf-token"]')
+      const csrfToken = csrfMetaTag?.getAttribute('content')
+
+      console.log('CSRF Meta Tag found:', !!csrfMetaTag)
+      console.log('CSRF Token extracted:', csrfToken ? 'present' : 'missing')
+
+      if (!csrfToken) {
+        console.error('CSRF token not found - meta tag:', csrfMetaTag)
+        this.showNotification('❌ Security token missing. Please refresh the page and try again.', 'error')
+        this.resetSubmitButton()
+        return
+      }
+
+      // Submit via fetch to preserve blob
+      fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-CSRF-Token': csrfToken,
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(response => {
+        console.log('Form submission response:', response)
+
+        if (response.ok) {
+          // Parse JSON response
+          return response.json().then(data => {
+            console.log('Response data:', data)
+
+            if (data.success) {
+              // Handle successful submission
+              this.showNotification('✅ Recording uploaded successfully! Redirecting...', 'success')
+
+              // Track analytics for trial or regular session completion
+              this.trackSessionCompletion(data)
+
+              // Notify practice timer if available
+              if (data.session_id || data.trial_token) {
+                const sessionData = {
+                  id: data.session_id,
+                  trial_token: data.trial_token
+                }
+                this.notifyPracticeTimer(sessionData)
+              }
+
+              // Redirect to the appropriate page
+              if (data.redirect_url) {
+                console.log('Following redirect to:', data.redirect_url)
+                window.location.href = data.redirect_url
+              } else {
+                // Fallback redirect logic
+                const isTrialMode = document.querySelector('.practice-interface.trial-mode') !== null
+                if (isTrialMode) {
+                  window.location.href = `/practice?trial=true&trial_results=true`
+                } else {
+                  window.location.href = '/practice'
+                }
+              }
+            } else {
+              // Handle unsuccessful response
+              this.showNotification(`❌ ${data.message || 'Upload failed. Please try again.'}`, 'error')
+              this.resetSubmitButton()
+            }
+          })
+        } else {
+          // Handle HTTP error responses
+          return response.json().then(data => {
+            console.error('Form submission failed:', response.status, data)
+
+            let errorMessage = 'Upload failed. Please try again.'
+
+            // Handle different types of errors
+            if (response.status === 422) {
+              if (data.errors && data.errors.length > 0) {
+                errorMessage = data.errors.join(', ')
+              } else if (data.message) {
+                errorMessage = data.message
+              } else {
+                errorMessage = 'Validation failed. Please check your recording and try again.'
+              }
+            } else if (response.status === 403) {
+              errorMessage = 'Session expired. Please refresh the page and try again.'
+            } else if (data.message) {
+              errorMessage = data.message
+            }
+
+            this.showNotification(`❌ ${errorMessage}`, 'error')
+            this.resetSubmitButton()
+          }).catch(() => {
+            // Fallback if JSON parsing fails
+            let errorMessage = 'Upload failed. Please try again.'
+            if (response.status === 422) {
+              errorMessage = 'Validation failed. Please refresh the page and try again.'
+            } else if (response.status === 403) {
+              errorMessage = 'Session expired. Please refresh the page and try again.'
+            }
+            this.showNotification(`❌ ${errorMessage}`, 'error')
+            this.resetSubmitButton()
+          })
+        }
+      })
+      .catch(error => {
+        console.error('Network error during form submission:', error)
+        this.showNotification('❌ Network error. Please check your connection and try again.', 'error')
+        this.resetSubmitButton()
+      })
+
+    } catch (error) {
+      console.error('Error creating FormData or submitting:', error)
+      this.showNotification('❌ Upload error. Please try recording again.', 'error')
       this.resetSubmitButton()
     }
   }
@@ -593,8 +817,27 @@ export default class extends Controller {
 
     if (!this.fileInputTarget.files || this.fileInputTarget.files.length === 0) {
       console.error('No recording file attached')
-      this.showNotification('Please record audio before submitting', 'error')
-      return false
+
+      // Try to re-attach if we have the blob stored
+      if (this.attachedBlob) {
+        console.log('Attempting to re-attach blob to form')
+        const reattachSuccess = this.attachToForm(this.attachedBlob)
+        if (!reattachSuccess) {
+          this.showNotification('Failed to re-attach recording. Please record again.', 'error')
+          return false
+        }
+
+        // Give re-attachment a moment to complete, then verify immediately
+        // Check if re-attachment worked immediately after the attempt
+        if (!this.fileInputTarget.files || this.fileInputTarget.files.length === 0) {
+          console.error('Re-attachment failed - still no files immediately after re-attach')
+          this.showNotification('Recording attachment failed. Please record again.', 'error')
+          return false
+        }
+      } else {
+        this.showNotification('Please record audio before submitting', 'error')
+        return false
+      }
     }
 
     const file = this.fileInputTarget.files[0]
@@ -602,6 +845,24 @@ export default class extends Controller {
       console.error('Recording file is empty')
       this.showNotification('Recording file is empty. Please record again.', 'error')
       return false
+    }
+
+    // Additional validation for trial mode
+    const isTrialMode = document.querySelector('.practice-interface.trial-mode') !== null
+    if (isTrialMode) {
+      console.log('Trial mode recording validation:', {
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+        lastModified: new Date(file.lastModified).toISOString()
+      })
+
+      // Ensure minimum file size for trial recordings
+      if (file.size < 1000) { // Less than 1KB probably indicates an issue
+        console.error('Trial recording file too small, likely corrupted')
+        this.showNotification('Recording seems corrupted. Please record again.', 'error')
+        return false
+      }
     }
 
     console.log('Recording validation passed:', file.name, file.size, 'bytes')
@@ -757,69 +1018,6 @@ export default class extends Controller {
     this.showNotification(userMessage, 'error')
   }
 
-  addFormSubmitHandler(form) {
-    // Add listener for successful form submission
-    form.addEventListener('turbo:submit-end', this.handleFormSubmitEnd.bind(this), { once: true })
-  }
-
-  handleFormSubmitEnd(event) {
-    console.log('Form submit end event:', event)
-
-    if (event.detail.success) {
-      console.log('Form submission successful')
-
-      // Show success message
-      this.showNotification('Recording uploaded successfully! Redirecting to analysis...', 'success')
-
-      // Extract session data from response if available
-      const sessionData = this.extractSessionDataFromResponse(event)
-
-      // Notify the practice timer that recording was uploaded successfully
-      this.notifyPracticeTimer(sessionData)
-
-      // If we got a redirect URL, follow it immediately
-      const response = event.detail.formSubmission?.result?.response
-      if (response?.redirected && response.url) {
-        console.log('Following redirect to:', response.url)
-        window.location.href = response.url
-      } else {
-        // Fallback: look for session ID in URL after a brief delay
-        setTimeout(() => {
-          if (window.location.pathname.match(/\/sessions\/\d+/)) {
-            // We're already on the session page, good!
-            console.log('Successfully redirected to session page')
-          } else {
-            console.warn('No redirect detected, something may be wrong')
-          }
-        }, 500)
-      }
-    } else {
-      console.error('Form submission failed:', event.detail)
-      this.showNotification('Upload failed. Please try again.', 'error')
-    }
-  }
-
-  extractSessionDataFromResponse(event) {
-    // Try to extract session ID from redirect URL or response
-    const response = event.detail.formSubmission?.result?.response
-    if (response?.redirected && response.url) {
-      const urlMatch = response.url.match(/\/sessions\/(\d+)/)
-      if (urlMatch) {
-        return { id: parseInt(urlMatch[1]) }
-      }
-    }
-
-    // Fallback: try to get from current page URL after redirect
-    setTimeout(() => {
-      const currentUrlMatch = window.location.pathname.match(/\/sessions\/(\d+)/)
-      if (currentUrlMatch) {
-        const sessionData = { id: parseInt(currentUrlMatch[1]) }
-        this.notifyPracticeTimer(sessionData)
-      }
-    }, 100)
-
-    return null
-  }
 
   notifyPracticeTimer(sessionData) {
     // Try multiple approaches to find and notify the practice timer controller
@@ -979,5 +1177,34 @@ export default class extends Controller {
 
     // Clear any title errors since we now have a valid title
     this.clearTitleError()
+  }
+
+  trackSessionCompletion(data) {
+    // Get analytics controller from global reference
+    const analytics = window.analyticsController
+    if (!analytics) {
+      console.warn('Analytics controller not available for session completion tracking')
+      return
+    }
+
+    // Calculate session duration if available
+    const duration_seconds = this.startTime ? Math.floor((Date.now() - this.startTime) / 1000) : null
+    const target_seconds = this.selectedDuration || this.maxDurationSecValue
+
+    // Check if this is a trial or regular session
+    const isTrialMode = data.trial_token || document.querySelector('.practice-interface.trial-mode')
+
+    if (isTrialMode) {
+      // Track trial completion
+      analytics.trackTrialCompleted(duration_seconds, target_seconds)
+    } else {
+      // Track regular session completion
+      const sessionData = {
+        duration_seconds: duration_seconds,
+        target_seconds: target_seconds,
+        session_id: data.session_id
+      }
+      analytics.trackRealSessionCompleted(sessionData)
+    }
   }
 }

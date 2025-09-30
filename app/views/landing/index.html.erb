@@ -1,6 +1,6 @@
 <% content_for :title, "AI Talk Coach - Master Your Communication Skills with AI-Powered Feedback" %>
 
-<div class="landing-page">
+<div class="landing-page" data-action="analytics#handleLandingPageView">
   <!-- Hero Section -->
   <section class="hero-section">
     <div class="hero-container">
@@ -26,17 +26,30 @@
               <span class="btn-icon">▶</span>
               Continue Practicing
             <% end %>
+            <a href="#demo" class="btn btn-secondary btn-large">
+              <span class="btn-icon">👁️</span>
+              See Live Demo
+            </a>
           <% else %>
-            <%= link_to signup_path, class: "btn btn-primary btn-large" do %>
-              <span class="btn-icon">▶</span>
-              Start Practicing Now
+            <%= link_to practice_path(trial: true),
+                  class: "btn btn-primary btn-large",
+                  data: {
+                    action: "click->analytics#handleTrialClick",
+                    source: "hero_section"
+                  } do %>
+              <span class="btn-icon">⚡</span>
+              Try 30s Demo
+            <% end %>
+            <%= link_to signup_path,
+                  class: "btn btn-secondary btn-large",
+                  data: {
+                    action: "click->analytics#handleSignupClick",
+                    source: "hero_section"
+                  } do %>
+              <span class="btn-icon">🚀</span>
+              Sign Up Free
             <% end %>
           <% end %>
-
-          <a href="#demo" class="btn btn-secondary btn-large">
-            <span class="btn-icon">👁️</span>
-            See Live Demo
-          </a>
         </div>
 
         <div class="hero-features">
@@ -211,7 +224,7 @@
       <div class="demo-content">
         <div class="demo-text">
           <h2>Try it live right now</h2>
-          <p>Experience the full coaching interface with real AI feedback. No account required—just click and start practicing.</p>
+          <p>Experience the coaching interface with real AI feedback. No account required—just click and start practicing.</p>
 
           <% if logged_in? %>
             <%= link_to practice_path, class: "btn btn-primary btn-large" do %>
@@ -219,9 +232,14 @@
               Launch Practice Interface
             <% end %>
           <% else %>
-            <%= link_to signup_path, class: "btn btn-primary btn-large" do %>
-              <span class="btn-icon">🚀</span>
-              Get Started Free
+            <%= link_to practice_path(trial: true),
+                  class: "btn btn-primary btn-large",
+                  data: {
+                    action: "click->analytics#handleTrialClick",
+                    source: "demo_section"
+                  } do %>
+              <span class="btn-icon">⚡</span>
+              Try 30s Demo Now
             <% end %>
           <% end %>
 
@@ -327,14 +345,24 @@
               View Session History
             <% end %>
           <% else %>
-            <%= link_to signup_path, class: "btn btn-primary btn-large" do %>
-              <span class="btn-icon">🎤</span>
-              Start Your First Practice
+            <%= link_to practice_path(trial: true),
+                  class: "btn btn-primary btn-large",
+                  data: {
+                    action: "click->analytics#handleTrialClick",
+                    source: "cta_section"
+                  } do %>
+              <span class="btn-icon">⚡</span>
+              Try 30s Demo
             <% end %>
 
-            <%= link_to login_path, class: "btn btn-secondary-outline btn-large" do %>
-              <span class="btn-icon">🔑</span>
-              Already Have Account?
+            <%= link_to signup_path,
+                  class: "btn btn-secondary-outline btn-large",
+                  data: {
+                    action: "click->analytics#handleSignupClick",
+                    source: "cta_section"
+                  } do %>
+              <span class="btn-icon">🚀</span>
+              Sign Up Free
             <% end %>
           <% end %>
         </div>

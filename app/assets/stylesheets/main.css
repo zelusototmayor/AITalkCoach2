@@ -5378,6 +5378,132 @@ textarea:focus {
   cursor: pointer;
 }
 
+/* Session Info Dropdown Styles */
+.session-info-dropdown {
+  margin-top: 0.75rem;
+}
+
+.session-info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.session-info-header:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.session-info-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.config-toggle-icon {
+  font-size: 0.75rem;
+  color: #6b7280;
+  transition: transform 0.2s ease;
+}
+
+.session-info-header[aria-expanded="true"] .config-toggle-icon {
+  transform: rotate(180deg);
+}
+
+.session-config-content {
+  padding: 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  background: #fafafa;
+}
+
+/* Post-Recording Actions Styles */
+.post-recording-actions {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border: 1px solid #0ea5e9;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.1);
+}
+
+.recording-info {
+  margin-bottom: 1rem;
+}
+
+.recording-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.status-icon {
+  font-size: 1.125rem;
+}
+
+.status-text {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #065f46;
+}
+
+.recording-details {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.separator {
+  color: #d1d5db;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.btn-record-again {
+  min-width: 140px;
+}
+
+.btn-analyze {
+  min-width: 160px;
+}
+
+/* Animation keyframes */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+}
+
 /* Responsive adjustments for compact form */
 @media (max-width: 640px) {
   .config-row {
@@ -5387,6 +5513,21 @@ textarea:focus {
 
   .config-row.secondary-settings {
     flex-direction: row;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .recording-details {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .separator {
+    display: none;
   }
 }
 
@@ -5480,9 +5621,247 @@ textarea:focus {
     flex-direction: column;
     gap: 1rem;
   }
-  
+
   .start-btn-compact {
     padding: 1rem 2rem;
     font-size: 1rem;
+  }
+}
+
+/* ===== TRIAL MODE STYLES ===== */
+
+/* Trial Mode Container */
+.practice-interface.trial-mode {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border: 2px solid #0ea5e9;
+  border-radius: 16px;
+  position: relative;
+}
+
+.practice-interface.trial-mode::before {
+  content: "30s Free Demo";
+  position: absolute;
+  top: -1px;
+  right: 20px;
+  background: linear-gradient(135deg, #0ea5e9, #0284c7);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 0 0 8px 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  z-index: 10;
+}
+
+/* Trial Header */
+.trial-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.trial-badge {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Locked Duration Buttons */
+.preset-btn.locked {
+  background: #f3f4f6 !important;
+  color: #9ca3af !important;
+  cursor: not-allowed !important;
+  opacity: 0.6;
+  border: 1px solid #e5e7eb !important;
+}
+
+.preset-btn.trial-locked {
+  background: linear-gradient(135deg, #0ea5e9, #0284c7) !important;
+  color: white !important;
+  border: 1px solid #0284c7 !important;
+}
+
+/* Trial Results Card */
+.trial-results-card, .trial-intro-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
+  margin-bottom: 1.5rem;
+}
+
+.trial-results-card h3, .trial-intro-card h3 {
+  color: #1f2937;
+  margin: 0 0 1rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+/* Trial Metrics Display */
+.trial-metrics {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  justify-content: center;
+}
+
+.trial-metric {
+  text-align: center;
+  flex: 1;
+}
+
+.trial-metric .metric-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.trial-metric .metric-value-large {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #0ea5e9;
+  line-height: 1;
+}
+
+/* Locked Features List */
+.locked-features {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.locked-features h4 {
+  margin: 0 0 0.75rem 0;
+  color: #374151;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.locked-feature {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  color: #6b7280;
+  font-size: 0.875rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.locked-feature:last-child {
+  border-bottom: none;
+}
+
+.locked-feature .feature-icon {
+  opacity: 0.7;
+}
+
+/* Trial CTA Button */
+.trial-cta {
+  text-align: center;
+}
+
+.trial-signup-btn {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  border: none !important;
+  color: white !important;
+  padding: 0.75rem 1.5rem !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  transition: all 0.2s ease !important;
+}
+
+.trial-signup-btn:hover {
+  background: linear-gradient(135deg, #059669, #047857) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+/* Trial Intro Benefits List */
+.demo-benefits {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+}
+
+.demo-benefits li {
+  padding: 0.5rem 0;
+  color: #374151;
+  font-size: 0.875rem;
+  position: relative;
+  padding-left: 1.5rem;
+}
+
+.demo-benefits li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: #10b981;
+  font-weight: 600;
+}
+
+.upgrade-preview {
+  background: #f0f9ff;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.upgrade-preview h4 {
+  margin: 0 0 0.75rem 0;
+  color: #0ea5e9;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.upgrade-preview .locked-feature {
+  padding: 0.25rem 0;
+  font-size: 0.8125rem;
+  border-bottom: none;
+  color: #6b7280;
+}
+
+/* Trial Error State */
+.trial-error {
+  text-align: center;
+  padding: 1rem;
+  background: #fef2f2;
+  border-radius: 8px;
+  color: #dc2626;
+}
+
+.trial-error p {
+  margin: 0 0 1rem 0;
+}
+
+/* Mobile Responsive Adjustments for Trial */
+@media (max-width: 767px) {
+  .trial-metrics {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .trial-metric .metric-value-large {
+    font-size: 2rem;
+  }
+
+  .practice-interface.trial-mode::before {
+    right: 10px;
+    font-size: 0.6875rem;
+    padding: 3px 8px;
   }
 }

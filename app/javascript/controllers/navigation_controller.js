@@ -39,11 +39,12 @@ export default class extends Controller {
   closeMenu() {
     const menu = this.element.querySelector(".nav-menu")
     const toggle = this.element.querySelector(".mobile-menu-toggle")
-    
+
     if (window.innerWidth <= 768) {
       menu.classList.remove("active")
       toggle.classList.remove("active")
       toggle.setAttribute("aria-expanded", "false")
     }
   }
+
 }

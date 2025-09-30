@@ -22,6 +22,8 @@ Rails.application.routes.draw do
   get '/login', to: 'auth/sessions#new'
   post '/login', to: 'auth/sessions#create'
   delete '/logout', to: 'auth/sessions#destroy'
+  get '/logout', to: 'auth/sessions#destroy'  # Fallback for direct GET requests
+  get '/simple_logout', to: 'auth/sessions#destroy'  # Debug route
   get '/signup', to: 'auth/registrations#new'
   post '/signup', to: 'auth/registrations#create'
 
@@ -43,6 +45,13 @@ Rails.application.routes.draw do
   # Privacy settings
   resource :privacy_settings, only: [:show, :update]
   
+  # Trial session routes (token-based, no authentication)
+  resources :trial_sessions, only: [:show], param: :token, path: 'trial' do
+    member do
+      get :analysis, action: :show
+    end
+  end
+
   # API routes
   namespace :api do
     resources :sessions, only: [] do
@@ -55,6 +64,13 @@ Rails.application.routes.draw do
         get :insights
         get :status
         post :reprocess_ai
+      end
+    end
+
+    # Trial session API routes
+    resources :trial_sessions, only: [], param: :token do
+      member do
+        get :status
       end
     end
   end

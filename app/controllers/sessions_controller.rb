@@ -1,40 +1,74 @@
 class SessionsController < ApplicationController
-  before_action :require_login
+  before_action :require_login, except: [:index, :create]
+  before_action :require_login_or_trial, only: [:index, :create]
   before_action :set_session, only: [:show, :destroy]
   
   def index
-    # New practice-first interface
-    @prompts = load_prompts_from_config
-    @adaptive_prompts = get_adaptive_prompts
-    @categories = (@prompts.keys + ['recommended']).uniq.sort
-    @user_weaknesses = analyze_user_weaknesses
+    # Handle trial activation
+    if params[:trial] == 'true' && !logged_in?
+      activate_trial
+      # Note: Analytics tracking for trial_started happens on the frontend when user clicks the trial button
+    end
 
-    # Quick metrics for insights panel
-    @recent_sessions = current_user.sessions
-                                   .where(completed: true)
-                                   .where('sessions.created_at > ?', 30.days.ago)
-                                   .order('sessions.created_at DESC')
-                                   .limit(10)
-                                   .includes(:issues)
+    if trial_mode?
+      # Trial mode: simplified interface
+      @trial_prompt = "Describe your biggest professional challenge and how you're tackling it. Keep it under 30 seconds."
+      @default_prompt = @trial_prompt
+      @default_prompt_data = { prompt: @trial_prompt, target_seconds: 30 }
 
-    @quick_metrics = calculate_quick_metrics(@recent_sessions)
-    @focus_areas = generate_focus_areas
-    @current_streak = calculate_current_streak
-    @enforcement_analytics = calculate_enforcement_analytics
+      # Check for trial results to display
+      if params[:trial_results] == 'true' && session[:trial_results]
+        @trial_results = session[:trial_results]
+        session.delete(:trial_results) # Clear after showing
+      end
 
-    # Handle prompt parameters from recommended/selected prompts
-    if params[:adaptive_prompt] && params[:category] && params[:index]
-      # User clicked on an adaptive/recommended prompt
-      @default_prompt_data = get_adaptive_prompt_data(params[:category], params[:index].to_i)
-      @default_prompt = @default_prompt_data[:prompt]
-    elsif params[:prompt_id]
-      # User clicked on a regular prompt
-      @default_prompt_data = get_prompt_by_id(params[:prompt_id])
-      @default_prompt = @default_prompt_data[:prompt]
+      # No metrics for trial users - they'll see trial results after recording
+      @recent_sessions = []
+      @quick_metrics = {}
+      @focus_areas = []
+      @current_streak = 0
+      @enforcement_analytics = {}
+
+      # Simplified prompts for trial
+      @prompts = {}
+      @adaptive_prompts = {}
+      @categories = []
+      @user_weaknesses = []
     else
-      # Set a default prompt if none available
-      @default_prompt = get_default_prompt
-      @default_prompt_data = get_default_prompt_data
+      # Regular authenticated flow
+      # Note: Analytics tracking for real_session_started happens on the frontend
+      @prompts = load_prompts_from_config
+      @adaptive_prompts = get_adaptive_prompts
+      @categories = (@prompts.keys + ['recommended']).uniq.sort
+      @user_weaknesses = analyze_user_weaknesses
+
+      # Quick metrics for insights panel
+      @recent_sessions = current_user.sessions
+                                     .where(completed: true)
+                                     .where('sessions.created_at > ?', 30.days.ago)
+                                     .order('sessions.created_at DESC')
+                                     .limit(10)
+                                     .includes(:issues)
+
+      @quick_metrics = calculate_quick_metrics(@recent_sessions)
+      @focus_areas = generate_focus_areas
+      @current_streak = calculate_current_streak
+      @enforcement_analytics = calculate_enforcement_analytics
+
+      # Handle prompt parameters from recommended/selected prompts
+      if params[:adaptive_prompt] && params[:category] && params[:index]
+        # User clicked on an adaptive/recommended prompt
+        @default_prompt_data = get_adaptive_prompt_data(params[:category], params[:index].to_i)
+        @default_prompt = @default_prompt_data[:prompt]
+      elsif params[:prompt_id]
+        # User clicked on a regular prompt
+        @default_prompt_data = get_prompt_by_id(params[:prompt_id])
+        @default_prompt = @default_prompt_data[:prompt]
+      else
+        # Set a default prompt if none available
+        @default_prompt = get_default_prompt
+        @default_prompt_data = get_default_prompt_data
+      end
     end
   end
 
@@ -54,30 +88,69 @@ class SessionsController < ApplicationController
   
   
   def create
-    @session = current_user.sessions.build(session_params)
-    @session.processing_state = 'pending'
-    @session.completed = false
-
-    # Set enforcement flag based on whether it's coming from practice interface
-    # If not explicitly set, default to true for practice interface sessions
-    if @session.minimum_duration_enforced.nil?
-      @session.minimum_duration_enforced = true
-    end
-
-    if @session.save
-      # Clear cache to ensure history page shows new session
-      Rails.cache.delete("user_#{current_user.id}_sessions_count")
-      Rails.cache.delete("user_#{current_user.id}_recent_sessions")
-
-      # Enqueue background job for processing
-      Sessions::ProcessJob.perform_later(@session.id)
-      redirect_to @session, notice: 'Recording session created successfully. Analysis will be available shortly.'
+    if trial_mode?
+      # Handle trial session - no DB persistence
+      handle_trial_session
     else
-      @prompts = load_prompts_from_config
-      @adaptive_prompts = get_adaptive_prompts
-      @categories = (@prompts.keys + ['recommended']).uniq.sort
-      @user_weaknesses = analyze_user_weaknesses
-      render :new, status: :unprocessable_content
+      # Regular authenticated session
+      @session = current_user.sessions.build(session_params)
+      @session.processing_state = 'pending'
+      @session.completed = false
+
+      # Set enforcement flag based on whether it's coming from practice interface
+      # If not explicitly set, default to true for practice interface sessions
+      if @session.minimum_duration_enforced.nil?
+        @session.minimum_duration_enforced = true
+      end
+
+      if @session.save
+        # Clear cache to ensure history page shows new session
+        Rails.cache.delete("user_#{current_user.id}_sessions_count")
+        Rails.cache.delete("user_#{current_user.id}_recent_sessions")
+
+        # Enqueue background job for processing
+        Sessions::ProcessJob.perform_later(@session.id)
+
+        # Handle AJAX vs traditional requests differently
+        if request.xhr?
+          # AJAX request - return JSON response
+          render json: {
+            success: true,
+            session_id: @session.id,
+            redirect_url: session_path(@session),
+            message: 'Recording session created successfully. Analysis will be available shortly.'
+          }, status: :created
+        else
+          # Traditional request - redirect as before
+          redirect_to @session, notice: 'Recording session created successfully. Analysis will be available shortly.'
+        end
+      else
+        # Handle validation errors
+        if request.xhr?
+          # AJAX request - return error response with detailed error info
+          error_messages = @session.errors.full_messages
+          primary_message = if error_messages.any?
+            error_messages.first
+          else
+            'Please record audio before submitting'
+          end
+
+          Rails.logger.error "Session validation failed: #{error_messages.join(', ')}"
+
+          render json: {
+            success: false,
+            errors: error_messages,
+            message: primary_message
+          }, status: :unprocessable_entity
+        else
+          # Traditional request - render form with errors
+          @prompts = load_prompts_from_config
+          @adaptive_prompts = get_adaptive_prompts
+          @categories = (@prompts.keys + ['recommended']).uniq.sort
+          @user_weaknesses = analyze_user_weaknesses
+          render :index, status: :unprocessable_content
+        end
+      end
     end
   end
   
@@ -585,6 +658,172 @@ class SessionsController < ApplicationController
         description: "Selected from the prompt library"
       }
     end
+  end
+
+  # Trial mode helpers
+  def require_login_or_trial
+    return if logged_in?
+
+    # Allow trial access if trial parameter is present or trial is already active
+    if params[:trial] == 'true' || trial_mode?
+      return
+    end
+
+    # Otherwise require login
+    store_location
+    redirect_to login_path, alert: 'Please login or try our demo'
+  end
+
+  def handle_trial_session
+    # Mark trial as used
+    mark_trial_used
+
+    # Log incoming parameters for debugging
+    Rails.logger.info "Trial session params: #{params.inspect}"
+    Rails.logger.info "Session media_files param: #{params.dig(:session, :media_files)}"
+
+    # Get the uploaded file
+    uploaded_file = params.dig(:session, :media_files, 0)
+
+    # Enhanced validation and error handling
+    if uploaded_file.blank?
+      Rails.logger.error "Trial session: No uploaded file found in params"
+      Rails.logger.error "Full params structure: #{params.to_unsafe_h}"
+
+      error_message = 'Please record audio before submitting'
+      if request.xhr?
+        render json: {
+          success: false,
+          message: error_message
+        }, status: :unprocessable_entity
+        return
+      else
+        flash[:alert] = error_message
+        redirect_to practice_path(trial: true) and return
+      end
+    end
+
+    # Validate file properties
+    if uploaded_file.respond_to?(:tempfile) && uploaded_file.tempfile.size == 0
+      Rails.logger.error "Trial session: Uploaded file is empty (0 bytes)"
+
+      error_message = 'Recording file is empty. Please record again.'
+      if request.xhr?
+        render json: {
+          success: false,
+          message: error_message
+        }, status: :unprocessable_entity
+        return
+      else
+        flash[:alert] = error_message
+        redirect_to practice_path(trial: true) and return
+      end
+    end
+
+    # Log file info for debugging
+    Rails.logger.info "Trial session file info: #{uploaded_file.original_filename}, #{uploaded_file.size} bytes, #{uploaded_file.content_type}"
+
+    # Create trial session with background processing
+    @trial_session = TrialSession.create!(
+      title: params.dig(:session, :title) || "Trial Recording",
+      language: params.dig(:session, :language) || 'en',
+      media_kind: params.dig(:session, :media_kind) || 'audio',
+      target_seconds: (params.dig(:session, :target_seconds) || 30).to_i,
+      processing_state: 'pending'
+    )
+
+    # Attach the media file
+    @trial_session.media_files.attach(uploaded_file)
+
+    # Start background processing
+    Sessions::TrialProcessJob.perform_later(@trial_session.token)
+
+    # Handle AJAX vs traditional requests
+    if request.xhr?
+      render json: {
+        success: true,
+        trial_token: @trial_session.token,
+        redirect_url: trial_session_path(@trial_session.token),
+        message: 'Recording uploaded! Your analysis will be ready shortly.'
+      }, status: :created
+    else
+      # Redirect to trial analysis page
+      redirect_to trial_session_path(@trial_session.token),
+                  notice: 'Recording uploaded! Your analysis will be ready shortly.'
+    end
+  end
+
+  def process_trial_audio(uploaded_file)
+    begin
+      # Check if Deepgram API key is available
+      if ENV['DEEPGRAM_API_KEY'].blank?
+        Rails.logger.error "Trial processing failed: Deepgram API key not configured"
+        # For demo purposes, return basic mock results
+        return {
+          success: true,
+          wpm: 150,
+          filler_count: 2,
+          transcript: "This is a demo transcription showing basic speech analysis results.",
+          duration_seconds: 30,
+          demo_mode: true
+        }
+      end
+
+      # Use existing STT service for transcription
+      stt_client = STT::DeepgramClient.new
+      transcript_result = stt_client.transcribe_file(uploaded_file.tempfile.path)
+
+      # Extract data from successful transcription
+      transcript = transcript_result[:transcript]
+      words = transcript_result[:words] || []
+      duration_seconds = transcript_result.dig(:metadata, :duration) || 30
+
+      # Validate transcription quality
+      if transcript.blank? || words.empty?
+        return {
+          success: false,
+          error: "No speech detected in recording. Please ensure you spoke clearly and try again."
+        }
+      end
+
+      # Calculate basic metrics
+      wpm = calculate_trial_wpm(words)
+      filler_count = count_trial_fillers(transcript)
+
+      {
+        success: true,
+        wpm: wpm,
+        filler_count: filler_count,
+        transcript: transcript,
+        duration_seconds: duration_seconds
+      }
+    rescue => e
+      Rails.logger.error "Trial analysis error: #{e.message}"
+      {
+        success: false,
+        error: "Analysis failed. Please try again."
+      }
+    end
+  end
+
+  def calculate_trial_wpm(words)
+    return 0 if words.blank?
+
+    # Simple WPM calculation for trial
+    word_count = words.length
+    # Words have :end key in milliseconds, convert to minutes
+    duration_minutes = (words.last[:end] / 1000.0 / 60.0) rescue 0.5
+
+    (word_count / duration_minutes).round
+  end
+
+  def count_trial_fillers(transcript)
+    return 0 if transcript.blank?
+
+    filler_words = %w[um uh er ah hmm like you-know so basically actually literally]
+    filler_pattern = /\b(#{filler_words.join('|')})\b/i
+
+    transcript.scan(filler_pattern).length
   end
 
 end

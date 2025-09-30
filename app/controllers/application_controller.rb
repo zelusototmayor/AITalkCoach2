@@ -11,7 +11,7 @@ class ApplicationController < ActionController::Base
   before_action :set_request_context
 
   # Authentication
-  helper_method :current_user, :logged_in?
+  helper_method :current_user, :logged_in?, :trial_mode?
   
   private
   
@@ -87,5 +87,23 @@ class ApplicationController < ActionController::Base
     if logged_in?
       redirect_to practice_path, notice: 'You are already logged in'
     end
+  end
+
+  # Trial mode detection
+  def trial_mode?
+    !logged_in? && session[:trial_active]
+  end
+
+  def activate_trial
+    session[:trial_active] = true
+    session[:trial_started_at] = Time.current
+  end
+
+  def trial_used?
+    session[:trial_used].present?
+  end
+
+  def mark_trial_used
+    session[:trial_used] = true
   end
 end

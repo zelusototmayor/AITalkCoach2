@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_27_201121) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_30_141519) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -100,6 +100,26 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_27_201121) do
     t.index ["user_id", "created_at"], name: "index_sessions_on_user_and_created_at"
     t.index ["user_id", "processing_state"], name: "index_sessions_on_user_processing_state"
     t.index ["user_id"], name: "index_sessions_on_user_id"
+  end
+
+  create_table "trial_sessions", force: :cascade do |t|
+    t.string "token", null: false
+    t.string "title", null: false
+    t.string "language", default: "en"
+    t.string "media_kind", default: "audio"
+    t.integer "target_seconds", default: 30
+    t.integer "duration_ms"
+    t.text "analysis_data"
+    t.string "processing_state", default: "pending"
+    t.boolean "completed", default: false
+    t.datetime "processed_at"
+    t.datetime "expires_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_trial_sessions_on_created_at"
+    t.index ["expires_at"], name: "index_trial_sessions_on_expires_at"
+    t.index ["processing_state"], name: "index_trial_sessions_on_processing_state"
+    t.index ["token"], name: "index_trial_sessions_on_token", unique: true
   end
 
   create_table "user_issue_embeddings", force: :cascade do |t|

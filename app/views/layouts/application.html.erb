@@ -11,6 +11,16 @@
 
     <%= yield :head %>
 
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-KM66Q2D5T3"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-KM66Q2D5T3');
+    </script>
+
     <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
     <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
 
@@ -23,7 +33,7 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body data-controller="accessibility">
+  <body data-controller="accessibility analytics" data-analytics-debug-value="true">
     <!-- Skip to main content link for keyboard users -->
     <a href="#main-content" class="skip-link">Skip to main content</a>
     
@@ -98,26 +108,30 @@
         <!-- Navigation Links -->
         <div class="nav-menu" id="nav-menu" data-navigation-target="menu">
           <ul class="nav-links" role="menubar">
-            <li class="nav-item" role="none">
-              <%= link_to practice_path,
-                    class: "nav-link #{'active' if current_page?(practice_path)}",
-                    role: "menuitem",
-                    "aria-current": (current_page?(practice_path) ? "page" : nil),
-                    data: { action: "click->navigation#closeMenu" } do %>
-                <span class="nav-icon" aria-hidden="true">🎤</span>
-                <span class="nav-text">Practice</span>
-              <% end %>
-            </li>
-            <li class="nav-item" role="none">
-              <%= link_to history_sessions_path,
-                    class: "nav-link #{'active' if current_page?(history_sessions_path)}",
-                    role: "menuitem",
-                    "aria-current": (current_page?(history_sessions_path) ? "page" : nil),
-                    data: { action: "click->navigation#closeMenu" } do %>
-                <span class="nav-icon" aria-hidden="true">📊</span>
-                <span class="nav-text">History</span>
-              <% end %>
-            </li>
+            <% if logged_in? %>
+              <li class="nav-item" role="none">
+                <%= link_to practice_path,
+                      class: "nav-link #{'active' if current_page?(practice_path)}",
+                      role: "menuitem",
+                      "aria-current": (current_page?(practice_path) ? "page" : nil),
+                      data: { action: "click->navigation#closeMenu" } do %>
+                  <span class="nav-icon" aria-hidden="true">🎤</span>
+                  <span class="nav-text">Practice</span>
+                <% end %>
+              </li>
+            <% end %>
+            <% if logged_in? %>
+              <li class="nav-item" role="none">
+                <%= link_to history_sessions_path,
+                      class: "nav-link #{'active' if current_page?(history_sessions_path)}",
+                      role: "menuitem",
+                      "aria-current": (current_page?(history_sessions_path) ? "page" : nil),
+                      data: { action: "click->navigation#closeMenu" } do %>
+                  <span class="nav-icon" aria-hidden="true">📊</span>
+                  <span class="nav-text">History</span>
+                <% end %>
+              </li>
+            <% end %>
             <li class="nav-item" role="none">
               <%= link_to prompts_path, 
                     class: "nav-link #{'active' if current_page?(prompts_path)}",
@@ -149,10 +163,12 @@
               </li>
               <li class="nav-item" role="none">
                 <%= link_to logout_path,
-                      method: :delete,
                       class: "nav-link logout-link",
                       role: "menuitem",
-                      data: { action: "click->navigation#closeMenu", confirm: "Are you sure you want to logout?" } do %>
+                      data: {
+                        action: "click->navigation#closeMenu"
+                      },
+                      "data-logout-link" => true do %>
                   <span class="nav-icon" aria-hidden="true">🚪</span>
                   <span class="nav-text">Logout</span>
                 <% end %>

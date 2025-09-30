@@ -10,6 +10,8 @@ class Auth::RegistrationsController < ApplicationController
 
     if @user.save
       session[:user_id] = @user.id
+      # Store user ID for analytics tracking
+      session[:signup_completed_user_id] = @user.id
       redirect_to practice_path, notice: 'Account created successfully! Welcome to AI Talk Coach!'
     else
       render :new, status: :unprocessable_content
