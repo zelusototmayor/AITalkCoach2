@@ -50,6 +50,7 @@
   <% if @sessions.any? %>
     <% sessions_today = @sessions.select { |s| s.created_at.to_date == Date.current } %>
     <% sessions_this_month = @sessions.select { |s| s.created_at.to_date >= Date.current.beginning_of_month && s.created_at.to_date < Date.current } %>
+    <% sessions_older = @sessions.select { |s| s.created_at.to_date < Date.current.beginning_of_month } %>
 
     <% if sessions_today.any? %>
       <div class="sessions-section">
@@ -67,6 +68,17 @@
         <h2 class="section-title">This Month</h2>
         <div class="sessions-row">
           <% sessions_this_month.each do |session| %>
+            <%= render 'session_card_modern', session: session %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <% if sessions_older.any? %>
+      <div class="sessions-section">
+        <h2 class="section-title">Previous</h2>
+        <div class="sessions-row">
+          <% sessions_older.each do |session| %>
             <%= render 'session_card_modern', session: session %>
           <% end %>
         </div>
