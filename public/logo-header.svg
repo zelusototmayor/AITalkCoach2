@@ -1,0 +1,38 @@
+<svg width="180" height="48" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="headerGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#7466FF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1FC3C3;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Speech bubble background -->
+  <path d="M8 12
+           C8 8, 12 4, 18 4
+           L32 4
+           C38 4, 42 8, 42 12
+           L42 28
+           C42 34, 38 38, 32 38
+           L22 38
+           L18 44
+           L16 38
+           L18 38
+           C12 38, 8 34, 8 28
+           Z"
+        fill="url(#headerGradient)" />
+
+  <!-- Sound wave bars -->
+  <!-- Center bar (tallest) -->
+  <rect x="23" y="16" width="4" height="16" rx="2" fill="white"/>
+
+  <!-- Left bars -->
+  <rect x="18" y="20" width="3" height="8" rx="1.5" fill="white"/>
+  <rect x="14" y="22" width="2" height="4" rx="1" fill="white"/>
+
+  <!-- Right bars -->
+  <rect x="29" y="20" width="3" height="8" rx="1.5" fill="white"/>
+  <rect x="34" y="22" width="2" height="4" rx="1" fill="white"/>
+
+  <!-- Text -->
+  <text x="55" y="30" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="18" font-weight="600" fill="#0F172A">AI Talk Coach</text>
+</svg>

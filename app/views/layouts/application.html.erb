@@ -84,13 +84,18 @@
     </button>
     
     <header class="main-header" role="banner">
-      <nav class="main-nav" 
+      <nav class="main-nav"
            data-controller="navigation"
-           role="navigation" 
+           role="navigation"
            aria-label="Main navigation">
-        <%= link_to "AI Talk Coach", root_path, 
-              class: "logo",
-              "aria-label" => "AI Talk Coach - Go to homepage" %>
+        <div class="logo-container">
+          <%= link_to root_path,
+                class: "logo-link",
+                "aria-label" => "AI Talk Coach - Go to homepage" do %>
+            <img src="/logo.png" alt="AI Talk Coach" class="logo-image" />
+            <span class="logo-text">AI Talk Coach</span>
+          <% end %>
+        </div>
         
         <!-- Mobile Menu Toggle -->
         <button type="button" 

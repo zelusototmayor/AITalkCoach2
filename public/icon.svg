@@ -1,3 +1,39 @@
 <svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="256" cy="256" r="256" fill="red"/>
+  <defs>
+    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#7466FF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1FC3C3;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="logoGradientLight" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#9A8FFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#5BE0D9;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Speech bubble background -->
+  <path d="M100 150
+           C100 100, 150 50, 220 50
+           L392 50
+           C462 50, 512 100, 512 150
+           L512 300
+           C512 370, 462 420, 392 420
+           L280 420
+           L220 480
+           L180 420
+           L220 420
+           C150 420, 100 370, 100 300
+           Z"
+        fill="url(#logoGradient)" />
+
+  <!-- Sound wave bars -->
+  <!-- Center bar (tallest) -->
+  <rect x="256" y="180" width="24" height="120" rx="12" fill="white"/>
+
+  <!-- Left bars -->
+  <rect x="210" y="210" width="20" height="60" rx="10" fill="white"/>
+  <rect x="170" y="230" width="16" height="20" rx="8" fill="white"/>
+
+  <!-- Right bars -->
+  <rect x="300" y="210" width="20" height="60" rx="10" fill="white"/>
+  <rect x="340" y="230" width="16" height="20" rx="8" fill="white"/>
 </svg>

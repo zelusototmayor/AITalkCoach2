@@ -7,7 +7,7 @@
       <div class="hero-content">
         <div class="hero-badge">
           <span class="badge-icon">✨</span>
-          AI-powered speech coaching
+          AI-first speech coaching
         </div>
 
         <h1 class="hero-title">
@@ -16,93 +16,72 @@
         </h1>
 
         <p class="hero-description">
-          AI Talk Coach helps you practice 30–180 second responses, detect filler words,
-          measure clarity & pace, and gives you targeted coaching—anytime, in your browser.
+          Run 30–180s speaking drills in your browser. See filler %, pace, and clarity—plus a quick drill to fix the biggest issue next.
         </p>
 
         <div class="hero-actions">
           <% if logged_in? %>
-            <%= link_to practice_path, class: "btn btn-primary btn-large" do %>
-              <span class="btn-icon">▶</span>
-              Continue Practicing
+            <%= link_to practice_path, class: "btn btn-primary" do %>
+              🎤 Try 30s Demo
             <% end %>
-            <a href="#demo" class="btn btn-secondary btn-large">
-              <span class="btn-icon">👁️</span>
-              See Live Demo
-            </a>
+            <%= link_to signup_path, class: "btn btn-secondary" do %>
+              🚀 Become a Beta User
+            <% end %>
           <% else %>
             <%= link_to practice_path(trial: true),
-                  class: "btn btn-primary btn-large",
+                  class: "btn btn-primary",
                   data: {
                     action: "click->analytics#handleTrialClick",
                     source: "hero_section"
                   } do %>
-              <span class="btn-icon">⚡</span>
-              Try 30s Demo
+              🎤 Try 30s Demo
             <% end %>
             <%= link_to signup_path,
-                  class: "btn btn-secondary btn-large",
+                  class: "btn btn-secondary",
                   data: {
                     action: "click->analytics#handleSignupClick",
                     source: "hero_section"
                   } do %>
-              <span class="btn-icon">🚀</span>
-              Sign Up Free
+              🚀 Become a Beta User
             <% end %>
           <% end %>
         </div>
 
-        <div class="hero-features">
-          <div class="feature-item">
-            <span class="feature-icon">🎤</span>
-            In‑browser recording
-          </div>
-          <div class="feature-item">
-            <span class="feature-icon">⚡</span>
-            Real‑time analysis
-          </div>
-          <div class="feature-item">
-            <span class="feature-icon">🎯</span>
-            Actionable coaching
-          </div>
-        </div>
+        <p class="hero-features">No install • Web-first • You control your recordings</p>
       </div>
 
       <!-- Demo Preview Card -->
       <div class="hero-demo">
-        <div class="demo-card">
+        <div class="card">
           <div class="demo-header">
-            <h3>Practice Session Preview</h3>
-            <span class="demo-badge">Live from your app</span>
+            <div class="demo-title">Quick Practice</div>
           </div>
 
           <div class="demo-prompt">
-            "Describe a challenging project you completed recently.
-            Keep it under 60 seconds and focus on the outcome."
+            Explain a recent decision you made at work. Keep it under 30s. Avoid "um/uh".
           </div>
 
           <div class="demo-controls">
             <div class="timer-presets">
-              <button class="preset-btn">30s</button>
-              <button class="preset-btn active">60s</button>
-              <button class="preset-btn">120s</button>
+              <span class="preset-btn">30s</span>
+              <span class="preset-btn active">30s</span>
+              <span class="preset-btn">120s</span>
             </div>
-            <button class="record-btn">
-              <span class="btn-icon">🎤</span>
-              Start Recording
+            <button class="btn btn-primary">
+              🎤 Start
             </button>
           </div>
 
           <div class="demo-metrics">
-            <div class="metric">
+            <div class="metric-mini">
               <div class="metric-label">WPM</div>
               <div class="metric-value"><%= @sample_session[:wpm] %></div>
             </div>
-            <div class="metric">
+            <div class="metric-mini">
               <div class="metric-label">Filler %</div>
               <div class="metric-value"><%= @sample_session[:filler_rate] %>%</div>
             </div>
-            <div class="metric">
+            <div class="metric-mini">
               <div class="metric-label">Clarity</div>
               <div class="metric-value"><%= @sample_session[:clarity_score] %></div>
             </div>
@@ -110,22 +89,63 @@
         </div>
       </div>
     </div>
+    <div class="rule-grad mx-auto" style="max-width: 1200px;"></div>
   </section>
 
-  <!-- Social Proof -->
-  <section class="stats-section">
-    <div class="stats-container">
-      <div class="stat-card">
-        <div class="stat-number"><%= @total_practice_minutes %>+</div>
-        <div class="stat-label">practice minutes tracked</div>
+  <!-- Proof Strip Section -->
+  <section class="proof-strip-section">
+    <div class="proof-container">
+      <div class="proof-badge">
+        <div class="proof-key">#1 skill</div>
+        <div class="proof-text">Communication is consistently ranked a top in‑demand job skill (LinkedIn, 2024).</div>
       </div>
-      <div class="stat-card">
-        <div class="stat-number"><%= @average_filler_reduction %>%</div>
-        <div class="stat-label">avg. filler reduction in 2 weeks</div>
+      <div class="proof-badge">
+        <div class="proof-key">44% change</div>
+        <div class="proof-text">Share of core skills expected to change within 5 years (World Economic Forum, 2025).</div>
       </div>
-      <div class="stat-card">
-        <div class="stat-number"><%= @median_clarity_score %></div>
-        <div class="stat-label">median clarity score after 10 sessions</div>
+      <div class="proof-badge">
+        <div class="proof-key">Human edge</div>
+        <div class="proof-text">Leaders prioritize human skills—communication, storytelling, presence—even as AI adoption grows.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Why Now Section -->
+  <section class="why-now-section">
+    <div class="why-now-container">
+      <div>
+        <h3>Why communication matters more in the AI era</h3>
+        <ul>
+          <li>• Communication ranks among the <b>most in‑demand job skills</b> on LinkedIn's 2024 report.</li>
+          <li>• The World Economic Forum projects <b>44% of core skills</b> will change within five years; human skills remain decisive.</li>
+          <li>• Leaders prioritize <b>storytelling, clarity, and presence</b> alongside AI fluency.</li>
+        </ul>
+        <p style="font-size: 0.75rem; color: #6b7280; margin-top: 0.75rem;">We'll link to source notes in the blog; phrasing here stays concise for the page.</p>
+      </div>
+      <blockquote class="why-now-quote">
+        <div class="quote-header">
+          💬 Coach's take
+        </div>
+        <p class="quote-text">AI accelerates content. Humans win with clarity, structure, and presence. Short, consistent reps beat long, rare practices.</p>
+      </blockquote>
+    </div>
+  </section>
+
+  <!-- Beta Status Section -->
+  <section class="beta-status-section">
+    <div class="beta-container">
+      <div class="beta-card">
+        <div class="beta-icon">🧪</div>
+        <div class="beta-content">
+          <h3>Early Beta: Help Us Reach 1K Minutes</h3>
+          <p>Join our growing community of speakers improving their communication skills. Currently tested: <strong><%= @total_practice_minutes %>+ minutes</strong></p>
+          <div class="beta-progress">
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: <%= [(@total_practice_minutes.to_i / 1000.0 * 100), 100].min %>%"></div>
+            </div>
+            <div class="progress-text"><%= @total_practice_minutes %>+ / 1K minutes</div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -378,4 +398,29 @@
       </div>
     </div>
   </section>
+
+  <!-- Footer -->
+  <footer class="landing-footer">
+    <div class="footer-container">
+      <div>© <%= Date.current.year %> AI Talk Coach.</div>
+      <div class="footer-links">
+        <a href="#" aria-label="Privacy Policy">Privacy</a>
+        <a href="#" aria-label="Terms of Service">Terms</a>
+        <a href="#" aria-label="Contact Us">Contact</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Sticky Mini CTA -->
+  <div class="sticky-mini-cta" data-controller="landing-scroll" data-landing-scroll-target="stickyBtn">
+    <% if logged_in? %>
+      <%= link_to practice_path, class: "btn btn-primary" do %>
+        🎤 Try 30s Demo
+      <% end %>
+    <% else %>
+      <%= link_to practice_path(trial: true), class: "btn btn-primary" do %>
+        🎤 Try 30s Demo
+      <% end %>
+    <% end %>
+  </div>
 </div>
