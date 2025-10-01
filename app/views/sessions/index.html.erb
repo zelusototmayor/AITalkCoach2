@@ -84,6 +84,14 @@
             ▶ Start <span data-practice-timer-target="durationText"><%= trial_mode? ? '30s' : '60s' %></span>
           </button>
 
+          <button type="button" class="cancel-btn-compact"
+                  data-practice-timer-target="cancelBtn"
+                  data-action="click->practice-timer#cancelSession"
+                  style="display: none;"
+                  title="Cancel recording and start over">
+            ✕ Cancel
+          </button>
+
           <div class="countdown-timer-compact" data-practice-timer-target="display">
             <div class="timer-circle-small">
               <svg class="timer-svg" viewBox="0 0 80 80">
@@ -522,3 +530,35 @@
 <script type="application/json" id="categories-data">
 <%= raw @categories.to_json %>
 </script>
+
+<style>
+/* Cancel button styling */
+.cancel-btn-compact {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: 8px;
+}
+
+.cancel-btn-compact:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+.cancel-btn-compact:active {
+  transform: translateY(0);
+}
+
+.timer-start-layout {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+</style>

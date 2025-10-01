@@ -1207,4 +1207,59 @@ export default class extends Controller {
       analytics.trackRealSessionCompleted(sessionData)
     }
   }
+
+  cancelRecording() {
+    console.log('Recorder: Cancelling recording session')
+
+    // Stop any active recording
+    if (this.mediaRecorder && this.mediaRecorder.state === "recording") {
+      this.mediaRecorder.stop()
+    }
+
+    // Clear timers
+    if (this.maxDurationTimer) {
+      clearTimeout(this.maxDurationTimer)
+      this.maxDurationTimer = null
+    }
+
+    this.stopRecordingTimer()
+
+    // Release media stream
+    this.releaseStream()
+
+    // Clear recorded data
+    this.recordedChunks = []
+    this.attachedBlob = null
+    this.attachedFile = null
+
+    // Clear file input
+    if (this.hasFileInputTarget) {
+      this.fileInputTarget.value = ''
+    }
+
+    // Hide previews
+    if (this.hasVideoPreviewTarget) {
+      this.videoPreviewTarget.style.display = "none"
+      this.videoPreviewTarget.src = ""
+    }
+
+    if (this.hasAudioPreviewTarget) {
+      this.audioPreviewTarget.style.display = "none"
+      this.audioPreviewTarget.src = ""
+    }
+
+    // Hide preview and post-recording sections
+    if (this.hasPreviewTarget) {
+      this.previewTarget.style.display = "none"
+    }
+
+    if (this.hasPostRecordingActionsTarget) {
+      this.postRecordingActionsTarget.style.display = "none"
+    }
+
+    // Reset UI to ready state
+    this.updateUI("ready")
+
+    console.log('Recorder: Recording cancelled and state reset')
+  }
 }

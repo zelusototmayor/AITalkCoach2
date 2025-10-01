@@ -3,7 +3,7 @@ import { Controller } from "@hotwired/stimulus"
 export default class extends Controller {
   static targets = [
     "display", "progressCircle", "percentage", "status", "timeDisplay",
-    "startBtn", "durationText", "report",
+    "startBtn", "cancelBtn", "durationText", "report",
     "form", "titleInput", "durationInput", "submitBtn"
   ]
   static values = {
@@ -194,18 +194,31 @@ export default class extends Controller {
         this.startBtnTarget.textContent = `▶ Start ${this.selectedDuration}s`
         this.startBtnTarget.disabled = false
         this.startBtnTarget.classList.remove('running', 'completed', 'timer-completed')
+        this.startBtnTarget.style.display = 'inline-block'
+        // Hide cancel button when ready
+        if (this.hasCancelBtnTarget) {
+          this.cancelBtnTarget.style.display = 'none'
+        }
         break
 
       case 'running':
         this.startBtnTarget.textContent = `🎙️ Recording... (${this.selectedDuration}s)`
         this.startBtnTarget.disabled = true
         this.startBtnTarget.classList.add('running')
+        // Show cancel button when recording
+        if (this.hasCancelBtnTarget) {
+          this.cancelBtnTarget.style.display = 'inline-block'
+        }
         break
 
       case 'timer_completed':
         this.startBtnTarget.style.display = 'none'
         this.startBtnTarget.classList.remove('running')
         this.startBtnTarget.classList.add('timer-completed')
+        // Hide cancel button when completed
+        if (this.hasCancelBtnTarget) {
+          this.cancelBtnTarget.style.display = 'none'
+        }
         break
 
       case 'completed':
@@ -213,6 +226,10 @@ export default class extends Controller {
         this.startBtnTarget.disabled = true
         this.startBtnTarget.classList.remove('running', 'timer-completed')
         this.startBtnTarget.classList.add('completed')
+        // Hide cancel button when completed
+        if (this.hasCancelBtnTarget) {
+          this.cancelBtnTarget.style.display = 'none'
+        }
         break
     }
   }
@@ -657,5 +674,42 @@ export default class extends Controller {
       console.error('Could not find recorder controller to submit recording')
       this.showNotification('❌ Error: Could not submit recording. Please try again.', 'error')
     }
+  }
+
+  cancelSession() {
+    if (!this.isRunning) return
+
+    console.log('Practice timer: User cancelled recording session')
+
+    // Stop the timer and recording
+    this.stopTimer()
+    this.isRunning = false
+
+    // Stop the recording via recorder controller
+    const recorderController = this.getRecorderController()
+    if (recorderController) {
+      console.log('Practice timer: Cancelling recording via recorder controller')
+      recorderController.cancelRecording()
+    }
+
+    // Reset UI to ready state
+    this.currentTime = 0
+    this.updateButtonState('ready')
+    this.updateDisplay()
+    this.hideReport()
+
+    // Hide any post-recording actions
+    const postRecordingActions = document.querySelector('[data-recorder-target="postRecordingActions"]')
+    if (postRecordingActions) {
+      postRecordingActions.style.display = 'none'
+    }
+
+    // Show setup form again if it was hidden
+    const setupForm = document.querySelector('.pre-recording-setup-compact')
+    if (setupForm) {
+      setupForm.style.display = 'block'
+    }
+
+    this.showNotification('Recording cancelled. You can start a new recording when ready.', 'info', 3000)
   }
 }
