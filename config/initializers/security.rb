@@ -7,20 +7,20 @@ if Rails.env.production? || Rails.env.staging?
       # Allow 'self' for most resources
       policy.default_src :self, :https
       
-      # Allow specific script sources
-      policy.script_src :self, :unsafe_inline, 'https://cdn.jsdelivr.net', 'https://unpkg.com', 'https://www.googletagmanager.com', 'https://www.google-analytics.com', 'https://ssl.google-analytics.com', "'strict-dynamic'"
+      # Allow specific script sources (Google Analytics requires unsafe-inline)
+      policy.script_src :self, :unsafe_inline, 'https://cdn.jsdelivr.net', 'https://unpkg.com', 'https://www.googletagmanager.com', 'https://www.google-analytics.com', 'https://ssl.google-analytics.com'
       
       # Allow specific style sources
       policy.style_src :self, :unsafe_inline, 'https://fonts.googleapis.com'
       
-      # Allow images from self and data URLs
-      policy.img_src :self, :data, :https
+      # Allow images from self, data URLs, and Google Analytics tracking pixels
+      policy.img_src :self, :data, :https, 'https://www.google-analytics.com', 'https://www.googletagmanager.com'
       
       # Allow fonts from Google Fonts
       policy.font_src :self, 'https://fonts.gstatic.com'
       
       # Allow connections to specific hosts
-      policy.connect_src :self, 'https://api.openai.com', 'https://api.deepgram.com', 'https://www.google-analytics.com', 'https://region1.google-analytics.com', 'https://analytics.google.com', 'https://stats.g.doubleclick.net'
+      policy.connect_src :self, 'https://api.openai.com', 'https://api.deepgram.com', 'https://www.google-analytics.com', 'https://region1.google-analytics.com', 'https://analytics.google.com', 'https://stats.g.doubleclick.net', 'https://www.googletagmanager.com'
       
       # Media sources for audio/video
       policy.media_src :self, :blob
@@ -57,11 +57,11 @@ if Rails.env.production? || Rails.env.staging?
       config.content_security_policy_report_only = true
     end
     
-    # Generate nonce for inline scripts
-    config.content_security_policy_nonce_generator = ->(_request) { SecureRandom.base64(16) }
-    
-    # Specify which directives should include the nonce (but allow unsafe-inline for GA)
-    config.content_security_policy_nonce_directives = %w[]
+    # Disable nonce generation to ensure unsafe-inline works for Google Analytics
+    # config.content_security_policy_nonce_generator = ->(_request) { SecureRandom.base64(16) }
+
+    # No nonce directives - relying on unsafe-inline for Google Analytics compatibility
+    # config.content_security_policy_nonce_directives = %w[]
   end
 end
 
