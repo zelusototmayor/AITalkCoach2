@@ -8,7 +8,7 @@ if Rails.env.production? || Rails.env.staging?
       policy.default_src :self, :https
       
       # Allow specific script sources
-      policy.script_src :self, :unsafe_inline, 'https://cdn.jsdelivr.net', 'https://unpkg.com', 'https://www.googletagmanager.com', 'https://www.google-analytics.com'
+      policy.script_src :self, :unsafe_inline, 'https://cdn.jsdelivr.net', 'https://unpkg.com', 'https://www.googletagmanager.com', 'https://www.google-analytics.com', 'https://ssl.google-analytics.com', "'strict-dynamic'"
       
       # Allow specific style sources
       policy.style_src :self, :unsafe_inline, 'https://fonts.googleapis.com'
@@ -60,8 +60,8 @@ if Rails.env.production? || Rails.env.staging?
     # Generate nonce for inline scripts
     config.content_security_policy_nonce_generator = ->(_request) { SecureRandom.base64(16) }
     
-    # Specify which directives should include the nonce
-    config.content_security_policy_nonce_directives = %w[script-src]
+    # Specify which directives should include the nonce (but allow unsafe-inline for GA)
+    config.content_security_policy_nonce_directives = %w[]
   end
 end
 
