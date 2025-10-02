@@ -124,7 +124,7 @@ export default class extends Controller {
       parameters.filler_count = analysis_data.filler_count
     }
 
-    this.trackEvent('trial_analisys_view', parameters)
+    this.trackEvent('trial_analysis_view', parameters)
   }
 
   trackSignupClicked(source = 'unknown') {
@@ -195,7 +195,7 @@ export default class extends Controller {
       parameters.filler_rate = session_data.metrics.filler_rate
     }
 
-    this.trackEvent('real_analisys_view', parameters)
+    this.trackEvent('real_analysis_view', parameters)
   }
 
   // Utility methods
@@ -297,9 +297,30 @@ export default class extends Controller {
     const wpmElement = document.querySelector('[data-trial-wpm]')
     const fillerElement = document.querySelector('[data-trial-filler-count]')
 
+    // Also try to extract from metric display elements
+    const wpmDisplay = document.querySelector('.metric-value-large:contains("WPM")')
+    const fillerDisplay = document.querySelector('.trial-metric-card .metric-value-large')
+
+    let wpm = null
+    let filler_count = null
+
+    if (wpmElement) {
+      wpm = parseInt(wpmElement.dataset.trialWpm)
+    } else if (wpmDisplay) {
+      const wpmText = wpmDisplay.textContent.match(/(\d+)/)?.[1]
+      wpm = wpmText ? parseInt(wpmText) : null
+    }
+
+    if (fillerElement) {
+      filler_count = parseInt(fillerElement.dataset.trialFillerCount)
+    } else if (fillerDisplay) {
+      const fillerText = fillerDisplay.textContent.match(/(\d+)/)?.[1]
+      filler_count = fillerText ? parseInt(fillerText) : null
+    }
+
     return {
-      wpm: wpmElement ? parseInt(wpmElement.dataset.trialWpm) : null,
-      filler_count: fillerElement ? parseInt(fillerElement.dataset.trialFillerCount) : null
+      wpm: wpm,
+      filler_count: filler_count
     }
   }
 }

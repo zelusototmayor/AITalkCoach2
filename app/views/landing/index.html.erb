@@ -418,7 +418,12 @@
         🎤 Try 30s Demo
       <% end %>
     <% else %>
-      <%= link_to practice_path(trial: true), class: "btn btn-primary" do %>
+      <%= link_to practice_path(trial: true),
+            class: "btn btn-primary",
+            data: {
+              action: "click->analytics#handleTrialClick",
+              source: "sticky_cta"
+            } do %>
         🎤 Try 30s Demo
       <% end %>
     <% end %>

@@ -26,7 +26,12 @@
 
     <div class="session-actions">
       <%= link_to "← Try Another Recording", practice_path(trial: true), class: "btn btn-secondary" %>
-      <%= link_to "🚀 Unlock Full Features", signup_path, class: "btn btn-primary cta-button" %>
+      <%= link_to "🚀 Unlock Full Features", signup_path,
+            class: "btn btn-primary cta-button",
+            data: {
+              action: "click->analytics#handleSignupClick",
+              source: "trial_session_header"
+            } %>
     </div>
   </div>
 
@@ -106,7 +111,12 @@
           <h3>🎉 Trial Complete!</h3>
           <p>You got a taste of AI Talk Coach. Sign up for unlimited sessions, detailed analysis, and progress tracking.</p>
         </div>
-        <%= link_to "Get Full Access", signup_path, class: "btn btn-primary btn-large" %>
+        <%= link_to "Get Full Access", signup_path,
+              class: "btn btn-primary btn-large",
+              data: {
+                action: "click->analytics#handleSignupClick",
+                source: "trial_complete_banner"
+              } %>
       </div>
     </div>
 
@@ -254,7 +264,12 @@
       <p>Join thousands of professionals improving their communication skills with AI Talk Coach.</p>
 
       <div class="cta-buttons">
-        <%= link_to "🚀 Get Full Access", signup_path, class: "btn btn-primary btn-large" %>
+        <%= link_to "🚀 Get Full Access", signup_path,
+              class: "btn btn-primary btn-large",
+              data: {
+                action: "click->analytics#handleSignupClick",
+                source: "trial_cta_section"
+              } %>
         <%= link_to "🎙️ Try Another Recording", practice_path(trial: true), class: "btn btn-secondary" %>
       </div>
     </div>

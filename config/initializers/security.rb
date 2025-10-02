@@ -8,7 +8,7 @@ if Rails.env.production? || Rails.env.staging?
       policy.default_src :self, :https
       
       # Allow specific script sources
-      policy.script_src :self, :unsafe_inline, 'https://cdn.jsdelivr.net', 'https://unpkg.com', 'https://www.googletagmanager.com'
+      policy.script_src :self, :unsafe_inline, 'https://cdn.jsdelivr.net', 'https://unpkg.com', 'https://www.googletagmanager.com', 'https://www.google-analytics.com'
       
       # Allow specific style sources
       policy.style_src :self, :unsafe_inline, 'https://fonts.googleapis.com'
@@ -20,7 +20,7 @@ if Rails.env.production? || Rails.env.staging?
       policy.font_src :self, 'https://fonts.gstatic.com'
       
       # Allow connections to specific hosts
-      policy.connect_src :self, 'https://api.openai.com', 'https://api.deepgram.com', 'https://www.google-analytics.com', 'https://region1.google-analytics.com'
+      policy.connect_src :self, 'https://api.openai.com', 'https://api.deepgram.com', 'https://www.google-analytics.com', 'https://region1.google-analytics.com', 'https://analytics.google.com', 'https://stats.g.doubleclick.net'
       
       # Media sources for audio/video
       policy.media_src :self, :blob
