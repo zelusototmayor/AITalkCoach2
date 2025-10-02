@@ -33,7 +33,7 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body data-controller="accessibility analytics" data-analytics-debug-value="true">
+  <body data-controller="accessibility analytics" data-analytics-enabled-value="<%= Rails.env.production? %>" data-analytics-debug-value="<%= !Rails.env.production? %>">
     <!-- Skip to main content link for keyboard users -->
     <a href="#main-content" class="skip-link">Skip to main content</a>
     
