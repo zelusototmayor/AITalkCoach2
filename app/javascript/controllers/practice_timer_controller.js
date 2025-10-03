@@ -158,7 +158,7 @@ export default class extends Controller {
 
     // Update progress circle
     if (this.hasProgressCircleTarget) {
-      const circumference = 2 * Math.PI * 54 // radius = 54
+      const circumference = 2 * Math.PI * 36 // radius = 36 (matches HTML)
       const offset = circumference - (progress / 100) * circumference
       this.progressCircleTarget.style.strokeDasharray = `${circumference} ${circumference}`
       this.progressCircleTarget.style.strokeDashoffset = offset
