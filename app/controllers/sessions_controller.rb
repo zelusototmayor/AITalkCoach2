@@ -770,7 +770,7 @@ class SessionsController < ApplicationController
       end
 
       # Use existing STT service for transcription
-      stt_client = STT::DeepgramClient.new
+      stt_client = Stt::DeepgramClient.new
       transcript_result = stt_client.transcribe_file(uploaded_file.tempfile.path)
 
       # Extract data from successful transcription

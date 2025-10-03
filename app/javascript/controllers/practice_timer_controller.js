@@ -151,8 +151,10 @@ export default class extends Controller {
   }
 
   updateDisplay() {
-    const progress = Math.min((this.currentTime / this.selectedDuration) * 100, 100)
     const timeRemaining = Math.max(this.selectedDuration - this.currentTime, 0)
+
+    // Calculate progress: only reach 100% when currentTime equals selectedDuration
+    const progress = this.currentTime >= this.selectedDuration ? 100 : (this.currentTime / this.selectedDuration) * 100
 
     // Update progress circle
     if (this.hasProgressCircleTarget) {

@@ -101,7 +101,7 @@ module Sessions
 
     def transcribe_trial_speech(media_data)
       # Use existing STT service but with trial-specific handling
-      stt_client = STT::DeepgramClient.new
+      stt_client = Stt::DeepgramClient.new
 
       transcription_options = {
         language: @trial_session.language,
@@ -112,7 +112,7 @@ module Sessions
       }
 
       result = stt_client.transcribe_file(
-        media_data[:file_path],
+        media_data[:audio_file_path],
         transcription_options
       )
 
@@ -154,7 +154,7 @@ module Sessions
 
     def handle_trial_error(error)
       error_message = case error.class.name
-      when 'STT::DeepgramClient::TranscriptionError'
+      when 'Stt::DeepgramClient::TranscriptionError'
         if error.message.include?("No speech detected")
           "No speech detected in your recording. Please ensure you spoke clearly and try again."
         elsif error.message.include?("too short")

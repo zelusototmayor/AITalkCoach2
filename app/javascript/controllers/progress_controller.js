@@ -148,7 +148,7 @@ export default class extends Controller {
   schedulePageRefresh() {
     setTimeout(() => {
       window.location.reload()
-    }, 2000) // Wait 2 seconds before refreshing
+    }, 500) // Wait 0.5 seconds before refreshing
   }
 
   shouldStartPolling() {
