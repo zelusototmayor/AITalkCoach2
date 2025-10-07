@@ -1,5 +1,6 @@
 class Session < ApplicationRecord
   belongs_to :user
+  belongs_to :weekly_focus, optional: true
   has_many :issues, dependent: :destroy
   has_many_attached :media_files
   

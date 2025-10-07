@@ -1,8 +1,8 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["content", "word", "search", "highlighter", "issues", "timeline"]
-  static values = { 
+  static targets = ["content", "word", "search", "highlighter", "issues", "timeline", "legend", "toggleIcon"]
+  static values = {
     transcript: Array,
     issues: Array,
     highlightIssues: Boolean,
@@ -15,6 +15,7 @@ export default class extends Controller {
     this.currentTime = 0
     this.searchTerm = ""
     this.activeWord = null
+    this.legendOpen = false
     this.issueColors = {
       'filler_words': 'bg-red-200 text-red-800',
       'pace_too_fast': 'bg-orange-200 text-orange-800',
@@ -414,5 +415,25 @@ export default class extends Controller {
 
   toggleAutoScroll() {
     this.autoScrollValue = !this.autoScrollValue
+  }
+
+  toggleLegend() {
+    if (!this.hasLegendTarget) return
+
+    this.legendOpen = !this.legendOpen
+
+    if (this.legendOpen) {
+      this.legendTarget.classList.remove('hidden')
+      this.legendTarget.classList.add('visible')
+      if (this.hasToggleIconTarget) {
+        this.toggleIconTarget.textContent = '▲'
+      }
+    } else {
+      this.legendTarget.classList.add('hidden')
+      this.legendTarget.classList.remove('visible')
+      if (this.hasToggleIconTarget) {
+        this.toggleIconTarget.textContent = '▼'
+      }
+    }
   }
 }

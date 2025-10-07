@@ -1,0 +1,305 @@
+<% content_for :title, "Your Progress" %>
+
+<div class="progress-page" data-controller="progress-dashboard">
+  <div class="page-header">
+    <h1>Your Progress</h1>
+    <p class="page-subtitle">A focused plan you can complete today.</p>
+  </div>
+
+  <% if @recent_sessions.any? %>
+    <div class="progress-dashboard">
+      <!-- Left Column -->
+      <div class="progress-left-column">
+        <!-- Weekly Focus Section -->
+        <div class="weekly-focus-card">
+          <div class="card-header">
+            <h3>WEEKLY FOCUS</h3>
+            <span class="estimated-time">Est. time<br>6–8 min / day</span>
+          </div>
+
+          <% if @priority_recommendations&.dig(:focus_this_week)&.first %>
+            <% focus_area = @priority_recommendations[:focus_this_week].first %>
+
+            <div class="focus-title">
+              <span class="focus-icon">🔥</span>
+              <h2><%= humanize_improvement_type(focus_area[:type]) %></h2>
+            </div>
+
+            <div class="focus-target">
+              Target ≤ <%= format_metric_value(focus_area[:target_value], focus_area[:type]) %> by Sunday.
+              Average last 3 sessions: <%= format_metric_value(focus_area[:current_value], focus_area[:type]) %>.
+            </div>
+
+            <div class="focus-progress-grid">
+              <div class="progress-item">
+                <div class="progress-label">Today</div>
+                <div class="progress-value">0 / 2 drills</div>
+              </div>
+              <div class="progress-item">
+                <div class="progress-label">Week</div>
+                <div class="progress-value">3 / 10 drills</div>
+              </div>
+              <div class="progress-item">
+                <div class="progress-label">Streak</div>
+                <div class="progress-value">4 days</div>
+              </div>
+            </div>
+
+            <div class="focus-actions">
+              <%= button_tag "🎤 Start 60s Filler Pause Drill", class: "btn btn-primary", data: { reps: "2 reps" } %>
+              <%= button_tag "⭐ Guided 2-min Practice", class: "btn btn-secondary", data: { prompts: "with prompts" } %>
+            </div>
+
+            <div class="coach-tip">
+              <strong>Coach tip</strong>
+              <p><%= focus_area[:actionable_steps]&.first || "Practice daily for best results" %></p>
+            </div>
+          <% else %>
+            <div class="no-focus">
+              <p>Complete more sessions to get personalized weekly focus recommendations.</p>
+              <%= link_to "Start Practicing", practice_path, class: "btn btn-primary" %>
+            </div>
+          <% end %>
+        </div>
+
+        <!-- Today's 10-Minute Plan -->
+        <div class="daily-plan-card">
+          <div class="card-header">
+            <h3>TODAY'S 10-MINUTE PLAN</h3>
+          </div>
+
+          <div class="plan-items">
+            <div class="plan-item">
+              <div class="plan-number">1</div>
+              <div class="plan-content">
+                <h4>60s Filler Pause Drill</h4>
+                <p>Speak on any prompt. Insert a deliberate 0.5s pause where you feel a filler coming.</p>
+              </div>
+              <button class="btn-start">⭐ Start</button>
+            </div>
+
+            <div class="plan-item">
+              <div class="plan-number">2</div>
+              <div class="plan-content">
+                <h4>60s Pace Drill @150 WPM</h4>
+                <p>Read a short paragraph with a metronome at 150 WPM.</p>
+              </div>
+              <button class="btn-start">⭐ Start</button>
+            </div>
+
+            <div class="plan-item">
+              <div class="plan-number">3</div>
+              <div class="plan-content">
+                <h4>Review + Save Focus Prompt</h4>
+                <p>Pick one prompt you'll reuse all week.</p>
+              </div>
+              <button class="btn-start">⭐ Start</button>
+            </div>
+          </div>
+
+          <div class="plan-actions">
+            <%= button_tag "⭐ Start Plan", class: "btn btn-primary" %>
+            <%= button_tag "Customize", class: "btn btn-link" %>
+          </div>
+        </div>
+
+        <!-- Skill Snapshot -->
+        <div class="skill-snapshot-card">
+          <div class="card-header">
+            <h3>SKILL SNAPSHOT</h3>
+          </div>
+
+          <% if @skill_snapshot.present? %>
+            <div class="skill-grid">
+              <div class="skill-item">
+                <div class="skill-name">
+                  Clarity
+                  <span class="info-btn" data-controller="tooltip" data-action="mouseenter->tooltip#show mouseleave->tooltip#hide">
+                    ℹ️
+                    <span data-tooltip-target="content" class="tooltip-content hidden">
+                      Clarity measures articulation, pace consistency, and pause quality
+                    </span>
+                  </span>
+                </div>
+                <div class="skill-score"><%= @skill_snapshot[:clarity][:score] %></div>
+                <div class="skill-delta <%= @skill_snapshot[:clarity][:delta] >= 0 ? 'positive' : 'negative' %>">
+                  <%= @skill_snapshot[:clarity][:delta] >= 0 ? '▲' : '▼' %>
+                  <%= @skill_snapshot[:clarity][:delta].abs %>
+                </div>
+              </div>
+
+              <div class="skill-item">
+                <div class="skill-name">
+                  Filler control
+                  <span class="info-btn" data-controller="tooltip" data-action="mouseenter->tooltip#show mouseleave->tooltip#hide">
+                    ℹ️
+                    <span data-tooltip-target="content" class="tooltip-content hidden">
+                      Measures your ability to speak without um, uh, like, and other filler words
+                    </span>
+                  </span>
+                </div>
+                <div class="skill-score"><%= @skill_snapshot[:filler_control][:score] %></div>
+                <div class="skill-delta <%= @skill_snapshot[:filler_control][:delta] >= 0 ? 'positive' : 'negative' %>">
+                  <%= @skill_snapshot[:filler_control][:delta] >= 0 ? '▲' : '▼' %>
+                  <%= @skill_snapshot[:filler_control][:delta].abs %>%
+                </div>
+              </div>
+
+              <div class="skill-item">
+                <div class="skill-name">
+                  Pace
+                  <span class="info-btn" data-controller="tooltip" data-action="mouseenter->tooltip#show mouseleave->tooltip#hide">
+                    ℹ️
+                    <span data-tooltip-target="content" class="tooltip-content hidden">
+                      Your speaking rate in words per minute. Ideal range: 140-170 WPM
+                    </span>
+                  </span>
+                </div>
+                <div class="skill-score"><%= @skill_snapshot[:pace][:score] %></div>
+                <div class="skill-delta <%= @skill_snapshot[:pace][:delta] >= 0 ? 'positive' : 'negative' %>">
+                  <%= @skill_snapshot[:pace][:delta] >= 0 ? '▲' : '▼' %>
+                  <%= @skill_snapshot[:pace][:delta].abs %>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Right Column -->
+      <div class="progress-right-column">
+        <!-- Progress Toward Goals -->
+        <div class="progress-charts-card">
+          <div class="card-header">
+            <h3>PROGRESS TOWARD GOALS</h3>
+          </div>
+
+          <% if @chart_data.present? && @chart_data[:labels].any? %>
+            <!-- Filler % Chart -->
+            <div class="chart-container">
+              <div class="chart-header">
+                <span class="chart-title">
+                  Filler %
+                  <span class="info-btn" data-controller="tooltip" data-action="mouseenter->tooltip#show mouseleave->tooltip#hide">
+                    ℹ️
+                    <span data-tooltip-target="content" class="tooltip-content hidden">
+                      Percentage of words that are fillers (um, uh, like)
+                    </span>
+                  </span>
+                </span>
+                <span class="chart-current-value">
+                  <%= @chart_data[:filler_data].last %>%
+                  <%= @chart_data[:filler_data][-2] && @chart_data[:filler_data].last < @chart_data[:filler_data][-2] ? '↗' : '' %>
+                </span>
+              </div>
+              <canvas data-progress-target="fillerChart"
+                      data-labels="<%= @chart_data[:labels].to_json %>"
+                      data-values="<%= @chart_data[:filler_data].to_json %>"
+                      data-goal="2.0"></canvas>
+              <div class="chart-footer">
+                <span>Goal ≤ 2.0%</span>
+                <span>Sessions 1–7</span>
+              </div>
+            </div>
+
+            <!-- Pace (WPM) Chart -->
+            <div class="chart-container">
+              <div class="chart-header">
+                <span class="chart-title">
+                  Pace (WPM)
+                  <span class="info-btn" data-controller="tooltip" data-action="mouseenter->tooltip#show mouseleave->tooltip#hide">
+                    ℹ️
+                    <span data-tooltip-target="content" class="tooltip-content hidden">
+                      Words per minute - optimal range is 140-170 WPM
+                    </span>
+                  </span>
+                </span>
+                <span class="chart-current-value">
+                  <%= @chart_data[:pace_data].last %>
+                  <%= @chart_data[:pace_data][-2] && @chart_data[:pace_data].last > @chart_data[:pace_data][-2] ? '↗' : '' %>
+                </span>
+              </div>
+              <canvas data-progress-target="paceChart"
+                      data-labels="<%= @chart_data[:labels].to_json %>"
+                      data-values="<%= @chart_data[:pace_data].to_json %>"
+                      data-goal="150"></canvas>
+              <div class="chart-footer">
+                <span>Goal 140–170 WPM</span>
+                <span>Sessions 1–7</span>
+              </div>
+            </div>
+
+            <!-- Clarity Chart -->
+            <div class="chart-container">
+              <div class="chart-header">
+                <span class="chart-title">
+                  Clarity
+                  <span class="info-btn" data-controller="tooltip" data-action="mouseenter->tooltip#show mouseleave->tooltip#hide">
+                    ℹ️
+                    <span data-tooltip-target="content" class="tooltip-content hidden">
+                      Overall speech clarity score based on articulation and fluency
+                    </span>
+                  </span>
+                </span>
+                <span class="chart-current-value">
+                  <%= @chart_data[:clarity_data].last %>
+                  <%= @chart_data[:clarity_data][-2] && @chart_data[:clarity_data].last > @chart_data[:clarity_data][-2] ? '↗' : '✓' %>
+                </span>
+              </div>
+              <canvas data-progress-target="clarityChart"
+                      data-labels="<%= @chart_data[:labels].to_json %>"
+                      data-values="<%= @chart_data[:clarity_data].to_json %>"
+                      data-goal="90"></canvas>
+              <div class="chart-footer">
+                <span>Goal ≥ 90</span>
+                <span>Sessions 1–7</span>
+              </div>
+            </div>
+
+            <div class="chart-note">
+              Each dot is a session. The dashed line shows your target.
+            </div>
+          <% end %>
+        </div>
+
+        <!-- Practice Calendar -->
+        <div class="practice-calendar-card">
+          <div class="card-header">
+            <h3>PRACTICE CALENDAR</h3>
+          </div>
+
+          <% if @calendar_data.present? %>
+            <div class="calendar-grid">
+              <% @calendar_data.last(35).each do |day| %>
+                <div class="calendar-day <%= day[:has_session] ? 'trained' : 'missed' %>"
+                     title="<%= day[:date].strftime('%b %d') %>">
+                </div>
+              <% end %>
+            </div>
+
+            <div class="calendar-legend">
+              <div class="legend-item">
+                <div class="legend-dot missed"></div>
+                <span>Missed day</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-dot trained"></div>
+                <span>Trained</span>
+              </div>
+            </div>
+
+            <div class="calendar-note">
+              Each filled square = a completed practice day. Keep the streak alive.
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% else %>
+    <div class="no-sessions-message">
+      <h3>🎤 No Sessions Yet</h3>
+      <p>Complete a few practice sessions to see your progress dashboard!</p>
+      <%= link_to "Start Practicing", practice_path, class: "btn btn-primary" %>
+    </div>
+  <% end %>
+</div>

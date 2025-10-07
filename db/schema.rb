@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_30_141519) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_07_180659) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -89,17 +89,24 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_30_141519) do
     t.datetime "processed_at"
     t.boolean "minimum_duration_enforced", default: true, null: false
     t.string "speech_context"
+    t.integer "weekly_focus_id"
+    t.boolean "is_planned_session", default: false, null: false
+    t.date "planned_for_date"
     t.index ["analysis_json"], name: "index_sessions_on_analysis_json_gin"
     t.index ["completed", "created_at"], name: "index_sessions_on_completed_and_created_at"
     t.index ["created_at", "completed"], name: "index_sessions_on_date_completed"
     t.index ["minimum_duration_enforced"], name: "index_sessions_on_duration_enforced"
     t.index ["minimum_duration_enforced"], name: "index_sessions_on_minimum_duration_enforced"
+    t.index ["planned_for_date", "completed"], name: "index_sessions_on_planned_for_date_and_completed"
     t.index ["processing_state"], name: "index_sessions_on_processing_state"
     t.index ["user_id", "completed", "created_at"], name: "index_sessions_on_user_completed_date"
     t.index ["user_id", "completed"], name: "index_sessions_on_user_and_completed"
     t.index ["user_id", "created_at"], name: "index_sessions_on_user_and_created_at"
+    t.index ["user_id", "planned_for_date"], name: "index_sessions_on_user_id_and_planned_for_date"
     t.index ["user_id", "processing_state"], name: "index_sessions_on_user_processing_state"
     t.index ["user_id"], name: "index_sessions_on_user_id"
+    t.index ["weekly_focus_id", "completed"], name: "index_sessions_on_weekly_focus_id_and_completed"
+    t.index ["weekly_focus_id"], name: "index_sessions_on_weekly_focus_id"
   end
 
   create_table "trial_sessions", force: :cascade do |t|
@@ -144,9 +151,28 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_30_141519) do
     t.string "password_digest"
   end
 
+  create_table "weekly_focuses", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.string "focus_type", null: false
+    t.decimal "target_value", precision: 10, scale: 4, null: false
+    t.decimal "starting_value", precision: 10, scale: 4, null: false
+    t.date "week_start", null: false
+    t.date "week_end", null: false
+    t.integer "target_sessions_per_week", default: 10, null: false
+    t.string "status", default: "active", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["status"], name: "index_weekly_focuses_on_status"
+    t.index ["user_id", "status"], name: "index_weekly_focuses_on_user_id_and_status"
+    t.index ["user_id", "week_start"], name: "index_weekly_focuses_on_user_id_and_week_start"
+    t.index ["user_id"], name: "index_weekly_focuses_on_user_id"
+  end
+
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "issues", "sessions"
   add_foreign_key "sessions", "users"
+  add_foreign_key "sessions", "weekly_focuses", column: "weekly_focus_id"
   add_foreign_key "user_issue_embeddings", "users"
+  add_foreign_key "weekly_focuses", "users"
 end

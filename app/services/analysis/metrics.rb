@@ -140,12 +140,12 @@ module Analysis
       fluency = calculate_fluency_metrics
       engagement = calculate_engagement_metrics
       
-      # Component scores (0-100)
-      pace_score = score_speaking_pace(speaking[:words_per_minute])
-      clarity_score = clarity[:clarity_score]
-      fluency_score = fluency[:fluency_score]
-      engagement_score = engagement[:engagement_score]
-      
+      # Get component scores and normalize to 0-1 range
+      pace_score = score_speaking_pace(speaking[:words_per_minute]) / 100.0  # Convert from 0-100 to 0-1
+      clarity_score = clarity[:clarity_score]  # Already 0-1
+      fluency_score = fluency[:fluency_score]  # Already 0-1
+      engagement_score = engagement[:engagement_score]  # Already 0-1
+
       # Overall weighted score
       component_weights = {
         pace: 0.25,
@@ -153,26 +153,27 @@ module Analysis
         fluency: 0.25,
         engagement: 0.15
       }
-      
+
+      # All component scores are now decimals (0-1), multiply by 100 for calculation
       overall_score = (
-        pace_score * component_weights[:pace] +
-        clarity_score * component_weights[:clarity] +
-        fluency_score * component_weights[:fluency] +
-        engagement_score * component_weights[:engagement]
+        (pace_score * 100) * component_weights[:pace] +
+        (clarity_score * 100) * component_weights[:clarity] +
+        (fluency_score * 100) * component_weights[:fluency] +
+        (engagement_score * 100) * component_weights[:engagement]
       ).round(1)
-      
+
       {
-        overall_score: (overall_score / 100.0).round(4),
+        overall_score: (overall_score / 100.0).round(4),  # Convert back to decimal for storage
         component_scores: {
-          pace_score: (pace_score / 100.0).round(4),
-          clarity_score: (clarity_score / 100.0).round(4),
-          fluency_score: (fluency_score / 100.0).round(4),
-          engagement_score: (engagement_score / 100.0).round(4)
+          pace_score: pace_score.round(4),  # Already decimal
+          clarity_score: clarity_score.round(4),  # Already decimal
+          fluency_score: fluency_score.round(4),  # Already decimal
+          engagement_score: engagement_score.round(4)  # Already decimal
         },
         grade: score_to_grade(overall_score),
         improvement_potential: calculate_improvement_potential(overall_score),
-        strengths: identify_strengths(component_weights.keys.zip([pace_score, clarity_score, fluency_score, engagement_score])),
-        areas_for_improvement: identify_improvement_areas(component_weights.keys.zip([pace_score, clarity_score, fluency_score, engagement_score]))
+        strengths: identify_strengths(component_weights.keys.zip([(pace_score * 100), (clarity_score * 100), (fluency_score * 100), (engagement_score * 100)])),
+        areas_for_improvement: identify_improvement_areas(component_weights.keys.zip([(pace_score * 100), (clarity_score * 100), (fluency_score * 100), (engagement_score * 100)]))
       }
     end
     
@@ -671,12 +672,16 @@ module Analysis
     end
     
     def score_to_grade(score)
-      case score
-      when 90..100 then 'A'
-      when 80..89 then 'B'
-      when 70..79 then 'C'
-      when 60..69 then 'D'
-      else 'F'
+      if score >= 90
+        'A'
+      elsif score >= 80
+        'B'
+      elsif score >= 70
+        'C'
+      elsif score >= 60
+        'D'
+      else
+        'F'
       end
     end
     

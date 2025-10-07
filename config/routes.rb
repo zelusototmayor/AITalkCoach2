@@ -30,6 +30,9 @@ Rails.application.routes.draw do
   # Practice route - the main app interface
   get "practice", to: "sessions#index"
 
+  # Progress route - view user's improvement progress
+  get "progress", to: "sessions#progress"
+
   # Core application routes
   resources :sessions, except: [:edit, :update, :new] do
     collection do

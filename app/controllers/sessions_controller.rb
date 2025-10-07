@@ -85,6 +85,42 @@ class SessionsController < ApplicationController
     Rails.cache.delete("user_#{current_user.id}_sessions_count")
     Rails.cache.delete("user_#{current_user.id}_recent_sessions")
   end
+
+  def progress
+    # Get recent sessions for progress tracking (last 30 days)
+    @recent_sessions = current_user.sessions
+                                   .where(completed: true)
+                                   .where('sessions.created_at > ?', 30.days.ago)
+                                   .order('sessions.created_at ASC')  # ASC for chronological charts
+                                   .includes(:issues)
+
+    # Get the most recent completed session for recommendations
+    @latest_session = @recent_sessions.last  # Changed from first since we're sorting ASC
+
+    # Generate priority recommendations if we have a recent session
+    if @latest_session
+      begin
+        user_context = {
+          speech_context: @latest_session.speech_context || 'general',
+          historical_sessions: @recent_sessions.to_a
+        }
+        recommender = Analysis::PriorityRecommender.new(@latest_session, user_context)
+        @priority_recommendations = recommender.generate_priority_recommendations
+      rescue => e
+        Rails.logger.error "Priority recommendations error: #{e.message}"
+        @priority_recommendations = nil
+      end
+    end
+
+    # Prepare chart data for frontend
+    @chart_data = prepare_progress_chart_data(@recent_sessions)
+
+    # Prepare skill snapshot data (current vs previous session)
+    @skill_snapshot = prepare_skill_snapshot_data(@recent_sessions)
+
+    # Prepare calendar data (last 30 days)
+    @calendar_data = prepare_calendar_data(@recent_sessions)
+  end
   
   
   def create
@@ -160,8 +196,17 @@ class SessionsController < ApplicationController
     # Generate priority-based recommendations for completed sessions
     if @session.completed? && @session.analysis_data.present?
       begin
+        # Get last 5 sessions for historical context
+        recent_sessions = current_user.sessions
+          .where(completed: true)
+          .where('id <= ?', @session.id) # Include current + previous
+          .order(created_at: :desc)
+          .limit(5)
+          .includes(:issues)
+
         user_context = {
-          speech_context: @session.speech_context || params[:context] || 'general'
+          speech_context: @session.speech_context || params[:context] || 'general',
+          historical_sessions: recent_sessions.to_a
         }
         recommender = Analysis::PriorityRecommender.new(@session, user_context)
         @priority_recommendations = recommender.generate_priority_recommendations
@@ -824,6 +869,66 @@ class SessionsController < ApplicationController
     filler_pattern = /\b(#{filler_words.join('|')})\b/i
 
     transcript.scan(filler_pattern).length
+  end
+
+  def prepare_progress_chart_data(sessions)
+    return {} if sessions.empty?
+
+    # Limit to last 7 sessions for chart readability
+    chart_sessions = sessions.last(7)
+
+    {
+      labels: chart_sessions.map { |s| "Session #{chart_sessions.index(s) + 1}" },
+      filler_data: chart_sessions.map { |s| (s.analysis_data['filler_rate'].to_f * 100).round(1) },
+      pace_data: chart_sessions.map { |s| s.analysis_data['wpm'].to_f.round },
+      clarity_data: chart_sessions.map { |s| (s.analysis_data['clarity_score'].to_f * 100).round }
+    }
+  end
+
+  def prepare_skill_snapshot_data(sessions)
+    return {} if sessions.empty?
+
+    current_session = sessions.last
+    previous_session = sessions[-2] if sessions.length > 1
+
+    current_clarity = (current_session.analysis_data['clarity_score'].to_f * 100).round
+    current_filler = current_session.analysis_data['filler_rate'].to_f * 100
+    current_pace = current_session.analysis_data['wpm'].to_f.round
+
+    if previous_session
+      prev_clarity = (previous_session.analysis_data['clarity_score'].to_f * 100).round
+      prev_filler = previous_session.analysis_data['filler_rate'].to_f * 100
+      prev_pace = previous_session.analysis_data['wpm'].to_f.round
+
+      {
+        clarity: { score: current_clarity, delta: current_clarity - prev_clarity },
+        filler_control: { score: (100 - current_filler).round, delta: ((100 - current_filler) - (100 - prev_filler)).round(1) },
+        pace: { score: current_pace, delta: current_pace - prev_pace }
+      }
+    else
+      {
+        clarity: { score: current_clarity, delta: 0 },
+        filler_control: { score: (100 - current_filler).round, delta: 0 },
+        pace: { score: current_pace, delta: 0 }
+      }
+    end
+  end
+
+  def prepare_calendar_data(sessions)
+    # Get last 30 days
+    days = []
+    30.times do |i|
+      date = Date.current - i.days
+      session_on_date = sessions.find { |s| s.created_at.to_date == date }
+
+      days << {
+        date: date,
+        has_session: session_on_date.present?,
+        session_count: sessions.count { |s| s.created_at.to_date == date }
+      }
+    end
+
+    days.reverse
   end
 
 end

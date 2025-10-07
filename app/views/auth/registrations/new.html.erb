@@ -3,11 +3,20 @@
 <div class="auth-container">
   <div class="auth-card">
     <div class="auth-header">
+      <% if defined?(@trial_token) && @trial_token.present? %>
+        <div class="trial-conversion-banner">
+          🎉 <strong>Great choice!</strong> Create your account to get full access to your trial session analysis.
+        </div>
+      <% end %>
       <h1>Create your account</h1>
       <p>Start improving your speaking skills with AI-powered feedback</p>
     </div>
 
     <%= form_with model: @user, url: signup_path, local: true, class: "auth-form" do |f| %>
+      <% if defined?(@trial_token) && @trial_token.present? %>
+        <%= hidden_field_tag :trial_token, @trial_token %>
+      <% end %>
+
       <% if @user.errors.any? %>
         <div class="form-errors">
           <h4><%= pluralize(@user.errors.count, "error") %> prevented this account from being created:</h4>
@@ -181,5 +190,15 @@
   color: #dc2626;
   font-size: 0.85rem;
   margin-bottom: 0.25rem;
+}
+
+.trial-conversion-banner {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  font-size: 0.9rem;
 }
 </style>

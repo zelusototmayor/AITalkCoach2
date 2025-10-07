@@ -35,18 +35,18 @@ export default class extends Controller {
   
   showExportMenu(menu, triggerButton) {
     document.body.appendChild(menu)
-    
+
     const rect = triggerButton.getBoundingClientRect()
-    menu.style.position = 'absolute'
+    menu.style.position = 'fixed'
     menu.style.top = `${rect.bottom + 5}px`
     menu.style.left = `${rect.left}px`
     menu.style.zIndex = '1000'
-    
+
     // Close menu when clicking outside
     setTimeout(() => {
       document.addEventListener('click', this.closeExportMenuOnOutsideClick.bind(this))
     }, 100)
-    
+
     this.currentExportMenu = menu
   }
   
@@ -56,7 +56,12 @@ export default class extends Controller {
     }
   }
   
-  closeExportMenu() {
+  closeExportMenu(event) {
+    if (event) {
+      event.preventDefault()
+      event.stopPropagation()
+    }
+
     if (this.currentExportMenu) {
       this.currentExportMenu.remove()
       this.currentExportMenu = null
@@ -222,11 +227,127 @@ export default class extends Controller {
     })
   }
   
+  startDrill(event) {
+    event.preventDefault()
+
+    const drillType = event.params.type || 'general'
+    const duration = event.params.duration || 30
+
+    console.log(`[Session Controller] Starting drill: ${drillType}, duration: ${duration}s`)
+
+    // Redirect to practice page with drill parameters
+    window.location.href = `/practice?drill=${encodeURIComponent(drillType)}&duration=${duration}`
+  }
+
+  share(event) {
+    event.preventDefault()
+
+    // Check if Web Share API is available
+    if (navigator.share) {
+      const sessionTitle = document.querySelector('.session-title-main')?.textContent || 'My Practice Session'
+      const sessionUrl = window.location.href
+
+      navigator.share({
+        title: sessionTitle,
+        text: 'Check out my speech practice analysis from AI Talk Coach!',
+        url: sessionUrl
+      })
+      .then(() => {
+        this.showNotification('Session shared successfully!', 'success')
+      })
+      .catch((error) => {
+        // User cancelled share or error occurred
+        if (error.name !== 'AbortError') {
+          console.error('Share error:', error)
+          this.fallbackShare()
+        }
+      })
+    } else {
+      // Fallback for browsers without Web Share API
+      this.fallbackShare()
+    }
+  }
+
+  fallbackShare() {
+    const sessionUrl = window.location.href
+
+    // Copy to clipboard
+    navigator.clipboard.writeText(sessionUrl)
+      .then(() => {
+        this.showNotification('Link copied to clipboard!', 'success')
+      })
+      .catch(() => {
+        this.showNotification('Could not copy link. Please copy manually.', 'error')
+      })
+  }
+
+  openNotes(event) {
+    event.preventDefault()
+
+    // Show a modal or notification that Notes feature is coming soon
+    const modalContainer = document.createElement('div')
+    modalContainer.className = 'notes-modal-container'
+    modalContainer.innerHTML = `
+      <div class="notes-modal-overlay"></div>
+      <div class="notes-modal-content">
+        <div class="modal-header">
+          <h3>📝 Session Notes</h3>
+          <button class="modal-close" data-action="click->session#closeNotesModal">✕</button>
+        </div>
+        <div class="modal-body">
+          <p style="color: #6b7280; margin-bottom: 1rem;">
+            The Notes feature is coming soon! You'll be able to:
+          </p>
+          <ul style="color: #6b7280; padding-left: 1.5rem;">
+            <li>Add personal notes to your sessions</li>
+            <li>Track your insights and observations</li>
+            <li>Set reminders for specific improvements</li>
+          </ul>
+        </div>
+      </div>
+    `
+
+    modalContainer.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    `
+
+    // Add click handler to overlay
+    const overlay = modalContainer.querySelector('.notes-modal-overlay')
+    overlay.addEventListener('click', () => this.closeNotesModal())
+
+    document.body.appendChild(modalContainer)
+    this.currentNotesModal = modalContainer
+  }
+
+  closeNotesModal(event) {
+    if (event) event.preventDefault()
+
+    if (this.currentNotesModal) {
+      this.currentNotesModal.remove()
+      this.currentNotesModal = null
+    }
+  }
+
+  tryNextPrompt(event) {
+    event.preventDefault()
+
+    // Redirect to practice page to try a new prompt
+    window.location.href = '/practice'
+  }
+
   showNotification(message, type = 'info') {
     const notification = document.createElement('div')
     notification.className = `notification notification-${type}`
     notification.textContent = message
-    
+
     notification.style.cssText = `
       position: fixed;
       top: 20px;
@@ -238,7 +359,7 @@ export default class extends Controller {
       z-index: 1001;
       animation: slideInRight 0.3s ease-out;
     `
-    
+
     // Set background color based on type
     switch (type) {
       case 'success':
@@ -250,9 +371,9 @@ export default class extends Controller {
       default:
         notification.style.backgroundColor = '#3b82f6'
     }
-    
+
     document.body.appendChild(notification)
-    
+
     // Auto-remove after 3 seconds
     setTimeout(() => {
       notification.style.animation = 'slideOutRight 0.3s ease-out'

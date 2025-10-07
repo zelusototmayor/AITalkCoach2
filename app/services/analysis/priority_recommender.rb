@@ -22,6 +22,7 @@ module Analysis
     def initialize(session, user_context = {})
       @session = session
       @user_context = user_context
+      @historical_sessions = user_context[:historical_sessions] || [session]
       @analysis_data = session.analysis_data
       @issues = session.issues.includes(:session)
     end
@@ -59,11 +60,16 @@ module Analysis
 
       # Filler words analysis
       if current_metrics[:filler_rate] > 0.03 # More than 3%
+        avg_filler = calculate_historical_average('filler_rate')
+        filler_trend = determine_trend(current_metrics[:filler_rate], avg_filler)
         severity = current_metrics[:filler_rate] > 0.07 ? 'high' : 'medium'
         areas << {
           type: 'reduce_fillers',
           current_value: current_metrics[:filler_rate],
           target_value: 0.02,
+          historical_average: avg_filler,
+          trend: filler_trend,
+          sessions_analyzed: @historical_sessions.count,
           potential_improvement: calculate_filler_improvement_impact(current_metrics[:filler_rate]),
           severity: severity,
           specific_issues: extract_filler_issues
@@ -434,6 +440,28 @@ module Analysis
 
     def extract_professional_issues
       @issues.where(category: 'professional_issues').limit(3).pluck(:text, :start_ms, :tip)
+    end
+
+    # Historical analysis methods
+    def calculate_historical_average(metric_key)
+      values = @historical_sessions.filter_map { |s| s.analysis_data[metric_key] }
+      return 0 if values.empty?
+      values.sum / values.count.to_f
+    end
+
+    def determine_trend(current_value, historical_average)
+      return 'stable' if @historical_sessions.count < 2 || historical_average.zero?
+
+      # For metrics where higher is worse (filler_rate), improving means decreasing
+      percent_change = ((current_value - historical_average) / historical_average).abs
+
+      if current_value < historical_average * 0.9 # 10% better
+        'improving'
+      elsif current_value > historical_average * 1.1 # 10% worse
+        'worsening'
+      else
+        'stable'
+      end
     end
   end
 end

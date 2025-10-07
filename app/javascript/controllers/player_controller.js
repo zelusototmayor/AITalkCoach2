@@ -168,9 +168,24 @@ export default class extends Controller {
     }
   }
 
-  seekTo(time) {
+  seekTo(eventOrTime) {
+    // Handle both direct time parameter and event with data-timestamp
+    let time;
+    if (typeof eventOrTime === 'number') {
+      time = eventOrTime;
+    } else if (eventOrTime && eventOrTime.currentTarget) {
+      // Extract timestamp from data attribute and convert ms to seconds
+      const timestamp = eventOrTime.currentTarget.dataset.timestamp;
+      time = timestamp ? parseFloat(timestamp) / 1000 : 0;
+    } else if (eventOrTime && eventOrTime.params && eventOrTime.params.time) {
+      // Handle Stimulus params format
+      time = parseFloat(eventOrTime.params.time);
+    } else {
+      time = parseFloat(eventOrTime) || 0;
+    }
+
     if (this.hasMediaTarget) {
-      this.mediaTarget.currentTime = time
+      this.mediaTarget.currentTime = time;
     }
   }
 

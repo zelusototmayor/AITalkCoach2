@@ -138,6 +138,17 @@
                   <span class="nav-text">History</span>
                 <% end %>
               </li>
+              <%# Temporarily hidden - access via /progress URL directly %>
+              <%# <li class="nav-item" role="none">
+                <%= link_to progress_path,
+                      class: "nav-link #{'active' if current_page?(progress_path)}",
+                      role: "menuitem",
+                      "aria-current": (current_page?(progress_path) ? "page" : nil),
+                      data: { action: "click->navigation#closeMenu" } do %>
+                  <%# <span class="nav-icon" aria-hidden="true">📈</span> %>
+                  <%# <span class="nav-text">Progress</span> %>
+                <%# end %>
+              <%# </li> %>
             <% end %>
             <li class="nav-item" role="none">
               <%= link_to prompts_path, 
