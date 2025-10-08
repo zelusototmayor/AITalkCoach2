@@ -36,6 +36,11 @@ export default class extends Controller {
     // Listen for title generation events from prompts controller
     this.element.addEventListener('title-generated', this.handleTitleGenerated.bind(this))
 
+    // Initialize duration input with default value
+    if (this.hasDurationInputTarget && !this.durationInputTarget.value) {
+      this.durationInputTarget.value = this.selectedDuration
+    }
+
     this.updateUI("ready")
   }
 

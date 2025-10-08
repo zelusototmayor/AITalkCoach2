@@ -35,54 +35,117 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body data-controller="accessibility analytics" data-analytics-enabled-value="<%= Rails.env.production? %>" data-analytics-debug-value="<%= !Rails.env.production? %>">
+  <body data-controller="accessibility analytics feedback-menu" data-analytics-enabled-value="<%= Rails.env.production? %>" data-analytics-debug-value="<%= !Rails.env.production? %>">
     <!-- Skip to main content link for keyboard users -->
     <a href="#main-content" class="skip-link">Skip to main content</a>
-    
+
     <!-- Accessibility settings panel -->
-    <div class="accessibility-panel" data-accessibility-target="panel" aria-hidden="true">
+    <div class="accessibility-panel" data-accessibility-target="panel" data-feedback-menu-target="accessibilityPanel" aria-hidden="true">
       <h2>Accessibility Settings</h2>
       <div class="accessibility-controls">
-        <button type="button" 
+        <button type="button"
                 class="accessibility-btn"
                 data-action="click->accessibility#toggleHighContrast"
                 aria-pressed="false">
           Toggle High Contrast
         </button>
-        <button type="button" 
+        <button type="button"
                 class="accessibility-btn"
                 data-action="click->accessibility#toggleLargeText"
                 aria-pressed="false">
           Toggle Large Text
         </button>
-        <button type="button" 
+        <button type="button"
                 class="accessibility-btn"
                 data-action="click->accessibility#toggleReducedMotion"
                 aria-pressed="false">
           Reduce Motion
         </button>
-        <button type="button" 
+        <button type="button"
                 class="accessibility-btn"
                 data-action="click->accessibility#toggleKeyboardNavigation"
                 aria-pressed="false">
           Enhanced Keyboard Navigation
         </button>
       </div>
-      <button type="button" 
+      <button type="button"
               class="close-panel"
               data-action="click->accessibility#closePanel"
               aria-label="Close accessibility panel">
         ✕
       </button>
     </div>
-    
-    <!-- Accessibility toggle button -->
-    <button type="button" 
-            class="accessibility-toggle"
-            data-action="click->accessibility#togglePanel"
-            aria-label="Open accessibility settings"
-            title="Accessibility Settings">
-      ♿
+
+    <!-- Feedback modal -->
+    <div class="feedback-modal" data-feedback-menu-target="feedbackModal" aria-hidden="true">
+      <div class="feedback-modal-content">
+        <h2>Share Your Feedback</h2>
+        <p class="feedback-description">Help us improve AI Talk Coach by sharing your thoughts or reporting issues.</p>
+
+        <form data-action="submit->feedback-menu#submitFeedback" data-feedback-menu-target="form">
+          <div class="form-group">
+            <label for="feedback-text">Your Feedback</label>
+            <textarea
+              id="feedback-text"
+              name="feedback_text"
+              data-feedback-menu-target="feedbackText"
+              placeholder="Tell us what you think, report a bug, or suggest a feature..."
+              rows="6"
+              maxlength="5000"
+              required></textarea>
+            <div class="character-count">
+              <span data-feedback-menu-target="charCount">0</span> / 5000
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="feedback-images">Attach Images (Optional)</label>
+            <input
+              type="file"
+              id="feedback-images"
+              name="images"
+              data-feedback-menu-target="imageInput"
+              data-action="change->feedback-menu#handleImageChange"
+              accept="image/*"
+              multiple
+              class="file-input" />
+            <div class="file-input-label">
+              <span class="file-icon">📎</span>
+              <span data-feedback-menu-target="fileLabel">Choose images (max 5)</span>
+            </div>
+            <div class="image-previews" data-feedback-menu-target="imagePreviews"></div>
+          </div>
+
+          <div class="feedback-actions">
+            <button type="button"
+                    class="btn-secondary"
+                    data-action="click->feedback-menu#closeFeedbackModal">
+              Cancel
+            </button>
+            <button type="submit"
+                    class="btn-primary"
+                    data-feedback-menu-target="submitBtn">
+              <span data-feedback-menu-target="submitText">Send Feedback</span>
+              <span data-feedback-menu-target="submitLoader" class="loader" style="display: none;"></span>
+            </button>
+          </div>
+        </form>
+
+        <button type="button"
+                class="close-modal"
+                data-action="click->feedback-menu#closeFeedbackModal"
+                aria-label="Close feedback modal">
+          ✕
+        </button>
+      </div>
+    </div>
+
+    <!-- Feedback button -->
+    <button type="button"
+            class="feedback-button"
+            data-action="click->feedback-menu#openFeedbackModal"
+            aria-label="Share feedback">
+      Share Feedback
     </button>
     
     <header class="main-header" role="banner">
@@ -151,7 +214,7 @@
               <%# </li> %>
             <% end %>
             <li class="nav-item" role="none">
-              <%= link_to prompts_path, 
+              <%= link_to prompts_path,
                     class: "nav-link #{'active' if current_page?(prompts_path)}",
                     role: "menuitem",
                     "aria-current": (current_page?(prompts_path) ? "page" : nil),
@@ -159,6 +222,15 @@
                 <span class="nav-icon" aria-hidden="true">💡</span>
                 <span class="nav-text">Prompts</span>
               <% end %>
+            </li>
+            <li class="nav-item" role="none">
+              <button type="button"
+                      class="nav-link"
+                      role="menuitem"
+                      data-action="click->feedback-menu#openAccessibilityPanel click->navigation#closeMenu">
+                <span class="nav-icon" aria-hidden="true">♿</span>
+                <span class="nav-text">Accessibility</span>
+              </button>
             </li>
             <li class="nav-item" role="none">
               <%= link_to privacy_settings_path,

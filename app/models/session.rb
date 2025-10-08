@@ -8,7 +8,7 @@ class Session < ApplicationRecord
   validates :language, presence: true
   validates :media_kind, inclusion: { in: %w[audio video] }
   validates :processing_state, inclusion: { in: %w[pending processing completed failed] }
-  validates :target_seconds, inclusion: { in: [30, 45, 60, 90, 120, 300], message: "must be one of the preset durations" }
+  validates :target_seconds, numericality: { only_integer: true, greater_than: 0, less_than_or_equal_to: 300 }
   validates :media_files, presence: { message: "Please record audio or video before creating the session" }
   
   scope :completed, -> { where(completed: true) }

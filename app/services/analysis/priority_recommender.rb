@@ -30,6 +30,17 @@ module Analysis
     def generate_priority_recommendations
       return [] unless @analysis_data.present?
 
+      # Special handling for first session - always prompt to record again for baseline
+      if @historical_sessions.count == 1
+        return {
+          focus_this_week: [first_session_recommendation],
+          secondary_focus: [],
+          long_term_goals: [],
+          quick_wins: [],
+          practice_plan: {}
+        }
+      end
+
       improvement_areas = identify_improvement_areas
       prioritized_areas = calculate_priorities(improvement_areas)
 
@@ -462,6 +473,21 @@ module Analysis
       else
         'stable'
       end
+    end
+
+    # First session recommendation - always prompt user to record again
+    def first_session_recommendation
+      {
+        type: 'record_again_for_baseline',
+        actionable_steps: [
+          "Record another session so I can analyze your speaking patterns and provide personalized recommendations."
+        ],
+        priority_score: 100,
+        effort_level: 1,
+        current_value: nil,
+        target_value: nil,
+        potential_improvement: 0
+      }
     end
   end
 end

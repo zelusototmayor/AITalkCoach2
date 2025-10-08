@@ -1,0 +1,18 @@
+New Feedback from AI Talk Coach
+================================
+
+<% if @user_name.present? %>
+From: <%= @user_name %><% if @user_email.present? %> (<%= @user_email %>)<% end %>
+<% else %>
+From: Anonymous User
+<% end %>
+
+Submitted: <%= @submitted_at.strftime("%B %d, %Y at %I:%M %p %Z") %>
+
+<% if attachments.present? %>
+Attachments: <%= attachments.count %> image(s) attached
+<% end %>
+
+Feedback Message:
+-----------------
+<%= @feedback_text %>

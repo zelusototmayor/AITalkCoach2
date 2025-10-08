@@ -29,6 +29,11 @@ export default class extends Controller {
 
     // Listen for custom recording upload events
     this.element.addEventListener('recording:uploaded', this.handleRecordingUploadEvent.bind(this))
+
+    // Initialize duration input with default value
+    if (this.hasDurationInputTarget && !this.durationInputTarget.value) {
+      this.durationInputTarget.value = this.selectedDuration
+    }
   }
 
   disconnect() {

@@ -47,7 +47,10 @@ Rails.application.routes.draw do
   
   # Privacy settings
   resource :privacy_settings, only: [:show, :update]
-  
+
+  # Feedback
+  post '/feedback', to: 'feedback#create'
+
   # Trial session routes (token-based, no authentication)
   resources :trial_sessions, only: [:show], param: :token, path: 'trial' do
     member do

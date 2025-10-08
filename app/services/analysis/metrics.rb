@@ -322,27 +322,19 @@ module Analysis
     def calculate_filler_metrics(words)
       transcript = extract_transcript_text.downcase
       total_words = words.length
-      
-      # Common filler words and patterns (non-overlapping)
-      filler_patterns = {
-        'um' => /\b(um|uhm)\b/i,
-        'uh' => /\b(uh|er|ah)\b/i,
-        'like' => /\blike\b/i,
-        'you_know' => /\byou know\b/i,
-        'basically' => /\bbasically\b/i,
-        'actually' => /\bactually\b/i,
-        'so' => /\bso\b(?!\s+(that|what|how|when|where|why))/i # "so" but not in phrases like "so that"
-      }
-      
+
+      # Get language-specific filler patterns
+      filler_patterns = filler_patterns_for_language(@language)
+
       filler_counts = {}
       total_fillers = 0
-      
+
       filler_patterns.each do |type, pattern|
         matches = transcript.scan(pattern).length
         filler_counts[type] = matches
         total_fillers += matches
       end
-      
+
       # Calculate filler rate as a decimal (0.01 = 1%)
       filler_rate_decimal = total_words > 0 ? (total_fillers.to_f / total_words) : 0
       filler_rate_percentage = filler_rate_decimal * 100
@@ -355,6 +347,45 @@ module Analysis
         filler_breakdown: filler_counts,
         filler_density: assess_filler_density(filler_rate_percentage)
       }
+    end
+
+    def filler_patterns_for_language(language)
+      case language
+      when 'pt'
+        # Portuguese (Portugal) filler words and patterns
+        {
+          'eh' => /\b(eh|é)\b/i,
+          'ah' => /\b(ah|hm|ahn)\b/i,
+          'tipo' => /\btipo\b/i,
+          'ne' => /\bné\b/i,
+          'entao' => /\bentão\b/i,
+          'assim' => /\bassim\b/i,
+          'sei_la' => /\bsei lá\b/i,
+          'meio_que' => /\bmeio que\b/i,
+          'tipo_assim' => /\btipo assim\b/i,
+          'mais_ou_menos' => /\bmais ou menos\b/i
+        }
+      when 'es'
+        # Spanish filler words and patterns
+        {
+          'eh' => /\b(eh|este|esto)\b/i,
+          'pues' => /\bpues\b/i,
+          'bueno' => /\bbueno\b/i,
+          'o_sea' => /\bo sea\b/i,
+          'como' => /\bcomo\b(?!\s+(que|si|cuando))/i
+        }
+      else
+        # English (default) filler words and patterns
+        {
+          'um' => /\b(um|uhm)\b/i,
+          'uh' => /\b(uh|er|ah)\b/i,
+          'like' => /\blike\b/i,
+          'you_know' => /\byou know\b/i,
+          'basically' => /\bbasically\b/i,
+          'actually' => /\bactually\b/i,
+          'so' => /\bso\b(?!\s+(that|what|how|when|where|why))/i
+        }
+      end
     end
     
     def calculate_fillers_per_minute(total_fillers)
