@@ -27,27 +27,53 @@
 
             <div class="focus-target">
               Target ≤ <%= format_metric_value(focus_area[:target_value], focus_area[:type]) %> by Sunday.
-              Average last 3 sessions: <%= format_metric_value(focus_area[:current_value], focus_area[:type]) %>.
+              Average last 5 sessions: <%= format_metric_value(focus_area[:current_value], focus_area[:type]) %>.
             </div>
 
             <div class="focus-progress-grid">
               <div class="progress-item">
                 <div class="progress-label">Today</div>
-                <div class="progress-value">0 / 2 drills</div>
+                <div class="progress-value">
+                  <%= @weekly_focus_tracking ? "#{@weekly_focus_tracking[:sessions_today]} / #{@weekly_focus_tracking[:target_today]} drills" : "0 / 2 drills" %>
+                </div>
               </div>
               <div class="progress-item">
                 <div class="progress-label">Week</div>
-                <div class="progress-value">3 / 10 drills</div>
+                <div class="progress-value">
+                  <%= @weekly_focus_tracking ? "#{@weekly_focus_tracking[:sessions_this_week]} / #{@weekly_focus_tracking[:target_this_week]} drills" : "0 / 10 drills" %>
+                </div>
               </div>
               <div class="progress-item">
                 <div class="progress-label">Streak</div>
-                <div class="progress-value">4 days</div>
+                <div class="progress-value">
+                  <%= @weekly_focus_tracking ? "#{@weekly_focus_tracking[:streak_days]} day#{'s' unless @weekly_focus_tracking[:streak_days] == 1}" : "0 days" %>
+                </div>
               </div>
             </div>
 
             <div class="focus-actions">
-              <%= button_tag "🎤 Start 60s Filler Pause Drill", class: "btn btn-primary", data: { reps: "2 reps" } %>
-              <%= button_tag "⭐ Guided 2-min Practice", class: "btn btn-secondary", data: { prompts: "with prompts" } %>
+              <% if @daily_plan && @daily_plan[:drills].present? %>
+                <%= link_to "#{@daily_plan[:drills].first[:icon]} #{@daily_plan[:drills].first[:title]}",
+                    practice_path(
+                      weekly_focus_id: @weekly_focus&.id,
+                      is_planned_session: true,
+                      drill_title: @daily_plan[:drills].first[:title],
+                      target_seconds: @daily_plan[:drills].first[:duration_seconds]
+                    ),
+                    class: "btn btn-primary" %>
+                <% if @daily_plan[:drills].length > 1 %>
+                  <%= link_to "#{@daily_plan[:drills][1][:icon]} #{@daily_plan[:drills][1][:title]}",
+                      practice_path(
+                        weekly_focus_id: @weekly_focus&.id,
+                        is_planned_session: true,
+                        drill_title: @daily_plan[:drills][1][:title],
+                        target_seconds: @daily_plan[:drills][1][:duration_seconds]
+                      ),
+                      class: "btn btn-secondary" %>
+                <% end %>
+              <% else %>
+                <%= link_to "🎤 Start Practice", practice_path, class: "btn btn-primary" %>
+              <% end %>
             </div>
 
             <div class="coach-tip">
@@ -65,48 +91,67 @@
         <!-- Today's 10-Minute Plan -->
         <div class="daily-plan-card">
           <div class="card-header">
-            <h3>TODAY'S 10-MINUTE PLAN</h3>
+            <h3>TODAY'S <%= @daily_plan ? "#{@daily_plan[:total_duration_minutes]}-MINUTE" : "10-MINUTE" %> PLAN</h3>
           </div>
 
-          <div class="plan-items">
-            <div class="plan-item">
-              <div class="plan-number">1</div>
-              <div class="plan-content">
-                <h4>60s Filler Pause Drill</h4>
-                <p>Speak on any prompt. Insert a deliberate 0.5s pause where you feel a filler coming.</p>
-              </div>
-              <button class="btn-start">⭐ Start</button>
+          <% if @daily_plan && @daily_plan[:drills].present? %>
+            <div class="plan-items">
+              <% @daily_plan[:drills].each do |drill| %>
+                <div class="plan-item">
+                  <div class="plan-number"><%= drill[:order] %></div>
+                  <div class="plan-content">
+                    <h4><%= drill[:icon] %> <%= drill[:title] %></h4>
+                    <p><%= drill[:description] %></p>
+                  </div>
+                  <%= link_to practice_path(
+                    weekly_focus_id: drill[:weekly_focus_id],
+                    is_planned_session: true,
+                    drill_title: drill[:title],
+                    target_seconds: drill[:duration_seconds]
+                  ), class: "btn-start", method: :get do %>
+                    ⭐ Start
+                  <% end %>
+                </div>
+              <% end %>
             </div>
 
-            <div class="plan-item">
-              <div class="plan-number">2</div>
-              <div class="plan-content">
-                <h4>60s Pace Drill @150 WPM</h4>
-                <p>Read a short paragraph with a metronome at 150 WPM.</p>
-              </div>
-              <button class="btn-start">⭐ Start</button>
+            <div class="plan-actions">
+              <%= link_to "⭐ Start Plan", practice_path(
+                weekly_focus_id: @weekly_focus&.id,
+                is_planned_session: true,
+                drill_title: @daily_plan[:drills].first[:title],
+                target_seconds: @daily_plan[:drills].first[:duration_seconds]
+              ), class: "btn btn-primary" %>
+              <%= button_tag "Customize", class: "btn btn-link", disabled: true %>
             </div>
-
-            <div class="plan-item">
-              <div class="plan-number">3</div>
-              <div class="plan-content">
-                <h4>Review + Save Focus Prompt</h4>
-                <p>Pick one prompt you'll reuse all week.</p>
+          <% else %>
+            <div class="plan-items">
+              <div class="plan-item">
+                <div class="plan-number">1</div>
+                <div class="plan-content">
+                  <h4>Complete More Sessions</h4>
+                  <p>Record a few more practice sessions to get personalized daily plans.</p>
+                </div>
+                <%= link_to practice_path, class: "btn-start" do %>
+                  ⭐ Start
+                <% end %>
               </div>
-              <button class="btn-start">⭐ Start</button>
             </div>
-          </div>
-
-          <div class="plan-actions">
-            <%= button_tag "⭐ Start Plan", class: "btn btn-primary" %>
-            <%= button_tag "Customize", class: "btn btn-link" %>
-          </div>
+          <% end %>
         </div>
 
         <!-- Skill Snapshot -->
         <div class="skill-snapshot-card">
           <div class="card-header">
-            <h3>SKILL SNAPSHOT</h3>
+            <h3>SKILL SNAPSHOT
+              <span class="info-btn" data-controller="tooltip" data-action="mouseenter->tooltip#show mouseleave->tooltip#hide" style="font-size: 12px; margin-left: 4px; cursor: help;">
+                ℹ️
+                <span data-tooltip-target="content" class="tooltip-content hidden" style="width: 280px;">
+                  Shows your recent trend by comparing the average of your last 5 sessions to your overall 30-day average. Green arrows indicate improvement.
+                </span>
+              </span>
+            </h3>
+            <p class="card-subtitle" style="font-size: 11px; color: #9ca3af; margin: 4px 0 0 0; font-weight: normal; text-transform: none;">Last 5 sessions vs 30-day average</p>
           </div>
 
           <% if @skill_snapshot.present? %>
@@ -130,18 +175,18 @@
 
               <div class="skill-item">
                 <div class="skill-name">
-                  Filler control
+                  Filler %
                   <span class="info-btn" data-controller="tooltip" data-action="mouseenter->tooltip#show mouseleave->tooltip#hide">
                     ℹ️
                     <span data-tooltip-target="content" class="tooltip-content hidden">
-                      Measures your ability to speak without um, uh, like, and other filler words
+                      Percentage of words that are fillers (um, uh, like). Lower is better.
                     </span>
                   </span>
                 </div>
-                <div class="skill-score"><%= @skill_snapshot[:filler_control][:score] %></div>
-                <div class="skill-delta <%= @skill_snapshot[:filler_control][:delta] >= 0 ? 'positive' : 'negative' %>">
-                  <%= @skill_snapshot[:filler_control][:delta] >= 0 ? '▲' : '▼' %>
-                  <%= @skill_snapshot[:filler_control][:delta].abs %>%
+                <div class="skill-score"><%= @skill_snapshot[:filler_rate][:score] %>%</div>
+                <div class="skill-delta <%= @skill_snapshot[:filler_rate][:delta] <= 0 ? 'positive' : 'negative' %>">
+                  <%= @skill_snapshot[:filler_rate][:delta] <= 0 ? '▼' : '▲' %>
+                  <%= @skill_snapshot[:filler_rate][:delta].abs %>%
                 </div>
               </div>
 
@@ -192,7 +237,7 @@
                   <%= @chart_data[:filler_data][-2] && @chart_data[:filler_data].last < @chart_data[:filler_data][-2] ? '↗' : '' %>
                 </span>
               </div>
-              <canvas data-progress-target="fillerChart"
+              <canvas data-progress-dashboard-target="fillerChart"
                       data-labels="<%= @chart_data[:labels].to_json %>"
                       data-values="<%= @chart_data[:filler_data].to_json %>"
                       data-goal="2.0"></canvas>
@@ -219,7 +264,7 @@
                   <%= @chart_data[:pace_data][-2] && @chart_data[:pace_data].last > @chart_data[:pace_data][-2] ? '↗' : '' %>
                 </span>
               </div>
-              <canvas data-progress-target="paceChart"
+              <canvas data-progress-dashboard-target="paceChart"
                       data-labels="<%= @chart_data[:labels].to_json %>"
                       data-values="<%= @chart_data[:pace_data].to_json %>"
                       data-goal="150"></canvas>
@@ -246,7 +291,7 @@
                   <%= @chart_data[:clarity_data][-2] && @chart_data[:clarity_data].last > @chart_data[:clarity_data][-2] ? '↗' : '✓' %>
                 </span>
               </div>
-              <canvas data-progress-target="clarityChart"
+              <canvas data-progress-dashboard-target="clarityChart"
                       data-labels="<%= @chart_data[:labels].to_json %>"
                       data-values="<%= @chart_data[:clarity_data].to_json %>"
                       data-goal="90"></canvas>
@@ -270,9 +315,9 @@
 
           <% if @calendar_data.present? %>
             <div class="calendar-grid">
-              <% @calendar_data.last(35).each do |day| %>
+              <% @calendar_data.each do |day| %>
                 <div class="calendar-day <%= day[:has_session] ? 'trained' : 'missed' %>"
-                     title="<%= day[:date].strftime('%b %d') %>">
+                     title="<%= day[:date].strftime('%b %d, %Y') %>">
                 </div>
               <% end %>
             </div>

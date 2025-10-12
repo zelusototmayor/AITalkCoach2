@@ -24,9 +24,9 @@
       <!-- Current Prompt Display -->
       <div class="prompt-display" data-prompts-target="display">
         <div class="prompt-header">
-          <h4>Current Prompt</h4>
+          <h4><%= params[:drill_title] || "Current Prompt" %></h4>
           <div class="prompt-actions">
-            <span class="prompt-target-time" data-prompts-target="targetTime">~<%= @default_prompt_data[:target_seconds] %>s</span>
+            <span class="prompt-target-time" data-prompts-target="targetTime">~<%= params[:target_seconds] || @default_prompt_data[:target_seconds] %>s</span>
             <% unless trial_mode? %>
               <button type="button" class="shuffle-btn"
                       data-action="click->prompts#shufflePrompt"
@@ -37,7 +37,12 @@
           </div>
         </div>
         <div class="prompt-content" data-prompts-target="content">
-          <p><%= @default_prompt %></p>
+          <% if params[:drill_title].present? %>
+            <p><strong>From your daily plan:</strong> <%= params[:drill_title] %></p>
+            <p class="drill-instruction">Follow the drill instructions and practice for the recommended duration.</p>
+          <% else %>
+            <p><%= @default_prompt %></p>
+          <% end %>
         </div>
       </div>
 
@@ -60,17 +65,21 @@
                       title="Sign up to unlock">180s 🔒</button>
             </div>
           <% else %>
+            <% target_duration = (params[:target_seconds] || 60).to_i %>
             <div class="preset-buttons-horizontal">
-              <button type="button" class="preset-btn"
+              <button type="button" class="preset-btn <%= 'active' if target_duration == 30 %>"
                       data-duration="30"
                       data-action="click->practice-timer#selectDuration">30s</button>
-              <button type="button" class="preset-btn active"
+              <button type="button" class="preset-btn <%= 'active' if target_duration == 60 %>"
                       data-duration="60"
                       data-action="click->practice-timer#selectDuration">60s</button>
-              <button type="button" class="preset-btn"
+              <button type="button" class="preset-btn <%= 'active' if target_duration == 90 %>"
+                      data-duration="90"
+                      data-action="click->practice-timer#selectDuration">90s</button>
+              <button type="button" class="preset-btn <%= 'active' if target_duration == 120 %>"
                       data-duration="120"
                       data-action="click->practice-timer#selectDuration">120s</button>
-              <button type="button" class="preset-btn"
+              <button type="button" class="preset-btn <%= 'active' if target_duration == 180 %>"
                       data-duration="180"
                       data-action="click->practice-timer#selectDuration">180s</button>
             </div>
@@ -334,6 +343,7 @@
         <!-- Regular User Insights -->
         <div class="insights-header-card">
           <h3>📊 Insights</h3>
+          <p class="insights-subtitle" style="font-size: 12px; color: #6b7280; margin: -8px 0 12px 0;">30-day averages</p>
           <div class="key-metrics-row">
             <div class="key-metric">
               <div class="metric-label">AVG WPM</div>
@@ -506,11 +516,14 @@
   <!-- Hidden form for session creation -->
   <%= form_with model: Session.new, local: true, multipart: true, class: "hidden-form",
         data: { practice_timer_target: "form" } do |f| %>
-    <%= f.hidden_field :title, data: { practice_timer_target: "titleInput" } %>
+    <%= f.hidden_field :title, data: { practice_timer_target: "titleInput" }, value: params[:drill_title] %>
     <%= f.hidden_field :language, value: "en" %>
     <%= f.hidden_field :media_kind, value: "audio" %>
-    <%= f.hidden_field :target_seconds, data: { practice_timer_target: "durationInput" } %>
+    <%= f.hidden_field :target_seconds, data: { practice_timer_target: "durationInput" }, value: params[:target_seconds] %>
     <%= f.hidden_field :minimum_duration_enforced, value: "true" %>
+    <%= f.hidden_field :weekly_focus_id, value: params[:weekly_focus_id] %>
+    <%= f.hidden_field :is_planned_session, value: params[:is_planned_session] || "false" %>
+    <%= f.hidden_field :planned_for_date, value: params[:is_planned_session] == "true" ? Date.current : nil %>
     <%= f.file_field :media_files, multiple: true,
           data: { recorder_target: "fileInput" }, style: "display: none;" %>
     <%= f.submit "Create Session", data: { practice_timer_target: "submitBtn" },

@@ -23,6 +23,7 @@ module Analysis
       @session = session
       @user_context = user_context
       @historical_sessions = user_context[:historical_sessions] || [session]
+      @total_sessions_count = user_context[:total_sessions_count] || @historical_sessions.count
       @analysis_data = session.analysis_data
       @issues = session.issues.includes(:session)
     end
@@ -31,7 +32,8 @@ module Analysis
       return [] unless @analysis_data.present?
 
       # Special handling for first session - always prompt to record again for baseline
-      if @historical_sessions.count == 1
+      # Use total_sessions_count (all user sessions) not historical_sessions (which may be filtered)
+      if @total_sessions_count == 1
         return {
           focus_this_week: [first_session_recommendation],
           secondary_focus: [],
@@ -53,20 +55,53 @@ module Analysis
       }
     end
 
+    # Create or update weekly focus from recommendations
+    def create_or_update_weekly_focus(user)
+      # Don't create for first session - need baseline
+      # Use total_sessions_count to check if this is truly the user's first session
+      return nil if @total_sessions_count == 1
+
+      # Check if user already has an active weekly focus for current week
+      existing_focus = WeeklyFocus.current_for_user(user)
+
+      # If exists and is current, return it
+      return existing_focus if existing_focus&.is_current?
+
+      # Mark any previous week's focus as completed or missed
+      if existing_focus && !existing_focus.is_current?
+        completion_rate = existing_focus.completion_percentage
+        if completion_rate >= 70
+          existing_focus.mark_completed!
+        else
+          existing_focus.mark_missed!
+        end
+      end
+
+      # Generate new recommendations and create weekly focus
+      recommendations = generate_priority_recommendations
+
+      # Create new weekly focus from top recommendation
+      WeeklyFocus.create_from_recommendation(user, recommendations)
+    end
+
     private
 
     def identify_improvement_areas
       areas = []
 
-      # Analyze each metric and identify specific improvement opportunities
+      # Use rolling average of last 5 sessions (or all if < 5, minimum 2)
+      # This prevents one outlier session from drastically changing the weekly focus
+      recent_sessions = @historical_sessions.last([5, @historical_sessions.count].min)
+
+      # Analyze each metric using rolling average for stability
       current_metrics = {
-        filler_rate: @analysis_data['filler_rate'] || 0,
-        clarity_score: @analysis_data['clarity_score'] || 0,
-        fluency_score: @analysis_data['fluency_score'] || 0,
-        engagement_score: @analysis_data['engagement_score'] || 0,
-        pace_consistency: @analysis_data['pace_consistency'] || 0,
-        overall_score: @analysis_data['overall_score'] || 0,
-        wpm: @analysis_data['wpm'] || 0
+        filler_rate: calculate_rolling_average(recent_sessions, 'filler_rate'),
+        clarity_score: calculate_rolling_average(recent_sessions, 'clarity_score'),
+        fluency_score: calculate_rolling_average(recent_sessions, 'fluency_score'),
+        engagement_score: calculate_rolling_average(recent_sessions, 'engagement_score'),
+        pace_consistency: calculate_rolling_average(recent_sessions, 'pace_consistency'),
+        overall_score: calculate_rolling_average(recent_sessions, 'overall_score'),
+        wpm: calculate_rolling_average(recent_sessions, 'wpm')
       }
 
       # Filler words analysis
@@ -456,6 +491,12 @@ module Analysis
     # Historical analysis methods
     def calculate_historical_average(metric_key)
       values = @historical_sessions.filter_map { |s| s.analysis_data[metric_key] }
+      return 0 if values.empty?
+      values.sum / values.count.to_f
+    end
+
+    def calculate_rolling_average(sessions, metric_key)
+      values = sessions.filter_map { |s| s.analysis_data[metric_key] }
       return 0 if values.empty?
       values.sum / values.count.to_f
     end

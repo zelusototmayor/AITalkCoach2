@@ -1,4 +1,6 @@
 class WeeklyFocus < ApplicationRecord
+  self.table_name = 'weekly_focuses'
+
   belongs_to :user
   has_many :sessions, dependent: :nullify
 

@@ -87,10 +87,11 @@ class SessionsController < ApplicationController
   end
 
   def progress
-    # Get recent sessions for progress tracking (last 30 days)
+    # Get all completed sessions for progress tracking
+    # Note: We load all sessions (not just last 30 days) to ensure users with historical data
+    # can see their progress dashboard and get recommendations even after practice gaps
     @recent_sessions = current_user.sessions
                                    .where(completed: true)
-                                   .where('sessions.created_at > ?', 30.days.ago)
                                    .order('sessions.created_at ASC')  # ASC for chronological charts
                                    .includes(:issues)
 
@@ -100,16 +101,38 @@ class SessionsController < ApplicationController
     # Generate priority recommendations if we have a recent session
     if @latest_session
       begin
+        # Get total session count (not filtered by date) for accurate first-session detection
+        total_sessions_count = current_user.sessions.where(completed: true).count
+
         user_context = {
           speech_context: @latest_session.speech_context || 'general',
-          historical_sessions: @recent_sessions.to_a
+          historical_sessions: @recent_sessions.to_a,
+          total_sessions_count: total_sessions_count
         }
         recommender = Analysis::PriorityRecommender.new(@latest_session, user_context)
         @priority_recommendations = recommender.generate_priority_recommendations
+
+        # Get or create weekly focus
+        @weekly_focus = recommender.create_or_update_weekly_focus(current_user)
       rescue => e
         Rails.logger.error "Priority recommendations error: #{e.message}"
         @priority_recommendations = nil
+        @weekly_focus = nil
       end
+    else
+      @weekly_focus = nil
+    end
+
+    # Generate daily plan based on weekly focus
+    if @weekly_focus
+      plan_generator = Planning::DailyPlanGenerator.new(@weekly_focus, current_user)
+      @daily_plan = plan_generator.generate_plan
+
+      # Calculate weekly focus tracking metrics
+      @weekly_focus_tracking = calculate_weekly_focus_tracking(@weekly_focus)
+    else
+      @daily_plan = nil
+      @weekly_focus_tracking = nil
     end
 
     # Prepare chart data for frontend
@@ -137,6 +160,11 @@ class SessionsController < ApplicationController
       # If not explicitly set, default to true for practice interface sessions
       if @session.minimum_duration_enforced.nil?
         @session.minimum_duration_enforced = true
+      end
+
+      # Set planned_for_date to today if this is a planned session from daily plan
+      if @session.is_planned_session && @session.planned_for_date.nil?
+        @session.planned_for_date = Date.current
       end
 
       if @session.save
@@ -204,9 +232,16 @@ class SessionsController < ApplicationController
           .limit(5)
           .includes(:issues)
 
+        # Get total session count for accurate first-session detection
+        total_sessions_count = current_user.sessions
+          .where(completed: true)
+          .where('id <= ?', @session.id)
+          .count
+
         user_context = {
           speech_context: @session.speech_context || params[:context] || 'general',
-          historical_sessions: recent_sessions.to_a
+          historical_sessions: recent_sessions.to_a,
+          total_sessions_count: total_sessions_count
         }
         recommender = Analysis::PriorityRecommender.new(@session, user_context)
         @priority_recommendations = recommender.generate_priority_recommendations
@@ -325,9 +360,9 @@ class SessionsController < ApplicationController
     end
   end
 
-  
+
   def session_params
-    params.require(:session).permit(:title, :language, :media_kind, :target_seconds, :minimum_duration_enforced, :speech_context, media_files: [])
+    params.require(:session).permit(:title, :language, :media_kind, :target_seconds, :minimum_duration_enforced, :speech_context, :weekly_focus_id, :is_planned_session, :planned_for_date, media_files: [])
   end
   
   def extract_session_metrics(session)
@@ -485,6 +520,8 @@ class SessionsController < ApplicationController
   def calculate_quick_metrics(sessions)
     return {} if sessions.empty?
 
+    # Calculate 30-day average metrics for the Practice Insights panel
+    # These are rolling averages used to show user's recent performance trends
     # Use caching for expensive calculations
     # Get the latest updated_at from sessions without the join to avoid ambiguity
     latest_update = current_user.sessions
@@ -888,37 +925,60 @@ class SessionsController < ApplicationController
   def prepare_skill_snapshot_data(sessions)
     return {} if sessions.empty?
 
-    current_session = sessions.last
-    previous_session = sessions[-2] if sessions.length > 1
+    # Prepare skill snapshot comparing last 5 sessions average to 30-day average
+    # This provides a trend view: is the user improving relative to their baseline?
+    # - Clarity: percentage score (higher is better)
+    # - Filler rate: percentage of filler words (lower is better)
+    # - Pace: words per minute
+    # Delta shows improvement trend (green=improved, red=declined)
 
-    current_clarity = (current_session.analysis_data['clarity_score'].to_f * 100).round
-    current_filler = current_session.analysis_data['filler_rate'].to_f * 100
-    current_pace = current_session.analysis_data['wpm'].to_f.round
+    # Recent performance: last 5 sessions (or all if < 5)
+    recent_count = [5, sessions.count].min
+    recent_sessions = sessions.last(recent_count)
 
-    if previous_session
-      prev_clarity = (previous_session.analysis_data['clarity_score'].to_f * 100).round
-      prev_filler = previous_session.analysis_data['filler_rate'].to_f * 100
-      prev_pace = previous_session.analysis_data['wpm'].to_f.round
+    # Baseline: all sessions (already filtered to 30 days in controller)
+    baseline_sessions = sessions
 
-      {
-        clarity: { score: current_clarity, delta: current_clarity - prev_clarity },
-        filler_control: { score: (100 - current_filler).round, delta: ((100 - current_filler) - (100 - prev_filler)).round(1) },
-        pace: { score: current_pace, delta: current_pace - prev_pace }
+    # Calculate recent averages
+    recent_clarity = calculate_session_average(recent_sessions, 'clarity_score')
+    recent_filler = calculate_session_average(recent_sessions, 'filler_rate')
+    recent_pace = calculate_session_average(recent_sessions, 'wpm')
+
+    # Calculate baseline averages (30-day)
+    baseline_clarity = calculate_session_average(baseline_sessions, 'clarity_score')
+    baseline_filler = calculate_session_average(baseline_sessions, 'filler_rate')
+    baseline_pace = calculate_session_average(baseline_sessions, 'wpm')
+
+    # Convert to display format and calculate deltas
+    {
+      clarity: {
+        score: (recent_clarity * 100).round,
+        delta: ((recent_clarity - baseline_clarity) * 100).round
+      },
+      filler_rate: {
+        score: (recent_filler * 100).round(1),
+        delta: ((recent_filler - baseline_filler) * 100).round(1)
+      },
+      pace: {
+        score: recent_pace.round,
+        delta: (recent_pace - baseline_pace).round
       }
-    else
-      {
-        clarity: { score: current_clarity, delta: 0 },
-        filler_control: { score: (100 - current_filler).round, delta: 0 },
-        pace: { score: current_pace, delta: 0 }
-      }
-    end
+    }
+  end
+
+  def calculate_session_average(sessions, metric_key)
+    values = sessions.filter_map { |s| s.analysis_data[metric_key] }
+    return 0 if values.empty?
+    values.sum / values.count.to_f
   end
 
   def prepare_calendar_data(sessions)
-    # Get last 30 days
+    # Show full year (Jan 1 - Dec 31 of current year)
     days = []
-    30.times do |i|
-      date = Date.current - i.days
+    year_start = Date.new(Date.current.year, 1, 1)
+    year_end = Date.new(Date.current.year, 12, 31)
+
+    (year_start..year_end).each do |date|
       session_on_date = sessions.find { |s| s.created_at.to_date == date }
 
       days << {
@@ -928,7 +988,71 @@ class SessionsController < ApplicationController
       }
     end
 
-    days.reverse
+    days
+  end
+
+  def calculate_weekly_focus_tracking(weekly_focus)
+    return nil unless weekly_focus.present?
+
+    today = Date.current
+
+    # Sessions completed today for this weekly focus
+    sessions_today = current_user.sessions
+                                  .where(weekly_focus_id: weekly_focus.id)
+                                  .where(completed: true)
+                                  .where('DATE(created_at) = ?', today)
+                                  .count
+
+    # Sessions completed this week for this weekly focus
+    sessions_this_week = current_user.sessions
+                                     .where(weekly_focus_id: weekly_focus.id)
+                                     .where(completed: true)
+                                     .where('created_at >= ?', weekly_focus.week_start)
+                                     .count
+
+    # Calculate streak (consecutive days with completed sessions for this focus)
+    streak = calculate_focus_streak(weekly_focus)
+
+    # Target sessions per day (approximately)
+    target_per_day = (weekly_focus.target_sessions_per_week.to_f / 7).ceil
+
+    {
+      sessions_today: sessions_today,
+      target_today: target_per_day,
+      sessions_this_week: sessions_this_week,
+      target_this_week: weekly_focus.target_sessions_per_week,
+      streak_days: streak,
+      completion_percentage: weekly_focus.completion_percentage
+    }
+  end
+
+  def calculate_focus_streak(weekly_focus)
+    # Get all completed sessions for this weekly focus, ordered by date
+    sessions = current_user.sessions
+                           .where(weekly_focus_id: weekly_focus.id)
+                           .where(completed: true)
+                           .where('created_at >= ?', weekly_focus.week_start)
+                           .order(created_at: :desc)
+
+    return 0 if sessions.empty?
+
+    # Get unique dates with sessions
+    session_dates = sessions.map { |s| s.created_at.to_date }.uniq.sort.reverse
+
+    # Count consecutive days from today backwards
+    streak = 0
+    current_date = Date.current
+
+    session_dates.each do |session_date|
+      if session_date == current_date
+        streak += 1
+        current_date -= 1.day
+      else
+        break
+      end
+    end
+
+    streak
   end
 
 end

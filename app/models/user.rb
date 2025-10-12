@@ -2,7 +2,7 @@ class User < ApplicationRecord
   has_secure_password
 
   has_many :sessions, dependent: :destroy
-  has_many :weekly_focuses, dependent: :destroy
+  has_many :weekly_focuses, dependent: :destroy, class_name: 'WeeklyFocus'
   has_many :user_issue_embeddings, dependent: :destroy
   has_many :issues, through: :sessions
 

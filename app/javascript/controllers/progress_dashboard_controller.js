@@ -1,12 +1,32 @@
 import { Controller } from "@hotwired/stimulus"
-import Chart from 'chart.js/auto'
+import {
+  Chart,
+  LineController,
+  LineElement,
+  PointElement,
+  LinearScale,
+  CategoryScale,
+  Title,
+  Tooltip,
+  Legend
+} from 'chart.js'
+
+// Register Chart.js components
+Chart.register(
+  LineController,
+  LineElement,
+  PointElement,
+  LinearScale,
+  CategoryScale,
+  Title,
+  Tooltip,
+  Legend
+)
 
 export default class extends Controller {
   static targets = ["fillerChart", "paceChart", "clarityChart"]
 
   connect() {
-    console.log("Progress dashboard controller connected")
-
     if (this.hasFillerChartTarget) {
       this.initializeFillerChart()
     }
@@ -63,6 +83,14 @@ export default class extends Controller {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        layout: {
+          padding: {
+            top: 10,
+            right: 10,
+            bottom: 5,
+            left: 5
+          }
+        },
         plugins: {
           legend: {
             display: false
@@ -70,7 +98,7 @@ export default class extends Controller {
           tooltip: {
             callbacks: {
               label: function(context) {
-                return context.dataset.label + ': ' + context.parsed.y + '%'
+                return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + '%'
               }
             }
           }
@@ -78,10 +106,11 @@ export default class extends Controller {
         scales: {
           y: {
             beginAtZero: true,
-            max: Math.max(...values, goal) * 1.2,
+            max: Math.ceil(Math.max(...values, goal) * 1.2),
             ticks: {
+              precision: 1,
               callback: function(value) {
-                return value + '%'
+                return value.toFixed(1) + '%'
               }
             }
           },
@@ -131,6 +160,14 @@ export default class extends Controller {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        layout: {
+          padding: {
+            top: 10,
+            right: 10,
+            bottom: 5,
+            left: 5
+          }
+        },
         plugins: {
           legend: {
             display: false
@@ -138,7 +175,7 @@ export default class extends Controller {
           tooltip: {
             callbacks: {
               label: function(context) {
-                return context.dataset.label + ': ' + context.parsed.y + ' WPM'
+                return context.dataset.label + ': ' + Math.round(context.parsed.y) + ' WPM'
               }
             }
           }
@@ -148,8 +185,9 @@ export default class extends Controller {
             min: 100,
             max: 200,
             ticks: {
+              stepSize: 20,
               callback: function(value) {
-                return value + ' WPM'
+                return Math.round(value) + ' WPM'
               }
             }
           },
@@ -199,6 +237,14 @@ export default class extends Controller {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        layout: {
+          padding: {
+            top: 10,
+            right: 10,
+            bottom: 5,
+            left: 5
+          }
+        },
         plugins: {
           legend: {
             display: false
@@ -206,7 +252,7 @@ export default class extends Controller {
           tooltip: {
             callbacks: {
               label: function(context) {
-                return context.dataset.label + ': ' + context.parsed.y
+                return context.dataset.label + ': ' + Math.round(context.parsed.y)
               }
             }
           }
@@ -216,8 +262,9 @@ export default class extends Controller {
             min: 0,
             max: 100,
             ticks: {
+              stepSize: 20,
               callback: function(value) {
-                return value
+                return Math.round(value)
               }
             }
           },
