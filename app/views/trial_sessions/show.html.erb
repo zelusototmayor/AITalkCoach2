@@ -26,7 +26,7 @@
 
     <div class="session-actions">
       <%= link_to "← Try Another Recording", practice_path(trial: true), class: "btn btn-secondary" %>
-      <%= link_to "🚀 Unlock Full Features", signup_path(trial_token: @trial_session.token),
+      <%= link_to "🚀 Unlock Full Features", app_subdomain_url(signup_path(trial_token: @trial_session.token)),
             class: "btn btn-primary cta-button",
             data: {
               action: "click->analytics#handleSignupClick",
@@ -57,7 +57,7 @@
               </small>
             </div>
             <div class="trial-note">
-              💡 <strong>Trial mode:</strong> Basic analysis only. <a href="<%= signup_path(trial_token: @trial_session.token) %>">Sign up</a> for detailed feedback, progress tracking, and unlimited sessions.
+              💡 <strong>Trial mode:</strong> Basic analysis only. <a href="<%= app_subdomain_url(signup_path(trial_token: @trial_session.token)) %>">Sign up</a> for detailed feedback, progress tracking, and unlimited sessions.
             </div>
           </div>
         </div>
@@ -78,7 +78,7 @@
               </small>
             </div>
             <div class="trial-note">
-              💡 <strong>Trial mode:</strong> Basic analysis only. <a href="<%= signup_path(trial_token: @trial_session.token) %>">Sign up</a> for AI-powered insights and detailed coaching.
+              💡 <strong>Trial mode:</strong> Basic analysis only. <a href="<%= app_subdomain_url(signup_path(trial_token: @trial_session.token)) %>">Sign up</a> for AI-powered insights and detailed coaching.
             </div>
           </div>
         </div>
@@ -90,10 +90,10 @@
             <p data-progress-target="statusText"><%= @trial_session.analysis_data&.dig('error') || "Demo analysis failed. This is expected in trial mode." %></p>
             <div class="error-actions">
               <%= link_to "🎙️ Try Again", practice_path(trial: true), class: "btn btn-primary" %>
-              <%= link_to "🚀 Get Reliable Processing", signup_path(trial_token: @trial_session.token), class: "btn btn-secondary" %>
+              <%= link_to "🚀 Get Reliable Processing", app_subdomain_url(signup_path(trial_token: @trial_session.token)), class: "btn btn-secondary" %>
             </div>
             <div class="trial-note">
-              💡 <strong>Trial limitations:</strong> Unreliable processing is normal. <a href="<%= signup_path(trial_token: @trial_session.token) %>">Sign up</a> for professional-grade analysis.
+              💡 <strong>Trial limitations:</strong> Unreliable processing is normal. <a href="<%= app_subdomain_url(signup_path(trial_token: @trial_session.token)) %>">Sign up</a> for professional-grade analysis.
             </div>
           </div>
         </div>
@@ -111,7 +111,7 @@
           <h3>🎉 Trial Complete!</h3>
           <p>You got a taste of AI Talk Coach. Sign up for unlimited sessions, detailed analysis, and progress tracking.</p>
         </div>
-        <%= link_to "Get Full Access", signup_path(trial_token: @trial_session.token),
+        <%= link_to "Get Full Access", app_subdomain_url(signup_path(trial_token: @trial_session.token)),
               class: "btn btn-primary btn-large",
               data: {
                 action: "click->analytics#handleSignupClick",
@@ -192,7 +192,7 @@
           <h3>Basic Transcript</h3>
           <div class="trial-limitation">
             🔒 <strong>Trial Limitation:</strong> No interactive features, issue highlighting, or search.
-            <a href="<%= signup_path(trial_token: @trial_session.token) %>">Upgrade</a> for full transcript experience.
+            <a href="<%= app_subdomain_url(signup_path(trial_token: @trial_session.token)) %>">Upgrade</a> for full transcript experience.
           </div>
         </div>
 
@@ -264,7 +264,7 @@
       <p>Join thousands of professionals improving their communication skills with AI Talk Coach.</p>
 
       <div class="cta-buttons">
-        <%= link_to "🚀 Get Full Access", signup_path(trial_token: @trial_session.token),
+        <%= link_to "🚀 Get Full Access", app_subdomain_url(signup_path(trial_token: @trial_session.token)),
               class: "btn btn-primary btn-large",
               data: {
                 action: "click->analytics#handleSignupClick",

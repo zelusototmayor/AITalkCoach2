@@ -21,11 +21,11 @@
 
         <div class="hero-actions">
           <% if logged_in? %>
-            <%= link_to practice_path, class: "btn btn-primary" do %>
-              🎤 Try 30s Demo
+            <%= link_to app_subdomain_url(practice_path), class: "btn btn-primary" do %>
+              🎤 Go to App
             <% end %>
-            <%= link_to signup_path, class: "btn btn-secondary" do %>
-              🚀 Become a Beta User
+            <%= link_to app_subdomain_url(progress_path), class: "btn btn-secondary" do %>
+              📈 View Progress
             <% end %>
           <% else %>
             <%= link_to practice_path(trial: true),
@@ -36,7 +36,7 @@
                   } do %>
               🎤 Try 30s Demo
             <% end %>
-            <%= link_to signup_path,
+            <%= link_to app_subdomain_url(signup_path),
                   class: "btn btn-secondary",
                   data: {
                     action: "click->analytics#handleSignupClick",
@@ -247,7 +247,7 @@
           <p>Experience the coaching interface with real AI feedback. No account required—just click and start practicing.</p>
 
           <% if logged_in? %>
-            <%= link_to practice_path, class: "btn btn-primary btn-large" do %>
+            <%= link_to app_subdomain_url(practice_path), class: "btn btn-primary btn-large" do %>
               <span class="btn-icon">🚀</span>
               Launch Practice Interface
             <% end %>
@@ -355,12 +355,12 @@
 
         <div class="cta-actions">
           <% if logged_in? %>
-            <%= link_to practice_path, class: "btn btn-primary btn-large" do %>
+            <%= link_to app_subdomain_url(practice_path), class: "btn btn-primary btn-large" do %>
               <span class="btn-icon">🎤</span>
               Continue Your Practice
             <% end %>
 
-            <%= link_to history_sessions_path, class: "btn btn-secondary-outline btn-large" do %>
+            <%= link_to app_subdomain_url(history_sessions_path), class: "btn btn-secondary-outline btn-large" do %>
               <span class="btn-icon">📊</span>
               View Session History
             <% end %>
@@ -375,7 +375,7 @@
               Try 30s Demo
             <% end %>
 
-            <%= link_to signup_path,
+            <%= link_to app_subdomain_url(signup_path),
                   class: "btn btn-secondary-outline btn-large",
                   data: {
                     action: "click->analytics#handleSignupClick",
@@ -414,8 +414,8 @@
   <!-- Sticky Mini CTA -->
   <div class="sticky-mini-cta" data-controller="landing-scroll" data-landing-scroll-target="stickyBtn">
     <% if logged_in? %>
-      <%= link_to practice_path, class: "btn btn-primary" do %>
-        🎤 Try 30s Demo
+      <%= link_to app_subdomain_url(practice_path), class: "btn btn-primary" do %>
+        🎤 Go to App
       <% end %>
     <% else %>
       <%= link_to practice_path(trial: true),

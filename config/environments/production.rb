@@ -76,7 +76,8 @@ Rails.application.configure do
   config.action_mailer.delivery_method = :smtp
 
   # Set host to be used by links generated in mailer templates.
-  config.action_mailer.default_url_options = { host: "aitalkcoach.com" }
+  # Use app subdomain for application-related emails
+  config.action_mailer.default_url_options = { host: "app.aitalkcoach.com", protocol: 'https' }
 
   # SMTP settings - Configure via environment variables
   # For Gmail: Use App Password (https://support.google.com/accounts/answer/185833)
@@ -103,11 +104,20 @@ Rails.application.configure do
   config.active_record.attributes_for_inspect = [ :id ]
 
   # Enable DNS rebinding protection and other `Host` header attacks.
-  # config.hosts = [
-  #   "example.com",     # Allow requests from example.com
-  #   /.*\.example\.com/ # Allow requests from subdomains like `www.example.com`
-  # ]
-  #
+  config.hosts = [
+    "aitalkcoach.com",           # Main marketing site
+    "www.aitalkcoach.com",       # WWW subdomain
+    "app.aitalkcoach.com",       # Application subdomain
+    /.*\.aitalkcoach\.com/       # Allow all subdomains
+  ]
+
   # Skip DNS rebinding protection for the default health check endpoint.
-  # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+  config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+
+  # Session configuration for cross-subdomain support
+  # Set session cookie domain to allow sharing between aitalkcoach.com and app.aitalkcoach.com
+  config.session_store :cookie_store,
+    key: '_ai_talk_coach_session',
+    domain: :all,  # This will use .aitalkcoach.com allowing cookies across subdomains
+    tld_length: 2  # For .aitalkcoach.com
 end

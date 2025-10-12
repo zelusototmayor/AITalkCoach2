@@ -9,81 +9,101 @@ Rails.application.routes.draw do
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
-  # Root route - landing page
-  root "landing#index"
+  # =============================================================================
+  # MARKETING SITE (aitalkcoach.com - no subdomain)
+  # =============================================================================
+  constraints subdomain: ['', 'www'] do
+    # Root route - landing page
+    root "landing#index"
 
-  # Authentication routes
-  namespace :auth do
-    resources :registrations, only: [:new, :create], path: 'signup'
-    resources :sessions, only: [:new, :create, :destroy], path: 'login'
-  end
-
-  # Convenient aliases
-  get '/login', to: 'auth/sessions#new'
-  post '/login', to: 'auth/sessions#create'
-  delete '/logout', to: 'auth/sessions#destroy'
-  get '/logout', to: 'auth/sessions#destroy'  # Fallback for direct GET requests
-  get '/simple_logout', to: 'auth/sessions#destroy'  # Debug route
-  get '/signup', to: 'auth/registrations#new'
-  post '/signup', to: 'auth/registrations#create'
-
-  # Practice route - the main app interface
-  get "practice", to: "sessions#index"
-
-  # Progress route - view user's improvement progress
-  get "progress", to: "sessions#progress"
-
-  # Core application routes
-  resources :sessions, except: [:edit, :update, :new] do
-    collection do
-      get :history
-    end
-    member do
-      delete :destroy
-    end
-  end
-  
-  resources :prompts, only: [:index]
-  
-  # Privacy settings
-  resource :privacy_settings, only: [:show, :update]
-
-  # Feedback
-  post '/feedback', to: 'feedback#create'
-
-  # Trial session routes (token-based, no authentication)
-  resources :trial_sessions, only: [:show], param: :token, path: 'trial' do
-    member do
-      get :analysis, action: :show
-    end
-  end
-
-  # API routes
-  namespace :api do
-    resources :sessions, only: [] do
-      collection do
-        get :count
-      end
+    # Trial session routes (public demo)
+    resources :trial_sessions, only: [:show], param: :token, path: 'trial' do
       member do
-        get :timeline
-        get :export
-        get :insights
-        get :status
-        post :reprocess_ai
+        get :analysis, action: :show
       end
     end
 
     # Trial session API routes
-    resources :trial_sessions, only: [], param: :token do
-      member do
-        get :status
+    namespace :api do
+      resources :trial_sessions, only: [], param: :token do
+        member do
+          get :status
+        end
       end
     end
+
+    # Redirect all other routes to app subdomain
+    match '*path', to: redirect { |params, request|
+      "#{request.protocol}app.#{request.domain(2)}#{request.path}#{request.query_string.present? ? "?#{request.query_string}" : ''}"
+    }, via: :all
   end
-  
-  # Admin routes
-  namespace :admin do
-    get 'health', to: 'health#show'
-    get 'health/detailed', to: 'health#detailed'
+
+  # =============================================================================
+  # APPLICATION (app.aitalkcoach.com)
+  # =============================================================================
+  constraints subdomain: 'app' do
+    # Redirect root on app subdomain to practice
+    root "sessions#index", as: :app_root
+
+    # Authentication routes
+    namespace :auth do
+      resources :registrations, only: [:new, :create], path: 'signup'
+      resources :sessions, only: [:new, :create, :destroy], path: 'login'
+    end
+
+    # Convenient aliases
+    get '/login', to: 'auth/sessions#new'
+    post '/login', to: 'auth/sessions#create'
+    delete '/logout', to: 'auth/sessions#destroy'
+    get '/logout', to: 'auth/sessions#destroy'  # Fallback for direct GET requests
+    get '/simple_logout', to: 'auth/sessions#destroy'  # Debug route
+    get '/signup', to: 'auth/registrations#new'
+    post '/signup', to: 'auth/registrations#create'
+
+    # Practice route - the main app interface
+    get "practice", to: "sessions#index"
+
+    # Progress route - view user's improvement progress
+    get "progress", to: "sessions#progress"
+
+    # Core application routes
+    resources :sessions, except: [:edit, :update, :new] do
+      collection do
+        get :history
+      end
+      member do
+        delete :destroy
+      end
+    end
+
+    resources :prompts, only: [:index]
+
+    # Privacy settings
+    resource :privacy_settings, only: [:show, :update]
+
+    # Feedback
+    post '/feedback', to: 'feedback#create'
+
+    # API routes
+    namespace :api do
+      resources :sessions, only: [] do
+        collection do
+          get :count
+        end
+        member do
+          get :timeline
+          get :export
+          get :insights
+          get :status
+          post :reprocess_ai
+        end
+      end
+    end
+
+    # Admin routes
+    namespace :admin do
+      get 'health', to: 'health#show'
+      get 'health/detailed', to: 'health#detailed'
+    end
   end
 end

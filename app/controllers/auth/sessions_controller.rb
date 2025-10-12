@@ -11,7 +11,8 @@ class Auth::SessionsController < ApplicationController
 
     if user && user.authenticate(params[:session][:password])
       session[:user_id] = user.id
-      redirect_back_or(practice_path)
+      # Ensure redirect to app subdomain
+      redirect_back_or(app_subdomain_url(practice_path))
       flash[:notice] = 'Welcome back!'
     else
       flash.now[:alert] = 'Invalid email or password'
@@ -22,7 +23,8 @@ class Auth::SessionsController < ApplicationController
   def destroy
     # Simple session clearing
     session.clear
-    redirect_to root_path, notice: 'Logged out successfully'
+    # Redirect to marketing site after logout
+    redirect_to marketing_subdomain_url('/'), notice: 'Logged out successfully'
   end
 
   private

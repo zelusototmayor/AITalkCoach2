@@ -70,7 +70,7 @@ class ApplicationController < ActionController::Base
   def require_login
     unless logged_in?
       store_location
-      redirect_to login_path, alert: 'Please login to continue'
+      redirect_to app_subdomain_url(login_path), alert: 'Please login to continue'
     end
   end
 
@@ -85,9 +85,42 @@ class ApplicationController < ActionController::Base
 
   def require_logout
     if logged_in?
-      redirect_to practice_path, notice: 'You are already logged in'
+      redirect_to app_subdomain_url(practice_path), notice: 'You are already logged in'
     end
   end
+
+  # Subdomain URL helpers
+  def app_subdomain_url(path = '/')
+    build_subdomain_url('app', path)
+  end
+
+  def marketing_subdomain_url(path = '/')
+    build_subdomain_url('', path)
+  end
+
+  def build_subdomain_url(subdomain, path)
+    # Get the base domain from the current request
+    base_domain = if Rails.env.development?
+      'aitalkcoach.local'
+    else
+      'aitalkcoach.com'
+    end
+
+    # Build the full host
+    host = if subdomain.present?
+      "#{subdomain}.#{base_domain}"
+    else
+      base_domain
+    end
+
+    # Include port for development
+    port = Rails.env.development? ? ":#{request.port}" : ''
+
+    # Build the full URL
+    "#{request.protocol}#{host}#{port}#{path}"
+  end
+
+  helper_method :app_subdomain_url, :marketing_subdomain_url
 
   # Trial mode detection
   def trial_mode?
