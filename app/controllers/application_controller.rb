@@ -113,11 +113,18 @@ class ApplicationController < ActionController::Base
       base_domain
     end
 
+    # Use explicit protocol to avoid HTTPS enforcement issues in development
+    protocol = if Rails.env.development?
+      'http://'
+    else
+      'https://'
+    end
+
     # Include port for development
     port = Rails.env.development? ? ":#{request.port}" : ''
 
     # Build the full URL
-    "#{request.protocol}#{host}#{port}#{path}"
+    "#{protocol}#{host}#{port}#{path}"
   end
 
   helper_method :app_subdomain_url, :marketing_subdomain_url

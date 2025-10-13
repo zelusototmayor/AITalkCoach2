@@ -56,13 +56,13 @@
                       data-duration="30">30s</button>
               <button type="button" class="preset-btn locked"
                       disabled
-                      title="Sign up to unlock">60s 🔒</button>
+                      title="Sign up to unlock">60s <%= icon_svg(:lock, css_class: 'icon-inline') %></button>
               <button type="button" class="preset-btn locked"
                       disabled
-                      title="Sign up to unlock">120s 🔒</button>
+                      title="Sign up to unlock">120s <%= icon_svg(:lock, css_class: 'icon-inline') %></button>
               <button type="button" class="preset-btn locked"
                       disabled
-                      title="Sign up to unlock">180s 🔒</button>
+                      title="Sign up to unlock">180s <%= icon_svg(:lock, css_class: 'icon-inline') %></button>
             </div>
           <% else %>
             <% target_duration = (params[:target_seconds] || 60).to_i %>
@@ -90,7 +90,7 @@
           <button type="button" class="start-btn-compact"
                   data-practice-timer-target="startBtn"
                   data-action="click->practice-timer#startSession">
-            ▶ Start <span data-practice-timer-target="durationText"><%= trial_mode? ? '30s' : '60s' %></span>
+            <%= icon_svg(:play, css_class: 'icon-inline') %> Start <span data-practice-timer-target="durationText"><%= trial_mode? ? '30s' : '60s' %></span>
           </button>
 
           <button type="button" class="cancel-btn-compact"
@@ -98,7 +98,7 @@
                   data-action="click->practice-timer#cancelSession"
                   style="display: none;"
                   title="Cancel recording and start over">
-            ✕ Cancel
+            <%= icon_svg(:x_simple, css_class: 'icon-inline') %> Cancel
           </button>
 
           <div class="countdown-timer-compact" data-practice-timer-target="display">
@@ -123,7 +123,7 @@
       <div class="post-recording-actions" data-recorder-target="postRecordingActions" style="display: none;">
         <div class="recording-info">
           <div class="recording-status">
-            <span class="status-icon">✅</span>
+            <span class="status-icon"><%= icon_svg(:check_circle, css_class: 'icon-inline') %></span>
             <span class="status-text">Recording Complete!</span>
           </div>
           <div class="recording-details">
@@ -135,11 +135,11 @@
         <div class="action-buttons">
           <button type="button" class="btn btn-secondary btn-record-again"
                   data-action="click->recorder#retake">
-            🔄 Record Again
+            <%= icon_svg(:refresh, css_class: 'icon-inline') %> Record Again
           </button>
           <button type="button" class="btn btn-primary btn-analyze"
                   data-action="click->recorder#submitRecording">
-            📊 Analyze Recording
+            <%= icon_svg(:chart, css_class: 'icon-inline') %> Analyze Recording
           </button>
         </div>
       </div>
@@ -262,10 +262,10 @@
         <!-- Trial Results Display -->
         <% if @trial_results %>
           <div class="trial-results-card">
-            <h3>🎯 Your 30s Demo Results</h3>
+            <h3><%= icon_svg(:target, css_class: 'icon-inline') %> Your 30s Demo Results</h3>
             <% if @trial_results[:demo_mode] %>
               <div class="demo-notice" style="background: #fef3c7; border: 1px solid #f59e0b; padding: 8px 12px; border-radius: 6px; margin-bottom: 16px; font-size: 14px;">
-                📝 Demo mode: Showing sample results. Configure speech analysis to get real results.
+                <%= icon_svg(:file_text, css_class: 'icon-inline') %> Demo mode: Showing sample results. Configure speech analysis to get real results.
               </div>
             <% end %>
             <% if @trial_results[:success] %>
@@ -281,32 +281,32 @@
               </div>
 
               <div class="locked-features">
-                <h4>🔒 Unlock with Full Account</h4>
+                <h4><%= icon_svg(:lock, css_class: 'icon-inline') %> Unlock with Full Account</h4>
                 <div class="locked-feature">
-                  <span class="feature-icon">📊</span>
+                  <span class="feature-icon"><%= icon_svg(:chart, css_class: 'icon-inline') %></span>
                   <span>Clarity score analysis</span>
                 </div>
                 <div class="locked-feature">
-                  <span class="feature-icon">📈</span>
+                  <span class="feature-icon"><%= icon_svg(:trending_up, css_class: 'icon-inline') %></span>
                   <span>Progress tracking over time</span>
                 </div>
                 <div class="locked-feature">
-                  <span class="feature-icon">💡</span>
+                  <span class="feature-icon"><%= icon_svg(:lightbulb, css_class: 'icon-inline') %></span>
                   <span>Detailed coaching suggestions</span>
                 </div>
                 <div class="locked-feature">
-                  <span class="feature-icon">📋</span>
+                  <span class="feature-icon"><%= icon_svg(:clipboard, css_class: 'icon-inline') %></span>
                   <span>Session history & export</span>
                 </div>
                 <div class="locked-feature">
-                  <span class="feature-icon">⏱️</span>
+                  <span class="feature-icon"><%= icon_svg(:clock, css_class: 'icon-inline') %></span>
                   <span>Unlimited session lengths</span>
                 </div>
               </div>
 
               <div class="trial-cta">
-                <%= link_to signup_path, class: "btn btn-primary btn-large trial-signup-btn" do %>
-                  <span class="btn-icon">🚀</span>
+                <%= link_to app_subdomain_url('/signup'), class: "btn btn-primary btn-large trial-signup-btn" do %>
+                  <span class="btn-icon"><%= icon_svg(:rocket, css_class: 'icon-inline') %></span>
                   Sign Up Free - Unlock Full Features
                 <% end %>
               </div>
@@ -322,7 +322,7 @@
         <% else %>
           <!-- Trial Introduction -->
           <div class="trial-intro-card">
-            <h3>⚡ 30s Demo</h3>
+            <h3><%= icon_svg(:lightning, css_class: 'icon-inline') %> 30s Demo</h3>
             <p>Try our AI speech coach with a quick 30-second demo. You'll get:</p>
             <ul class="demo-benefits">
               <li>Real-time speech analysis</li>
@@ -330,19 +330,19 @@
               <li>Filler word detection</li>
             </ul>
             <div class="upgrade-preview">
-              <h4>🚀 Full version includes:</h4>
-              <div class="locked-feature">🔒 Detailed clarity scoring</div>
-              <div class="locked-feature">🔒 Progress tracking</div>
-              <div class="locked-feature">🔒 Unlimited session lengths</div>
-              <div class="locked-feature">🔒 Personalized coaching</div>
-              <div class="locked-feature">🔒 Session history</div>
+              <h4><%= icon_svg(:rocket, css_class: 'icon-inline') %> Full version includes:</h4>
+              <div class="locked-feature"><%= icon_svg(:lock, css_class: 'icon-inline') %> Detailed clarity scoring</div>
+              <div class="locked-feature"><%= icon_svg(:lock, css_class: 'icon-inline') %> Progress tracking</div>
+              <div class="locked-feature"><%= icon_svg(:lock, css_class: 'icon-inline') %> Unlimited session lengths</div>
+              <div class="locked-feature"><%= icon_svg(:lock, css_class: 'icon-inline') %> Personalized coaching</div>
+              <div class="locked-feature"><%= icon_svg(:lock, css_class: 'icon-inline') %> Session history</div>
             </div>
           </div>
         <% end %>
       <% else %>
         <!-- Regular User Insights -->
         <div class="insights-header-card">
-          <h3>📊 Insights</h3>
+          <h3><%= icon_svg(:activity, css_class: 'icon-inline') %> Insights</h3>
           <p class="insights-subtitle" style="font-size: 12px; color: #6b7280; margin: -8px 0 12px 0;">30-day averages</p>
           <div class="key-metrics-row">
             <div class="key-metric">
@@ -431,7 +431,7 @@
 
         <!-- Prompt Library (Enhanced to match screenshot) -->
         <div class="prompt-library-card">
-          <h4>⭐ Prompt Library</h4>
+          <h4><%= icon_svg(:star, css_class: 'icon-inline') %> Prompt Library</h4>
 
           <div class="library-tabs">
             <button type="button" class="tab-btn active"

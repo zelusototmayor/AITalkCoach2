@@ -72,7 +72,7 @@
               class="close-panel"
               data-action="click->accessibility#closePanel"
               aria-label="Close accessibility panel">
-        ✕
+        <%= icon_svg(:x_simple, css_class: 'icon-inline') %>
       </button>
     </div>
 
@@ -155,13 +155,13 @@
 
         <% if notice %>
           <div class="flash notice" role="alert" aria-live="polite">
-            <span aria-hidden="true">✓</span> <%= notice %>
+            <span aria-hidden="true"><%= icon_svg(:check, css_class: 'icon-inline') %></span> <%= notice %>
           </div>
         <% end %>
 
         <% if alert %>
           <div class="flash alert" role="alert" aria-live="assertive">
-            <span aria-hidden="true">⚠️</span> <%= alert %>
+            <span aria-hidden="true"><%= icon_svg(:alert, css_class: 'icon-inline') %></span> <%= alert %>
           </div>
         <% end %>
 
@@ -206,7 +206,7 @@
                       class: "nav-link",
                       role: "menuitem",
                       data: { action: "click->navigation#closeMenu" } do %>
-                  <span class="nav-icon" aria-hidden="true">💡</span>
+                  <span class="nav-icon" aria-hidden="true"><%= icon_svg(:lightbulb, css_class: 'icon-inline') %></span>
                   <span class="nav-text">Prompts</span>
                 <% end %>
               </li>
@@ -215,7 +215,7 @@
                         class="nav-link"
                         role="menuitem"
                         data-action="click->feedback-menu#openAccessibilityPanel click->navigation#closeMenu">
-                  <span class="nav-icon" aria-hidden="true">♿</span>
+                  <span class="nav-icon" aria-hidden="true"><%= icon_svg(:eye, css_class: 'icon-inline') %></span>
                   <span class="nav-text">Accessibility</span>
                 </button>
               </li>
@@ -224,7 +224,7 @@
                       class: "nav-link",
                       role: "menuitem",
                       data: { action: "click->navigation#closeMenu" } do %>
-                  <span class="nav-icon" aria-hidden="true">🔐</span>
+                  <span class="nav-icon" aria-hidden="true"><%= icon_svg(:lock, css_class: 'icon-inline') %></span>
                   <span class="nav-text">Privacy</span>
                 <% end %>
               </li>
@@ -233,7 +233,7 @@
                       class: "nav-link",
                       role: "menuitem",
                       data: { action: "click->navigation#closeMenu" } do %>
-                  <span class="nav-icon" aria-hidden="true">🔑</span>
+                  <span class="nav-icon" aria-hidden="true"><%= icon_svg(:lock, css_class: 'icon-inline') %></span>
                   <span class="nav-text">Login</span>
                 <% end %>
               </li>
@@ -242,7 +242,7 @@
                       class: "nav-link signup-link",
                       role: "menuitem",
                       data: { action: "click->navigation#closeMenu" } do %>
-                  <span class="nav-icon" aria-hidden="true">✨</span>
+                  <span class="nav-icon" aria-hidden="true"><%= icon_svg(:sparkles, css_class: 'icon-inline') %></span>
                   <span class="nav-text">Sign Up</span>
                 <% end %>
               </li>
@@ -253,13 +253,13 @@
 
       <% if notice %>
         <div class="flash notice" role="alert" aria-live="polite">
-          <span aria-hidden="true">✓</span> <%= notice %>
+          <span aria-hidden="true"><%= icon_svg(:check, css_class: 'icon-inline') %></span> <%= notice %>
         </div>
       <% end %>
 
       <% if alert %>
         <div class="flash alert" role="alert" aria-live="assertive">
-          <span aria-hidden="true">⚠️</span> <%= alert %>
+          <span aria-hidden="true"><%= icon_svg(:alert, css_class: 'icon-inline') %></span> <%= alert %>
         </div>
       <% end %>
 

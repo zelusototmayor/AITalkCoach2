@@ -34,7 +34,7 @@
       <% case @session.processing_state %>
       <% when 'pending' %>
         <div class="status-card">
-          <span class="status-icon">⏳</span>
+          <span class="status-icon"><%= icon_svg(:hourglass, css_class: 'icon-lg') %></span>
           <div class="status-content">
             <h3 data-progress-target="step">Analysis Pending</h3>
             <p data-progress-target="statusText">Your session is queued for processing. This usually takes 1-2 minutes.</p>
@@ -52,7 +52,7 @@
         </div>
       <% when 'processing' %>
         <div class="status-card">
-          <span class="status-icon">⚡</span>
+          <span class="status-icon"><%= icon_svg(:lightning, css_class: 'icon-lg') %></span>
           <div class="status-content">
             <h3 data-progress-target="step">Processing Audio</h3>
             <p data-progress-target="statusText">AI is analyzing your speech patterns, clarity, and providing feedback...</p>
@@ -70,18 +70,18 @@
         </div>
       <% when 'failed' %>
         <div class="status-card error">
-          <span class="status-icon">❌</span>
+          <span class="status-icon"><%= icon_svg(:x_circle, css_class: 'icon-lg') %></span>
           <div class="status-content">
             <h3 data-progress-target="step">Analysis Failed</h3>
             <p data-progress-target="statusText"><%= @session.incomplete_reason || "An unexpected error occurred during processing." %></p>
             <div class="error-actions">
               <button class="btn btn-primary" data-action="click->session#reprocess">
-                🔄 Try Again
+                <%= icon_svg(:refresh, css_class: 'icon-inline') %> Try Again
               </button>
               <button class="btn btn-secondary" data-action="click->progress#forceRefresh">
-                🔃 Refresh Page
+                <%= icon_svg(:refresh, css_class: 'icon-inline') %> Refresh Page
               </button>
-              <%= link_to "🎙️ Record New Session", practice_path, class: "btn btn-outline" %>
+              <%= link_to icon_svg(:mic, css_class: 'icon-inline') + " Record New Session", practice_path, class: "btn btn-outline" %>
             </div>
           </div>
         </div>
@@ -278,7 +278,7 @@
         <% if @priority_recommendations&.dig(:focus_this_week)&.any? %>
           <div class="next-step-section">
             <div class="section-label-small">NEXT STEP</div>
-            <h2 class="section-heading">🎯 Coach</h2>
+            <h2 class="section-heading"><%= icon_svg(:target, css_class: 'icon-inline') %> Coach</h2>
 
             <% top_recommendation = @priority_recommendations[:focus_this_week].first %>
 
@@ -293,7 +293,7 @@
                   <%= top_recommendation[:actionable_steps].first %>
                 </p>
                 <%= link_to practice_path, class: "start-drill-btn-gradient" do %>
-                  🎙️ Record Another Session
+                  <%= icon_svg(:mic, css_class: 'icon-inline') %> Record Another Session
                 <% end %>
               </div>
             <% else %>
@@ -311,7 +311,7 @@
                         data-action="click->session#startDrill"
                         data-session-type-param="<%= top_recommendation[:type] %>"
                         data-session-duration-param="30">
-                  🎙️ Start 30s Drill
+                  <%= icon_svg(:mic, css_class: 'icon-inline') %> Start 30s Drill
                 </button>
               </div>
             <% end %>
@@ -430,7 +430,7 @@
                 <div class="rec-title">Record Another Session</div>
                 <div class="rec-actions-sidebar">
                   <%= link_to practice_path, class: "btn-rec-primary-sidebar" do %>
-                    🎙️ Start Session
+                    <%= icon_svg(:mic, css_class: 'icon-inline') %> Start Session
                   <% end %>
                 </div>
               <% else %>
@@ -441,10 +441,10 @@
                           data-action="click->session#startDrill"
                           data-session-type-param="<%= top_rec[:type] %>"
                           data-session-duration-param="30">
-                    🎙️ Start Drill
+                    <%= icon_svg(:mic, css_class: 'icon-inline') %> Start Drill
                   </button>
                   <button class="btn-rec-secondary-sidebar" data-action="click->session#tryNextPrompt">
-                    ✨ Try next prompt
+                    <%= icon_svg(:sparkles, css_class: 'icon-inline') %> Try next prompt
                   </button>
                 </div>
               <% end %>
@@ -492,15 +492,15 @@
 
           <div class="action-buttons-grid">
             <button class="action-btn" data-action="click->session#share">
-              <span class="action-icon">📤</span>
+              <span class="action-icon"><%= icon_svg(:upload, css_class: 'icon') %></span>
               Share
             </button>
             <button class="action-btn" data-action="click->session#exportSession">
-              <span class="action-icon">⬇️</span>
+              <span class="action-icon"><%= icon_svg(:download, css_class: 'icon') %></span>
               Export
             </button>
             <button class="action-btn" data-action="click->session#openNotes">
-              <span class="action-icon">📝</span>
+              <span class="action-icon"><%= icon_svg(:file_text, css_class: 'icon') %></span>
               Notes
             </button>
           </div>

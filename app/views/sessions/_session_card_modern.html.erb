@@ -26,7 +26,7 @@
       <% if session.analysis_data.any? %>
         <% if session.analysis_data['wpm'] %>
           <div class="metric-item">
-            <div class="metric-icon">⚡</div>
+            <div class="metric-icon"><%= icon_svg(:lightning, css_class: 'icon') %></div>
             <div class="metric-content">
               <div class="metric-value"><%= session.analysis_data['wpm'].to_i %></div>
               <div class="metric-label">WPM</div>
@@ -35,7 +35,7 @@
         <% end %>
         <% if session.analysis_data['filler_rate'] %>
           <div class="metric-item">
-            <div class="metric-icon">🎯</div>
+            <div class="metric-icon"><%= icon_svg(:target, css_class: 'icon') %></div>
             <div class="metric-content">
               <div class="metric-value"><%= normalize_metric_for_display(session, 'filler_rate').round(1) %>%</div>
               <div class="metric-label">FILLER</div>
@@ -44,7 +44,7 @@
         <% end %>
         <% if session.analysis_data['clarity_score'] %>
           <div class="metric-item">
-            <div class="metric-icon">💧</div>
+            <div class="metric-icon"><%= icon_svg(:sparkles, css_class: 'icon') %></div>
             <div class="metric-content">
               <div class="metric-value"><%= normalize_metric_for_display(session, 'clarity_score').round %></div>
               <div class="metric-label">CLARITY</div>

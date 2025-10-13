@@ -7,7 +7,7 @@
   <!-- Breadcrumbs -->
   <nav class="breadcrumbs" aria-label="Breadcrumb">
     <%= link_to root_path, class: "breadcrumb-link" do %>
-      <span class="breadcrumb-icon">🎤</span> Practice
+      <span class="breadcrumb-icon"><%= icon_svg(:mic, css_class: 'icon-inline') %></span> Practice
     <% end %>
     <span class="breadcrumb-separator">›</span>
     <span class="breadcrumb-current">History</span>
@@ -86,7 +86,7 @@
     <% end %>
   <% else %>
     <div class="empty-state">
-      <div class="empty-icon">🎤</div>
+      <div class="empty-icon"><%= icon_svg(:mic, css_class: 'icon-xl') %></div>
       <h2>No sessions yet</h2>
       <p>Start your first recording session to get AI-powered speech feedback.</p>
       <%= link_to "← Back to Practice", root_path, class: "btn btn-primary btn-lg" %>

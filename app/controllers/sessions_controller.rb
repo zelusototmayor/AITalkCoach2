@@ -135,8 +135,9 @@ class SessionsController < ApplicationController
       @weekly_focus_tracking = nil
     end
 
-    # Prepare chart data for frontend
-    @chart_data = prepare_progress_chart_data(@recent_sessions)
+    # Prepare chart data for frontend with time range
+    @time_range = params[:time_range] || '7'
+    @chart_data = prepare_progress_chart_data(@recent_sessions, @time_range)
 
     # Prepare skill snapshot data (current vs previous session)
     @skill_snapshot = prepare_skill_snapshot_data(@recent_sessions)
@@ -751,9 +752,9 @@ class SessionsController < ApplicationController
       return
     end
 
-    # Otherwise require login
+    # Otherwise require login (redirect to app subdomain)
     store_location
-    redirect_to login_path, alert: 'Please login or try our demo'
+    redirect_to app_subdomain_url(login_path), alert: 'Please login or try our demo'
   end
 
   def handle_trial_session
@@ -908,17 +909,42 @@ class SessionsController < ApplicationController
     transcript.scan(filler_pattern).length
   end
 
-  def prepare_progress_chart_data(sessions)
+  def prepare_progress_chart_data(sessions, time_range = '7')
     return {} if sessions.empty?
 
-    # Limit to last 7 sessions for chart readability
-    chart_sessions = sessions.last(7)
+    # Filter sessions based on time range
+    chart_sessions = case time_range
+    when '7'
+      sessions.last(7)
+    when '30'
+      sessions.last(30)
+    when 'lifetime'
+      sessions
+    else
+      sessions.last(7)
+    end
+
+    # For lifetime view with many sessions, use session numbers
+    # For smaller ranges, show relative session numbers
+    labels = if chart_sessions.count > 30
+      # For many sessions, show every Nth label to avoid crowding
+      chart_sessions.map.with_index { |s, i| (i + 1) % 5 == 0 || i == 0 || i == chart_sessions.count - 1 ? "#{i + 1}" : "" }
+    else
+      chart_sessions.map.with_index { |s, i| "Session #{i + 1}" }
+    end
 
     {
-      labels: chart_sessions.map { |s| "Session #{chart_sessions.index(s) + 1}" },
+      labels: labels,
+      # Primary metrics
       filler_data: chart_sessions.map { |s| (s.analysis_data['filler_rate'].to_f * 100).round(1) },
       pace_data: chart_sessions.map { |s| s.analysis_data['wpm'].to_f.round },
-      clarity_data: chart_sessions.map { |s| (s.analysis_data['clarity_score'].to_f * 100).round }
+      clarity_data: chart_sessions.map { |s| (s.analysis_data['clarity_score'].to_f * 100).round },
+      # Secondary metrics
+      pace_consistency_data: chart_sessions.map { |s| (s.analysis_data['pace_consistency'].to_f * 100).round },
+      fluency_data: chart_sessions.map { |s| (s.analysis_data['fluency_score'].to_f * 100).round },
+      engagement_data: chart_sessions.map { |s| (s.analysis_data['engagement_score'].to_f * 100).round },
+      time_range: time_range,
+      session_count: chart_sessions.count
     }
   end
 

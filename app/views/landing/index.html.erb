@@ -6,26 +6,25 @@
     <div class="hero-container">
       <div class="hero-content">
         <div class="hero-badge">
-          <span class="badge-icon">✨</span>
-          AI-first speech coaching
+          <span class="badge-icon"><%= icon_svg(:sparkles, css_class: 'icon-inline') %></span>
+          CONSISTENCY
         </div>
 
         <h1 class="hero-title">
-          Speak clearly. Practice faster.
-          <span class="hero-highlight">Get instant feedback.</span>
+          Improve your speech, one day at a time!
         </h1>
 
         <p class="hero-description">
-          Run 30–180s speaking drills in your browser. See filler %, pace, and clarity—plus a quick drill to fix the biggest issue next.
+          Speaking isn't a gift — it's a skill. And like any skill, it grows with consistent practice. Not once in a while, but every day — a few focused seconds at a time.
         </p>
 
         <div class="hero-actions">
           <% if logged_in? %>
             <%= link_to app_subdomain_url(practice_path), class: "btn btn-primary" do %>
-              🎤 Go to App
+              <%= icon_svg(:mic, css_class: 'icon-inline') %> Go to App
             <% end %>
             <%= link_to app_subdomain_url(progress_path), class: "btn btn-secondary" do %>
-              📈 View Progress
+              <%= icon_svg(:trending_up, css_class: 'icon-inline') %> View Progress
             <% end %>
           <% else %>
             <%= link_to practice_path(trial: true),
@@ -34,7 +33,7 @@
                     action: "click->analytics#handleTrialClick",
                     source: "hero_section"
                   } do %>
-              🎤 Try 30s Demo
+              Test 30-second demo
             <% end %>
             <%= link_to app_subdomain_url(signup_path),
                   class: "btn btn-secondary",
@@ -42,7 +41,7 @@
                     action: "click->analytics#handleSignupClick",
                     source: "hero_section"
                   } do %>
-              🚀 Become a Beta User
+              Become a beta user
             <% end %>
           <% end %>
         </div>
@@ -68,7 +67,7 @@
               <span class="preset-btn">120s</span>
             </div>
             <button class="btn btn-primary">
-              🎤 Start
+              <%= icon_svg(:mic, css_class: 'icon-inline') %> Start
             </button>
           </div>
 
@@ -124,7 +123,7 @@
       </div>
       <blockquote class="why-now-quote">
         <div class="quote-header">
-          💬 Coach's take
+          <%= icon_svg(:message, css_class: 'icon-inline') %> Coach's take
         </div>
         <p class="quote-text">AI accelerates content. Humans win with clarity, structure, and presence. Short, consistent reps beat long, rare practices.</p>
       </blockquote>
@@ -151,13 +150,13 @@
   </section>
 
   <!-- How It Works -->
-  <section class="how-it-works">
+  <section id="how-it-works" class="how-it-works">
     <div class="section-container">
       <h2 class="section-title">How it works</h2>
       <div class="steps-grid">
         <div class="step-card">
           <div class="step-icon">
-            <span>⏱️</span>
+            <span><%= icon_svg(:clock, css_class: 'icon-lg') %></span>
           </div>
           <h3>Pick your focus</h3>
           <p>Choose 30–180 second practice sessions. Select from interview prep, presentation skills, or conversation practice.</p>
@@ -165,7 +164,7 @@
 
         <div class="step-card">
           <div class="step-icon">
-            <span>🎤</span>
+            <span><%= icon_svg(:mic, css_class: 'icon-lg') %></span>
           </div>
           <h3>Record & speak</h3>
           <p>Practice in your browser with real-time guidance. No downloads, no setup—just click and start speaking.</p>
@@ -173,7 +172,7 @@
 
         <div class="step-card">
           <div class="step-icon">
-            <span>📊</span>
+            <span><%= icon_svg(:chart, css_class: 'icon-lg') %></span>
           </div>
           <h3>Get AI feedback</h3>
           <p>Instant analysis of pace, clarity, filler words, and engagement with specific improvement suggestions.</p>
@@ -189,7 +188,7 @@
       <div class="features-grid">
         <div class="feature-card">
           <div class="feature-icon">
-            <span>🎯</span>
+            <span><%= icon_svg(:target, css_class: 'icon-lg') %></span>
           </div>
           <h3>AI clarity coaching</h3>
           <p>Get specific suggestions to remove filler words, improve pacing, and make your message more direct and engaging.</p>
@@ -197,7 +196,7 @@
 
         <div class="feature-card">
           <div class="feature-icon">
-            <span>⚡</span>
+            <span><%= icon_svg(:lightning, css_class: 'icon-lg') %></span>
           </div>
           <h3>Real-time detection</h3>
           <p>Automatic identification of "um," "uh," pace issues, and long pauses with timestamps for focused improvement.</p>
@@ -205,7 +204,7 @@
 
         <div class="feature-card">
           <div class="feature-icon">
-            <span>📚</span>
+            <span><%= icon_svg(:book, css_class: 'icon-lg') %></span>
           </div>
           <h3>Practice library</h3>
           <p>Curated scenarios for interviews, pitches, storytelling, and professional conversations.</p>
@@ -213,7 +212,7 @@
 
         <div class="feature-card">
           <div class="feature-icon">
-            <span>📈</span>
+            <span><%= icon_svg(:trending_up, css_class: 'icon-lg') %></span>
           </div>
           <h3>Progress tracking</h3>
           <p>Monitor your improvement over time with detailed analytics and personalized coaching insights.</p>
@@ -221,7 +220,7 @@
 
         <div class="feature-card">
           <div class="feature-icon">
-            <span>🌐</span>
+            <span><%= icon_svg(:activity, css_class: 'icon-lg') %></span>
           </div>
           <h3>Web-first platform</h3>
           <p>No apps to install. Practice anywhere with just a browser and microphone. Works on all devices.</p>
@@ -229,7 +228,7 @@
 
         <div class="feature-card">
           <div class="feature-icon">
-            <span>🔒</span>
+            <span><%= icon_svg(:lock, css_class: 'icon-lg') %></span>
           </div>
           <h3>Privacy focused</h3>
           <p>Your recordings stay private. Delete any session anytime. Full control over your practice data.</p>
@@ -248,7 +247,7 @@
 
           <% if logged_in? %>
             <%= link_to app_subdomain_url(practice_path), class: "btn btn-primary btn-large" do %>
-              <span class="btn-icon">🚀</span>
+              <span class="btn-icon"><%= icon_svg(:rocket, css_class: 'icon-inline') %></span>
               Launch Practice Interface
             <% end %>
           <% else %>
@@ -258,7 +257,7 @@
                     action: "click->analytics#handleTrialClick",
                     source: "demo_section"
                   } do %>
-              <span class="btn-icon">⚡</span>
+              <span class="btn-icon"><%= icon_svg(:lightning, css_class: 'icon-inline') %></span>
               Try 30s Demo Now
             <% end %>
           <% end %>
@@ -286,19 +285,19 @@
             </div>
             <div class="preview-content">
               <div class="preview-item">
-                <span class="preview-icon">🎤</span>
+                <span class="preview-icon"><%= icon_svg(:mic, css_class: 'icon-inline') %></span>
                 <span>Real-time recording with visual feedback</span>
               </div>
               <div class="preview-item">
-                <span class="preview-icon">📊</span>
+                <span class="preview-icon"><%= icon_svg(:chart, css_class: 'icon-inline') %></span>
                 <span>Instant metrics: WPM, clarity, filler rate</span>
               </div>
               <div class="preview-item">
-                <span class="preview-icon">💡</span>
+                <span class="preview-icon"><%= icon_svg(:lightbulb, css_class: 'icon-inline') %></span>
                 <span>AI coaching suggestions for improvement</span>
               </div>
               <div class="preview-item">
-                <span class="preview-icon">📈</span>
+                <span class="preview-icon"><%= icon_svg(:trending_up, css_class: 'icon-inline') %></span>
                 <span>Progress tracking across sessions</span>
               </div>
             </div>
@@ -356,12 +355,12 @@
         <div class="cta-actions">
           <% if logged_in? %>
             <%= link_to app_subdomain_url(practice_path), class: "btn btn-primary btn-large" do %>
-              <span class="btn-icon">🎤</span>
+              <span class="btn-icon"><%= icon_svg(:mic, css_class: 'icon-inline') %></span>
               Continue Your Practice
             <% end %>
 
             <%= link_to app_subdomain_url(history_sessions_path), class: "btn btn-secondary-outline btn-large" do %>
-              <span class="btn-icon">📊</span>
+              <span class="btn-icon"><%= icon_svg(:chart, css_class: 'icon-inline') %></span>
               View Session History
             <% end %>
           <% else %>
@@ -371,7 +370,7 @@
                     action: "click->analytics#handleTrialClick",
                     source: "cta_section"
                   } do %>
-              <span class="btn-icon">⚡</span>
+              <span class="btn-icon"><%= icon_svg(:lightning, css_class: 'icon-inline') %></span>
               Try 30s Demo
             <% end %>
 
@@ -381,14 +380,14 @@
                     action: "click->analytics#handleSignupClick",
                     source: "cta_section"
                   } do %>
-              <span class="btn-icon">🚀</span>
+              <span class="btn-icon"><%= icon_svg(:rocket, css_class: 'icon-inline') %></span>
               Sign Up Free
             <% end %>
           <% end %>
         </div>
 
         <div class="cta-note">
-          <span class="note-icon">🔒</span>
+          <span class="note-icon"><%= icon_svg(:lock, css_class: 'icon-inline') %></span>
           <% if logged_in? %>
             Welcome back, <%= current_user.name %>! Your data is safe and secure.
           <% else %>
@@ -415,7 +414,7 @@
   <div class="sticky-mini-cta" data-controller="landing-scroll" data-landing-scroll-target="stickyBtn">
     <% if logged_in? %>
       <%= link_to app_subdomain_url(practice_path), class: "btn btn-primary" do %>
-        🎤 Go to App
+        <%= icon_svg(:mic, css_class: 'icon-inline') %> Go to App
       <% end %>
     <% else %>
       <%= link_to practice_path(trial: true),
@@ -424,7 +423,7 @@
               action: "click->analytics#handleTrialClick",
               source: "sticky_cta"
             } do %>
-        🎤 Try 30s Demo
+        <%= icon_svg(:mic, css_class: 'icon-inline') %> Try 30s Demo
       <% end %>
     <% end %>
   </div>
