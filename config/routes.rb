@@ -16,6 +16,9 @@ Rails.application.routes.draw do
     # Root route - landing page
     root "landing#index"
 
+    # Practice route for trial mode (public demo)
+    get "practice", to: "sessions#index"
+
     # Trial session routes (public demo)
     resources :trial_sessions, only: [:show], param: :token, path: 'trial' do
       member do
@@ -31,11 +34,6 @@ Rails.application.routes.draw do
         end
       end
     end
-
-    # Redirect all other routes to app subdomain
-    match '*path', to: redirect { |params, request|
-      "#{request.protocol}app.#{request.domain(2)}#{request.path}#{request.query_string.present? ? "?#{request.query_string}" : ''}"
-    }, via: :all
   end
 
   # =============================================================================
@@ -80,6 +78,10 @@ Rails.application.routes.draw do
 
     # Privacy settings
     resource :privacy_settings, only: [:show, :update]
+
+    # Settings
+    get '/settings', to: 'settings#show'
+    patch '/settings', to: 'settings#update'
 
     # Feedback
     post '/feedback', to: 'feedback#create'

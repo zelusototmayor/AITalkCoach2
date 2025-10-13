@@ -1,0 +1,145 @@
+<% content_for :title, "Settings - AI Talk Coach" %>
+
+<div class="settings-page">
+  <div class="settings-container">
+    <div class="settings-header">
+      <h1>Settings</h1>
+      <p class="settings-subtitle">Manage your account preferences and settings</p>
+    </div>
+
+    <div class="settings-content">
+      <div class="settings-card">
+        <h2>Account Settings</h2>
+
+        <%= form_with model: @user, url: settings_path, method: :patch, local: true, class: "settings-form" do |f| %>
+          <div class="form-group">
+            <%= f.label :name, "Name", class: "form-label" %>
+            <%= f.text_field :name, class: "form-input", required: true %>
+          </div>
+
+          <div class="form-group">
+            <%= f.label :email, "Email", class: "form-label" %>
+            <%= f.email_field :email, class: "form-input", required: true %>
+          </div>
+
+          <div class="form-actions">
+            <%= f.submit "Save Changes", class: "btn btn-primary" %>
+          </div>
+        <% end %>
+      </div>
+
+      <div class="settings-card">
+        <h2>Additional Settings</h2>
+        <p class="muted-text">More settings options coming soon...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.settings-page {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.settings-container {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+}
+
+.settings-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.settings-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.settings-subtitle {
+  font-size: 1rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.settings-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.settings-card {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.settings-card h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 1.5rem;
+}
+
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.form-input {
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--brand-500);
+  box-shadow: 0 0 0 3px rgba(116, 102, 255, 0.1);
+}
+
+.form-actions {
+  margin-top: 1rem;
+}
+
+.muted-text {
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+@media (max-width: 768px) {
+  .settings-page {
+    padding: 1rem;
+  }
+
+  .settings-container {
+    padding: 1rem;
+  }
+
+  .settings-header h1 {
+    font-size: 1.5rem;
+  }
+}
+</style>

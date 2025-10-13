@@ -1,17 +1,17 @@
 class PromptsController < ApplicationController
-  before_action :set_guest_user
-  
+  before_action :set_user
+
   def index
     @prompts = load_prompts_from_config
     @adaptive_prompts = get_adaptive_prompts
     @categories = (@prompts.keys + ['recommended']).uniq.sort
     @user_weaknesses = analyze_user_weaknesses
   end
-  
+
   private
-  
-  def set_guest_user
-    @current_user = User.find_by(email: 'guest@aitalkcoach.local')
+
+  def set_user
+    @current_user = logged_in? ? current_user : User.find_by(email: 'guest@aitalkcoach.local')
   end
   
   def load_prompts_from_config

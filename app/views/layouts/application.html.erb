@@ -147,162 +147,125 @@
             aria-label="Share feedback">
       Share Feedback
     </button>
-    
-    <header class="main-header" role="banner">
-      <nav class="main-nav"
-           data-controller="navigation"
-           role="navigation"
-           aria-label="Main navigation">
-        <div class="logo-container">
-          <%= link_to root_path,
-                class: "logo-link",
-                "aria-label" => "AI Talk Coach - Go to homepage" do %>
-            <img src="/logo.png" alt="AI Talk Coach" class="logo-image" />
-            <span class="logo-text">AI Talk Coach</span>
-          <% end %>
-        </div>
-        
-        <!-- Mobile Menu Toggle -->
-        <button type="button" 
-                class="mobile-menu-toggle" 
-                aria-label="Toggle navigation menu"
-                aria-expanded="false"
-                aria-controls="nav-menu"
-                data-action="click->navigation#toggleMenu"
-                data-navigation-target="toggleButton">
-          <span class="hamburger-line" aria-hidden="true"></span>
-          <span class="hamburger-line" aria-hidden="true"></span>
-          <span class="hamburger-line" aria-hidden="true"></span>
-        </button>
 
-        <!-- Navigation Links -->
-        <div class="nav-menu" id="nav-menu" data-navigation-target="menu">
-          <ul class="nav-links" role="menubar">
-            <% if logged_in? %>
-              <li class="nav-item" role="none">
-                <%= link_to practice_path,
-                      class: "nav-link #{'active' if current_page?(practice_path)}",
-                      role: "menuitem",
-                      "aria-current": (current_page?(practice_path) ? "page" : nil),
-                      data: { action: "click->navigation#closeMenu" } do %>
-                  <span class="nav-icon" aria-hidden="true">🎤</span>
-                  <span class="nav-text">Practice</span>
-                <% end %>
-              </li>
-            <% end %>
-            <% if logged_in? %>
-              <li class="nav-item" role="none">
-                <%= link_to history_sessions_path,
-                      class: "nav-link #{'active' if current_page?(history_sessions_path)}",
-                      role: "menuitem",
-                      "aria-current": (current_page?(history_sessions_path) ? "page" : nil),
-                      data: { action: "click->navigation#closeMenu" } do %>
-                  <span class="nav-icon" aria-hidden="true">📊</span>
-                  <span class="nav-text">History</span>
-                <% end %>
-              </li>
-              <li class="nav-item" role="none">
-                <%= link_to progress_path,
-                      class: "nav-link #{'active' if current_page?(progress_path)}",
-                      role: "menuitem",
-                      "aria-current": (current_page?(progress_path) ? "page" : nil),
-                      data: { action: "click->navigation#closeMenu" } do %>
-                  <span class="nav-icon" aria-hidden="true">📈</span>
-                  <span class="nav-text">Progress</span>
-                <% end %>
-              </li>
-            <% end %>
-            <li class="nav-item" role="none">
-              <%= link_to prompts_path,
-                    class: "nav-link #{'active' if current_page?(prompts_path)}",
-                    role: "menuitem",
-                    "aria-current": (current_page?(prompts_path) ? "page" : nil),
-                    data: { action: "click->navigation#closeMenu" } do %>
-                <span class="nav-icon" aria-hidden="true">💡</span>
-                <span class="nav-text">Prompts</span>
-              <% end %>
-            </li>
-            <li class="nav-item" role="none">
-              <button type="button"
-                      class="nav-link"
-                      role="menuitem"
-                      data-action="click->feedback-menu#openAccessibilityPanel click->navigation#closeMenu">
-                <span class="nav-icon" aria-hidden="true">♿</span>
-                <span class="nav-text">Accessibility</span>
-              </button>
-            </li>
-            <li class="nav-item" role="none">
-              <%= link_to privacy_settings_path,
-                    class: "nav-link #{'active' if current_page?(privacy_settings_path)}",
-                    role: "menuitem",
-                    "aria-current": (current_page?(privacy_settings_path) ? "page" : nil),
-                    data: { action: "click->navigation#closeMenu" } do %>
-                <span class="nav-icon" aria-hidden="true">🔐</span>
-                <span class="nav-text">Privacy</span>
-              <% end %>
-            </li>
+    <% if logged_in? %>
+      <!-- Dashboard Layout with Sidebar (for logged-in users) -->
+      <div class="app-layout-with-sidebar">
+        <%= render 'shared/sidebar' %>
 
-            <!-- Authentication Links -->
-            <% if logged_in? %>
-              <li class="nav-item nav-user" role="none">
-                <span class="nav-link user-info">
-                  <span class="nav-icon" aria-hidden="true">👤</span>
-                  <span class="nav-text"><%= current_user.name %></span>
-                </span>
-              </li>
+        <% if notice %>
+          <div class="flash notice" role="alert" aria-live="polite">
+            <span aria-hidden="true">✓</span> <%= notice %>
+          </div>
+        <% end %>
+
+        <% if alert %>
+          <div class="flash alert" role="alert" aria-live="assertive">
+            <span aria-hidden="true">⚠️</span> <%= alert %>
+          </div>
+        <% end %>
+
+        <main class="main-content" id="main-content" role="main" tabindex="-1">
+          <%= yield %>
+        </main>
+      </div>
+    <% else %>
+      <!-- Marketing Site Layout with Top Navigation (for non-logged-in users) -->
+      <header class="main-header" role="banner">
+        <nav class="main-nav"
+             data-controller="navigation"
+             role="navigation"
+             aria-label="Main navigation">
+          <div class="logo-container">
+            <%= link_to marketing_subdomain_url('/'),
+                  class: "logo-link",
+                  "aria-label" => "AI Talk Coach - Go to homepage" do %>
+              <img src="/logo.png" alt="AI Talk Coach" class="logo-image" />
+              <span class="logo-text">AI Talk Coach</span>
+            <% end %>
+          </div>
+
+          <!-- Mobile Menu Toggle -->
+          <button type="button"
+                  class="mobile-menu-toggle"
+                  aria-label="Toggle navigation menu"
+                  aria-expanded="false"
+                  aria-controls="nav-menu"
+                  data-action="click->navigation#toggleMenu"
+                  data-navigation-target="toggleButton">
+            <span class="hamburger-line" aria-hidden="true"></span>
+            <span class="hamburger-line" aria-hidden="true"></span>
+            <span class="hamburger-line" aria-hidden="true"></span>
+          </button>
+
+          <!-- Navigation Links -->
+          <div class="nav-menu" id="nav-menu" data-navigation-target="menu">
+            <ul class="nav-links" role="menubar">
               <li class="nav-item" role="none">
-                <%= link_to logout_path,
-                      class: "nav-link logout-link",
+                <%= link_to app_subdomain_url('/prompts'),
+                      class: "nav-link",
                       role: "menuitem",
-                      data: {
-                        action: "click->navigation#closeMenu"
-                      },
-                      "data-logout-link" => true do %>
-                  <span class="nav-icon" aria-hidden="true">🚪</span>
-                  <span class="nav-text">Logout</span>
+                      data: { action: "click->navigation#closeMenu" } do %>
+                  <span class="nav-icon" aria-hidden="true">💡</span>
+                  <span class="nav-text">Prompts</span>
                 <% end %>
               </li>
-            <% else %>
               <li class="nav-item" role="none">
-                <%= link_to login_path,
-                      class: "nav-link #{'active' if current_page?(login_path)}",
+                <button type="button"
+                        class="nav-link"
+                        role="menuitem"
+                        data-action="click->feedback-menu#openAccessibilityPanel click->navigation#closeMenu">
+                  <span class="nav-icon" aria-hidden="true">♿</span>
+                  <span class="nav-text">Accessibility</span>
+                </button>
+              </li>
+              <li class="nav-item" role="none">
+                <%= link_to app_subdomain_url('/privacy_settings'),
+                      class: "nav-link",
                       role: "menuitem",
-                      "aria-current": (current_page?(login_path) ? "page" : nil),
+                      data: { action: "click->navigation#closeMenu" } do %>
+                  <span class="nav-icon" aria-hidden="true">🔐</span>
+                  <span class="nav-text">Privacy</span>
+                <% end %>
+              </li>
+              <li class="nav-item" role="none">
+                <%= link_to app_subdomain_url('/login'),
+                      class: "nav-link",
+                      role: "menuitem",
                       data: { action: "click->navigation#closeMenu" } do %>
                   <span class="nav-icon" aria-hidden="true">🔑</span>
                   <span class="nav-text">Login</span>
                 <% end %>
               </li>
               <li class="nav-item" role="none">
-                <%= link_to signup_path,
-                      class: "nav-link signup-link #{'active' if current_page?(signup_path)}",
+                <%= link_to app_subdomain_url('/signup'),
+                      class: "nav-link signup-link",
                       role: "menuitem",
-                      "aria-current": (current_page?(signup_path) ? "page" : nil),
                       data: { action: "click->navigation#closeMenu" } do %>
                   <span class="nav-icon" aria-hidden="true">✨</span>
                   <span class="nav-text">Sign Up</span>
                 <% end %>
               </li>
-            <% end %>
-          </ul>
+            </ul>
+          </div>
+        </nav>
+      </header>
+
+      <% if notice %>
+        <div class="flash notice" role="alert" aria-live="polite">
+          <span aria-hidden="true">✓</span> <%= notice %>
         </div>
-      </nav>
-    </header>
-    
-    <% if notice %>
-      <div class="flash notice" role="alert" aria-live="polite">
-        <span aria-hidden="true">✓</span> <%= notice %>
-      </div>
+      <% end %>
+
+      <% if alert %>
+        <div class="flash alert" role="alert" aria-live="assertive">
+          <span aria-hidden="true">⚠️</span> <%= alert %>
+        </div>
+      <% end %>
+
+      <main class="main-content" id="main-content" role="main" tabindex="-1">
+        <%= yield %>
+      </main>
     <% end %>
-    
-    <% if alert %>
-      <div class="flash alert" role="alert" aria-live="assertive">
-        <span aria-hidden="true">⚠️</span> <%= alert %>
-      </div>
-    <% end %>
-    
-    <main class="main-content" id="main-content" role="main" tabindex="-1">
-      <%= yield %>
-    </main>
   </body>
 </html>

@@ -1,6 +1,6 @@
 class PrivacySettingsController < ApplicationController
-  before_action :set_guest_user
-  
+  before_action :set_user
+
   def show
     @user = @current_user
     @audio_file_stats = calculate_audio_file_stats
@@ -8,27 +8,27 @@ class PrivacySettingsController < ApplicationController
 
   def update
     @user = @current_user
-    
+
     if @user.update(privacy_params)
       # If user enabled immediate deletion of processed audio, trigger cleanup
       if params[:user][:delete_processed_audio] == '1'
         cleanup_processed_audio_async
       end
-      
-      redirect_to privacy_settings_path, notice: 'Privacy settings updated successfully.'
+
+      redirect_to '/privacy_settings', notice: 'Privacy settings updated successfully.'
     else
       @audio_file_stats = calculate_audio_file_stats
       render :show, status: :unprocessable_content
     end
   end
-  
+
   private
-  
-  def set_guest_user
-    @current_user = User.find_by(email: 'guest@aitalkcoach.local')
-    
+
+  def set_user
+    @current_user = logged_in? ? current_user : User.find_by(email: 'guest@aitalkcoach.local')
+
     if @current_user.nil?
-      redirect_to root_path, alert: 'Guest user not found. Please run db:seed.'
+      redirect_to root_path, alert: 'User not found.'
     end
   end
   
