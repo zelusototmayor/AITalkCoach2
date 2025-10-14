@@ -47,6 +47,7 @@ Rails.application.routes.draw do
     namespace :auth do
       resources :registrations, only: [:new, :create], path: 'signup'
       resources :sessions, only: [:new, :create, :destroy], path: 'login'
+      resources :password_resets, only: [:new, :create, :edit, :update], path: 'password', param: :token
     end
 
     # Convenient aliases
