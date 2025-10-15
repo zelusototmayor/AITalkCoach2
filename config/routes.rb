@@ -19,6 +19,9 @@ Rails.application.routes.draw do
     # Practice route for trial mode (public demo)
     get "practice", to: "sessions#index"
 
+    # Session creation route for trial mode
+    resources :sessions, only: [:create]
+
     # Trial session routes (public demo)
     resources :trial_sessions, only: [:show], param: :token, path: 'trial' do
       member do
