@@ -143,7 +143,7 @@ adaptive_prompts:
 recommendation_settings:
   # Minimum number of sessions needed before adaptive prompts are suggested
   min_sessions_for_adaptation: 3
-  
+
   # Issue frequency thresholds (% of sessions) to trigger adaptive prompts
   issue_thresholds:
     filler_words: 0.4      # 40% of sessions have filler word issues
@@ -151,9 +151,32 @@ recommendation_settings:
     clarity_issues: 0.3    # 30% of sessions have clarity problems
     confidence_issues: 0.2 # 20% of sessions show confidence issues
     engagement_issues: 0.25 # 25% of sessions lack engagement
-  
+
   # Mix ratio: percentage of adaptive prompts vs base prompts
   adaptive_prompt_ratio: 0.4  # 40% adaptive, 60% base prompts
-  
+
   # Number of adaptive prompts to show when issues are detected
   adaptive_prompts_count: 2
+
+# Filler word audit configuration
+filler_word_audit:
+  # Enable AI-powered filler word auditing
+  enabled: true
+
+  # Minimum confidence threshold for including filler words (0.0-1.0)
+  # Lower values = more permissive (include borderline cases)
+  # Higher values = more strict (only clear filler words)
+  min_confidence_threshold: 0.5
+
+  # Context window size for analysis (words before/after the filler)
+  context_window_words: 10
+
+  # Cache duration for audit results (in seconds)
+  cache_ttl: 21600  # 6 hours
+
+  # Enable detection of additional filler words not in rules
+  detect_missed_fillers: true
+
+  # Temperature setting for AI analysis (0.0-1.0)
+  # Lower = more consistent, Higher = more creative
+  ai_temperature: 0.1

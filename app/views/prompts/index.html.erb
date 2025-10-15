@@ -21,21 +21,21 @@
       <div class="adaptive-prompts-grid">
         <% @adaptive_prompts.each do |category, prompts| %>
           <% prompts.first(2).each_with_index do |prompt, index| %>
-            <div class="prompt-card adaptive-prompt" 
+            <div class="prompt-card adaptive-prompt"
                  data-category="recommended"
                  data-prompts-target="card"
                  data-prompt-id="adaptive_<%= category %>_<%= index %>">
-              
+
               <div class="prompt-header">
                 <div class="prompt-meta">
                   <span class="prompt-category category-recommended">
-                    🎯 Recommended
+                    Recommended
                   </span>
                   <span class="improvement-tag">
-                    Improves <%= category.humanize %>
+                    <%= category.humanize %>
                   </span>
                 </div>
-                
+
                 <h3 class="prompt-title"><%= prompt['title'] %></h3>
                 <p class="prompt-description"><%= prompt['description'] %></p>
               </div>
@@ -52,7 +52,7 @@
                       <%= distance_of_time_in_words(prompt['target_seconds']) %>
                     </span>
                   </div>
-                  
+
                   <% if prompt['focus_areas'] %>
                     <div class="detail-item">
                       <span class="detail-label">Focus Areas:</span>
@@ -69,7 +69,7 @@
               <div class="prompt-actions">
                 <%= link_to practice_path(adaptive_prompt: true, category: category, index: index),
                       class: "btn btn-primary btn-block" do %>
-                  🎯 Practice This Recommended Prompt
+                  Practice Prompt
                 <% end %>
               </div>
             </div>
@@ -122,19 +122,21 @@
   </div>
 
   <div class="prompts-grid" data-prompts-target="grid">
-    <% @prompts.each do |category, category_prompts| %>
+    <% @prompts.each_with_index do |(category, category_prompts), cat_index| %>
       <% category_prompts.each_with_index do |prompt, index| %>
-        <div class="prompt-card" 
+        <div class="prompt-card"
              data-category="<%= category %>"
              data-prompts-target="card"
-             data-prompt-id="<%= "#{category}_#{index}" %>">
-          
+             data-prompt-id="<%= "#{category}_#{index}" %>"
+             data-prompt-index="<%= index %>"
+             style="<%= 'display: none;' if index >= 10 %>">
+
           <div class="prompt-header">
             <div class="prompt-meta">
               <span class="prompt-category category-<%= category.parameterize %>">
                 <%= category.humanize %>
               </span>
-              <button type="button" 
+              <button type="button"
                       class="favorite-btn"
                       data-action="click->prompts#toggleFavorite"
                       data-prompt-id="<%= "#{category}_#{index}" %>"
@@ -142,7 +144,7 @@
                 ☆
               </button>
             </div>
-            
+
             <h3 class="prompt-title"><%= prompt['title'] %></h3>
             <p class="prompt-description"><%= prompt['description'] %></p>
           </div>
@@ -159,7 +161,7 @@
                   <%= distance_of_time_in_words(prompt['target_seconds']) %>
                 </span>
               </div>
-              
+
               <div class="detail-item">
                 <span class="detail-label">Difficulty:</span>
                 <span class="detail-value difficulty-<%= prompt['difficulty'] || 'intermediate' %>">
@@ -183,35 +185,20 @@
           <div class="prompt-actions">
             <%= link_to practice_path(prompt_id: "#{category}_#{index}"),
                   class: "btn btn-primary btn-block" do %>
-              🎤 Practice This Prompt
+              Practice Prompt
             <% end %>
-            
-            <div class="secondary-actions">
-              <button type="button" 
-                      class="action-btn"
-                      data-action="click->prompts#previewPrompt"
-                      data-prompt-id="<%= "#{category}_#{index}" %>"
-                      title="Preview">
-                👁️ Preview
-              </button>
-              
-              <button type="button"
-                      class="action-btn" 
-                      data-action="click->prompts#sharePrompt"
-                      data-prompt-id="<%= "#{category}_#{index}" %>"
-                      title="Share">
-                📤 Share
-              </button>
-
-              <button type="button"
-                      class="action-btn"
-                      data-action="click->prompts#addToPlaylist" 
-                      data-prompt-id="<%= "#{category}_#{index}" %>"
-                      title="Add to practice playlist">
-                📋 Add to List
-              </button>
-            </div>
           </div>
+        </div>
+      <% end %>
+
+      <% if category_prompts.length > 10 %>
+        <div class="show-more-container" data-category="<%= category %>" data-prompts-target="showMoreBtn">
+          <button type="button"
+                  class="btn btn-secondary"
+                  data-action="click->prompts#showMore"
+                  data-category="<%= category %>">
+            Show More (<%= category_prompts.length - 10 %> more)
+          </button>
         </div>
       <% end %>
     <% end %>

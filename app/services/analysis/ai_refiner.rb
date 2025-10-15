@@ -247,16 +247,31 @@ module Analysis
     
     def classify_rule_issues_with_ai(rule_based_issues, transcript_data)
       return rule_based_issues if rule_based_issues.empty?
-      
-      # Group issues for batch processing (more efficient)
-      issue_groups = rule_based_issues.each_slice(10).to_a
+
+      # Split filler words from other issues for specialized processing
+      filler_word_issues = rule_based_issues.select { |issue| issue[:kind] == 'filler_word' }
+      other_issues = rule_based_issues.reject { |issue| issue[:kind] == 'filler_word' }
+
       classified_issues = []
-      
-      issue_groups.each do |issue_group|
-        classified_group = classify_issue_group_with_ai(issue_group, transcript_data)
-        classified_issues.concat(classified_group) if classified_group
+
+      # Process filler words with specialized audit
+      if filler_word_issues.any?
+        Rails.logger.info "Routing #{filler_word_issues.length} filler words to AI audit"
+        audited_filler_words = audit_filler_words_with_ai(filler_word_issues, transcript_data)
+        classified_issues.concat(audited_filler_words)
       end
-      
+
+      # Process other issues with standard classification
+      if other_issues.any?
+        Rails.logger.info "Classifying #{other_issues.length} non-filler issues with AI"
+        issue_groups = other_issues.each_slice(10).to_a
+
+        issue_groups.each do |issue_group|
+          classified_group = classify_issue_group_with_ai(issue_group, transcript_data)
+          classified_issues.concat(classified_group) if classified_group
+        end
+      end
+
       classified_issues.any? ? classified_issues : rule_based_issues
     end
     
@@ -310,6 +325,185 @@ module Analysis
       end
     end
     
+    def audit_filler_words_with_ai(filler_word_issues, transcript_data)
+      return filler_word_issues if filler_word_issues.empty?
+
+      # Create cache key for this filler word audit
+      filler_words_hash = Digest::MD5.hexdigest(
+        filler_word_issues.map { |i| "#{i[:text]}:#{i[:start_ms]}" }.join('|')
+      )
+      cache_key = Ai::Cache.analysis_cache_key(
+        filler_words_hash,
+        {
+          type: 'filler_word_audit',
+          language: @session.language,
+          version: '1.0'
+        }
+      )
+
+      cached_result = Ai::Cache.get(cache_key, ttl: @cache_ttl)
+      if cached_result
+        @options[:metadata]&.[](:cache_hits)&.+(1)
+        return cached_result
+      end
+
+      prompt_builder = Ai::PromptBuilder.new(
+        'filler_word_audit',
+        language: @session.language
+      )
+
+      audit_data = {
+        filler_word_detections: filler_word_issues,
+        transcript: transcript_data[:transcript] || '',
+        context: {
+          duration_seconds: transcript_data.dig(:metadata, :duration) || 0,
+          word_count: transcript_data[:words]&.length || 0
+        }
+      }
+
+      messages = prompt_builder.build_messages(audit_data)
+
+      begin
+        response = @ai_client.chat_completion(messages, temperature: 0.1)
+        audit_result = response[:parsed_content]
+
+        if audit_result && audit_result['validated_filler_words']
+          # Process audit results and convert back to issue format
+          refined_filler_issues = process_filler_audit_results(
+            filler_word_issues,
+            audit_result,
+            transcript_data
+          )
+
+          # Cache the result
+          Ai::Cache.set(cache_key, refined_filler_issues, ttl: @cache_ttl)
+
+          Rails.logger.info "Filler word audit: #{audit_result['summary']['total_validated']} validated, " \
+                           "#{audit_result['summary']['total_false_positives']} false positives, " \
+                           "#{audit_result['summary']['total_missed']} missed"
+
+          return refined_filler_issues
+        else
+          Rails.logger.warn "AI filler word audit returned invalid format"
+          return filler_word_issues # Return original issues
+        end
+
+      rescue => e
+        Rails.logger.error "AI filler word audit failed: #{e.message}"
+        return filler_word_issues # Return original issues on error
+      end
+    end
+
+    def process_filler_audit_results(original_issues, audit_result, transcript_data)
+      refined_issues = []
+      words = transcript_data[:words] || []
+
+      # Process validated filler words
+      validated = audit_result['validated_filler_words'] || []
+      validated.each do |validated_filler|
+        # Find matching original issue by timing or text
+        original_issue = find_matching_issue(original_issues, validated_filler)
+
+        if original_issue
+          # Merge AI validation with original detection
+          refined_issues << original_issue.merge(
+            ai_confidence: validated_filler['confidence'],
+            ai_rationale: validated_filler['rationale'],
+            ai_severity: validated_filler['severity'],
+            source: 'rule_ai_validated',
+            validation_status: 'confirmed',
+            is_filler: validated_filler['is_filler']
+          )
+        end
+      end
+
+      # Add missed filler words that AI discovered
+      missed = audit_result['missed_filler_words'] || []
+      missed.each do |missed_filler|
+        # Try to find timing info from transcript
+        timing = find_timing_for_text(missed_filler['text_snippet'], words, missed_filler['start_ms'])
+
+        refined_issues << {
+          kind: 'filler_word',
+          start_ms: timing[:start_ms],
+          end_ms: timing[:end_ms],
+          text: missed_filler['text_snippet'],
+          source: 'ai_discovered',
+          rationale: missed_filler['rationale'],
+          tip: generate_filler_word_tip(missed_filler['word']),
+          severity: missed_filler['severity'] || 'medium',
+          ai_confidence: missed_filler['confidence'],
+          category: 'filler_words',
+          matched_words: [missed_filler['word']],
+          validation_status: 'ai_generated'
+        }
+      end
+
+      # Filter out false positives (low confidence)
+      if @confidence_threshold > 0
+        refined_issues = refined_issues.select do |issue|
+          (issue[:ai_confidence] || 0.6) >= @confidence_threshold
+        end
+      end
+
+      refined_issues.sort_by { |issue| issue[:start_ms] }
+    end
+
+    def find_matching_issue(issues, validated_filler)
+      # Try to match by timing first (most accurate)
+      if validated_filler['start_ms']
+        match = issues.find do |issue|
+          time_overlap = (issue[:start_ms] - validated_filler['start_ms']).abs < 500 # 500ms tolerance
+          time_overlap
+        end
+        return match if match
+      end
+
+      # Fallback to text matching
+      issues.find do |issue|
+        similar_text?(issue[:text], validated_filler['text_snippet'])
+      end
+    end
+
+    def find_timing_for_text(text_snippet, words, suggested_start_ms = nil)
+      # If AI provided timing, use that
+      return { start_ms: suggested_start_ms, end_ms: suggested_start_ms + 500 } if suggested_start_ms
+
+      # Try to find the text in the word-level data
+      text_words = text_snippet.downcase.split
+      return { start_ms: 0, end_ms: 500 } if text_words.empty?
+
+      # Search for matching sequence in words
+      words.each_cons(text_words.length) do |word_group|
+        group_text = word_group.map { |w| (w[:punctuated_word] || w[:word]).downcase }.join(' ')
+        if group_text.include?(text_words.first)
+          return {
+            start_ms: word_group.first[:start],
+            end_ms: word_group.last[:end]
+          }
+        end
+      end
+
+      # Default fallback
+      { start_ms: 0, end_ms: 500 }
+    end
+
+    def generate_filler_word_tip(word)
+      tips = {
+        'um' => 'Try pausing instead of using "um". Silence can be more powerful.',
+        'uh' => 'Take a breath and pause instead of filling space with "uh".',
+        'like' => 'Reduce casual "like" usage. Be more direct in your phrasing.',
+        'you know' => 'Avoid "you know" - state your point directly with confidence.',
+        'so' => 'Start sentences with your main point instead of "so".',
+        'basically' => 'Remove unnecessary "basically" - just explain the concept directly.',
+        'actually' => 'Use "actually" sparingly, only when genuinely correcting information.',
+        'kind of' => 'Be more definitive. Replace "kind of" with specific descriptions.',
+        'sort of' => 'Choose precise language instead of hedging with "sort of".'
+      }
+
+      tips[word.downcase] || 'Work on reducing this filler word for clearer communication.'
+    end
+
     def merge_classification_with_original_issues(original_issues, classification)
       validated_issues = classification['validated_issues'] || []
       false_positives = classification['false_positives'] || []

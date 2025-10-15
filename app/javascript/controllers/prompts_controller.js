@@ -4,7 +4,9 @@ export default class extends Controller {
   static targets = [
     "category", "prompt", "selected", "shuffle", "filter", "search",
     "favorite", "difficulty", "tags", "timer", "practiceMode", "selectedId",
-    "display", "content", "library", "targetTime"
+    "display", "content", "library", "targetTime", "card", "grid",
+    "searchInput", "filterBtn", "noResults", "noFavorites", "modalOverlay",
+    "modalBody", "modalTitle", "modalPracticeBtn", "showMoreBtn"
   ]
   static values = { 
     selectedPrompt: Object,
@@ -24,6 +26,7 @@ export default class extends Controller {
     this.shuffleTimer = null
     this.practiceTimer = null
     this.usedPrompts = new Set()
+    this.visibleCountByCategory = {}
   }
 
   connect() {
@@ -884,5 +887,97 @@ export default class extends Controller {
         </div>
       `
     }
+  }
+
+  showMore(event) {
+    const category = event.target.dataset.category
+    const categoryCards = this.cardTargets.filter(card =>
+      card.dataset.category === category
+    )
+
+    // Initialize visible count for this category if not set
+    if (!this.visibleCountByCategory[category]) {
+      this.visibleCountByCategory[category] = 10
+    }
+
+    // Show next 10 prompts
+    const currentCount = this.visibleCountByCategory[category]
+    const newCount = currentCount + 10
+
+    categoryCards.forEach((card, index) => {
+      if (index >= currentCount && index < newCount) {
+        card.style.display = ''
+      }
+    })
+
+    this.visibleCountByCategory[category] = newCount
+
+    // Update button or hide if all are shown
+    const totalCount = categoryCards.length
+    const remainingCount = totalCount - newCount
+
+    if (remainingCount <= 0) {
+      // Hide the "Show More" button
+      event.target.closest('.show-more-container').style.display = 'none'
+    } else {
+      // Update the button text
+      event.target.textContent = `Show More (${remainingCount} more)`
+    }
+  }
+
+  clearFilters() {
+    this.currentCategory = 'all'
+    this.searchTerm = ''
+    this.showFavoritesOnly = false
+
+    if (this.hasSearchInputTarget) {
+      this.searchInputTarget.value = ''
+    }
+
+    this.filterPrompts()
+  }
+
+  toggleFavorites() {
+    this.showFavoritesOnly = !this.showFavoritesOnly
+    this.filterPrompts()
+  }
+
+  closeModal() {
+    if (this.hasModalOverlayTarget) {
+      this.modalOverlayTarget.style.display = 'none'
+    }
+  }
+
+  previewPrompt(event) {
+    // Placeholder for preview functionality
+    console.log('Preview prompt:', event.target.dataset.promptId)
+  }
+
+  sharePrompt(event) {
+    // Placeholder for share functionality
+    console.log('Share prompt:', event.target.dataset.promptId)
+  }
+
+  addToPlaylist(event) {
+    // Placeholder for add to playlist functionality
+    console.log('Add to playlist:', event.target.dataset.promptId)
+  }
+
+  startRandomPractice() {
+    this.shufflePrompt()
+  }
+
+  startDailyPractice() {
+    // Placeholder for daily practice
+    console.log('Starting daily practice')
+  }
+
+  startFocusedPractice() {
+    // Placeholder for focused practice
+    console.log('Starting focused practice')
+  }
+
+  shuffleRandom() {
+    this.shufflePrompt()
   }
 }

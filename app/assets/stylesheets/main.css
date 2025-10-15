@@ -2167,9 +2167,9 @@ h4 { font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem; }
 
 .prompt-card {
   background: white;
-  padding: 1.5rem;
+  padding: 1rem;
   border-radius: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.08);
 }
 
 .prompt-category {
@@ -2184,14 +2184,24 @@ h4 { font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem; }
 }
 
 .prompt-title {
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
   color: #1f2937;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.prompt-description {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
 }
 
 .prompt-text {
   color: #4b5563;
-  margin-bottom: 1rem;
-  line-height: 1.6;
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
+  font-size: 0.875rem;
 }
 
 .prompt-meta {
@@ -2620,32 +2630,32 @@ h4 { font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem; }
 .prompts-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1.5rem;
+  gap: 1rem;
   margin-bottom: 2rem;
 }
 
 .prompt-card {
   background: white;
-  border-radius: 0.75rem;
-  padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+  transition: transform 0.15s, box-shadow 0.15s;
 }
 
 .prompt-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
 }
 
 .prompt-header {
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 .prompt-meta {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .favorite-btn {
@@ -2663,14 +2673,14 @@ h4 { font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem; }
 }
 
 .prompt-details {
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 .detail-item {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 0.5rem;
-  font-size: 0.875rem;
+  margin-bottom: 0.375rem;
+  font-size: 0.8125rem;
 }
 
 .detail-label {
@@ -2694,7 +2704,13 @@ h4 { font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem; }
 
 .prompt-actions {
   border-top: 1px solid #e5e7eb;
-  padding-top: 1rem;
+  padding-top: 0.75rem;
+}
+
+.prompt-actions .btn-primary {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  width: 100%;
 }
 
 .secondary-actions {
@@ -2719,6 +2735,19 @@ h4 { font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem; }
 .action-btn:hover {
   color: #2563eb;
   background: #f3f4f6;
+}
+
+/* Show More Button */
+.show-more-container {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  padding: 1rem 0;
+  margin-bottom: 1.5rem;
+}
+
+.show-more-container .btn-secondary {
+  min-width: 200px;
 }
 
 /* Quick Practice */
@@ -3610,21 +3639,22 @@ h4 { font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem; }
 
 .adaptive-prompts-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
 }
 
 .adaptive-prompt {
   background: white;
   border: 2px solid #10b981;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 10px 25px rgba(16, 185, 129, 0.1);
-  transition: all 0.3s ease;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 4px 12px rgba(16, 185, 129, 0.08);
+  transition: all 0.2s ease;
 }
 
 .adaptive-prompt:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1), 0 20px 40px rgba(16, 185, 129, 0.15);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 8px 20px rgba(16, 185, 129, 0.12);
   border-color: #059669;
 }
 
