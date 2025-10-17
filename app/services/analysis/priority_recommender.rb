@@ -530,5 +530,16 @@ module Analysis
         potential_improvement: 0
       }
     end
+
+    # Check if a recommendation type matches a weekly focus improvement type
+    def self.matches_focus_type?(recommendation_type, weekly_focus_type)
+      return false if recommendation_type.nil? || weekly_focus_type.nil?
+      normalize_type(recommendation_type) == normalize_type(weekly_focus_type)
+    end
+
+    # Normalize type strings for comparison
+    def self.normalize_type(type)
+      type.to_s.downcase.gsub(/[^a-z_]/, '_')
+    end
   end
 end

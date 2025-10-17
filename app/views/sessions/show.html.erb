@@ -274,49 +274,11 @@
           <% end %>
         </div>
 
-        <!-- Next Step / Coach Section -->
-        <% if @priority_recommendations&.dig(:focus_this_week)&.any? %>
-          <div class="next-step-section">
-            <div class="section-label-small">NEXT STEP</div>
-            <h2 class="section-heading"><%= icon_svg(:target, css_class: 'icon-inline') %> Coach</h2>
+        <!-- Unified Coach Recommendation Section -->
+        <%= render 'coach_recommendation' %>
 
-            <% top_recommendation = @priority_recommendations[:focus_this_week].first %>
-
-            <% if top_recommendation[:type] == 'record_again_for_baseline' %>
-              <!-- First session: prompt to record again -->
-              <div class="action-card-modern first-session-prompt">
-                <div class="action-card-header">
-                  <span class="action-label-badge">WELCOME</span>
-                </div>
-                <h3 class="action-title">Great First Session!</h3>
-                <p class="action-description">
-                  <%= top_recommendation[:actionable_steps].first %>
-                </p>
-                <%= link_to practice_path, class: "start-drill-btn-gradient" do %>
-                  <%= icon_svg(:mic, css_class: 'icon-inline') %> Record Another Session
-                <% end %>
-              </div>
-            <% else %>
-              <!-- Regular recommendation flow -->
-              <div class="action-card-modern">
-                <div class="action-card-header">
-                  <span class="action-label-badge">ACTION</span>
-                  <button class="re-run-btn" data-action="click->session#reprocess">Re-run</button>
-                </div>
-                <h3 class="action-title"><%= humanize_improvement_type(top_recommendation[:type]) %></h3>
-                <p class="action-description">
-                  <%= top_recommendation[:actionable_steps].first %>
-                </p>
-                <button class="start-drill-btn-gradient"
-                        data-action="click->session#startDrill"
-                        data-session-type-param="<%= top_recommendation[:type] %>"
-                        data-session-duration-param="30">
-                  <%= icon_svg(:mic, css_class: 'icon-inline') %> Start 30s Drill
-                </button>
-              </div>
-            <% end %>
-          </div>
-        <% end %>
+        <!-- Quick Wins Section (Phase 2) -->
+        <%= render 'quick_wins' %>
 
         <!-- What to Fix Section -->
         <div class="issues-section-modern">
@@ -418,39 +380,6 @@
           </div>
 
         </div>
-
-        <!-- Recommendation Widget -->
-        <% if @priority_recommendations&.dig(:focus_this_week)&.any? %>
-          <% top_rec = @priority_recommendations[:focus_this_week].first %>
-          <div class="sidebar-widget recommendation-widget">
-            <div class="section-label-small">RECOMMENDED</div>
-            <div class="recommendation-content-sidebar">
-              <% if top_rec[:type] == 'record_again_for_baseline' %>
-                <!-- First session: prompt to record again -->
-                <div class="rec-title">Record Another Session</div>
-                <div class="rec-actions-sidebar">
-                  <%= link_to practice_path, class: "btn-rec-primary-sidebar" do %>
-                    <%= icon_svg(:mic, css_class: 'icon-inline') %> Start Session
-                  <% end %>
-                </div>
-              <% else %>
-                <!-- Regular recommendation -->
-                <div class="rec-title">30s <%= humanize_improvement_type(top_rec[:type]) %> Drill</div>
-                <div class="rec-actions-sidebar">
-                  <button class="btn-rec-primary-sidebar"
-                          data-action="click->session#startDrill"
-                          data-session-type-param="<%= top_rec[:type] %>"
-                          data-session-duration-param="30">
-                    <%= icon_svg(:mic, css_class: 'icon-inline') %> Start Drill
-                  </button>
-                  <button class="btn-rec-secondary-sidebar" data-action="click->session#tryNextPrompt">
-                    <%= icon_svg(:sparkles, css_class: 'icon-inline') %> Try next prompt
-                  </button>
-                </div>
-              <% end %>
-            </div>
-          </div>
-        <% end %>
 
         <!-- Secondary Insights -->
         <div class="sidebar-widget">

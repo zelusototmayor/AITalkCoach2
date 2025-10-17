@@ -1,0 +1,285 @@
+<% if @micro_tips.present? %>
+  <!-- Also Worth Noting Section -->
+  <div class="quick-wins-section">
+    <div class="section-label-small">ALSO WORTH NOTING</div>
+    <h2 class="section-heading"><%= icon_svg(:lightbulb, css_class: 'icon-inline') %> Other Observations</h2>
+    <p class="section-description">Additional insights from this session</p>
+
+    <div class="quick-wins-grid">
+      <% @micro_tips.each do |tip| %>
+        <div class="tip-card">
+          <div class="tip-header">
+            <span class="tip-icon"><%= tip.icon %></span>
+            <h3 class="tip-title"><%= tip.title %></h3>
+            <span class="tip-badge">
+              <% if tip.effort == 1 %>
+                Easy
+              <% elsif tip.effort == 2 %>
+                Moderate
+              <% else %>
+                Advanced
+              <% end %>
+            </span>
+          </div>
+
+          <p class="tip-description"><%= tip.description %></p>
+
+          <div class="tip-action-box">
+            <div class="tip-action-label">→ Action:</div>
+            <div class="tip-action-text"><%= tip.action %></div>
+          </div>
+
+          <% if tip.data.present? %>
+            <div class="tip-metrics">
+              <% if tip.data[:current_score] %>
+                <span class="tip-metric">
+                  <span class="metric-label">Current:</span>
+                  <span class="metric-value"><%= tip.data[:current_score].round %>%</span>
+                </span>
+              <% end %>
+              <% if tip.data[:filler_rate] %>
+                <span class="tip-metric">
+                  <span class="metric-label">Filler rate:</span>
+                  <span class="metric-value"><%= tip.data[:filler_rate].round(1) %>%</span>
+                </span>
+              <% end %>
+              <% if tip.data[:consistency] %>
+                <span class="tip-metric">
+                  <span class="metric-label">Consistency:</span>
+                  <span class="metric-value"><%= tip.data[:consistency] %>%</span>
+                </span>
+              <% end %>
+              <% if tip.data[:current_level] %>
+                <span class="tip-metric">
+                  <span class="metric-label">Energy:</span>
+                  <span class="metric-value"><%= tip.data[:current_level].round %>/100</span>
+                </span>
+              <% end %>
+            </div>
+          <% end %>
+
+          <div class="tip-actions">
+            <button class="btn-tip-link"
+                    data-action="click->transcript#scrollToSection"
+                    data-category="<%= tip.category %>"
+                    title="Jump to relevant section in transcript">
+              <%= icon_svg(:arrow_right, css_class: 'icon-inline') %> Review in transcript
+            </button>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <style>
+    .quick-wins-section {
+      margin: 2rem 0;
+      padding: 0;
+    }
+
+    .quick-wins-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.25rem;
+      margin-top: 1rem;
+    }
+
+    .tip-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 1.5rem;
+      transition: all 0.2s ease;
+    }
+
+    .tip-card:hover {
+      border-color: #cbd5e1;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .tip-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .tip-icon {
+      font-size: 1.5rem;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .tip-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: #1e293b;
+      margin: 0;
+      flex: 1;
+    }
+
+    .tip-badge {
+      background: #f1f5f9;
+      color: #64748b;
+      padding: 0.25rem 0.625rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.025em;
+    }
+
+    .tip-description {
+      color: #475569;
+      font-size: 0.9375rem;
+      line-height: 1.6;
+      margin: 0 0 1rem 0;
+    }
+
+    .tip-action-box {
+      background: #f8fafc;
+      border-left: 3px solid #4F46E5;
+      padding: 0.875rem;
+      border-radius: 6px;
+      margin-bottom: 1rem;
+    }
+
+    .tip-action-label {
+      font-weight: 600;
+      color: #4F46E5;
+      font-size: 0.8125rem;
+      margin-bottom: 0.375rem;
+    }
+
+    .tip-action-text {
+      color: #1e293b;
+      font-size: 0.9375rem;
+      line-height: 1.5;
+    }
+
+    .tip-metrics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      padding: 0.75rem 0;
+      margin-bottom: 1rem;
+      border-top: 1px solid #e2e8f0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .tip-metric {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .tip-metric .metric-label {
+      font-size: 0.75rem;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.025em;
+      font-weight: 500;
+    }
+
+    .tip-metric .metric-value {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: #1e293b;
+    }
+
+    .tip-actions {
+      display: flex;
+      gap: 0.625rem;
+      margin-top: 1.25rem;
+    }
+
+    .btn-tip-link {
+      width: 100%;
+      background: transparent;
+      color: #64748b;
+      border: none;
+      padding: 0.625rem 0;
+      font-weight: 500;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 0.5rem;
+      text-decoration: none;
+    }
+
+    .btn-tip-link:hover {
+      color: #4F46E5;
+    }
+
+    .btn-tip-link:active {
+      color: #4338CA;
+    }
+
+    /* Mobile responsive */
+    @media (max-width: 768px) {
+      .quick-wins-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .tip-actions {
+        flex-direction: column;
+      }
+
+      .btn-tip-primary,
+      .btn-tip-secondary {
+        width: 100%;
+      }
+    }
+
+    /* Dark mode support (optional) */
+    @media (prefers-color-scheme: dark) {
+      .tip-card {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        border-color: #334155;
+      }
+
+      .tip-title {
+        color: #f1f5f9;
+      }
+
+      .tip-description {
+        color: #cbd5e1;
+      }
+
+      .tip-action-box {
+        background: #0f172a;
+      }
+
+      .tip-action-text {
+        color: #e2e8f0;
+      }
+
+      .tip-metrics {
+        border-top-color: #334155;
+        border-bottom-color: #334155;
+      }
+
+      .tip-metric .metric-label {
+        color: #94a3b8;
+      }
+
+      .tip-metric .metric-value {
+        color: #f1f5f9;
+      }
+
+      .btn-tip-secondary {
+        background: #1e293b;
+        border-color: #334155;
+        color: #818cf8;
+      }
+
+      .btn-tip-secondary:hover:not(:disabled) {
+        background: #0f172a;
+        border-color: #4F46E5;
+      }
+    }
+  </style>
+<% end %>

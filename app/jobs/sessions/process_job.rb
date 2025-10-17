@@ -287,6 +287,36 @@ module Sessions
       overall_scores = metrics[:overall_scores] || {}
       basic_metrics = metrics[:basic_metrics] || {}
 
+      # Generate coaching insights and micro-tips (Phase 2)
+      coaching_insights = {}
+      micro_tips = []
+
+      begin
+        Rails.logger.info "Generating coaching insights and micro-tips for session #{@session.id}"
+
+        # Extract coaching insights from metrics
+        metrics_calculator = Analysis::Metrics.new(
+          pipeline_result[:transcription],
+          pipeline_result.dig(:ai_refinement, :refined_issues) || pipeline_result.dig(:rule_analysis, :issues) || [],
+          language: @session.language
+        )
+        coaching_insights = metrics_calculator.extract_coaching_insights
+
+        # Generate micro-tips (will be empty for first session, which is fine)
+        # Focus areas are determined later in the controller, so we pass empty array for now
+        tip_generator = Analysis::MicroTipGenerator.new(
+          metrics,
+          coaching_insights,
+          [] # Focus areas - will be filtered out later
+        )
+        micro_tips = tip_generator.generate_tips
+
+        Rails.logger.info "Generated #{micro_tips.length} micro-tips for session #{@session.id}"
+      rescue => e
+        Rails.logger.error "Failed to generate micro-tips for session #{@session.id}: #{e.message}"
+        # Continue without tips - not a critical failure
+      end
+
       # Build streamlined analysis data - store complete metrics, use accessors for flat data
       analysis_data = {
         # Core data
@@ -325,17 +355,19 @@ module Sessions
         ai_insights: pipeline_result.dig(:ai_refinement, :ai_insights) || [],
         coaching_recommendations: pipeline_result.dig(:ai_refinement, :coaching_recommendations) || {}
       }
-      
-      # Update session with final results
+
+      # Update session with final results including micro-tips
       @session.update!(
         analysis_data: analysis_data,
+        micro_tips: micro_tips,
+        coaching_insights: coaching_insights,
         processing_state: 'completed',
         completed: true,
         processed_at: Time.current
       )
-      
+
       Rails.logger.info "Session #{@session.id} finalized successfully"
-      
+
       # Clean up temporary files
       cleanup_temp_files(pipeline_result)
     end

@@ -9,7 +9,7 @@ module Analysis
     def initialize(session, options = {})
       @session = session
       @options = options
-      @ai_client = Ai::Client.new
+      @ai_client = Ai::Client.new(model: ENV['AI_MODEL_COACH'] || 'gpt-4')
       @max_ai_segments = options[:max_ai_segments] || DEFAULT_MAX_AI_SEGMENTS
       @confidence_threshold = options[:confidence_threshold] || DEFAULT_CONFIDENCE_THRESHOLD
       @cache_ttl = options[:cache_ttl] || DEFAULT_CACHE_TTL
@@ -254,12 +254,10 @@ module Analysis
 
       classified_issues = []
 
-      # Process filler words with specialized audit
-      if filler_word_issues.any?
-        Rails.logger.info "Routing #{filler_word_issues.length} filler words to AI audit"
-        audited_filler_words = audit_filler_words_with_ai(filler_word_issues, transcript_data)
-        classified_issues.concat(audited_filler_words)
-      end
+      # For filler words: Let AI do fresh analysis from transcript (ignore rule detections)
+      Rails.logger.info "Sending full transcript to AI for fresh filler word analysis (ignoring #{filler_word_issues.length} rule-based detections)"
+      ai_detected_fillers = detect_filler_words_with_ai(transcript_data)
+      classified_issues.concat(ai_detected_fillers)
 
       # Process other issues with standard classification
       if other_issues.any?
@@ -325,19 +323,15 @@ module Analysis
       end
     end
     
-    def audit_filler_words_with_ai(filler_word_issues, transcript_data)
-      return filler_word_issues if filler_word_issues.empty?
-
-      # Create cache key for this filler word audit
-      filler_words_hash = Digest::MD5.hexdigest(
-        filler_word_issues.map { |i| "#{i[:text]}:#{i[:start_ms]}" }.join('|')
-      )
+    def detect_filler_words_with_ai(transcript_data)
+      # Create cache key for this transcript's filler word detection
+      transcript_hash = Digest::MD5.hexdigest(transcript_data[:transcript] || '')
       cache_key = Ai::Cache.analysis_cache_key(
-        filler_words_hash,
+        transcript_hash,
         {
-          type: 'filler_word_audit',
+          type: 'filler_word_detection',
           language: @session.language,
-          version: '1.0'
+          version: '2.0'
         }
       )
 
@@ -348,105 +342,84 @@ module Analysis
       end
 
       prompt_builder = Ai::PromptBuilder.new(
-        'filler_word_audit',
+        'filler_word_detection',
         language: @session.language
       )
 
-      audit_data = {
-        filler_word_detections: filler_word_issues,
+      detection_data = {
         transcript: transcript_data[:transcript] || '',
+        words: transcript_data[:words] || [],
         context: {
           duration_seconds: transcript_data.dig(:metadata, :duration) || 0,
           word_count: transcript_data[:words]&.length || 0
         }
       }
 
-      messages = prompt_builder.build_messages(audit_data)
+      messages = prompt_builder.build_messages(detection_data)
 
       begin
-        response = @ai_client.chat_completion(messages, temperature: 0.1)
-        audit_result = response[:parsed_content]
+        response = @ai_client.chat_completion(messages)
+        detection_result = response[:parsed_content]
 
-        if audit_result && audit_result['validated_filler_words']
-          # Process audit results and convert back to issue format
-          refined_filler_issues = process_filler_audit_results(
-            filler_word_issues,
-            audit_result,
+        if detection_result && detection_result['filler_words']
+          # Process detection results and convert to issue format
+          filler_issues = process_filler_detection_results(
+            detection_result,
             transcript_data
           )
 
           # Cache the result
-          Ai::Cache.set(cache_key, refined_filler_issues, ttl: @cache_ttl)
+          Ai::Cache.set(cache_key, filler_issues, ttl: @cache_ttl)
 
-          Rails.logger.info "Filler word audit: #{audit_result['summary']['total_validated']} validated, " \
-                           "#{audit_result['summary']['total_false_positives']} false positives, " \
-                           "#{audit_result['summary']['total_missed']} missed"
+          Rails.logger.info "AI detected #{detection_result['summary']['total_detected']} filler words " \
+                           "(Rate: #{detection_result['summary']['filler_rate_per_minute']} per minute)"
 
-          return refined_filler_issues
+          return filler_issues
         else
-          Rails.logger.warn "AI filler word audit returned invalid format"
-          return filler_word_issues # Return original issues
+          Rails.logger.warn "AI filler word detection returned invalid format"
+          return []
         end
 
       rescue => e
-        Rails.logger.error "AI filler word audit failed: #{e.message}"
-        return filler_word_issues # Return original issues on error
+        Rails.logger.error "AI filler word detection failed: #{e.message}"
+        return []
       end
     end
 
-    def process_filler_audit_results(original_issues, audit_result, transcript_data)
-      refined_issues = []
+    def process_filler_detection_results(detection_result, transcript_data)
+      filler_issues = []
       words = transcript_data[:words] || []
 
-      # Process validated filler words
-      validated = audit_result['validated_filler_words'] || []
-      validated.each do |validated_filler|
-        # Find matching original issue by timing or text
-        original_issue = find_matching_issue(original_issues, validated_filler)
-
-        if original_issue
-          # Merge AI validation with original detection
-          refined_issues << original_issue.merge(
-            ai_confidence: validated_filler['confidence'],
-            ai_rationale: validated_filler['rationale'],
-            ai_severity: validated_filler['severity'],
-            source: 'rule_ai_validated',
-            validation_status: 'confirmed',
-            is_filler: validated_filler['is_filler']
-          )
-        end
-      end
-
-      # Add missed filler words that AI discovered
-      missed = audit_result['missed_filler_words'] || []
-      missed.each do |missed_filler|
+      # Process AI-detected filler words
+      detected_fillers = detection_result['filler_words'] || []
+      detected_fillers.each do |filler|
         # Try to find timing info from transcript
-        timing = find_timing_for_text(missed_filler['text_snippet'], words, missed_filler['start_ms'])
+        timing = find_timing_for_text(filler['text_snippet'], words, filler['start_ms'])
 
-        refined_issues << {
+        filler_issues << {
           kind: 'filler_word',
           start_ms: timing[:start_ms],
           end_ms: timing[:end_ms],
-          text: missed_filler['text_snippet'],
-          source: 'ai_discovered',
-          rationale: missed_filler['rationale'],
-          tip: generate_filler_word_tip(missed_filler['word']),
-          severity: missed_filler['severity'] || 'medium',
-          ai_confidence: missed_filler['confidence'],
+          text: filler['text_snippet'],
+          source: 'ai',
+          rationale: filler['rationale'],
+          tip: generate_filler_word_tip(filler['word']),
+          severity: filler['severity'] || 'medium',
+          ai_confidence: filler['confidence'],
           category: 'filler_words',
-          matched_words: [missed_filler['word']],
-          validation_status: 'ai_generated'
+          matched_words: [filler['word']],
+          validation_status: 'ai_detected'
         }
       end
 
-      # Filter out false positives (low confidence)
+      # Filter by confidence threshold
       if @confidence_threshold > 0
-        refined_issues = refined_issues.select do |issue|
-          (issue[:ai_confidence] || 0.6) >= @confidence_threshold
+        filler_issues = filler_issues.select do |issue|
+          (issue[:ai_confidence] || 0.8) >= @confidence_threshold
         end
       end
 
-      refined_issues.sort_by { |issue| issue[:start_ms] }
+      filler_issues.sort_by { |issue| issue[:start_ms] }
     end
 
     def find_matching_issue(issues, validated_filler)
@@ -658,7 +631,6 @@ module Analysis
         {
           kind: issue.kind,
           severity: issue.severity,
-          pattern: issue.pattern,
           text: issue.text
         }
       end

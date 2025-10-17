@@ -250,6 +250,67 @@ class SessionsController < ApplicationController
         Rails.logger.error "Priority recommendations error: #{e.message}"
         @priority_recommendations = nil
       end
+
+      # Check if user has active weekly focus and match with recommendations
+      @weekly_focus = WeeklyFocus.current_for_user(current_user)
+
+      if @weekly_focus && @priority_recommendations&.dig(:focus_this_week)&.any?
+        top_rec = @priority_recommendations[:focus_this_week].first
+        @recommendation_matches_focus = Analysis::PriorityRecommender.matches_focus_type?(
+          top_rec[:type],
+          @weekly_focus.focus_type
+        )
+
+        # Calculate weekly progress
+        @weekly_progress = {
+          completed: @weekly_focus.completed_sessions_count,
+          target: @weekly_focus.target_sessions_per_week,
+          percentage: @weekly_focus.completion_percentage
+        }
+      else
+        @recommendation_matches_focus = false
+        @weekly_progress = nil
+      end
+
+      # Load micro-tips for Quick Wins section (Phase 2)
+      # Filter out tips that duplicate focus areas AND primary recommendation
+      begin
+        @micro_tips = @session.micro_tips || []
+
+        # Convert to OpenStruct for easier view access
+        @micro_tips = @micro_tips.map { |tip| OpenStruct.new(tip.symbolize_keys) }
+
+        # Get primary recommendation type for filtering
+        primary_rec_type = @priority_recommendations&.dig(:focus_this_week, 0, :type)
+
+        # Extract focus area types from recommendations for deduplication
+        if @priority_recommendations&.dig(:focus_this_week)&.any?
+          focus_types = @priority_recommendations[:focus_this_week].map { |rec| rec[:type] }
+
+          # Map recommendation types to tip categories for filtering
+          focus_categories = focus_types.map do |type|
+            case type
+            when 'reduce_fillers' then 'filler_words'
+            when 'improve_pace' then 'pace_consistency'
+            when 'fix_long_pauses' then 'pause_consistency'
+            when 'boost_engagement' then 'energy'
+            when 'increase_fluency' then 'fluency'
+            else type
+            end
+          end
+
+          # Filter out tips that match focus areas or primary recommendation
+          @micro_tips = @micro_tips.reject { |tip| focus_categories.include?(tip.category) }
+        end
+
+        # Limit to top 2 tips for UI
+        @micro_tips = @micro_tips.first(2)
+
+        Rails.logger.info "Loaded #{@micro_tips.length} micro-tips for session #{@session.id}"
+      rescue => e
+        Rails.logger.error "Error loading micro-tips: #{e.message}"
+        @micro_tips = []
+      end
     end
 
     # Set appropriate flash message based on session state

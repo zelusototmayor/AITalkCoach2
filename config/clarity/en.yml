@@ -1,20 +1,7 @@
 en:
-  filler_words:
-    - pattern: '\b(um|uh|er|ah)\b'
-      severity: 'medium'
-      description: 'Common filler words that can distract from your message'
-      tip: 'Try pausing instead of using filler words. Silence can be more powerful than "um" or "uh".'
-      
-    - pattern: '\b(like|you know|so|basically|actually)\b'
-      severity: 'low'
-      description: 'Overused casual expressions'
-      tip: 'Vary your vocabulary and reduce repetitive expressions for clearer communication.'
-      
-    - pattern: '\b(kind of|sort of)\b'
-      severity: 'low'
-      description: 'Weak qualifiers that reduce confidence'
-      tip: 'Be more definitive in your statements. Say what you mean directly.'
-      
+  # NOTE: filler_words are now detected by AI for context-aware accuracy
+  # See: app/services/ai/prompt_builder.rb - filler_word_detection prompt
+
   pace_issues:
     - pattern: 'speaking_rate_below_120'
       severity: 'medium'

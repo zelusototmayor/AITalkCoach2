@@ -42,6 +42,26 @@ module Analysis
       Rails.logger.error "Metrics calculation error: #{e.message}"
       raise MetricsError, "Failed to calculate metrics: #{e.message}"
     end
+
+    def extract_coaching_insights
+      words = extract_words
+      basic = calculate_basic_metrics
+      speaking = calculate_speaking_metrics
+      clarity = calculate_clarity_metrics
+      fluency = calculate_fluency_metrics
+      engagement = calculate_engagement_metrics
+
+      {
+        pause_patterns: extract_pause_patterns(clarity[:pause_metrics]),
+        pace_patterns: extract_pace_patterns(words, speaking),
+        energy_patterns: extract_energy_patterns(engagement),
+        smoothness_breakdown: extract_smoothness_breakdown(clarity, fluency),
+        hesitation_analysis: extract_hesitation_analysis(words, clarity[:filler_metrics])
+      }
+    rescue => e
+      Rails.logger.error "Coaching insights extraction error: #{e.message}"
+      {}
+    end
     
     def calculate_basic_metrics
       words = extract_words
@@ -178,7 +198,216 @@ module Analysis
     end
     
     private
-    
+
+    # Coaching insights extraction methods
+
+    def extract_pause_patterns(pause_metrics)
+      distribution = pause_metrics[:pause_distribution] || {}
+      optimal_pct = distribution.dig('optimal', :percentage) || 0
+      long_pct = distribution.dig('long', :percentage) || 0
+      very_long_pct = distribution.dig('very_long', :percentage) || 0
+
+      quality_breakdown = if pause_metrics[:pause_quality_score] >= 80
+        'mostly_optimal'
+      elsif long_pct > 20 || very_long_pct > 10
+        'mostly_good_with_awkward_long_pauses'
+      elsif optimal_pct < 40
+        'inconsistent_timing'
+      else
+        'generally_acceptable'
+      end
+
+      specific_issue = nil
+      if pause_metrics[:long_pause_count] > 0
+        specific_issue = "#{pause_metrics[:long_pause_count]} pauses over 3 seconds"
+      end
+
+      {
+        distribution: {
+          optimal: optimal_pct,
+          acceptable: distribution.dig('acceptable', :percentage) || 0,
+          long: long_pct,
+          very_long: very_long_pct
+        },
+        quality_breakdown: quality_breakdown,
+        specific_issue: specific_issue,
+        average_pause_ms: pause_metrics[:average_pause_ms],
+        longest_pause_ms: pause_metrics[:longest_pause_ms]
+      }
+    end
+
+    def extract_pace_patterns(words, speaking_metrics)
+      return default_pace_patterns if words.length < 10
+
+      # Analyze pace trajectory throughout session
+      segment_size = [words.length / 5, 10].max.to_i
+      segment_wpms = []
+
+      (0...words.length).step(segment_size) do |i|
+        segment = words[i, segment_size]
+        next if segment.length < 3
+
+        duration = segment.last[:end] - segment.first[:start]
+        next if duration <= 0
+
+        wpm = (segment.length / (duration / 60_000.0))
+        segment_wpms << wpm
+      end
+
+      trajectory = analyze_pace_trajectory(segment_wpms)
+      consistency = speaking_metrics[:pace_consistency] || 0
+      variation_type = categorize_pace_variation(segment_wpms, consistency)
+
+      {
+        trajectory: trajectory,
+        consistency: consistency,
+        variation_type: variation_type,
+        wpm_range: segment_wpms.empty? ? [0, 0] : [segment_wpms.min.round, segment_wpms.max.round],
+        average_wpm: speaking_metrics[:words_per_minute]
+      }
+    end
+
+    def analyze_pace_trajectory(segment_wpms)
+      return 'insufficient_data' if segment_wpms.length < 3
+
+      first_third = segment_wpms[0...(segment_wpms.length / 3)]
+      middle_third = segment_wpms[(segment_wpms.length / 3)...(2 * segment_wpms.length / 3)]
+      last_third = segment_wpms[(2 * segment_wpms.length / 3)..-1]
+
+      avg_first = first_third.sum / first_third.length.to_f
+      avg_middle = middle_third.sum / middle_third.length.to_f
+      avg_last = last_third.sum / last_third.length.to_f
+
+      if avg_middle > avg_first * 1.2 && avg_last < avg_middle * 0.9
+        'starts_slow_rushes_middle_settles'
+      elsif avg_middle > avg_first * 1.15
+        'starts_slow_accelerates'
+      elsif avg_first > avg_last * 1.15
+        'starts_fast_decelerates'
+      elsif (avg_first - avg_last).abs < avg_first * 0.1
+        'consistent_throughout'
+      else
+        'variable'
+      end
+    end
+
+    def categorize_pace_variation(segment_wpms, consistency)
+      return 'unknown' if segment_wpms.empty?
+
+      cv = coefficient_of_variation(segment_wpms)
+
+      if cv > 0.3
+        'high_variance'
+      elsif cv > 0.2
+        'moderate_variance'
+      elsif cv < 0.1
+        'very_consistent'
+      else
+        'low_variance'
+      end
+    end
+
+    def extract_energy_patterns(engagement_metrics)
+      energy_level = engagement_metrics[:energy_level] || 50
+      exclamations = engagement_metrics[:exclamation_usage] || 0
+      questions = engagement_metrics[:question_usage] || 0
+
+      pattern = if energy_level < 40
+        'low_energy_throughout'
+      elsif energy_level > 75
+        'high_energy_throughout'
+      else
+        'moderate_energy'
+      end
+
+      engagement_elements = []
+      engagement_elements << "#{exclamations} exclamations" if exclamations > 0
+      engagement_elements << "#{questions} questions" if questions > 0
+
+      {
+        overall_level: energy_level,
+        pattern: pattern,
+        engagement_elements: engagement_elements,
+        needs_boost: energy_level < 50
+      }
+    end
+
+    def extract_smoothness_breakdown(clarity_metrics, fluency_metrics)
+      smoothness = fluency_metrics[:speech_smoothness] || 70
+      pause_quality = clarity_metrics[:pause_metrics][:pause_quality_score] || 50
+
+      word_flow_score = (smoothness * 0.6 + pause_quality * 0.4).round(1)
+
+      primary_issue = if fluency_metrics[:hesitation_count] > 5
+        'frequent_hesitations'
+      elsif fluency_metrics[:restart_count] > 3
+        'frequent_restarts'
+      elsif pause_quality < 50
+        'irregular_pauses'
+      elsif smoothness < 60
+        'choppy_word_delivery'
+      else
+        nil
+      end
+
+      {
+        word_flow_score: word_flow_score,
+        pause_consistency_score: pause_quality,
+        primary_issue: primary_issue,
+        hesitation_count: fluency_metrics[:hesitation_count],
+        restart_count: fluency_metrics[:restart_count]
+      }
+    end
+
+    def extract_hesitation_analysis(words, filler_metrics)
+      transcript = extract_transcript_text.downcase
+      filler_breakdown = filler_metrics[:filler_breakdown] || {}
+
+      # Analyze where hesitations occur
+      hesitation_locations = analyze_hesitation_locations(words)
+
+      most_common_filler = filler_breakdown.max_by { |_, count| count }&.first
+      total_fillers = filler_metrics[:total_filler_count] || 0
+
+      {
+        total_count: total_fillers,
+        rate_percentage: filler_metrics[:filler_rate_percentage] || 0,
+        most_common: most_common_filler,
+        breakdown: filler_breakdown,
+        typical_locations: hesitation_locations,
+        density: filler_metrics[:filler_density]
+      }
+    end
+
+    def analyze_hesitation_locations(words)
+      # Simple heuristic: check if hesitations are at start, middle, or end
+      # This is a placeholder for more sophisticated analysis
+      transcript = extract_transcript_text.downcase
+      sentences = transcript.split(/[.!?]+/)
+
+      start_hesitations = 0
+      sentences.each do |sentence|
+        words = sentence.strip.split
+        start_hesitations += 1 if words.first&.match?(/^(um|uh|er|ah|like)$/)
+      end
+
+      if start_hesitations > sentences.length * 0.5
+        'mostly_at_sentence_starts'
+      else
+        'distributed_throughout'
+      end
+    end
+
+    def default_pace_patterns
+      {
+        trajectory: 'insufficient_data',
+        consistency: 0,
+        variation_type: 'unknown',
+        wpm_range: [0, 0],
+        average_wpm: 0
+      }
+    end
+
     def extract_words
       @transcript_data[:words] || []
     end

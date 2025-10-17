@@ -33,3 +33,7 @@
 # Ignore master key for decrypting credentials and more.
 /config/master.key
 .kamal/secrets
+
+# Ignore SSL certificates for local development
+/config/ssl/*.key
+/config/ssl/*.crt

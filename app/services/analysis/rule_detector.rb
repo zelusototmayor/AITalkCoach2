@@ -11,14 +11,19 @@ module Analysis
     
     def detect_all_issues
       @detected_issues = []
-      
+
       @rules.each do |category, category_rules|
+        # Skip filler_words - AI will handle these from scratch
+        next if category == 'filler_words'
+
         category_rules.each do |rule|
           issues = detect_rule_issues(rule, category)
           @detected_issues.concat(issues)
         end
       end
-      
+
+      Rails.logger.info "RuleDetector: Detected #{@detected_issues.length} non-filler issues (filler detection delegated to AI)"
+
       # Sort by start time and return
       @detected_issues.sort_by { |issue| issue[:start_ms] }
     end

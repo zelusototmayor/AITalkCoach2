@@ -8,7 +8,7 @@ module Ai
       coaching_advice
       segment_evaluation
       progress_assessment
-      filler_word_audit
+      filler_word_detection
     ].freeze
     
     def initialize(prompt_type, options = {})
@@ -32,8 +32,8 @@ module Ai
         build_segment_evaluation_system_prompt
       when 'progress_assessment'
         build_progress_assessment_system_prompt
-      when 'filler_word_audit'
-        build_filler_word_audit_system_prompt
+      when 'filler_word_detection'
+        build_filler_word_detection_system_prompt
       else
         raise PromptError, "No system prompt defined for: #{@prompt_type}"
       end
@@ -51,8 +51,8 @@ module Ai
         build_segment_evaluation_user_prompt(data)
       when 'progress_assessment'
         build_progress_assessment_user_prompt(data)
-      when 'filler_word_audit'
-        build_filler_word_audit_user_prompt(data)
+      when 'filler_word_detection'
+        build_filler_word_detection_user_prompt(data)
       else
         raise PromptError, "No user prompt defined for: #{@prompt_type}"
       end
@@ -77,8 +77,8 @@ module Ai
         segment_evaluation_json_schema
       when 'progress_assessment'
         progress_assessment_json_schema
-      when 'filler_word_audit'
-        filler_word_audit_json_schema
+      when 'filler_word_detection'
+        filler_word_detection_json_schema
       else
         {}
       end
@@ -527,123 +527,6 @@ module Ai
       
       prompt += "Assess the user's progress and provide insights in the specified JSON format."
     end
-
-    def build_filler_word_audit_system_prompt
-      language = @options[:language] || 'en'
-
-      <<~PROMPT
-        You are a filler word detection specialist with expertise in #{language} speech patterns.
-
-        Your task is to audit detected filler words and determine:
-        1. **Validation**: Is the detected word actually being used as a filler?
-        2. **Context Analysis**: Is the word contextually appropriate or a verbal crutch?
-        3. **Missed Instances**: Are there additional filler words the rule-based system missed?
-
-        Key Guidelines:
-        - **"Like"**: Filler when used habitually ("like, I think..."), NOT filler in similes ("fast like a cheetah")
-        - **"Basically"**: Filler when overused or unnecessary, OK when genuinely simplifying complex topics
-        - **"You know"**: Usually filler unless genuinely checking understanding
-        - **"So"**: Filler when starting sentences unnecessarily, OK as logical connector
-        - **"Actually"**: Filler when overused for emphasis, OK when correcting misconceptions
-        - **"Um/Uh/Er/Ah"**: Almost always filler unless part of quoted speech
-        - **"Kind of/Sort of"**: Usually weak qualifiers (filler-like), rarely appropriate
-
-        Additional Detection:
-        - Look for repeated words used as verbal crutches (e.g., "right", "okay", "well")
-        - Identify hedge words that weaken communication ("I guess", "maybe", "perhaps" when overused)
-        - Note discourse markers used excessively ("anyway", "I mean", "you see")
-
-        Confidence Scoring (0.0-1.0):
-        - 1.0: Definitely a filler word disrupting flow
-        - 0.8-0.9: Very likely filler, minimal contextual justification
-        - 0.5-0.7: Borderline, some filler qualities but might serve a purpose
-        - 0.3-0.4: Probably appropriate usage
-        - 0.0-0.2: Clearly appropriate, not filler
-
-        CRITICAL: Return only valid JSON, no additional text.
-
-        Expected JSON structure:
-        {
-          "validated_filler_words": [
-            {
-              "word": "um",
-              "text_snippet": "I think, um, we should...",
-              "start_ms": 1500,
-              "end_ms": 1800,
-              "confidence": 0.95,
-              "rationale": "Classic hesitation filler disrupting sentence flow",
-              "severity": "medium",
-              "is_filler": true
-            }
-          ],
-          "false_positives": [
-            {
-              "word": "like",
-              "text_snippet": "moves like a ninja",
-              "start_ms": 5000,
-              "end_ms": 5200,
-              "rationale": "Legitimate simile comparison, not a filler word",
-              "confidence_override": 0.1
-            }
-          ],
-          "missed_filler_words": [
-            {
-              "word": "right",
-              "text_snippet": "So, right, we need to...",
-              "start_ms": 3000,
-              "end_ms": 3200,
-              "confidence": 0.85,
-              "rationale": "Discourse marker used as verbal crutch",
-              "severity": "low"
-            }
-          ],
-          "summary": {
-            "total_validated": 8,
-            "total_false_positives": 2,
-            "total_missed": 3,
-            "overall_filler_rate": "5.2 per minute",
-            "recommendation": "Focus on eliminating 'um' and 'like' first as highest frequency fillers"
-          }
-        }
-      PROMPT
-    end
-
-    def build_filler_word_audit_user_prompt(data)
-      filler_word_detections = data[:filler_word_detections] || []
-      transcript = data[:transcript] || ''
-      context = data[:context] || {}
-
-      prompt = "Audit these filler word detections from the speech transcript:\n\n"
-
-      prompt += "**Full Transcript:**\n\"#{transcript}\"\n\n"
-
-      if context[:duration_seconds]
-        prompt += "**Speech Duration:** #{context[:duration_seconds]} seconds\n"
-      end
-
-      if context[:word_count]
-        prompt += "**Total Words:** #{context[:word_count]} words\n"
-      end
-
-      prompt += "\n**Detected Filler Words (Rule-Based):**\n"
-      if filler_word_detections.any?
-        filler_word_detections.each_with_index do |detection, index|
-          prompt += "#{index + 1}. \"#{detection[:matched_words]&.join(' ') || detection[:text]}\" "
-          prompt += "at #{detection[:start_ms]/1000.0}s"
-          prompt += " - Context: \"#{detection[:text]}\"\n"
-        end
-      else
-        prompt += "(No filler words detected by rules)\n"
-      end
-
-      prompt += "\n**Your Task:**\n"
-      prompt += "1. Review each detected filler word and validate if it's truly being used as a filler\n"
-      prompt += "2. Identify any false positives (words detected but used appropriately)\n"
-      prompt += "3. Scan the full transcript for additional filler words the rules missed\n"
-      prompt += "4. Provide confidence scores and specific rationale for each decision\n"
-      prompt += "\nProvide your audit in the specified JSON format."
-    end
-
     # JSON Schema definitions for validation
     
     def speech_analysis_json_schema
@@ -757,52 +640,81 @@ module Ai
         }
       }
     end
+    def build_filler_word_detection_system_prompt
+      language = @options[:language] || 'en'
 
-    def filler_word_audit_json_schema
+      <<~PROMPT
+        You are an expert speech coach analyzing filler word usage in #{language}.
+
+        Identify all words and phrases being used as verbal crutches or fillers - these weaken the speaker's message and should be reduced or eliminated.
+
+        **Key principle:** Only flag words when they function as fillers, not when they serve a legitimate purpose.
+        - "like" in "I like pizza" = legitimate (preference)
+        - "like" in "it's, like, really good" = filler (verbal crutch)
+
+        Be thorough and context-aware. Common fillers include: um, uh, like, so, you know, I mean, basically, actually, kind of, sort of, just, right, well, okay, now, and phrases like "you see", "at the end of the day", etc.
+
+        For each filler detected, provide:
+        - The filler word/phrase
+        - Surrounding text snippet (10-15 words of context)
+        - Confidence score (0.0-1.0)
+        - Brief rationale explaining why it's a filler
+        - Severity (low/medium/high) based on frequency and impact
+
+        Return ONLY valid JSON in this exact structure:
+        {
+          "filler_words": [
+            {
+              "word": "um",
+              "text_snippet": "I think, um, we should proceed carefully",
+              "start_ms": 1500,
+              "confidence": 0.95,
+              "rationale": "Hesitation filler disrupting sentence flow",
+              "severity": "medium"
+            }
+          ],
+          "summary": {
+            "total_detected": 8,
+            "filler_rate_per_minute": 4.2,
+            "most_common_fillers": ["um", "like", "so"],
+            "recommendation": "Focus on replacing 'um' with strategic pauses"
+          }
+        }
+      PROMPT
+    end
+
+    def build_filler_word_detection_user_prompt(data)
+      transcript = data[:transcript] || ''
+      context = data[:context] || {}
+
+      prompt = "Analyze this transcript for filler words:\n\n"
+      prompt += "\"#{transcript}\"\n\n"
+
+      if context[:duration_seconds]
+        prompt += "Duration: #{context[:duration_seconds].round(1)} seconds\n"
+      end
+
+      if context[:word_count]
+        prompt += "Word count: #{context[:word_count]}\n"
+      end
+
+      prompt += "\nIdentify ALL filler words. Return only the JSON response."
+    end
+
+    def filler_word_detection_json_schema
       {
         type: 'object',
-        required: %w[validated_filler_words summary],
+        required: %w[filler_words summary],
         properties: {
-          validated_filler_words: {
+          filler_words: {
             type: 'array',
             items: {
               type: 'object',
-              required: %w[word confidence is_filler],
+              required: %w[word confidence],
               properties: {
                 word: { type: 'string' },
                 text_snippet: { type: 'string' },
                 start_ms: { type: 'integer', minimum: 0 },
-                end_ms: { type: 'integer', minimum: 0 },
-                confidence: { type: 'number', minimum: 0, maximum: 1 },
-                rationale: { type: 'string' },
-                severity: { enum: %w[low medium high] },
-                is_filler: { type: 'boolean' }
-              }
-            }
-          },
-          false_positives: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                word: { type: 'string' },
-                text_snippet: { type: 'string' },
-                start_ms: { type: 'integer' },
-                end_ms: { type: 'integer' },
-                rationale: { type: 'string' },
-                confidence_override: { type: 'number', minimum: 0, maximum: 1 }
-              }
-            }
-          },
-          missed_filler_words: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                word: { type: 'string' },
-                text_snippet: { type: 'string' },
-                start_ms: { type: 'integer' },
-                end_ms: { type: 'integer' },
                 confidence: { type: 'number', minimum: 0, maximum: 1 },
                 rationale: { type: 'string' },
                 severity: { enum: %w[low medium high] }
@@ -811,12 +723,11 @@ module Ai
           },
           summary: {
             type: 'object',
-            required: %w[total_validated],
+            required: %w[total_detected],
             properties: {
-              total_validated: { type: 'integer', minimum: 0 },
-              total_false_positives: { type: 'integer', minimum: 0 },
-              total_missed: { type: 'integer', minimum: 0 },
-              overall_filler_rate: { type: 'string' },
+              total_detected: { type: 'integer', minimum: 0 },
+              filler_rate_per_minute: { type: 'number', minimum: 0 },
+              most_common_fillers: { type: 'array', items: { type: 'string' } },
               recommendation: { type: 'string' }
             }
           }

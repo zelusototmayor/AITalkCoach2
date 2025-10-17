@@ -27,8 +27,17 @@
 threads_count = ENV.fetch("RAILS_MAX_THREADS", 3)
 threads threads_count, threads_count
 
-# Specifies the `port` that Puma will listen on to receive requests; default is 3000.
-port ENV.fetch("PORT", 3000)
+# Port and SSL configuration
+if ENV["RAILS_ENV"] == "development" || !ENV["RAILS_ENV"]
+  # In development, use HTTPS for getUserMedia API support
+  ssl_bind "0.0.0.0", ENV.fetch("PORT", 3000),
+    key: File.expand_path("../ssl/localhost.key", __FILE__),
+    cert: File.expand_path("../ssl/localhost.crt", __FILE__),
+    verify_mode: "none"
+else
+  # In production, use regular HTTP (Kamal/proxy handles SSL)
+  port ENV.fetch("PORT", 3000)
+end
 
 # Allow puma to be restarted by `bin/rails restart` command.
 plugin :tmp_restart

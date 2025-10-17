@@ -1,20 +1,7 @@
 pt:
-  filler_words:
-    - pattern: '\b(eh|é|ah|hm|ahn)\b'
-      severity: 'medium'
-      description: 'Palavras de preenchimento comuns que podem distrair da mensagem'
-      tip: 'Tente pausar ao invés de usar palavras de preenchimento. O silêncio pode ser mais poderoso que "eh" ou "ah".'
-      
-    - pattern: '\b(tipo|né|então|assim|sei lá)\b'
-      severity: 'low'
-      description: 'Expressões casuais usadas em excesso'
-      tip: 'Varie seu vocabulário e reduza expressões repetitivas para uma comunicação mais clara.'
-      
-    - pattern: '\b(meio que|tipo assim|mais ou menos)\b'
-      severity: 'low'
-      description: 'Qualificadores fracos que reduzem a confiança'
-      tip: 'Seja mais definitivo em suas declarações. Diga o que você quer dizer diretamente.'
-      
+  # NOTA: filler_words agora são detectadas por IA para precisão contextual
+  # Veja: app/services/ai/prompt_builder.rb - prompt filler_word_detection
+
   pace_issues:
     - pattern: 'speaking_rate_below_120'
       severity: 'medium'

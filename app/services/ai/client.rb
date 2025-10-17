@@ -24,19 +24,24 @@ module Ai
       default_options = {
         model: @model,
         messages: messages,
-        max_tokens: MAX_TOKENS,
-        temperature: TEMPERATURE
+        max_completion_tokens: MAX_TOKENS
       }
-      
+
+      # Only add temperature if explicitly provided in options
+      # Some models (like o1) don't support custom temperature
+      if options.key?(:temperature)
+        default_options[:temperature] = options[:temperature]
+      end
+
       # Only add response_format for models that support it
       if supports_json_mode?(@model)
         default_options[:response_format] = { type: 'json_object' }
       end
-      
-      merged_options = default_options.merge(options)
-      
+
+      merged_options = default_options.merge(options.except(:temperature))
+
       # Estimate token usage for rate limiting
-      estimated_tokens = estimate_token_usage(messages, merged_options[:max_tokens])
+      estimated_tokens = estimate_token_usage(messages, merged_options[:max_completion_tokens] || merged_options[:max_tokens])
       
       # Use enhanced retry mechanism with rate limiting
       retry_handler = Networking::RetryHandler.new(:ai_generation)
@@ -90,7 +95,7 @@ module Ai
         { role: 'user', content: user_prompt }
       ]
       
-      chat_completion(messages, temperature: 0.4, max_tokens: 1000)
+      chat_completion(messages, temperature: 0.4, max_completion_tokens: 1000)
     end
     
     def create_embedding(text, model: 'text-embedding-3-small')
