@@ -71,6 +71,7 @@ Rails.application.config.force_ssl = true if Rails.env.production? || Rails.env.
 # Configure secure session cookies
 Rails.application.config.session_store :cookie_store,
   key: '_ai_talk_coach_session',
+  domain: Rails.env.development? ? '.aitalkcoach.local' : '.aitalkcoach.com',
   secure: Rails.env.production? || Rails.env.staging?,
   httponly: true,
   same_site: :lax,

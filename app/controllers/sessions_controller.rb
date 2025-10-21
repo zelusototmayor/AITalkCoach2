@@ -42,13 +42,23 @@ class SessionsController < ApplicationController
       @categories = (@prompts.keys + ['recommended']).uniq.sort
       @user_weaknesses = analyze_user_weaknesses
 
-      # Quick metrics for insights panel
+      # Quick metrics for insights panel (30-day averages)
       @recent_sessions = current_user.sessions
                                      .where(completed: true)
                                      .where('sessions.created_at > ?', 30.days.ago)
                                      .order('sessions.created_at DESC')
                                      .limit(10)
                                      .includes(:issues)
+
+      # Lifetime metrics for Performance Metrics section
+      @lifetime_session_count = current_user.sessions.where(completed: true).count
+      # Calculate in Ruby because duration is stored in JSON, not a DB column
+      @lifetime_total_minutes = (
+        current_user.sessions
+                    .where(completed: true)
+                    .to_a
+                    .sum { |s| s.duration_seconds.to_f } / 60.0
+      ).round
 
       @quick_metrics = calculate_quick_metrics(@recent_sessions)
       @focus_areas = generate_focus_areas
@@ -592,7 +602,11 @@ class SessionsController < ApplicationController
     cache_key = "user_#{current_user.id}_quick_metrics_#{latest_update&.to_i}"
 
     Rails.cache.fetch(cache_key, expires_in: 15.minutes) do
-      total_sessions = sessions.count
+      # Get lifetime total count from database, not from the limited sessions array
+      total_sessions = current_user.sessions
+                                   .where(completed: true)
+                                   .count
+
       wpm_values = sessions.filter_map { |s| s.analysis_data['wpm'] }
       filler_values = sessions.filter_map { |s| s.analysis_data['filler_rate'] }
       clarity_values = sessions.filter_map { |s| s.analysis_data['clarity_score'] }
@@ -813,9 +827,10 @@ class SessionsController < ApplicationController
       return
     end
 
-    # Otherwise require login (redirect to app subdomain)
+    # For app subdomain, redirect to marketing site with trial option
+    # This prevents infinite redirect loops
     store_location
-    redirect_to app_subdomain_url(login_path), alert: 'Please login or try our demo'
+    redirect_to marketing_subdomain_url('/?trial=true'), allow_other_host: true, alert: 'Please login or try our demo'
   end
 
   def handle_trial_session

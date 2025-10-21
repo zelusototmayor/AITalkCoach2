@@ -383,13 +383,13 @@
             <div class="metric-item">
               <div class="metric-label">Sessions</div>
               <div class="metric-value">
-                <%= @recent_sessions.count %>
+                <%= @lifetime_session_count %>
               </div>
             </div>
             <div class="metric-item">
               <div class="metric-label">Total Time</div>
               <div class="metric-value">
-                <%= (@recent_sessions.sum { |s| s.duration_seconds || 0 } / 60).round %>m
+                <%= @lifetime_total_minutes %>m
               </div>
             </div>
           </div>

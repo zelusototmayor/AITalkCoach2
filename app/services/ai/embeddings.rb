@@ -513,14 +513,19 @@ module Ai
         embedding_type: embedding_type,
         reference_id: reference_id
       )
-      
+
+      metadata_hash = build_embedding_metadata(session, embedding_type, reference_id, embedding_data)
+      payload_hash = build_embedding_payload(session, embedding_type, reference_id, embedding_data)
+
       user_embedding.update!(
+        user_id: session.user_id,
         vector_data: embedding_data,
-        model_name: @model,
+        payload: payload_hash.to_json,
+        ai_model_name: @model,
         dimensions: SUPPORTED_MODELS[@model][:dimensions],
-        metadata: build_embedding_metadata(session, embedding_type, reference_id, embedding_data)
+        metadata_json: metadata_hash.to_json
       )
-      
+
       user_embedding
     end
     
@@ -531,7 +536,7 @@ module Ai
         model: @model,
         embedding_type: embedding_type
       }
-      
+
       case embedding_type
       when 'issue'
         issue = session.issues.find_by(id: reference_id)
@@ -547,8 +552,63 @@ module Ai
       when 'session_summary'
         metadata[:overall_score] = session.analysis_data['overall_score']
       end
-      
+
       metadata
+    end
+
+    def build_embedding_payload(session, embedding_type, reference_id, embedding_data)
+      payload = {
+        session_id: session.id,
+        user_id: session.user_id,
+        embedding_type: embedding_type
+      }
+
+      case embedding_type
+      when 'issue'
+        issue = session.issues.find_by(id: reference_id)
+        if issue
+          payload.merge!(
+            issue_type: issue.kind,
+            description: issue.rationale,
+            context: issue.text,
+            micro_tip: issue.tip,
+            severity: issue.severity,
+            category: issue.category,
+            start_ms: issue.start_ms,
+            end_ms: issue.end_ms
+          )
+        end
+      when 'transcript'
+        payload.merge!(
+          transcript: session.analysis_data['transcript'],
+          word_count: session.analysis_data['transcript']&.split&.length || 0,
+          duration_seconds: session.duration_seconds
+        )
+      when 'session_summary'
+        payload.merge!(
+          title: session.title,
+          overall_score: session.analysis_data['overall_score'],
+          grade: session.analysis_data['grade'],
+          wpm: session.analysis_data['wpm'],
+          filler_rate: session.analysis_data['filler_rate'],
+          summary_text: build_session_summary_text(session)
+        )
+      when 'segment'
+        # For segments, reference_id is the segment index
+        key_segments = session.analysis_data['key_segments']
+        if key_segments && key_segments[reference_id.to_i]
+          segment = key_segments[reference_id.to_i]
+          payload.merge!(
+            segment_index: reference_id,
+            text: segment['text'],
+            start_ms: segment['start_ms'],
+            end_ms: segment['end_ms'],
+            segment_type: segment['type']
+          )
+        end
+      end
+
+      payload
     end
     
     # Model information helpers

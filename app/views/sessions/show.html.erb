@@ -480,7 +480,8 @@
         <div class="transcript-content-modern"
              data-transcript-target="content"
              data-session-id="<%= @session.id %>">
-          <%= highlight_filler_words(@session.analysis_data['transcript']) %>
+          <% ai_filler_words = @issues.select { |i| i.kind == 'filler_word' && i.source == 'ai' }.map { |i| extract_filler_word(i) }.compact.uniq %>
+          <%= highlight_filler_words(@session.analysis_data['transcript'], ai_filler_words) %>
         </div>
       </div>
     <% end %>

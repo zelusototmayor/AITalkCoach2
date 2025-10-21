@@ -64,7 +64,17 @@ module Ai
         { role: 'user', content: build_user_prompt(data) }
       ]
     end
-    
+
+    # Public method for function calling (tools API)
+    def tool_schema
+      expected_json_schema
+    end
+
+    # Expose prompt type for function naming
+    def prompt_type
+      @prompt_type
+    end
+
     def expected_json_schema
       case @prompt_type
       when 'speech_analysis'
@@ -208,7 +218,8 @@ module Ai
               "impact_description": "Disrupts flow and reduces perceived confidence",
               "coaching_recommendation": "Practice the 'pause and breathe' technique",
               "priority": "high",
-              "practice_exercise": "Record 5-minute sessions focusing on eliminating 'um'"
+              "practice_exercise": "Record 5-minute sessions focusing on eliminating 'um'",
+              "context_text": "I think, um, we should proceed"
             }
           ],
           "false_positives": [
@@ -261,17 +272,37 @@ module Ai
     
     def build_coaching_advice_system_prompt
       coaching_style = @options[:coaching_style] || 'supportive'
-      
+
       <<~PROMPT
         You are a personalized speech coach with a #{coaching_style} approach. Create individualized coaching plans based on user progress and patterns.
-        
+
         Your coaching philosophy:
         - Build on existing strengths while addressing weaknesses
         - Provide progressive skill development (don't overwhelm)
         - Use specific, measurable goals with clear success metrics
         - Maintain encouragement while being honest about areas for improvement
         - Adapt recommendations to user's experience level and goals
-        
+
+        **IMPORTANT - Pattern-Specific Coaching (Phase 3):**
+        When you receive 'current_session_insights' with detailed patterns, use them to:
+
+        1. **Identify Specific Moments** (not just overall scores)
+           - Example: Instead of "Your pace needs work (65/100)"
+           - Say: "I notice you rush in the middle of sessions (pace jumps from 130 to 180 WPM)"
+
+        2. **Create Targeted Exercises** based on patterns
+           - If hesitations occur "mostly at sentence starts", recommend practicing opening phrases
+           - If pauses are "mostly good with 5 awkward long pauses", focus on reducing those specific pauses
+           - If energy is "flat throughout", suggest vocal variation exercises
+
+        3. **Acknowledge Micro-Wins** in specific areas
+           - Example: "Your word pacing is excellent (85/100) - you're smooth once you get going!"
+           - This builds confidence while addressing areas for improvement
+
+        4. **Use Pattern Data** to make advice actionable
+           - "You say 'um' mostly at sentence starts (6 out of 8 times)" → Practice prepared openings
+           - "Pace trajectory: starts slow, rushes middle, settles" → Focus on mid-session awareness
+
         Coaching Components:
         1. **Focus Areas**: 2-3 primary skills to work on (based on data patterns)
         2. **Weekly Goals**: Specific, measurable objectives for the next 7 days
@@ -322,15 +353,16 @@ module Ai
       user_profile = data[:user_profile] || {}
       recent_sessions = data[:recent_sessions] || []
       issue_trends = data[:issue_trends] || {}
-      
+      current_session_insights = data[:current_session_insights] || {}
+
       prompt = "Create personalized coaching advice for this user:\n\n"
-      
+
       prompt += "**User Profile:**\n"
       prompt += "- Total sessions: #{user_profile[:session_count] || 0}\n"
       prompt += "- Experience level: #{user_profile[:level] || 'beginner'}\n"
       prompt += "- Primary goals: #{(user_profile[:goals] || []).join(', ')}\n"
       prompt += "- Preferred practice time: #{user_profile[:practice_time] || '10-15 minutes'}\n\n"
-      
+
       if recent_sessions.any?
         prompt += "**Recent Session Performance:**\n"
         recent_sessions.each_with_index do |session, index|
@@ -340,7 +372,7 @@ module Ai
           prompt += "- Duration: #{session[:duration_seconds]} seconds\n\n"
         end
       end
-      
+
       if issue_trends.any?
         prompt += "**Issue Trends (Last 30 days):**\n"
         issue_trends.each do |issue_type, data|
@@ -349,7 +381,33 @@ module Ai
         end
         prompt += "\n"
       end
-      
+
+      # Phase 3: Add current session insights for pattern-specific coaching
+      if current_session_insights[:standout_patterns]&.any? || current_session_insights[:micro_opportunities]&.any?
+        prompt += "**Current Session Patterns (Use these for specific, actionable advice!):**\n"
+
+        if current_session_insights[:standout_patterns]&.any?
+          prompt += "\nStandout Patterns:\n"
+          current_session_insights[:standout_patterns].each do |pattern|
+            prompt += "- #{pattern}\n"
+          end
+        end
+
+        if current_session_insights[:micro_opportunities]&.any?
+          prompt += "\nMicro-Opportunities (strengths to acknowledge):\n"
+          current_session_insights[:micro_opportunities].each do |opportunity|
+            if opportunity.is_a?(Hash)
+              prompt += "- #{opportunity[:type]}: #{opportunity[:insight] || opportunity[:pattern]}\n"
+              prompt += "  Suggestion: #{opportunity[:suggestion]}\n"
+            else
+              prompt += "- #{opportunity}\n"
+            end
+          end
+        end
+
+        prompt += "\n"
+      end
+
       prompt += "Based on this data, create a personalized coaching plan in the specified JSON format."
     end
     
@@ -536,7 +594,7 @@ module Ai
         properties: {
           overall_assessment: {
             type: 'object',
-            required: %w[overall_score],
+            required: %w[clarity_score confidence_score engagement_score professionalism_score overall_score],
             properties: {
               clarity_score: { type: 'integer', minimum: 0, maximum: 100 },
               confidence_score: { type: 'integer', minimum: 0, maximum: 100 },
@@ -550,7 +608,7 @@ module Ai
             type: 'array',
             items: {
               type: 'object',
-              required: %w[category issue confidence severity priority],
+              required: %w[category issue confidence severity specific_recommendation priority],
               properties: {
                 category: { type: 'string' },
                 issue: { type: 'string' },
@@ -569,18 +627,47 @@ module Ai
     def issue_classification_json_schema
       {
         type: 'object',
-        required: %w[validated_issues summary],
+        required: %w[validated_issues false_positives summary],
         properties: {
-          validated_issues: { type: 'array' },
-          false_positives: { type: 'array' },
+          validated_issues: {
+            type: 'array',
+            items: {
+              type: 'object',
+              required: %w[original_detection validation confidence severity impact_description coaching_recommendation priority practice_exercise context_text],
+              properties: {
+                original_detection: { type: 'string' },
+                validation: { type: 'string' },
+                confidence: { type: 'number', minimum: 0, maximum: 1 },
+                severity: { enum: %w[low medium high] },
+                impact_description: { type: 'string' },
+                coaching_recommendation: { type: 'string' },
+                priority: { enum: %w[low medium high] },
+                practice_exercise: { type: 'string' },
+                context_text: { type: 'string' }
+              }
+            }
+          },
+          false_positives: {
+            type: 'array',
+            items: {
+              type: 'object',
+              required: %w[original_detection reason confidence_override],
+              properties: {
+                original_detection: { type: 'string' },
+                reason: { type: 'string' },
+                confidence_override: { type: 'number', minimum: 0, maximum: 1 }
+              }
+            }
+          },
           summary: {
             type: 'object',
-            required: %w[total_valid_issues],
+            required: %w[total_valid_issues high_priority_count medium_priority_count low_priority_count recommended_focus],
             properties: {
               total_valid_issues: { type: 'integer', minimum: 0 },
               high_priority_count: { type: 'integer', minimum: 0 },
               medium_priority_count: { type: 'integer', minimum: 0 },
-              low_priority_count: { type: 'integer', minimum: 0 }
+              low_priority_count: { type: 'integer', minimum: 0 },
+              recommended_focus: { type: 'string' }
             }
           }
         }
@@ -590,12 +677,57 @@ module Ai
     def coaching_advice_json_schema
       {
         type: 'object',
-        required: %w[focus_areas weekly_goals],
+        required: %w[focus_areas weekly_goals practice_plan progress_acknowledgment motivation_message],
         properties: {
-          focus_areas: { type: 'array' },
-          weekly_goals: { type: 'array' },
-          practice_plan: { type: 'array' },
-          progress_acknowledgment: { type: 'object' },
+          focus_areas: {
+            type: 'array',
+            items: {
+              type: 'object',
+              required: %w[skill current_level target_improvement timeline],
+              properties: {
+                skill: { type: 'string' },
+                current_level: { type: 'string' },
+                target_improvement: { type: 'string' },
+                timeline: { type: 'string' }
+              }
+            }
+          },
+          weekly_goals: {
+            type: 'array',
+            items: {
+              type: 'object',
+              required: %w[goal strategies measurement difficulty],
+              properties: {
+                goal: { type: 'string' },
+                strategies: { type: 'array', items: { type: 'string' } },
+                measurement: { type: 'string' },
+                difficulty: { type: 'string' }
+              }
+            }
+          },
+          practice_plan: {
+            type: 'array',
+            items: {
+              type: 'object',
+              required: %w[exercise duration frequency focus week],
+              properties: {
+                exercise: { type: 'string' },
+                duration: { type: 'string' },
+                frequency: { type: 'string' },
+                focus: { type: 'string' },
+                week: { type: 'integer', minimum: 1 }
+              }
+            }
+          },
+          progress_acknowledgment: {
+            type: 'object',
+            required: %w[recent_improvements consistency_praise next_milestone],
+            properties: {
+              recent_improvements: { type: 'array', items: { type: 'string' } },
+              consistency_praise: { type: 'string' },
+              next_milestone: { type: 'string' }
+            }
+          },
           motivation_message: { type: 'string' }
         }
       }
@@ -604,11 +736,11 @@ module Ai
     def segment_evaluation_json_schema
       {
         type: 'object',
-        required: %w[evaluation recommended_for_ai_analysis],
+        required: %w[evaluation key_learning_opportunities recommended_for_ai_analysis analysis_focus_areas segment_summary],
         properties: {
           evaluation: {
             type: 'object',
-            required: %w[overall_score],
+            required: %w[educational_value issue_density representativeness coaching_potential overall_score],
             properties: {
               educational_value: { type: 'number', minimum: 0, maximum: 1 },
               issue_density: { type: 'number', minimum: 0, maximum: 1 },
@@ -617,7 +749,16 @@ module Ai
               overall_score: { type: 'number', minimum: 0, maximum: 1 }
             }
           },
-          recommended_for_ai_analysis: { type: 'boolean' }
+          key_learning_opportunities: {
+            type: 'array',
+            items: { type: 'string' }
+          },
+          recommended_for_ai_analysis: { type: 'boolean' },
+          analysis_focus_areas: {
+            type: 'array',
+            items: { type: 'string' }
+          },
+          segment_summary: { type: 'string' }
         }
       }
     end
@@ -631,12 +772,65 @@ module Ai
             type: 'object',
             properties: {
               overall_improvement: { type: 'number' },
-              sessions_analyzed: { type: 'integer', minimum: 0 }
+              consistency_score: { type: 'number' },
+              sessions_analyzed: { type: 'integer', minimum: 0 },
+              time_period_days: { type: 'integer', minimum: 0 }
             }
           },
-          metric_improvements: { type: 'array' },
-          achievement_status: { type: 'array' },
-          motivation_insights: { type: 'object' }
+          metric_improvements: {
+            type: 'array',
+            items: {
+              type: 'object',
+              required: %w[metric baseline current improvement_percentage trend],
+              properties: {
+                metric: { type: 'string' },
+                baseline: { type: 'number' },
+                current: { type: 'number' },
+                improvement_percentage: { type: 'number' },
+                trend: { type: 'string' }
+              }
+            }
+          },
+          achievement_status: {
+            type: 'array',
+            items: {
+              type: 'object',
+              required: %w[goal target current status achievement_date],
+              properties: {
+                goal: { type: 'string' },
+                target: { type: 'number' },
+                current: { type: 'number' },
+                status: { type: 'string' },
+                achievement_date: { type: 'string' }
+              }
+            }
+          },
+          persistent_challenges: {
+            type: 'array',
+            items: {
+              type: 'object',
+              required: %w[challenge sessions_affected severity_trend recommended_action],
+              properties: {
+                challenge: { type: 'string' },
+                sessions_affected: { type: 'integer', minimum: 0 },
+                severity_trend: { type: 'string' },
+                recommended_action: { type: 'string' }
+              }
+            }
+          },
+          next_focus_recommendations: {
+            type: 'array',
+            items: { type: 'string' }
+          },
+          motivation_insights: {
+            type: 'object',
+            required: %w[biggest_win improvement_streak next_milestone],
+            properties: {
+              biggest_win: { type: 'string' },
+              improvement_streak: { type: 'string' },
+              next_milestone: { type: 'string' }
+            }
+          }
         }
       }
     end
@@ -710,7 +904,7 @@ module Ai
             type: 'array',
             items: {
               type: 'object',
-              required: %w[word confidence],
+              required: %w[word text_snippet start_ms confidence rationale severity],
               properties: {
                 word: { type: 'string' },
                 text_snippet: { type: 'string' },
@@ -723,7 +917,7 @@ module Ai
           },
           summary: {
             type: 'object',
-            required: %w[total_detected],
+            required: %w[total_detected filler_rate_per_minute most_common_fillers recommendation],
             properties: {
               total_detected: { type: 'integer', minimum: 0 },
               filler_rate_per_minute: { type: 'number', minimum: 0 },

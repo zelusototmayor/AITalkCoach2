@@ -1,4 +1,6 @@
 class LandingController < ApplicationController
+  # Allow trial access on marketing site
+  before_action :activate_trial_if_requested
 
   def index
     # Calculate real metrics from the database for social proof
@@ -161,6 +163,14 @@ class LandingController < ApplicationController
       "#{(number / 1000.0).round(1)}k"
     else
       number.to_s
+    end
+  end
+
+  private
+
+  def activate_trial_if_requested
+    if params[:trial] == 'true' && !logged_in?
+      activate_trial
     end
   end
 end

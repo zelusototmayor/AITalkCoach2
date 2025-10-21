@@ -6,10 +6,15 @@ export default class extends Controller {
     debug: Boolean
   }
 
+  static targets = []
+
   connect() {
     // Enable analytics in production or when explicitly enabled
     this.enabledValue = this.enabledValue ?? (window.location.hostname !== 'localhost')
     this.debugValue = this.debugValue ?? false
+
+    // Initialize Mixpanel
+    this.initializeMixpanel()
 
     // Track initial page view
     this.trackPageView()
@@ -32,11 +37,50 @@ export default class extends Controller {
     window.analyticsController = null
   }
 
-  // Core tracking method
-  trackEvent(eventName, parameters = {}) {
-    if (!this.enabledValue || typeof gtag === 'undefined') {
+  // Initialize Mixpanel with super properties
+  initializeMixpanel() {
+    if (!this.enabledValue || typeof mixpanel === 'undefined') {
       if (this.debugValue) {
-        console.log('Analytics disabled or gtag not available:', eventName, parameters)
+        console.log('Mixpanel disabled or not available')
+      }
+      return
+    }
+
+    // Identify user if logged in
+    const userId = this.element.dataset.userId
+    const userEmail = this.element.dataset.userEmail
+    const userName = this.element.dataset.userName
+
+    if (userId) {
+      mixpanel.identify(userId)
+      mixpanel.people.set({
+        '$email': userEmail,
+        '$name': userName,
+        'User Type': 'authenticated'
+      })
+
+      if (this.debugValue) {
+        console.log('Mixpanel user identified:', userId)
+      }
+    }
+
+    // Set super properties (sent with every event)
+    mixpanel.register({
+      'User Type': this.getUserType(),
+      'Environment': window.location.hostname === 'localhost' ? 'development' : 'production',
+      'Platform': 'Web'
+    })
+
+    if (this.debugValue) {
+      console.log('Mixpanel initialized with super properties')
+    }
+  }
+
+  // Core tracking method - supports both GA and Mixpanel
+  trackEvent(eventName, parameters = {}) {
+    if (!this.enabledValue) {
+      if (this.debugValue) {
+        console.log('Analytics disabled:', eventName, parameters)
       }
       return
     }
@@ -50,17 +94,49 @@ export default class extends Controller {
       ...parameters
     }
 
-    // Track the event
-    gtag('event', eventName, enrichedParameters)
+    // Track with Google Analytics
+    if (typeof gtag !== 'undefined') {
+      gtag('event', eventName, enrichedParameters)
+    }
+
+    // Track with Mixpanel
+    if (typeof mixpanel !== 'undefined') {
+      // Convert snake_case to Title Case for Mixpanel
+      const mixpanelEventName = this.formatEventName(eventName)
+      const mixpanelProperties = this.formatPropertiesForMixpanel(enrichedParameters)
+
+      mixpanel.track(mixpanelEventName, mixpanelProperties)
+    }
 
     if (this.debugValue) {
       console.log('Analytics event tracked:', eventName, enrichedParameters)
     }
   }
 
+  // Format event names for Mixpanel (Title Case)
+  formatEventName(eventName) {
+    return eventName
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')
+  }
+
+  // Format properties for Mixpanel (Title Case keys)
+  formatPropertiesForMixpanel(properties) {
+    const formatted = {}
+    for (const [key, value] of Object.entries(properties)) {
+      const formattedKey = key
+        .split('_')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ')
+      formatted[formattedKey] = value
+    }
+    return formatted
+  }
+
   // Page view tracking
   trackPageView(pagePath = null) {
-    if (!this.enabledValue || typeof gtag === 'undefined') {
+    if (!this.enabledValue) {
       return
     }
 
@@ -73,7 +149,18 @@ export default class extends Controller {
       parameters.page_location = pagePath
     }
 
-    gtag('config', 'G-KM66Q2D5T3', parameters)
+    // Track with Google Analytics
+    if (typeof gtag !== 'undefined') {
+      gtag('config', 'G-KM66Q2D5T3', parameters)
+    }
+
+    // Track with Mixpanel
+    if (typeof mixpanel !== 'undefined') {
+      mixpanel.track_pageview({
+        'Page Title': document.title,
+        'User Type': this.getUserType()
+      })
+    }
 
     if (this.debugValue) {
       console.log('Page view tracked:', parameters)

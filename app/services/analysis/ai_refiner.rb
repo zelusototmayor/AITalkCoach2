@@ -138,9 +138,13 @@ module Analysis
       }
       
       messages = prompt_builder.build_messages(evaluation_data)
-      
+
       begin
-        response = @ai_client.chat_completion(messages, temperature: 0.2)
+        response = @ai_client.chat_completion(
+          messages,
+          tool_schema: prompt_builder.tool_schema,
+          prompt_type: prompt_builder.prompt_type
+        )
         evaluation = response[:parsed_content] || {}
         
         # Cache successful evaluations
@@ -219,11 +223,15 @@ module Analysis
       }
       
       messages = prompt_builder.build_messages(analysis_data)
-      
+
       begin
-        response = @ai_client.chat_completion(messages, temperature: 0.3)
+        response = @ai_client.chat_completion(
+          messages,
+          tool_schema: prompt_builder.tool_schema,
+          prompt_type: prompt_builder.prompt_type
+        )
         analysis = response[:parsed_content]
-        
+
         if analysis && analysis['overall_assessment']
           # Cache successful analysis
           Ai::Cache.set(cache_key, analysis, ttl: @cache_ttl)
@@ -299,11 +307,15 @@ module Analysis
       }
       
       messages = prompt_builder.build_messages(classification_data)
-      
+
       begin
-        response = @ai_client.chat_completion(messages, temperature: 0.1)
+        response = @ai_client.chat_completion(
+          messages,
+          tool_schema: prompt_builder.tool_schema,
+          prompt_type: prompt_builder.prompt_type
+        )
         classification = response[:parsed_content]
-        
+
         if classification && classification['validated_issues']
           # Process validated issues and merge back with original data
           refined_issues = merge_classification_with_original_issues(issues, classification)
@@ -358,7 +370,11 @@ module Analysis
       messages = prompt_builder.build_messages(detection_data)
 
       begin
-        response = @ai_client.chat_completion(messages)
+        response = @ai_client.chat_completion(
+          messages,
+          tool_schema: prompt_builder.tool_schema,
+          prompt_type: prompt_builder.prompt_type
+        )
         detection_result = response[:parsed_content]
 
         if detection_result && detection_result['filler_words']
@@ -401,6 +417,7 @@ module Analysis
           start_ms: timing[:start_ms],
           end_ms: timing[:end_ms],
           text: filler['text_snippet'],
+          filler_word: filler['word'], # Exact filler word for highlighting
           source: 'ai',
           rationale: filler['rationale'],
           tip: generate_filler_word_tip(filler['word']),
@@ -572,36 +589,49 @@ module Analysis
     
     def generate_coaching_recommendations(merged_issues)
       return [] if merged_issues.empty?
-      
+
       cache_key = Ai::Cache.coaching_cache_key(
         @session.user_id,
         Digest::MD5.hexdigest(determine_user_profile.to_json),
         Digest::MD5.hexdigest(merged_issues.map { |i| i[:kind] }.sort.join(','))
       )
-      
+
       cached_advice = Ai::Cache.get(cache_key, ttl: @cache_ttl)
       if cached_advice
         @options[:metadata]&.[](:cache_hits)&.+(1)
         return cached_advice
       end
-      
+
       prompt_builder = Ai::PromptBuilder.new(
         'coaching_advice',
         coaching_style: @options[:coaching_style] || 'supportive'
       )
-      
+
+      # Retrieve coaching insights from session (Phase 3 enhancement)
+      coaching_insights = @session.coaching_insights || {}
+
       coaching_data = {
         user_profile: determine_user_profile,
         recent_sessions: determine_recent_sessions,
-        issue_trends: analyze_issue_trends(merged_issues)
+        issue_trends: analyze_issue_trends(merged_issues),
+
+        # Phase 3: Add current session insights for pattern-specific coaching
+        current_session_insights: {
+          standout_patterns: extract_standout_patterns(coaching_insights),
+          micro_opportunities: extract_micro_opportunities(coaching_insights)
+        }
       }
-      
+
       messages = prompt_builder.build_messages(coaching_data)
-      
+
       begin
-        response = @ai_client.chat_completion(messages, temperature: 0.4)
+        response = @ai_client.chat_completion(
+          messages,
+          tool_schema: prompt_builder.tool_schema,
+          prompt_type: prompt_builder.prompt_type
+        )
         coaching_advice = response[:parsed_content]
-        
+
         if coaching_advice
           # Cache successful coaching advice
           Ai::Cache.set(cache_key, coaching_advice, ttl: @cache_ttl)
@@ -810,7 +840,7 @@ module Analysis
       # Simple rule-based coaching advice as fallback
       issue_counts = issues.group_by { |i| i[:kind] }.transform_values(&:count)
       top_issue = issue_counts.max_by { |_, count| count }&.first
-      
+
       {
         focus_areas: [
           {
@@ -830,6 +860,99 @@ module Analysis
         ],
         motivation_message: 'Keep practicing - improvement comes with consistency!'
       }
+    end
+
+    # Phase 3: Extract standout patterns from coaching insights
+    def extract_standout_patterns(coaching_insights)
+      return [] if coaching_insights.blank?
+
+      patterns = []
+
+      # Pause patterns
+      if coaching_insights['pause_patterns'].present?
+        pause = coaching_insights['pause_patterns']
+        if pause['quality_breakdown'] == 'mostly_good_with_awkward_long_pauses'
+          patterns << "pause_consistency_low_but_improving"
+        elsif pause['specific_issue'].present?
+          patterns << "awkward_long_pauses: #{pause['specific_issue']}"
+        end
+      end
+
+      # Pace patterns
+      if coaching_insights['pace_patterns'].present?
+        pace = coaching_insights['pace_patterns']
+        if pace['trajectory'] && pace['trajectory'] != 'steady'
+          patterns << "pace_#{pace['trajectory']}"
+        end
+        if pace['consistency'] && pace['consistency'] < 0.5
+          patterns << "pace_inconsistent"
+        end
+      end
+
+      # Energy patterns
+      if coaching_insights['energy_patterns'].present?
+        energy = coaching_insights['energy_patterns']
+        if energy['pattern'] == 'low_energy_throughout'
+          patterns << "energy_flat_throughout_session"
+        elsif energy['needs_boost']
+          patterns << "energy_needs_boost"
+        end
+      end
+
+      # Smoothness breakdown
+      if coaching_insights['smoothness_breakdown'].present?
+        smoothness = coaching_insights['smoothness_breakdown']
+        if smoothness['word_flow_excellent'] && smoothness['pause_flow_poor']
+          patterns << "word_pacing_excellent_but_pause_inconsistent"
+        end
+      end
+
+      patterns.compact.first(3) # Return top 3 standout patterns
+    end
+
+    # Phase 3: Extract micro-opportunities from coaching insights
+    def extract_micro_opportunities(coaching_insights)
+      return [] if coaching_insights.blank?
+
+      opportunities = []
+
+      # Hesitation analysis
+      if coaching_insights['hesitation_analysis'].present?
+        hesitation = coaching_insights['hesitation_analysis']
+        if hesitation['pattern'] && hesitation['pattern'] != 'distributed'
+          opportunities << {
+            type: 'hesitation_location',
+            pattern: hesitation['pattern'],
+            suggestion: 'Practice opening phrases to reduce sentence-start hesitations'
+          }
+        end
+      end
+
+      # Pause opportunities
+      if coaching_insights['pause_patterns'].present?
+        pause = coaching_insights['pause_patterns']
+        if pause['distribution'] && pause['distribution']['optimal'] && pause['distribution']['optimal'] > 60
+          opportunities << {
+            type: 'pause_strength',
+            insight: "#{pause['distribution']['optimal']}% of pauses are well-timed",
+            suggestion: 'Leverage this strength while working on other areas'
+          }
+        end
+      end
+
+      # Pace opportunities
+      if coaching_insights['pace_patterns'].present?
+        pace = coaching_insights['pace_patterns']
+        if pace['average_wpm'] && pace['average_wpm'].between?(140, 160)
+          opportunities << {
+            type: 'pace_strength',
+            insight: 'Natural conversational pace',
+            suggestion: 'Focus on maintaining this pace consistency'
+          }
+        end
+      end
+
+      opportunities.first(2) # Return top 2 micro-opportunities
     end
   end
 end

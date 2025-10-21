@@ -269,7 +269,12 @@ module Sessions
           severity: issue_data[:severity],
           category: issue_data[:category]
         }
-        
+
+        # Store filler_word data in coaching_note for AI-detected filler words
+        if issue_data[:kind] == 'filler_word' && issue_data[:filler_word].present?
+          issue_attributes[:coaching_note] = issue_data[:filler_word]
+        end
+
         Issue.create!(issue_attributes)
       end
     end

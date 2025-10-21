@@ -1,24 +1,45 @@
 module ApplicationHelper
-  def highlight_filler_words(transcript_text)
+  # Extract filler word from issue's coaching_note field
+  def extract_filler_word(issue)
+    return nil unless issue.kind == 'filler_word' && issue.source == 'ai'
+    issue.coaching_note
+  end
+
+  def highlight_filler_words(transcript_text, ai_filler_words = [])
     return '' unless transcript_text.present?
 
-    # Define filler word patterns (same as in metrics.rb)
-    filler_patterns = {
-      'um' => /\b(um|uhm)\b/i,
-      'uh' => /\b(uh|er|ah)\b/i,
-      'like' => /\blike\b/i,
-      'you_know' => /\byou know\b/i,
-      'basically' => /\bbasically\b/i,
-      'actually' => /\bactually\b/i,
-      'so' => /\bso\b(?!\s+(that|what|how|when|where|why))/i
-    }
-
-    # Process the text and wrap filler words in spans
     highlighted_text = transcript_text.dup
 
-    filler_patterns.each do |type, pattern|
-      highlighted_text.gsub!(pattern) do |match|
-        %(<span class="filler-word filler-#{type}">#{match}</span>)
+    # Use AI detections if available, otherwise fallback to regex
+    if ai_filler_words.any?
+      # AI is primary - highlight only AI-detected filler words
+      ai_filler_words.each do |filler_word|
+        next if filler_word.blank?
+
+        # Escape special regex characters and create word boundary pattern
+        escaped_word = Regexp.escape(filler_word)
+        ai_pattern = /\b#{escaped_word}\b/i
+
+        highlighted_text.gsub!(ai_pattern) do |match|
+          %(<span class="filler-word filler-ai">#{match}</span>)
+        end
+      end
+    else
+      # Fallback to regex patterns only when AI failed or returned no results
+      filler_patterns = {
+        'um' => /\b(um|uhm)\b/i,
+        'uh' => /\b(uh|er|ah)\b/i,
+        'like' => /\blike\b/i,
+        'you_know' => /\byou know\b/i,
+        'basically' => /\bbasically\b/i,
+        'actually' => /\bactually\b/i,
+        'so' => /\bso\b(?!\s+(that|what|how|when|where|why))/i
+      }
+
+      filler_patterns.each do |type, pattern|
+        highlighted_text.gsub!(pattern) do |match|
+          %(<span class="filler-word filler-#{type}">#{match}</span>)
+        end
       end
     end
 

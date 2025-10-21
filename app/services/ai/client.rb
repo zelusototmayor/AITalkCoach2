@@ -33,31 +33,43 @@ module Ai
         default_options[:temperature] = options[:temperature]
       end
 
-      # Only add response_format for models that support it
-      if supports_json_mode?(@model)
+      # NEW: Add tools (function calling) if schema provided
+      if options[:tool_schema] && options[:prompt_type]
+        tools = [build_function_definition(options[:prompt_type], options[:tool_schema])]
+        default_options[:tools] = tools
+        default_options[:tool_choice] = {
+          type: "function",
+          function: { name: function_name_for_prompt_type(options[:prompt_type]) }
+        }
+
+        # Log schema for debugging
+        Rails.logger.info "OpenAI Function Call - Type: #{options[:prompt_type]}, Schema: #{options[:tool_schema].to_json}"
+      # FALLBACK: Use JSON mode for compatible models (when not using function calling)
+      # Don't use JSON mode if function calling is available - it's not needed
+      elsif supports_json_mode?(@model) && !options[:tool_schema] && json_mode_requested?(messages)
         default_options[:response_format] = { type: 'json_object' }
       end
 
-      merged_options = default_options.merge(options.except(:temperature))
+      merged_options = default_options.merge(options.except(:temperature, :tool_schema, :prompt_type))
 
       # Estimate token usage for rate limiting
       estimated_tokens = estimate_token_usage(messages, merged_options[:max_completion_tokens] || merged_options[:max_tokens])
-      
+
       # Use enhanced retry mechanism with rate limiting
       retry_handler = Networking::RetryHandler.new(:ai_generation)
-      
+
       retry_handler.with_retries(service: 'openai', endpoint: 'chat/completions', estimated_tokens: estimated_tokens) do
         # Check rate limits before making request
         rate_limiter = Networking::RateLimiter.new(:openai)
         rate_limiter.check_rate_limit!('chat/completions', tokens: estimated_tokens)
-        
+
         response = send_chat_request(merged_options)
-        parsed_response = parse_chat_response(response)
-        
+        parsed_response = parse_chat_response(response, options[:prompt_type])
+
         # Record actual token usage
         actual_tokens = parsed_response.dig(:usage, :total_tokens)
         rate_limiter.record_api_response(response, tokens_used: actual_tokens)
-        
+
         parsed_response
       end
     end
@@ -65,37 +77,40 @@ module Ai
     def analyze_speech_segment(transcript_text, context = {})
       system_prompt = build_speech_analysis_system_prompt
       user_prompt = build_speech_analysis_user_prompt(transcript_text, context)
-      
+
       messages = [
         { role: 'system', content: system_prompt },
         { role: 'user', content: user_prompt }
       ]
-      
-      chat_completion(messages, temperature: 0.2)
+
+      # Note: o1 models (gpt-5) don't support custom temperature - use default
+      chat_completion(messages)
     end
     
     def classify_speech_issues(issues_data, context = {})
       system_prompt = build_issue_classification_system_prompt
       user_prompt = build_issue_classification_user_prompt(issues_data, context)
-      
+
       messages = [
         { role: 'system', content: system_prompt },
         { role: 'user', content: user_prompt }
       ]
-      
-      chat_completion(messages, temperature: 0.1)
+
+      # Note: o1 models (gpt-5) don't support custom temperature - use default
+      chat_completion(messages)
     end
     
     def generate_coaching_advice(user_profile, recent_issues)
       system_prompt = build_coaching_system_prompt
       user_prompt = build_coaching_user_prompt(user_profile, recent_issues)
-      
+
       messages = [
         { role: 'system', content: system_prompt },
         { role: 'user', content: user_prompt }
       ]
-      
-      chat_completion(messages, temperature: 0.4, max_completion_tokens: 1000)
+
+      # Note: o1 models (gpt-5) don't support custom temperature - use default
+      chat_completion(messages, max_completion_tokens: 1000)
     end
     
     def create_embedding(text, model: 'text-embedding-3-small')
@@ -144,18 +159,42 @@ module Ai
           .post("#{BASE_URL}/embeddings", json: options)
     end
     
-    def parse_chat_response(response)
+    def parse_chat_response(response, prompt_type = nil)
       handle_response_errors(response)
-      
+
       data = JSON.parse(response.body.to_s)
-      
+
       unless data['choices'] && data['choices'].first
         raise ClientError, 'Invalid response format from OpenAI'
       end
-      
+
       choice = data['choices'].first
+
+      # NEW: Check for tool_calls first (function calling response)
+      if choice['message']['tool_calls']&.any?
+        tool_call = choice['message']['tool_calls'].first
+
+        if tool_call['function']
+          arguments_json = tool_call['function']['arguments']
+          parsed_content = JSON.parse(arguments_json)
+
+          Rails.logger.info "Function calling response received: #{tool_call['function']['name']}"
+
+          return {
+            content: arguments_json,
+            parsed_content: parsed_content,
+            usage: data['usage'],
+            model: data['model'],
+            finish_reason: choice['finish_reason'],
+            tool_call_id: tool_call['id'],
+            function_name: tool_call['function']['name']
+          }
+        end
+      end
+
+      # FALLBACK: Standard message content parsing (backward compatible)
       content = choice['message']['content']
-      
+
       {
         content: content,
         parsed_content: safe_json_parse(content),
@@ -372,19 +411,88 @@ module Ai
     
     def build_coaching_user_prompt(user_profile, recent_issues)
       prompt = "Create personalized coaching advice for this user:\n\n"
-      
+
       prompt += "User Profile:\n"
       prompt += "- Sessions completed: #{user_profile[:sessions_count]}\n"
       prompt += "- Primary goals: #{user_profile[:goals]&.join(', ')}\n"
       prompt += "- Experience level: #{user_profile[:level]}\n\n"
-      
+
       prompt += "Recent Issues Pattern:\n"
       recent_issues.each do |issue_type, count|
         prompt += "- #{issue_type}: #{count} occurrences\n"
       end
-      
+
       prompt += "\nCreate specific, actionable coaching advice for their next practice session."
       prompt
+    end
+
+    # Function calling (Tools API) support for GPT-5
+    def build_function_definition(prompt_type, schema)
+      {
+        type: "function",
+        function: {
+          name: function_name_for_prompt_type(prompt_type),
+          description: function_description_for_prompt_type(prompt_type),
+          parameters: convert_schema_to_openai_format(schema),
+          strict: true  # Enable strict mode for guaranteed structure
+        }
+      }
+    end
+
+    def function_name_for_prompt_type(prompt_type)
+      {
+        'filler_word_detection' => 'detect_filler_words',
+        'speech_analysis' => 'analyze_speech_segment',
+        'issue_classification' => 'classify_speech_issues',
+        'coaching_advice' => 'provide_coaching_advice',
+        'segment_evaluation' => 'evaluate_segment',
+        'progress_assessment' => 'assess_progress'
+      }[prompt_type] || 'process_speech'
+    end
+
+    def function_description_for_prompt_type(prompt_type)
+      {
+        'filler_word_detection' => 'Detect and analyze filler words in speech transcript',
+        'speech_analysis' => 'Analyze speech segment quality and provide coaching feedback',
+        'issue_classification' => 'Classify and validate detected speech issues',
+        'coaching_advice' => 'Generate personalized coaching recommendations',
+        'segment_evaluation' => 'Evaluate speech segment for AI analysis potential',
+        'progress_assessment' => 'Assess user progress over time'
+      }[prompt_type] || 'Process speech data'
+    end
+
+    def convert_schema_to_openai_format(schema)
+      # OpenAI strict mode requires additionalProperties: false on ALL nested objects
+      # and explicit items definition for all arrays
+      deep_dup_and_fix_schema(schema)
+    end
+
+    def deep_dup_and_fix_schema(obj)
+      case obj
+      when Hash
+        result = obj.each_with_object({}) { |(k, v), h| h[k] = deep_dup_and_fix_schema(v) }
+
+        # Add additionalProperties: false to all objects (required by strict mode)
+        if result[:type] == 'object' || result[:type] == :object
+          result[:additionalProperties] = false unless result.key?(:additionalProperties)
+        end
+
+        result
+      when Array
+        obj.map { |v| deep_dup_and_fix_schema(v) }
+      else
+        obj.duplicable? ? obj.dup : obj
+      end
+    end
+
+    # Kept for backward compatibility
+    def deep_dup_schema(obj)
+      deep_dup_and_fix_schema(obj)
+    end
+
+    def json_mode_requested?(messages)
+      # Check if any message contains the word "json" (required for JSON mode)
+      messages.any? { |msg| msg[:content].to_s.downcase.include?('json') }
     end
   end
 end

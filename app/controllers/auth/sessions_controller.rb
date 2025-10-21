@@ -11,8 +11,7 @@ class Auth::SessionsController < ApplicationController
 
     if user && user.authenticate(params[:session][:password])
       session[:user_id] = user.id
-      # Ensure redirect to app subdomain
-      redirect_back_or(app_subdomain_url(practice_path))
+      redirect_back_or(practice_path)
       flash[:notice] = 'Welcome back!'
     else
       flash.now[:alert] = 'Invalid email or password'
@@ -24,7 +23,7 @@ class Auth::SessionsController < ApplicationController
     # Simple session clearing
     session.clear
     # Redirect to marketing site after logout
-    redirect_to marketing_subdomain_url('/'), notice: 'Logged out successfully'
+    redirect_to marketing_subdomain_url('/'), allow_other_host: true, notice: 'Logged out successfully'
   end
 
   private

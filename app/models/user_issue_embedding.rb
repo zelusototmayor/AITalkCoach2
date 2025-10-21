@@ -1,37 +1,50 @@
 class UserIssueEmbedding < ApplicationRecord
   belongs_to :user
-  
-  validates :embedding_json, presence: true
-  validates :payload, presence: true
-  
+  belongs_to :session, optional: true
+
   # Parse the JSON embedding into an array of floats
   def embedding_vector
     return @embedding_vector if @embedding_vector
-    
+
     @embedding_vector = JSON.parse(embedding_json)
   rescue JSON::ParserError
     []
   end
-  
+
   # Set the embedding from an array of floats
   def embedding_vector=(vector)
     self.embedding_json = vector.to_json
     @embedding_vector = vector
   end
-  
+
   # Parse the JSON payload
   def payload_data
     return @payload_data if @payload_data
-    
+
     @payload_data = JSON.parse(payload)
   rescue JSON::ParserError
     {}
   end
-  
+
   # Set the payload from a hash
   def payload_data=(data)
     self.payload = data.to_json
     @payload_data = data
+  end
+
+  # Parse the metadata JSON
+  def metadata
+    return @metadata if @metadata
+
+    @metadata = metadata_json.present? ? JSON.parse(metadata_json) : {}
+  rescue JSON::ParserError
+    {}
+  end
+
+  # Set the metadata from a hash
+  def metadata=(data)
+    self.metadata_json = data.to_json
+    @metadata = data
   end
   
   # Calculate cosine similarity with another embedding

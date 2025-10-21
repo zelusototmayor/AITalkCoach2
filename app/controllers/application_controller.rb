@@ -30,15 +30,29 @@ class ApplicationController < ActionController::Base
   end
   
   def handle_standard_error(exception)
+    # In development, don't redirect on errors – show the actual exception to avoid redirect loops
+    if Rails.env.development?
+      raise exception
+    end
+
     # Log the error with context
     Rails.logger.error "Unhandled exception: #{exception.class} - #{exception.message}"
     Rails.logger.error exception.backtrace.join("\n") if exception.backtrace
-    
+
     # Report to Sentry in production
     Sentry.capture_exception(exception) if defined?(Sentry)
-    
+
+    # Avoid redirect loop if error happened on root
+    safe_location = request.path == root_path ? '/500.html' : root_path
+
     respond_to do |format|
-      format.html { redirect_to root_path, alert: 'An unexpected error occurred. Please try again.' }
+      format.html do
+        if safe_location == '/500.html'
+          render file: Rails.root.join('public', '500.html'), layout: false, status: :internal_server_error
+        else
+          redirect_to safe_location, alert: 'An unexpected error occurred. Please try again.'
+        end
+      end
       format.json { render json: { error: 'Internal server error' }, status: :internal_server_error }
     end
   end
@@ -60,7 +74,18 @@ class ApplicationController < ActionController::Base
 
   # Authentication methods
   def current_user
-    @current_user ||= User.find(session[:user_id]) if session[:user_id]
+    return @current_user if defined?(@current_user)
+
+    if session[:user_id]
+      user = User.find_by(id: session[:user_id])
+      unless user
+        # Clear stale session if the user no longer exists
+        session.delete(:user_id)
+      end
+      @current_user = user
+    else
+      @current_user = nil
+    end
   end
 
   def logged_in?
@@ -70,7 +95,7 @@ class ApplicationController < ActionController::Base
   def require_login
     unless logged_in?
       store_location
-      redirect_to app_subdomain_url(login_path), alert: 'Please login to continue'
+    redirect_to app_subdomain_url(login_path), allow_other_host: true, alert: 'Please login to continue'
     end
   end
 
@@ -79,13 +104,13 @@ class ApplicationController < ActionController::Base
   end
 
   def redirect_back_or(default)
-    redirect_to(session[:forwarding_url] || default)
+    redirect_to(session[:forwarding_url] || default, allow_other_host: true)
     session.delete(:forwarding_url)
   end
 
   def require_logout
     if logged_in?
-      redirect_to app_subdomain_url(practice_path), notice: 'You are already logged in'
+      redirect_to practice_path, notice: 'You are already logged in'
     end
   end
 
@@ -113,12 +138,8 @@ class ApplicationController < ActionController::Base
       base_domain
     end
 
-    # Use explicit protocol to avoid HTTPS enforcement issues in development
-    protocol = if Rails.env.development?
-      'http://'
-    else
-      'https://'
-    end
+    # Use HTTPS in all environments (development now supports SSL for getUserMedia)
+    protocol = 'https://'
 
     # Include port for development
     port = Rails.env.development? ? ":#{request.port}" : ''

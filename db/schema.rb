@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_16_184035) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_19_221538) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -137,6 +137,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_16_184035) do
     t.text "payload"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "session_id"
+    t.string "embedding_type"
+    t.integer "reference_id"
+    t.text "vector_data"
+    t.string "ai_model_name"
+    t.integer "dimensions"
+    t.text "metadata_json"
+    t.index ["session_id", "embedding_type", "reference_id"], name: "index_embeddings_on_session_type_ref"
+    t.index ["session_id"], name: "index_user_issue_embeddings_on_session_id"
     t.index ["user_id", "created_at"], name: "index_embeddings_on_user_date"
     t.index ["user_id", "created_at"], name: "index_user_embeddings_on_user_and_created_at"
     t.index ["user_id"], name: "index_user_issue_embeddings_on_user_id"
@@ -178,6 +187,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_16_184035) do
   add_foreign_key "issues", "sessions"
   add_foreign_key "sessions", "users"
   add_foreign_key "sessions", "weekly_focuses", column: "weekly_focus_id"
+  add_foreign_key "user_issue_embeddings", "sessions"
   add_foreign_key "user_issue_embeddings", "users"
   add_foreign_key "weekly_focuses", "users"
 end
