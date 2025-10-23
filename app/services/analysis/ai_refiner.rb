@@ -123,8 +123,8 @@ module Analysis
         response = @ai_client.chat_completion(
           messages,
           tool_schema: prompt_builder.tool_schema,
-          prompt_type: prompt_builder.prompt_type,
-          timeout: 60 # Increased timeout for comprehensive analysis
+          prompt_type: prompt_builder.prompt_type
+          # Note: Timeout is handled by the RetryHandler in the AI client
         )
 
         analysis_result = response[:parsed_content]
