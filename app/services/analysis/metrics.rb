@@ -10,11 +10,12 @@ module Analysis
     
     # Clarity scoring weights
     CLARITY_WEIGHTS = {
-      filler_rate: 0.3,
-      pace_consistency: 0.25,
-      pause_quality: 0.2,
-      articulation: 0.15,
-      fluency: 0.1
+      filler_rate: 0.25,       # was 0.3
+      pace_consistency: 0.20,   # was 0.25
+      pause_quality: 0.15,      # was 0.2
+      articulation: 0.15,       # unchanged
+      inflection: 0.15,         # NEW
+      fluency: 0.10             # unchanged
     }.freeze
     
     def initialize(transcript_data, issues = [], options = {})
@@ -22,6 +23,9 @@ module Analysis
       @issues = Array(issues)
       @options = options
       @language = options[:language] || 'en'
+      @audio_file = options[:audio_file]
+      @ai_detected_fillers = options[:ai_detected_fillers] || []
+      @amplitude_data = options[:amplitude_data] || []
     end
     
     def calculate_all_metrics
@@ -102,28 +106,31 @@ module Analysis
     
     def calculate_clarity_metrics
       words = extract_words
-      
+
       filler_metrics = calculate_filler_metrics(words)
       pause_metrics = calculate_pause_metrics(words)
       articulation_score = calculate_articulation_score
-      
+      inflection_score = calculate_inflection_score
+
       # Weighted clarity score (ensure all components are 0-100)
       clarity_components = {
         filler_rate: (100 - filler_metrics[:filler_rate_percentage]).clamp(0, 100),
         pace_consistency: calculate_pace_clarity_score.clamp(0, 100),
         pause_quality: (pause_metrics[:pause_quality_score] || 50).clamp(0, 100),
         articulation: articulation_score.clamp(0, 100),
+        inflection: inflection_score.clamp(0, 100),
         fluency: calculate_fluency_score(words).clamp(0, 100)
       }
 
       weighted_clarity = calculate_weighted_score(clarity_components, CLARITY_WEIGHTS).clamp(0, 100)
-      
+
       {
         clarity_score: (weighted_clarity / 100.0).round(4),
         clarity_components: clarity_components,
         filler_metrics: filler_metrics,
         pause_metrics: pause_metrics,
-        articulation_score: articulation_score
+        articulation_score: articulation_score,
+        inflection_score: inflection_score
       }
     end
     
@@ -549,19 +556,32 @@ module Analysis
     end
     
     def calculate_filler_metrics(words)
-      transcript = extract_transcript_text.downcase
       total_words = words.length
 
-      # Get language-specific filler patterns
-      filler_patterns = filler_patterns_for_language(@language)
+      # Use AI-detected fillers if available (primary method)
+      if @ai_detected_fillers.any?
+        total_fillers = @ai_detected_fillers.length
 
-      filler_counts = {}
-      total_fillers = 0
+        # Build filler breakdown from AI detections
+        filler_counts = @ai_detected_fillers
+          .group_by { |f| f[:filler_word] || f['filler_word'] }
+          .transform_values(&:count)
 
-      filler_patterns.each do |type, pattern|
-        matches = transcript.scan(pattern).length
-        filler_counts[type] = matches
-        total_fillers += matches
+        Rails.logger.info "Using AI-detected fillers: #{total_fillers} total"
+      else
+        # Fallback to regex detection only when AI fails completely
+        Rails.logger.warn "AI filler detection unavailable, using regex fallback"
+        transcript = extract_transcript_text.downcase
+        filler_patterns = filler_patterns_for_language(@language)
+
+        filler_counts = {}
+        total_fillers = 0
+
+        filler_patterns.each do |type, pattern|
+          matches = transcript.scan(pattern).length
+          filler_counts[type] = matches
+          total_fillers += matches
+        end
       end
 
       # Calculate filler rate as a decimal (0.01 = 1%)
@@ -574,7 +594,8 @@ module Analysis
         filler_rate_decimal: filler_rate_decimal.round(4), # For storage as decimal
         filler_rate_per_minute: calculate_fillers_per_minute(total_fillers),
         filler_breakdown: filler_counts,
-        filler_density: assess_filler_density(filler_rate_percentage)
+        filler_density: assess_filler_density(filler_rate_percentage),
+        source: @ai_detected_fillers.any? ? 'ai' : 'regex_fallback'
       }
     end
 
@@ -636,26 +657,36 @@ module Analysis
     
     def calculate_pause_metrics(words)
       return default_pause_metrics if words.length < 2
-      
+
       pauses = []
       words.each_cons(2) do |current, next_word|
         pause_duration = next_word[:start] - current[:end]
         pauses << pause_duration if pause_duration > 100 # Ignore very short gaps
       end
-      
+
       return default_pause_metrics if pauses.empty?
-      
+
       avg_pause = pauses.sum / pauses.length
       longest_pause = pauses.max
       shortest_pause = pauses.min
-      
+
       # Count problematic pauses
       long_pauses = pauses.count { |p| p > 3000 } # > 3 seconds
       very_short_pauses = pauses.count { |p| p < 200 } # < 0.2 seconds
-      
-      # Quality assessment
-      pause_quality = assess_pause_quality(avg_pause, longest_pause, long_pauses, pauses.length)
-      
+
+      # Calculate duration in minutes for forgiveness logic
+      duration_minutes = extract_duration_ms / 60_000.0
+
+      # Quality assessment with forgiveness logic
+      pause_quality = assess_pause_quality(
+        avg_pause,
+        longest_pause,
+        long_pauses,
+        pauses.length,
+        duration_minutes,
+        pauses
+      )
+
       {
         total_pause_count: pauses.length,
         average_pause_ms: avg_pause.round,
@@ -668,24 +699,33 @@ module Analysis
       }
     end
     
-    def assess_pause_quality(avg_pause, longest_pause, long_pause_count, total_pauses)
+    def assess_pause_quality(avg_pause, longest_pause, long_pause_count, total_pauses, duration_minutes, pauses)
       base_score = 100
-      
-      # Penalize very long average pauses
-      if avg_pause > 1500 # 1.5 seconds
-        base_score -= 20
-      elsif avg_pause > 1000 # 1 second
-        base_score -= 10
+
+      # Forgiveness logic: Allow 2 pauses <1.5s per minute without penalty
+      allowed_moderate_pauses = (duration_minutes * 2).floor
+      moderate_pauses = pauses.count { |p| p < 1500 } # Count pauses under 1.5 seconds
+
+      # Penalize average pause duration only if exceeding allowance
+      if moderate_pauses > allowed_moderate_pauses
+        excess_moderate_pauses = moderate_pauses - allowed_moderate_pauses
+
+        # Penalize based on how far over allowance
+        if avg_pause > 1500 # 1.5 seconds
+          base_score -= 20
+        elsif avg_pause > 1000 && excess_moderate_pauses > 5 # 1 second
+          base_score -= 10
+        end
       end
-      
-      # Penalize extremely long individual pauses
+
+      # Penalize extremely long individual pauses (no forgiveness for very long pauses)
       if longest_pause > 5000 # 5 seconds
         base_score -= 30
       elsif longest_pause > 3000 # 3 seconds
         base_score -= 15
       end
-      
-      # Penalize too many long pauses
+
+      # Penalize too many long pauses (>3s)
       if total_pauses > 0
         long_pause_ratio = long_pause_count.to_f / total_pauses
         if long_pause_ratio > 0.2 # More than 20% are long pauses
@@ -694,7 +734,7 @@ module Analysis
           base_score -= 10
         end
       end
-      
+
       [base_score, 0].max
     end
     
@@ -717,14 +757,218 @@ module Analysis
     end
     
     def calculate_articulation_score
-      # This is a placeholder for articulation analysis
-      # In a real implementation, this would analyze phonetic patterns,
-      # word clarity, and pronunciation issues
-      
-      issue_penalty = @issues.select { |i| i[:kind] == 'articulation' }.length * 10
-      base_score = 90 - issue_penalty
-      
-      [base_score, 0].max
+      words = extract_words
+      return 70 if words.empty? # Default score for no data
+
+      # Calculate confidence-based score
+      confidence_score = calculate_confidence_articulation_score(words)
+
+      # Calculate word duration-based score
+      duration_score = calculate_word_duration_score(words)
+
+      # Blend both scores: 60% confidence, 40% duration
+      blended_score = (confidence_score * 0.6) + (duration_score * 0.4)
+
+      # Clamp to valid range
+      [[blended_score, 0].max, 100].min.round(1)
+    end
+
+    def calculate_confidence_articulation_score(words)
+      # Extract confidence scores from transcript
+      confidences = words.map { |w| w[:confidence] }.compact
+      return 70 if confidences.empty? # Default if no confidence data
+
+      # Calculate base score from average confidence
+      avg_confidence = confidences.sum / confidences.length.to_f
+      base_score = (avg_confidence * 100).round(1)
+
+      # Penalize low-confidence words (likely unclear articulation)
+      very_low_confidence_words = confidences.count { |c| c < 0.4 }
+      low_confidence_words = confidences.count { |c| c >= 0.4 && c < 0.6 }
+
+      base_score -= (very_low_confidence_words * 10) # Max -20 for very low
+      base_score -= (low_confidence_words * 5) # Max -30 for low
+
+      # Detect clusters of low-confidence words (mumbling segments)
+      mumbling_segments = detect_low_confidence_clusters(words)
+      base_score -= (mumbling_segments * 10) # Additional penalty for clusters
+
+      # Also penalize articulation-specific issues from analysis
+      issue_penalty = @issues.select { |i| i[:kind] == 'articulation' }.length * 5
+      base_score -= issue_penalty
+
+      [[base_score, 0].max, 100].min
+    end
+
+    def calculate_word_duration_score(words)
+      return 80 if words.length < 5 # Default for minimal data
+
+      outliers = 0
+      total_analyzed = 0
+
+      words.each do |word|
+        next unless word[:start] && word[:end]
+
+        word_text = word[:word] || word[:punctuated_word] || ''
+        next if word_text.empty?
+
+        # Estimate syllables for this word
+        syllable_count = estimate_word_syllables(word_text)
+        next if syllable_count == 0
+
+        # Calculate actual duration and ms per syllable
+        duration_ms = word[:end] - word[:start]
+        ms_per_syllable = duration_ms.to_f / syllable_count
+
+        total_analyzed += 1
+
+        # Flag outliers: too rushed or too drawn out
+        if ms_per_syllable < 50 # Too rushed (<50ms per syllable)
+          outliers += 1
+        elsif ms_per_syllable > 400 # Too drawn out (>400ms per syllable)
+          outliers += 1
+        end
+      end
+
+      return 80 if total_analyzed == 0
+
+      # Calculate score based on outlier percentage
+      outlier_percentage = (outliers.to_f / total_analyzed) * 100
+      duration_score = [100 - (outlier_percentage * 2), 0].max
+
+      duration_score.round(1)
+    end
+
+    def estimate_word_syllables(word_text)
+      # Simple syllable estimation based on vowel patterns
+      word_clean = word_text.downcase.gsub(/[^a-z]/, '')
+      return 1 if word_clean.empty?
+
+      syllable_count = word_clean.scan(/[aeiouy]+/).length
+      syllable_count = 1 if syllable_count == 0
+
+      syllable_count
+    end
+
+    def calculate_inflection_score
+      # Combine amplitude-based inflection with punctuation analysis
+      amplitude_score = calculate_amplitude_inflection_score
+      punctuation_score = calculate_punctuation_inflection_score
+
+      # Blend both: 70% amplitude (if available), 30% punctuation
+      # If no amplitude data, use punctuation only
+      if @amplitude_data.any?
+        blended_score = (amplitude_score * 0.7) + (punctuation_score * 0.3)
+      else
+        blended_score = punctuation_score
+      end
+
+      [[blended_score, 0].max, 100].min.round(1)
+    end
+
+    def calculate_amplitude_inflection_score
+      return 70 if @amplitude_data.empty? # Default if no amplitude data
+
+      # Calculate variance in emphasis scores across words
+      emphasis_scores = @amplitude_data.map { |w| w[:emphasis_score] }.compact
+      return 70 if emphasis_scores.empty?
+
+      # Calculate coefficient of variation for emphasis
+      mean_emphasis = emphasis_scores.sum / emphasis_scores.length.to_f
+      return 70 if mean_emphasis == 0
+
+      variance = emphasis_scores.map { |e| (e - mean_emphasis) ** 2 }.sum / emphasis_scores.length.to_f
+      std_dev = Math.sqrt(variance)
+      cv = std_dev / mean_emphasis
+
+      # Optimal variance is 0.4-0.6 (40-60% variation indicates dynamic speech)
+      # Too low = monotone, too high = erratic
+      base_score = if cv.between?(0.4, 0.6)
+        100 # Optimal dynamic range
+      elsif cv.between?(0.3, 0.7)
+        90  # Good variation
+      elsif cv.between?(0.2, 0.8)
+        75  # Acceptable
+      elsif cv < 0.2
+        50  # Too monotone
+      else
+        60  # Too erratic
+      end
+
+      # Bonus for emphasized words (indicates expressive speech)
+      emphasized_count = @amplitude_data.count { |w| w[:is_emphasized] }
+      emphasized_ratio = emphasized_count.to_f / @amplitude_data.length
+      emphasis_bonus = [emphasized_ratio * 20, 10].min # Max +10 points
+
+      [[base_score + emphasis_bonus, 0].max, 100].min
+    end
+
+    def calculate_punctuation_inflection_score
+      transcript = extract_transcript_text
+      sentences = transcript.split(/[.!?]+/).reject(&:empty?)
+      return 70 if sentences.empty?
+
+      # Count different types of punctuation
+      questions = transcript.scan(/\?/).length
+      exclamations = transcript.scan(/!/).length
+      statements = sentences.length - questions - exclamations
+
+      # Calculate intonation variety
+      total_sentences = sentences.length
+      unique_types = [questions > 0, exclamations > 0, statements > 0].count(true)
+      variety_score = (unique_types / 3.0) * 100
+
+      # Detect statement-questions (rising inflection patterns)
+      statement_questions = detect_statement_questions(transcript)
+      statement_question_bonus = [statement_questions.length * 5, 10].min
+
+      # Calculate question clustering (too many questions = uncertain)
+      question_ratio = questions.to_f / total_sentences
+      confidence_penalty = question_ratio > 0.5 ? -15 : 0
+
+      base_score = (variety_score * 0.7) + 30 # Base 30, variety adds up to 70
+      final_score = base_score + statement_question_bonus + confidence_penalty
+
+      [[final_score, 0].max, 100].min
+    end
+
+    def detect_statement_questions(transcript)
+      # Detect patterns like "right?", "you know?", "yeah?"
+      patterns = [
+        /right\?/i,
+        /you know\?/i,
+        /yeah\?/i,
+        /okay\?/i,
+        /see\?/i
+      ]
+
+      matches = []
+      patterns.each do |pattern|
+        matches.concat(transcript.scan(pattern))
+      end
+
+      matches
+    end
+
+    def detect_low_confidence_clusters(words)
+      return 0 if words.length < 5
+
+      clusters = 0
+      window_size = 5 # 5-word sliding window
+      threshold = 0.6 # Confidence threshold
+
+      (0..words.length - window_size).each do |i|
+        window = words[i, window_size]
+        confidences = window.map { |w| w[:confidence] }.compact
+
+        next if confidences.length < 3
+
+        # Count as cluster if 3+ words in window are low confidence
+        low_confidence_count = confidences.count { |c| c < threshold }
+        clusters += 1 if low_confidence_count >= 3
+      end
+
+      clusters
     end
     
     def calculate_fluency_score(words)
@@ -737,7 +981,7 @@ module Analysis
 
       # Factor in speech smoothness (using weighted contribution, not multiplication)
       smoothness = calculate_speech_smoothness(words)
-      smoothness_adjustment = (smoothness - 70) * 0.2 # Only adjust if above/below average
+      smoothness_adjustment = (smoothness - 80) * 0.2 # Adjust based on deviation from 80 (new optimal)
       base_score += smoothness_adjustment
 
       # Ensure score stays within valid range
@@ -782,25 +1026,30 @@ module Analysis
     end
     
     def calculate_speech_smoothness(words)
-      return 100 if words.length < 5
-      
+      return 80 if words.length < 5 # Return target score for minimal data
+
       # Measure variation in word timing
       word_durations = words.map { |w| w[:end] - w[:start] }
       pause_durations = []
-      
+
       words.each_cons(2) do |current, next_word|
         pause_durations << next_word[:start] - current[:end]
       end
-      
+
       # Calculate coefficients of variation
       word_cv = coefficient_of_variation(word_durations)
       pause_cv = coefficient_of_variation(pause_durations)
-      
-      # Lower variation = higher smoothness
+
+      # Calculate raw smoothness (lower variation = higher smoothness)
       word_smoothness = [100 - (word_cv * 50), 0].max
       pause_smoothness = [100 - (pause_cv * 30), 0].max
-      
-      ((word_smoothness + pause_smoothness) / 2).round(1)
+      raw_smoothness = ((word_smoothness + pause_smoothness) / 2).round(1)
+
+      # Transform to make 80 the perfect score with symmetric penalties
+      # Raw smoothness of 80 = 100 points, deviations penalized
+      final_score = [100 - ((raw_smoothness - 80).abs * 1.5), 0].max
+
+      final_score.round(1)
     end
     
     def coefficient_of_variation(values)
@@ -816,21 +1065,21 @@ module Analysis
     def calculate_energy_level
       # Analyze patterns that indicate energy/enthusiasm
       transcript = extract_transcript_text
-      
+
       energy_indicators = {
         exclamations: transcript.scan(/!/).length,
-        all_caps: transcript.scan(/\b[A-Z]{2,}\b/).length,
         emphasis_words: transcript.downcase.scan(/\b(amazing|fantastic|incredible|wow|great|excellent)\b/).length,
         question_engagement: transcript.scan(/\?/).length
       }
-      
+
       # Simple energy calculation (could be more sophisticated)
       total_words = extract_words.length
       return 50 if total_words == 0
-      
+
+      # Adjusted multiplier to compensate for removed ALL CAPS indicator
       energy_ratio = energy_indicators.values.sum.to_f / total_words
-      energy_score = [50 + (energy_ratio * 500), 100].min
-      
+      energy_score = [50 + (energy_ratio * 600), 100].min
+
       energy_score.round(1)
     end
     
@@ -872,11 +1121,10 @@ module Analysis
     
     def detect_emphasis_patterns
       transcript = extract_transcript_text
-      
+
       {
         repetition_emphasis: transcript.scan(/\b(\w+)\s+\1\b/i).length,
         exclamation_emphasis: transcript.scan(/!/).length,
-        caps_emphasis: transcript.scan(/\b[A-Z]{2,}\b/).length,
         question_engagement: transcript.scan(/\?/).length
       }
     end

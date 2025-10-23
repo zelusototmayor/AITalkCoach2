@@ -557,12 +557,11 @@ module Sessions
     end
     
     def determine_transcription_model
+      # Use model from environment variable, with fallback based on language
+      default_model = ENV['DEEPGRAM_MODEL'] || 'nova-3'
+
       # Could be enhanced with user preferences or content analysis
-      case @session.language
-      when 'en' then 'nova-2'
-      when 'pt' then 'nova-2'
-      else 'nova'
-      end
+      default_model
     end
     
     def validate_transcription_quality(transcript_data)

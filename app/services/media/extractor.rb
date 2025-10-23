@@ -162,14 +162,14 @@ module Media
     def detect_silence_segments(threshold: 0.01, min_duration_ms: 500)
       waveform = extract_waveform_data(samples: 2000)
       silence_segments = []
-      
+
       in_silence = false
       silence_start = nil
       sample_duration_ms = movie.duration * 1000 / waveform.length
-      
+
       waveform.each_with_index do |amplitude, index|
         time_ms = (index * sample_duration_ms).to_i
-        
+
         if amplitude < threshold
           unless in_silence
             in_silence = true
@@ -189,10 +189,68 @@ module Media
           end
         end
       end
-      
+
       silence_segments
     rescue => e
       raise ExtractionError, "Silence detection failed: #{e.message}"
+    end
+
+    def calculate_amplitude_variation_per_word(words)
+      return [] if words.empty?
+
+      # Extract high-resolution waveform for detailed analysis
+      waveform = extract_waveform_data(samples: 5000)
+      total_duration_ms = movie.duration * 1000
+      sample_rate = waveform.length / total_duration_ms.to_f
+
+      # Calculate global mean amplitude for comparison
+      global_mean = waveform.sum / waveform.length.to_f
+
+      word_amplitudes = words.map do |word|
+        next unless word[:start] && word[:end]
+
+        # Calculate sample indices for this word
+        start_sample = (word[:start] * sample_rate).to_i
+        end_sample = (word[:end] * sample_rate).to_i
+
+        # Ensure indices are within bounds
+        start_sample = [[start_sample, 0].max, waveform.length - 1].min
+        end_sample = [[end_sample, 0].max, waveform.length - 1].min
+
+        next if start_sample >= end_sample
+
+        # Extract waveform samples for this word
+        word_samples = waveform[start_sample..end_sample]
+        next if word_samples.empty?
+
+        # Calculate statistics for this word
+        mean_amplitude = word_samples.sum / word_samples.length.to_f
+        max_amplitude = word_samples.max
+        min_amplitude = word_samples.min
+        variance = word_samples.map { |s| (s - mean_amplitude) ** 2 }.sum / word_samples.length.to_f
+        std_dev = Math.sqrt(variance)
+
+        # Calculate emphasis score (relative loudness compared to global mean)
+        emphasis_score = global_mean > 0 ? (mean_amplitude / global_mean * 100).round(1) : 100
+
+        {
+          word: word[:word] || word[:punctuated_word],
+          start_ms: word[:start],
+          end_ms: word[:end],
+          mean_amplitude: mean_amplitude.round(4),
+          max_amplitude: max_amplitude.round(4),
+          amplitude_variance: variance.round(4),
+          amplitude_std_dev: std_dev.round(4),
+          dynamic_range: (max_amplitude - min_amplitude).round(4),
+          emphasis_score: emphasis_score,
+          is_emphasized: emphasis_score > 150 # 50% louder than average
+        }
+      end.compact
+
+      word_amplitudes
+    rescue => e
+      Rails.logger.error "Amplitude variation calculation failed: #{e.message}"
+      [] # Return empty array on error, don't fail the entire pipeline
     end
     
     def cleanup!

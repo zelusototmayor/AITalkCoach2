@@ -9,13 +9,16 @@
   <% if @adaptive_prompts.any? %>
     <div class="adaptive-prompts-section">
       <div class="section-header">
-        <h2>🎯 Recommended for You</h2>
-        <p class="section-description">
-          Based on your recent sessions, these prompts will help you work on:
-          <% @user_weaknesses.each_with_index do |weakness, index| %>
-            <span class="weakness-tag"><%= weakness.humanize %></span><%= ', ' unless index == @user_weaknesses.length - 1 %>
-          <% end %>
-        </p>
+        <div class="section-icon">🎯</div>
+        <div class="section-content">
+          <h2>Recommended for You</h2>
+          <p class="section-description">
+            Based on your recent sessions, these prompts will help you work on:
+            <% @user_weaknesses.each_with_index do |weakness, index| %>
+              <span class="weakness-tag"><%= weakness.humanize %></span><%= ', ' unless index == @user_weaknesses.length - 1 %>
+            <% end %>
+          </p>
+        </div>
       </div>
       
       <div class="adaptive-prompts-grid">
@@ -129,7 +132,7 @@
              data-prompts-target="card"
              data-prompt-id="<%= "#{category}_#{index}" %>"
              data-prompt-index="<%= index %>"
-             style="<%= 'display: none;' if index >= 10 %>">
+             style="<%= 'display: none;' if index >= 6 %>">
 
           <div class="prompt-header">
             <div class="prompt-meta">
@@ -191,13 +194,13 @@
         </div>
       <% end %>
 
-      <% if category_prompts.length > 10 %>
+      <% if category_prompts.length > 6 %>
         <div class="show-more-container" data-category="<%= category %>" data-prompts-target="showMoreBtn">
           <button type="button"
                   class="btn btn-secondary"
                   data-action="click->prompts#showMore"
                   data-category="<%= category %>">
-            Show More (<%= category_prompts.length - 10 %> more)
+            Show More (<%= category_prompts.length - 6 %> more)
           </button>
         </div>
       <% end %>
@@ -223,9 +226,9 @@
     </button>
   </div>
 
-  <!-- Quick Practice Section -->
+  <!-- Quick Practice Section - Simplified -->
   <div class="quick-practice-section">
-    <h2>🚀 Quick Practice Options</h2>
+    <h2>🚀 Quick Start</h2>
     <div class="quick-options-grid">
       <div class="quick-option">
         <h4>Random Challenge</h4>
@@ -242,26 +245,18 @@
           Today's Prompt
         </button>
       </div>
-
-      <div class="quick-option">
-        <h4>Improvement Focus</h4>
-        <p>Prompts targeting your common speech patterns</p>
-        <button type="button" class="btn btn-outline" data-action="click->prompts#startFocusedPractice">
-          Work on Weak Areas
-        </button>
-      </div>
     </div>
   </div>
 
-  <!-- Tips Section -->
+  <!-- Tips Section - Simplified -->
   <div class="prompts-tips">
-    <h3>💡 How to Use Practice Prompts</h3>
+    <h3>💡 Quick Tips</h3>
     <div class="tips-grid">
       <div class="tip-item">
         <div class="tip-icon">📝</div>
         <div class="tip-content">
           <h4>Prepare First</h4>
-          <p>Read the prompt carefully and take a moment to organize your thoughts before recording.</p>
+          <p>Read the prompt and organize your thoughts before recording.</p>
         </div>
       </div>
       
@@ -269,23 +264,7 @@
         <div class="tip-icon">🎯</div>
         <div class="tip-content">
           <h4>Stay Focused</h4>
-          <p>Address the specific scenario in the prompt. Don't drift off-topic.</p>
-        </div>
-      </div>
-      
-      <div class="tip-item">
-        <div class="tip-icon">🔄</div>
-        <div class="tip-content">
-          <h4>Practice Repeatedly</h4>
-          <p>Try the same prompt multiple times to track your improvement over time.</p>
-        </div>
-      </div>
-
-      <div class="tip-item">
-        <div class="tip-icon">📊</div>
-        <div class="tip-content">
-          <h4>Review Feedback</h4>
-          <p>Pay attention to the AI analysis to identify patterns in your speaking style.</p>
+          <p>Address the specific scenario in the prompt.</p>
         </div>
       </div>
     </div>

@@ -897,12 +897,12 @@ export default class extends Controller {
 
     // Initialize visible count for this category if not set
     if (!this.visibleCountByCategory[category]) {
-      this.visibleCountByCategory[category] = 10
+      this.visibleCountByCategory[category] = 6
     }
 
-    // Show next 10 prompts
+    // Show next 6 prompts (reduced from 10 for less cognitive overload)
     const currentCount = this.visibleCountByCategory[category]
-    const newCount = currentCount + 10
+    const newCount = currentCount + 6
 
     categoryCards.forEach((card, index) => {
       if (index >= currentCount && index < newCount) {

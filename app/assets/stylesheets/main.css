@@ -5596,6 +5596,267 @@ textarea:focus {
   background: #4b5563;
 }
 
+/* ===== COGNITIVE OVERLOAD REDUCTION STYLES ===== */
+
+/* Simplified Prompt Cards */
+.prompt-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.prompt-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  border-color: #3b82f6;
+}
+
+/* Card Header - Simplified */
+.prompt-header {
+  margin-bottom: 1rem;
+}
+
+.prompt-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.prompt-category {
+  background: #f3f4f6;
+  color: #6b7280;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.prompt-category.category-recommended {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.favorite-btn {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  color: #d1d5db;
+  transition: all 0.2s ease;
+  padding: 0.25rem;
+  border-radius: 4px;
+}
+
+.favorite-btn:hover,
+.favorite-btn.active {
+  color: #f59e0b;
+  background: #fef3c7;
+}
+
+/* Card Title - Better Hierarchy */
+.prompt-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.3;
+}
+
+.prompt-description {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0 0 1rem 0;
+  line-height: 1.4;
+}
+
+/* Card Content - Progressive Disclosure */
+.prompt-content {
+  margin-bottom: 1rem;
+}
+
+.prompt-text {
+  color: #374151;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+  max-height: 4.5rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.prompt-text::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1.5rem;
+  background: linear-gradient(transparent, white);
+  pointer-events: none;
+}
+
+/* Simplified Details */
+.prompt-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.8125rem;
+  color: #6b7280;
+}
+
+.detail-label {
+  font-weight: 500;
+}
+
+.detail-value {
+  font-weight: 600;
+  color: #374151;
+}
+
+.difficulty-beginner { color: #059669; }
+.difficulty-intermediate { color: #d97706; }
+.difficulty-advanced { color: #dc2626; }
+
+/* Skill Tags - Simplified */
+.skill-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-top: 0.25rem;
+}
+
+.skill-tag {
+  background: #f3f4f6;
+  color: #4b5563;
+  padding: 0.1875rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.focus-area-tag {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+/* Card Actions - Prominent */
+.prompt-actions {
+  border-top: 1px solid #f3f4f6;
+  padding-top: 1rem;
+  margin-top: 1rem;
+}
+
+.prompt-actions .btn-primary {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  border: none;
+  color: white;
+  transition: all 0.2s ease;
+}
+
+.prompt-actions .btn-primary:hover {
+  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Grid Layout - Reduced Density */
+.prompts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Show More Button - Better Styling */
+.show-more-container {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  padding: 1.5rem 0;
+  margin: 1rem 0;
+}
+
+.show-more-container .btn-secondary {
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  color: #475569;
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.show-more-container .btn-secondary:hover {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+  .prompts-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .prompt-card {
+    padding: 1rem;
+  }
+  
+  .prompt-title {
+    font-size: 1rem;
+  }
+  
+  .prompt-text {
+    font-size: 0.875rem;
+    max-height: 3.5rem;
+  }
+}
+
+/* Focus States for Accessibility */
+.prompt-card:focus-within {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.favorite-btn:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .prompt-card:hover {
+    transform: none;
+  }
+  
+  .prompt-actions .btn-primary:hover {
+    transform: none;
+  }
+}
+
 .use-btn.primary {
   background: #3b82f6;
 }
