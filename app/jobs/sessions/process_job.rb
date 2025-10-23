@@ -72,9 +72,9 @@ module Sessions
         issue_count: rule_issues.length
       }
       
-      # Step 4: AI refinement and enhancement
+      # Step 4: AI refinement and enhancement (OPTIMIZED: unified analysis)
       if should_run_ai_analysis?
-        Rails.logger.info "Step 4: Running AI refinement for session #{@session.id}"
+        Rails.logger.info "Step 4: Running comprehensive AI analysis for session #{@session.id} (optimized)"
         ai_results = refine_with_ai(transcript_data, rule_issues)
         pipeline_result[:ai_refinement] = ai_results
       else
@@ -85,7 +85,7 @@ module Sessions
       # Step 5: Calculate comprehensive metrics
       Rails.logger.info "Step 5: Calculating metrics for session #{@session.id}"
       final_issues = pipeline_result.dig(:ai_refinement, :refined_issues) || rule_issues
-      metrics_data = calculate_comprehensive_metrics(transcript_data, final_issues)
+      metrics_data = calculate_comprehensive_metrics(transcript_data, final_issues, media_data)
       pipeline_result[:metrics] = metrics_data
       
       # Step 6: Generate embeddings for future personalization
@@ -189,7 +189,7 @@ module Sessions
           store_detected_issues(refinement_result[:refined_issues], 'ai_refined')
         end
         
-        Rails.logger.info "AI refinement completed: #{refinement_result[:metadata][:ai_segments_analyzed]} segments analyzed"
+        Rails.logger.info "AI refinement completed using unified analysis (#{refinement_result[:metadata][:optimization]})"
         refinement_result
         
       rescue => e
@@ -203,13 +203,33 @@ module Sessions
       end
     end
     
-    def calculate_comprehensive_metrics(transcript_data, issues)
+    def calculate_comprehensive_metrics(transcript_data, issues, media_data)
+      # Extract AI-detected filler words from issues for metrics calculation
+      ai_detected_fillers = issues.select { |i| i[:kind] == 'filler_word' && i[:source] == 'ai' }
+
+      # Calculate amplitude variation data for inflection analysis
+      amplitude_data = []
+      if media_data && media_data[:file_path]
+        begin
+          Rails.logger.info "Calculating amplitude variation for inflection analysis"
+          extractor = Media::Extractor.new(media_data[:file_path])
+          amplitude_data = extractor.calculate_amplitude_variation_per_word(transcript_data[:words] || [])
+          Rails.logger.info "Calculated amplitude data for #{amplitude_data.length} words"
+        rescue => e
+          Rails.logger.warn "Amplitude calculation failed, continuing without inflection data: #{e.message}"
+          # Continue without amplitude data - inflection will fall back to punctuation only
+        end
+      end
+
       metrics_calculator = Analysis::Metrics.new(
         transcript_data,
         issues,
-        language: @session.language
+        language: @session.language,
+        ai_detected_fillers: ai_detected_fillers,
+        audio_file: media_data&.[](:file_path),
+        amplitude_data: amplitude_data
       )
-      
+
       begin
         metrics_data = metrics_calculator.calculate_all_metrics
         Rails.logger.info "Calculated comprehensive metrics: overall score #{metrics_data.dig(:overall_scores, :overall_score)}"
@@ -300,10 +320,28 @@ module Sessions
         Rails.logger.info "Generating coaching insights and micro-tips for session #{@session.id}"
 
         # Extract coaching insights from metrics
+        final_issues = pipeline_result.dig(:ai_refinement, :refined_issues) || pipeline_result.dig(:rule_analysis, :issues) || []
+        ai_detected_fillers = final_issues.select { |i| i[:kind] == 'filler_word' && i[:source] == 'ai' }
+
+        # Calculate amplitude data for insights (reuse if already calculated)
+        amplitude_data = []
+        media_data = pipeline_result[:media_extraction]
+        if media_data && media_data[:file_path]
+          begin
+            extractor = Media::Extractor.new(media_data[:file_path])
+            amplitude_data = extractor.calculate_amplitude_variation_per_word(pipeline_result[:transcription][:words] || [])
+          rescue => e
+            Rails.logger.warn "Amplitude calculation for insights failed: #{e.message}"
+          end
+        end
+
         metrics_calculator = Analysis::Metrics.new(
           pipeline_result[:transcription],
-          pipeline_result.dig(:ai_refinement, :refined_issues) || pipeline_result.dig(:rule_analysis, :issues) || [],
-          language: @session.language
+          final_issues,
+          language: @session.language,
+          ai_detected_fillers: ai_detected_fillers,
+          audio_file: media_data&.[](:file_path),
+          amplitude_data: amplitude_data
         )
         coaching_insights = metrics_calculator.extract_coaching_insights
 

@@ -19,53 +19,46 @@ module Analysis
       refined_results = {
         refined_issues: [],
         ai_insights: [],
-        segment_analyses: [],
+        segment_analyses: [], # Deprecated but kept for compatibility
         coaching_recommendations: [],
         metadata: {
           rule_issues_count: rule_based_issues.length,
-          ai_segments_analyzed: 0,
+          ai_segments_analyzed: 0, # Always 0 now (no segments)
           cache_hits: 0,
           processing_time_ms: 0
         }
       }
-      
+
       start_time = Time.current
-      
+
       begin
-        # Step 1: Build candidates for AI analysis
-        candidates = build_analysis_candidates(transcript_data, rule_based_issues)
-        
-        # Step 2: Evaluate and select best segments for AI analysis
-        selected_segments = select_segments_for_ai_analysis(candidates)
-        
-        # Step 3: Perform AI analysis on selected segments
-        ai_results = analyze_segments_with_ai(selected_segments, transcript_data)
-        
-        # Step 4: Classify and validate rule-based issues with AI
-        classified_issues = classify_rule_issues_with_ai(rule_based_issues, transcript_data)
-        
-        # Step 5: Merge and deduplicate findings
-        merged_issues = merge_rule_and_ai_findings(rule_based_issues, classified_issues, ai_results)
-        
-        # Step 6: Generate personalized coaching recommendations
-        coaching_advice = generate_coaching_recommendations(merged_issues)
-        
+        # Single comprehensive AI analysis (replaces segments + filler + classification)
+        Rails.logger.info "Starting comprehensive AI analysis for session #{@session.id}"
+        ai_analysis = perform_comprehensive_analysis(transcript_data, rule_based_issues)
+
+        # Process unified AI results
+        refined_issues = process_comprehensive_analysis_results(ai_analysis, transcript_data)
+
+        # Generate personalized coaching recommendations (kept separate)
+        coaching_advice = generate_coaching_recommendations(refined_issues)
+
         # Compile final results
         refined_results.update(
-          refined_issues: merged_issues,
-          ai_insights: ai_results[:insights] || [],
-          segment_analyses: ai_results[:segments] || [],
+          refined_issues: refined_issues,
+          ai_insights: ai_analysis[:speech_quality] || {},
+          segment_analyses: [], # No longer used
           coaching_recommendations: coaching_advice,
           metadata: refined_results[:metadata].merge(
-            ai_segments_analyzed: selected_segments.length,
-            processing_time_ms: ((Time.current - start_time) * 1000).round
+            ai_segments_analyzed: 0,
+            processing_time_ms: ((Time.current - start_time) * 1000).round,
+            optimization: 'unified_analysis_v1'
           )
         )
-        
+
       rescue => e
         Rails.logger.error "AiRefiner error for session #{@session.id}: #{e.message}"
         Rails.logger.error e.backtrace.first(5).join("\n")
-        
+
         # Return original rule-based results with error info
         refined_results.update(
           refined_issues: rule_based_issues,
@@ -73,13 +66,185 @@ module Analysis
           fallback_mode: true
         )
       end
-      
+
       refined_results
     end
     
     private
-    
+
+    # NEW: Perform comprehensive analysis in a single API call
+    def perform_comprehensive_analysis(transcript_data, rule_based_issues)
+      # Create cache key for this analysis
+      transcript_hash = Digest::MD5.hexdigest(transcript_data[:transcript] || '')
+      issues_hash = Digest::MD5.hexdigest(rule_based_issues.map { |i| "#{i[:kind]}:#{i[:text]}" }.join('|'))
+
+      cache_key = Ai::Cache.analysis_cache_key(
+        "#{transcript_hash}_#{issues_hash}",
+        {
+          type: 'comprehensive_analysis',
+          language: @session.language,
+          user_level: determine_user_level,
+          version: '1.0'
+        }
+      )
+
+      # Check cache
+      cached_result = Ai::Cache.get(cache_key, ttl: @cache_ttl)
+      if cached_result
+        @options[:metadata]&.[](:cache_hits)&.+(1)
+        Rails.logger.info "Comprehensive analysis cache hit for session #{@session.id}"
+        return cached_result
+      end
+
+      # Build prompt
+      prompt_builder = Ai::PromptBuilder.new(
+        'comprehensive_speech_analysis',
+        language: @session.language
+      )
+
+      analysis_data = {
+        transcript: transcript_data[:transcript] || '',
+        rule_issues: rule_based_issues,
+        context: {
+          duration_seconds: transcript_data.dig(:metadata, :duration) || 0,
+          word_count: transcript_data[:words]&.length || 0,
+          user_level: determine_user_level
+        }
+      }
+
+      messages = prompt_builder.build_messages(analysis_data)
+
+      # Single API call with retries
+      retries = 0
+      max_retries = 3
+
+      begin
+        Rails.logger.info "Calling comprehensive analysis API for session #{@session.id}"
+        response = @ai_client.chat_completion(
+          messages,
+          tool_schema: prompt_builder.tool_schema,
+          prompt_type: prompt_builder.prompt_type,
+          timeout: 60 # Increased timeout for comprehensive analysis
+        )
+
+        analysis_result = response[:parsed_content]
+
+        unless analysis_result && analysis_result['summary']
+          raise "Invalid analysis format: missing required fields"
+        end
+
+        # Cache successful analysis
+        Ai::Cache.set(cache_key, analysis_result, ttl: @cache_ttl)
+
+        Rails.logger.info "Comprehensive analysis completed: #{analysis_result['summary']['total_filler_count']} fillers, #{analysis_result['summary']['total_valid_issues']} validated issues"
+
+        analysis_result
+
+      rescue => e
+        retries += 1
+        if retries < max_retries
+          wait_time = (2 ** retries) # Exponential backoff: 2s, 4s, 8s
+          Rails.logger.warn "Comprehensive analysis failed (attempt #{retries}/#{max_retries}), retrying in #{wait_time}s: #{e.message}"
+          sleep(wait_time)
+          retry
+        else
+          Rails.logger.error "Comprehensive analysis failed after #{max_retries} attempts: #{e.message}"
+          raise
+        end
+      end
+    end
+
+    # NEW: Process results from comprehensive analysis
+    def process_comprehensive_analysis_results(ai_analysis, transcript_data)
+      refined_issues = []
+
+      # Process filler words
+      filler_words = ai_analysis['filler_words'] || []
+      filler_words.each do |filler|
+        # Find timing info from transcript
+        timing = find_timing_for_text(filler['text_snippet'], transcript_data[:words] || [], filler['start_ms'])
+
+        refined_issues << {
+          kind: 'filler_word',
+          start_ms: timing[:start_ms],
+          end_ms: timing[:end_ms],
+          text: filler['text_snippet'],
+          filler_word: filler['word'],
+          source: 'ai',
+          rationale: filler['rationale'],
+          tip: generate_filler_word_tip(filler['word']),
+          severity: filler['severity'] || 'medium',
+          ai_confidence: filler['confidence'],
+          category: 'filler_words',
+          matched_words: [filler['word']],
+          validation_status: 'ai_detected'
+        }
+      end
+
+      # Process validated issues
+      validated_issues = ai_analysis['validated_issues'] || []
+      validated_issues.each do |issue|
+        # Try to find original rule issue for timing
+        original_issue = find_original_rule_issue(issue['original_detection'], issue['context_text'])
+
+        refined_issues << {
+          kind: issue['original_detection'],
+          start_ms: original_issue&.[](:start_ms) || 0,
+          end_ms: original_issue&.[](:end_ms) || 1000,
+          text: issue['context_text'],
+          source: 'ai_validated',
+          rationale: issue['impact_description'],
+          tip: issue['coaching_recommendation'],
+          severity: issue['severity'],
+          ai_confidence: issue['confidence'],
+          category: categorize_issue(issue['original_detection']),
+          validation_status: issue['validation'],
+          ai_priority: issue['priority'],
+          practice_exercise: issue['practice_exercise']
+        }
+      end
+
+      # Filter by confidence threshold
+      if @confidence_threshold > 0
+        refined_issues = refined_issues.select do |issue|
+          (issue[:ai_confidence] || 0.8) >= @confidence_threshold
+        end
+      end
+
+      refined_issues.sort_by { |issue| issue[:start_ms] }
+    end
+
+    # Helper to find original rule issue
+    def find_original_rule_issue(kind, context_text)
+      return nil unless @session.issues.any?
+
+      @session.issues.find do |issue|
+        issue.kind == kind && similar_text?(issue.text, context_text)
+      end&.as_json&.symbolize_keys
+    end
+
+    # Helper to categorize issues
+    def categorize_issue(kind)
+      case kind.to_s
+      when /filler/
+        'filler_words'
+      when /professional/, /professionalism/
+        'professional_issues'
+      when /pace/
+        'pace_issues'
+      when /clarity/
+        'clarity_issues'
+      else
+        'other_issues'
+      end
+    end
+
+    # DEPRECATED: Segment-based analysis (replaced by comprehensive analysis)
+    # Kept temporarily for rollback compatibility - will be removed in future version
     def build_analysis_candidates(transcript_data, rule_based_issues)
+      # This method is no longer called
+      raise "build_analysis_candidates is deprecated - use perform_comprehensive_analysis instead"
+
       candidate_builder = CandidateBuilder.new(
         transcript_data, 
         rule_based_issues,
@@ -93,9 +258,12 @@ module Analysis
       candidates
     end
     
+    # DEPRECATED: No longer used (comprehensive analysis doesn't use segments)
     def select_segments_for_ai_analysis(candidates)
+      raise "select_segments_for_ai_analysis is deprecated"
+
       return [] if candidates.empty?
-      
+
       # Evaluate each candidate for AI analysis potential
       evaluated_candidates = candidates.map do |candidate|
         evaluation = evaluate_candidate_for_ai_analysis(candidate)
@@ -253,7 +421,10 @@ module Analysis
       end
     end
     
+    # DEPRECATED: Replaced by comprehensive analysis which does all of this in one call
     def classify_rule_issues_with_ai(rule_based_issues, transcript_data)
+      raise "classify_rule_issues_with_ai is deprecated - use perform_comprehensive_analysis instead"
+
       return rule_based_issues if rule_based_issues.empty?
 
       # Split filler words from other issues for specialized processing
@@ -335,7 +506,10 @@ module Analysis
       end
     end
     
+    # DEPRECATED: Replaced by comprehensive analysis
     def detect_filler_words_with_ai(transcript_data)
+      raise "detect_filler_words_with_ai is deprecated - use perform_comprehensive_analysis instead"
+
       # Create cache key for this transcript's filler word detection
       transcript_hash = Digest::MD5.hexdigest(transcript_data[:transcript] || '')
       cache_key = Ai::Cache.analysis_cache_key(

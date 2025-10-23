@@ -9,6 +9,7 @@ module Ai
       segment_evaluation
       progress_assessment
       filler_word_detection
+      comprehensive_speech_analysis
     ].freeze
     
     def initialize(prompt_type, options = {})
@@ -34,6 +35,8 @@ module Ai
         build_progress_assessment_system_prompt
       when 'filler_word_detection'
         build_filler_word_detection_system_prompt
+      when 'comprehensive_speech_analysis'
+        build_comprehensive_speech_analysis_system_prompt
       else
         raise PromptError, "No system prompt defined for: #{@prompt_type}"
       end
@@ -53,6 +56,8 @@ module Ai
         build_progress_assessment_user_prompt(data)
       when 'filler_word_detection'
         build_filler_word_detection_user_prompt(data)
+      when 'comprehensive_speech_analysis'
+        build_comprehensive_speech_analysis_user_prompt(data)
       else
         raise PromptError, "No user prompt defined for: #{@prompt_type}"
       end
@@ -89,6 +94,8 @@ module Ai
         progress_assessment_json_schema
       when 'filler_word_detection'
         filler_word_detection_json_schema
+      when 'comprehensive_speech_analysis'
+        comprehensive_speech_analysis_json_schema
       else
         {}
       end
@@ -923,6 +930,210 @@ module Ai
               filler_rate_per_minute: { type: 'number', minimum: 0 },
               most_common_fillers: { type: 'array', items: { type: 'string' } },
               recommendation: { type: 'string' }
+            }
+          }
+        }
+      }
+    end
+
+    # Comprehensive Speech Analysis - Combines filler detection + issue classification
+    def build_comprehensive_speech_analysis_system_prompt
+      language = @options[:language] || 'en'
+
+      <<~PROMPT
+        You are an expert speech coach performing comprehensive analysis of #{language} communication.
+
+        Your task is to analyze the full transcript and provide:
+        1. **Filler Word Detection**: Identify ALL words/phrases used as verbal crutches
+        2. **Issue Validation**: Validate rule-based detections and assess severity
+        3. **Speech Quality Assessment**: Evaluate overall speaking quality
+
+        ## Filler Word Detection Guidelines
+
+        **Key principle:** Only flag words when they function as fillers, not when they serve a legitimate purpose.
+        - "like" in "I like pizza" = legitimate (preference)
+        - "like" in "it's, like, really good" = filler (verbal crutch)
+
+        Common fillers: um, uh, like, so, you know, I mean, basically, actually, kind of, sort of, just, right, well, okay, now
+
+        ## Issue Validation Guidelines
+
+        Review rule-based detections and:
+        - Confirm if genuinely problematic
+        - Assess confidence level (0.0-1.0)
+        - Determine severity (low/medium/high)
+        - Provide coaching recommendations
+        - Identify false positives
+
+        ## Response Format
+
+        Return ONLY valid JSON with this exact structure:
+        {
+          "filler_words": [
+            {
+              "word": "um",
+              "text_snippet": "I think, um, we should proceed carefully",
+              "start_ms": 1500,
+              "confidence": 0.95,
+              "rationale": "Hesitation filler disrupting sentence flow",
+              "severity": "medium"
+            }
+          ],
+          "validated_issues": [
+            {
+              "original_detection": "professionalism",
+              "validation": "confirmed",
+              "confidence": 0.85,
+              "severity": "medium",
+              "impact_description": "Casual language reduces professional tone",
+              "coaching_recommendation": "Replace casual phrases with formal alternatives",
+              "priority": "medium",
+              "practice_exercise": "Record yourself reading professional texts",
+              "context_text": "yeah, we should probably do that"
+            }
+          ],
+          "false_positives": [
+            {
+              "original_detection": "pace_too_fast",
+              "reason": "Natural conversational pace for this content type",
+              "confidence_override": 0.2
+            }
+          ],
+          "speech_quality": {
+            "overall_clarity": 0.85,
+            "overall_fluency": 0.78,
+            "pacing_quality": 0.72,
+            "engagement_level": 0.80,
+            "key_strengths": ["Clear articulation", "Good voice projection"],
+            "primary_concern": "Moderate filler word usage affects flow"
+          },
+          "summary": {
+            "total_filler_count": 8,
+            "filler_rate_per_minute": 4.2,
+            "most_common_fillers": ["um", "like"],
+            "total_valid_issues": 3,
+            "high_priority_count": 1,
+            "medium_priority_count": 1,
+            "low_priority_count": 1,
+            "recommended_focus": "Reduce filler words and increase pace variation",
+            "filler_recommendation": "Focus on replacing 'um' with strategic pauses"
+          }
+        }
+      PROMPT
+    end
+
+    def build_comprehensive_speech_analysis_user_prompt(data)
+      transcript = data[:transcript] || ''
+      rule_issues = data[:rule_issues] || []
+      context = data[:context] || {}
+
+      prompt = "Perform comprehensive analysis on this speech:\n\n"
+      prompt += "**Full Transcript:**\n\"#{transcript}\"\n\n"
+
+      if context[:duration_seconds]
+        prompt += "**Duration:** #{context[:duration_seconds].round(1)} seconds\n"
+      end
+
+      if context[:word_count]
+        prompt += "**Word Count:** #{context[:word_count]} words\n"
+      end
+
+      if context[:user_level]
+        prompt += "**Speaker Level:** #{context[:user_level]}\n"
+      end
+
+      # Include rule-based detections for validation
+      if rule_issues.any?
+        prompt += "\n**Rule-Based Detections to Validate:**\n"
+        rule_issues.each_with_index do |issue, index|
+          prompt += "\n#{index + 1}. **#{issue[:kind]}**\n"
+          prompt += "   - Text: \"#{issue[:text]}\"\n"
+          prompt += "   - Detected severity: #{issue[:severity]}\n"
+          prompt += "   - Rationale: #{issue[:rationale]}\n"
+          prompt += "   - Time: #{issue[:start_ms]/1000.0}s - #{issue[:end_ms]/1000.0}s\n"
+        end
+      else
+        prompt += "\n**No rule-based issues detected** - perform fresh analysis for all issue types.\n"
+      end
+
+      prompt += "\n\nAnalyze the transcript comprehensively. Detect ALL filler words and validate rule-based issues. Return only the JSON response."
+    end
+
+    def comprehensive_speech_analysis_json_schema
+      {
+        type: 'object',
+        required: %w[filler_words validated_issues false_positives speech_quality summary],
+        properties: {
+          filler_words: {
+            type: 'array',
+            items: {
+              type: 'object',
+              required: %w[word text_snippet start_ms confidence rationale severity],
+              properties: {
+                word: { type: 'string' },
+                text_snippet: { type: 'string' },
+                start_ms: { type: 'integer', minimum: 0 },
+                confidence: { type: 'number', minimum: 0, maximum: 1 },
+                rationale: { type: 'string' },
+                severity: { enum: %w[low medium high] }
+              }
+            }
+          },
+          validated_issues: {
+            type: 'array',
+            items: {
+              type: 'object',
+              required: %w[original_detection validation confidence severity impact_description coaching_recommendation priority practice_exercise context_text],
+              properties: {
+                original_detection: { type: 'string' },
+                validation: { type: 'string' },
+                confidence: { type: 'number', minimum: 0, maximum: 1 },
+                severity: { enum: %w[low medium high] },
+                impact_description: { type: 'string' },
+                coaching_recommendation: { type: 'string' },
+                priority: { enum: %w[low medium high] },
+                practice_exercise: { type: 'string' },
+                context_text: { type: 'string' }
+              }
+            }
+          },
+          false_positives: {
+            type: 'array',
+            items: {
+              type: 'object',
+              required: %w[original_detection reason confidence_override],
+              properties: {
+                original_detection: { type: 'string' },
+                reason: { type: 'string' },
+                confidence_override: { type: 'number', minimum: 0, maximum: 1 }
+              }
+            }
+          },
+          speech_quality: {
+            type: 'object',
+            required: %w[overall_clarity overall_fluency pacing_quality engagement_level key_strengths primary_concern],
+            properties: {
+              overall_clarity: { type: 'number', minimum: 0, maximum: 1 },
+              overall_fluency: { type: 'number', minimum: 0, maximum: 1 },
+              pacing_quality: { type: 'number', minimum: 0, maximum: 1 },
+              engagement_level: { type: 'number', minimum: 0, maximum: 1 },
+              key_strengths: { type: 'array', items: { type: 'string' } },
+              primary_concern: { type: 'string' }
+            }
+          },
+          summary: {
+            type: 'object',
+            required: %w[total_filler_count filler_rate_per_minute most_common_fillers total_valid_issues high_priority_count medium_priority_count low_priority_count recommended_focus filler_recommendation],
+            properties: {
+              total_filler_count: { type: 'integer', minimum: 0 },
+              filler_rate_per_minute: { type: 'number', minimum: 0 },
+              most_common_fillers: { type: 'array', items: { type: 'string' } },
+              total_valid_issues: { type: 'integer', minimum: 0 },
+              high_priority_count: { type: 'integer', minimum: 0 },
+              medium_priority_count: { type: 'integer', minimum: 0 },
+              low_priority_count: { type: 'integer', minimum: 0 },
+              recommended_focus: { type: 'string' },
+              filler_recommendation: { type: 'string' }
             }
           }
         }
