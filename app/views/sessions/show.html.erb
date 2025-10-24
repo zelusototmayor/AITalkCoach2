@@ -29,51 +29,14 @@
 
   <!-- Processing Status -->
   <% if @session.processing_state != 'completed' %>
-    <div class="processing-status status-<%= @session.processing_state %>"
-         data-progress-target="status">
-      <% case @session.processing_state %>
-      <% when 'pending' %>
-        <div class="status-card">
-          <span class="status-icon"><%= icon_svg(:hourglass, css_class: 'icon-lg') %></span>
-          <div class="status-content">
-            <h3 data-progress-target="step">Analysis Pending</h3>
-            <p data-progress-target="statusText">Your session is queued for processing. This usually takes 1-2 minutes.</p>
-            <div class="progress-container">
-              <div class="progress-bar-bg">
-                <div class="progress-bar" data-progress-target="progressBar"
-                     style="width: 5%" role="progressbar"
-                     aria-valuenow="5" aria-valuemin="0" aria-valuemax="100"></div>
-              </div>
-              <small class="progress-text">
-                <span data-progress-target="estimatedTime">Starting soon...</span>
-              </small>
-            </div>
-          </div>
-        </div>
-      <% when 'processing' %>
-        <div class="status-card">
-          <span class="status-icon"><%= icon_svg(:lightning, css_class: 'icon-lg') %></span>
-          <div class="status-content">
-            <h3 data-progress-target="step">Processing Audio</h3>
-            <p data-progress-target="statusText">AI is analyzing your speech patterns, clarity, and providing feedback...</p>
-            <div class="progress-container">
-              <div class="progress-bar-bg">
-                <div class="progress-bar" data-progress-target="progressBar"
-                     style="width: 30%" role="progressbar"
-                     aria-valuenow="30" aria-valuemin="0" aria-valuemax="100"></div>
-              </div>
-              <small class="progress-text">
-                <span data-progress-target="estimatedTime">Analyzing...</span>
-              </small>
-            </div>
-          </div>
-        </div>
-      <% when 'failed' %>
+    <% if @session.processing_state == 'failed' %>
+      <!-- Show error state with simple UI -->
+      <div class="processing-status status-failed">
         <div class="status-card error">
           <span class="status-icon"><%= icon_svg(:x_circle, css_class: 'icon-lg') %></span>
           <div class="status-content">
-            <h3 data-progress-target="step">Analysis Failed</h3>
-            <p data-progress-target="statusText"><%= @session.incomplete_reason || "An unexpected error occurred during processing." %></p>
+            <h3>Analysis Failed</h3>
+            <p><%= @session.incomplete_reason || "An unexpected error occurred during processing." %></p>
             <div class="error-actions">
               <button class="btn btn-primary" data-action="click->session#reprocess">
                 <%= icon_svg(:refresh, css_class: 'icon-inline') %> Try Again
@@ -85,8 +48,11 @@
             </div>
           </div>
         </div>
-      <% end %>
-    </div>
+      </div>
+    <% else %>
+      <!-- Show enhanced processing UI for pending/processing states -->
+      <%= render 'enhanced_processing_status' %>
+    <% end %>
   <% end %>
 
   <!-- Show transcript even for failed sessions -->

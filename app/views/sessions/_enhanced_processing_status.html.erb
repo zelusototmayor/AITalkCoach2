@@ -1,0 +1,436 @@
+<div class="enhanced-processing-container"
+     data-controller="enhanced-progress"
+     data-enhanced-progress-session-id-value="<%= @session.id %>"
+     data-enhanced-progress-poll-interval-value="3000">
+
+  <!-- Processing Timeline Visualization -->
+  <div class="processing-timeline">
+    <div class="timeline-step" data-enhanced-progress-target="timelineStep" data-step="extraction">
+      <div class="step-icon">
+        <%= icon_svg(:file_audio, css_class: 'icon') %>
+      </div>
+      <div class="step-label">Extract Audio</div>
+      <div class="step-status">pending</div>
+    </div>
+
+    <div class="timeline-connector"></div>
+
+    <div class="timeline-step" data-enhanced-progress-target="timelineStep" data-step="transcription">
+      <div class="step-icon">
+        <%= icon_svg(:message_square, css_class: 'icon') %>
+      </div>
+      <div class="step-label">Transcribe</div>
+      <div class="step-status">pending</div>
+    </div>
+
+    <div class="timeline-connector"></div>
+
+    <div class="timeline-step" data-enhanced-progress-target="timelineStep" data-step="analysis">
+      <div class="step-icon">
+        <%= icon_svg(:search, css_class: 'icon') %>
+      </div>
+      <div class="step-label">Analyze</div>
+      <div class="step-status">pending</div>
+    </div>
+
+    <div class="timeline-connector"></div>
+
+    <div class="timeline-step" data-enhanced-progress-target="timelineStep" data-step="refinement">
+      <div class="step-icon">
+        <%= icon_svg(:sparkles, css_class: 'icon') %>
+      </div>
+      <div class="step-label">AI Refine</div>
+      <div class="step-status">pending</div>
+    </div>
+  </div>
+
+  <!-- Main Progress Section -->
+  <div class="progress-main-section">
+    <h2 class="progress-title" data-enhanced-progress-target="statusTitle">
+      Analyzing Your Speech...
+    </h2>
+
+    <div class="progress-bar-container">
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill"
+             data-enhanced-progress-target="progressBar"
+             style="width: 5%"
+             role="progressbar"
+             aria-valuenow="5"
+             aria-valuemin="0"
+             aria-valuemax="100">
+        </div>
+      </div>
+      <div class="progress-percentage" data-enhanced-progress-target="progressText">5%</div>
+    </div>
+
+    <p class="progress-description" data-enhanced-progress-target="statusDescription">
+      Your recording is being processed. This typically takes 30-40 seconds.
+    </p>
+  </div>
+
+  <!-- Progressive Metrics Display Area -->
+  <div class="progressive-metrics-area" data-enhanced-progress-target="metricsArea">
+    <!-- Metrics will be dynamically added here as they become available -->
+
+    <!-- Template for metric card (hidden by default) -->
+    <template data-enhanced-progress-target="metricTemplate">
+      <div class="metric-card-progressive" data-metric-key="">
+        <div class="metric-icon-wrapper">
+          <span class="metric-icon"></span>
+        </div>
+        <div class="metric-content">
+          <div class="metric-label"></div>
+          <div class="metric-value"></div>
+          <div class="metric-note"></div>
+        </div>
+      </div>
+    </template>
+  </div>
+
+  <!-- Rotating Tips Section -->
+  <div class="coaching-tips-carousel" data-enhanced-progress-target="tipsCarousel">
+    <div class="tip-icon">💡</div>
+    <div class="tip-content" data-enhanced-progress-target="tipText">
+      Getting ready to analyze your speech patterns...
+    </div>
+  </div>
+
+  <!-- Estimated Time Remaining -->
+  <div class="time-estimate" data-enhanced-progress-target="timeEstimate">
+    <span class="estimate-icon">⏱️</span>
+    <span class="estimate-text">Estimated time: <span data-enhanced-progress-target="estimatedTime">30-40s</span></span>
+  </div>
+</div>
+
+<style>
+  .enhanced-processing-container {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 40px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+
+  /* Processing Timeline */
+  .processing-timeline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 48px;
+    padding: 0 20px;
+  }
+
+  .timeline-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    min-width: 100px;
+    position: relative;
+  }
+
+  .timeline-step .step-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #f3f4f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 3px solid transparent;
+  }
+
+  .timeline-step .step-icon .icon {
+    width: 24px;
+    height: 24px;
+    color: #9ca3af;
+    transition: color 0.4s;
+  }
+
+  .timeline-step.active .step-icon {
+    background: #EEF2FF;
+    border-color: #4F46E5;
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .timeline-step.active .step-icon .icon {
+    color: #4F46E5;
+  }
+
+  .timeline-step.completed .step-icon {
+    background: #4F46E5;
+    border-color: #4F46E5;
+  }
+
+  .timeline-step.completed .step-icon .icon {
+    color: white;
+  }
+
+  .timeline-step .step-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #6b7280;
+    transition: color 0.4s;
+  }
+
+  .timeline-step.active .step-label {
+    color: #4F46E5;
+  }
+
+  .timeline-step.completed .step-label {
+    color: #10b981;
+  }
+
+  .timeline-step .step-status {
+    font-size: 11px;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .timeline-connector {
+    flex: 1;
+    height: 3px;
+    background: #e5e7eb;
+    position: relative;
+    margin: 0 -10px;
+    margin-bottom: 48px;
+    transition: background 0.4s;
+  }
+
+  .timeline-connector.completed {
+    background: #4F46E5;
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+    }
+    50% {
+      box-shadow: 0 0 0 8px rgba(79, 70, 229, 0.05);
+    }
+  }
+
+  /* Main Progress Section */
+  .progress-main-section {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .progress-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 16px;
+  }
+
+  .progress-bar-container {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 24px 0;
+  }
+
+  .progress-bar-track {
+    flex: 1;
+    height: 12px;
+    background: #f3f4f6;
+    border-radius: 999px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4F46E5 0%, #7C3AED 100%);
+    border-radius: 999px;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: shimmer 2s infinite;
+  }
+
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  .progress-percentage {
+    font-size: 18px;
+    font-weight: 600;
+    color: #4F46E5;
+    min-width: 60px;
+    text-align: right;
+  }
+
+  .progress-description {
+    font-size: 15px;
+    color: #6b7280;
+    margin-top: 8px;
+  }
+
+  /* Progressive Metrics Area */
+  .progressive-metrics-area {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin: 32px 0;
+    min-height: 120px;
+  }
+
+  .metric-card-progressive {
+    background: #fafafa;
+    border: 2px solid #f3f4f6;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: slideInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  @keyframes slideInUp {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .metric-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+  }
+
+  .metric-content {
+    flex: 1;
+  }
+
+  .metric-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+
+  .metric-value {
+    font-size: 26px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 4px;
+  }
+
+  .metric-value.counting {
+    animation: countUp 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  @keyframes countUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .metric-note {
+    font-size: 12px;
+    color: #9ca3af;
+  }
+
+  /* Coaching Tips Carousel */
+  .coaching-tips-carousel {
+    background: #EEF2FF;
+    border-left: 4px solid #4F46E5;
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin: 32px 0;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .tip-icon {
+    font-size: 28px;
+    flex-shrink: 0;
+  }
+
+  .tip-content {
+    font-size: 15px;
+    line-height: 1.6;
+    color: #374151;
+    transition: opacity 0.3s;
+  }
+
+  .tip-content.fading {
+    opacity: 0;
+  }
+
+  /* Time Estimate */
+  .time-estimate {
+    text-align: center;
+    padding: 16px;
+    background: #fafafa;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #6b7280;
+  }
+
+  .estimate-icon {
+    font-size: 18px;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .enhanced-processing-container {
+      padding: 24px;
+      margin: 20px;
+    }
+
+    .processing-timeline {
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .timeline-connector {
+      display: none;
+    }
+
+    .timeline-step {
+      min-width: 80px;
+    }
+
+    .progressive-metrics-area {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

@@ -144,7 +144,10 @@ class Api::SessionsController < ApplicationController
       completed: @session.completed,
       incomplete_reason: @session.incomplete_reason,
       updated_at: @session.updated_at,
-      progress_info: get_progress_info(@session)
+      progress_info: get_progress_info(@session),
+      interim_metrics: get_interim_metrics(@session),
+      processing_stage: @session.analysis_data&.dig('processing_stage'),
+      processing_progress: @session.analysis_data&.dig('processing_progress')
     }
   end
 
@@ -256,58 +259,112 @@ class Api::SessionsController < ApplicationController
   end
 
   def get_progress_info(session)
+    # Use stored progress if available (from ProcessJob)
+    if session.analysis_data&.dig('processing_stage') && session.analysis_data&.dig('processing_progress')
+      stage = session.analysis_data['processing_stage']
+      progress = session.analysis_data['processing_progress']
+
+      stage_messages = {
+        'extraction' => 'Extracting audio from your recording...',
+        'transcription' => 'Transcribing your speech to text...',
+        'analysis' => 'Detecting speech patterns and issues...',
+        'refinement' => 'AI is refining the analysis...'
+      }
+
+      return {
+        step: stage_messages[stage] || 'Processing...',
+        progress: progress,
+        estimated_time: estimate_remaining_time(progress),
+        current_stage: stage
+      }
+    end
+
+    # Fallback to time-based estimation if no stored progress
     case session.processing_state
     when 'pending'
       {
         step: 'Queued for processing',
         progress: 5,
-        estimated_time: 'Starting analysis...'
+        estimated_time: 'Starting analysis...',
+        current_stage: 'pending'
       }
     when 'processing'
       # Better progress indication without confusing countdown
       processing_duration = Time.current - session.updated_at
-      
+
       # Progressive status messages based on duration
       if processing_duration < 10
         step_message = 'Extracting audio...'
         progress = 15
+        stage = 'extraction'
       elsif processing_duration < 30
         step_message = 'Transcribing speech...'
         progress = 35
+        stage = 'transcription'
       elsif processing_duration < 60
         step_message = 'Analyzing speech patterns...'
         progress = 60
+        stage = 'analysis'
       elsif processing_duration < 90
         step_message = 'Generating insights...'
         progress = 80
+        stage = 'refinement'
       else
         step_message = 'Finalizing analysis...'
         progress = 90
+        stage = 'refinement'
       end
-      
+
       {
         step: step_message,
         progress: progress,
-        estimated_time: 'Analyzing your speech...'
+        estimated_time: estimate_remaining_time(progress),
+        current_stage: stage
       }
     when 'completed'
       {
         step: 'Analysis complete',
         progress: 100,
-        estimated_time: 'Done'
+        estimated_time: 'Done',
+        current_stage: 'completed'
       }
     when 'failed'
       {
         step: 'Processing failed',
         progress: 0,
-        estimated_time: 'Please try again'
+        estimated_time: 'Please try again',
+        current_stage: 'failed'
       }
     else
       {
         step: 'Unknown state',
         progress: 0,
-        estimated_time: 'Please refresh the page'
+        estimated_time: 'Please refresh the page',
+        current_stage: 'unknown'
       }
+    end
+  end
+
+  def get_interim_metrics(session)
+    # Return interim metrics if available
+    session.analysis_data&.dig('interim_metrics') || {}
+  end
+
+  def estimate_remaining_time(progress_percent)
+    return 'Done' if progress_percent >= 100
+    return 'Just a moment...' if progress_percent >= 90
+
+    # Assume total time is ~40 seconds
+    total_estimated_seconds = 40
+    remaining_percent = 100 - progress_percent
+    remaining_seconds = (total_estimated_seconds * remaining_percent / 100.0).round
+
+    if remaining_seconds < 10
+      'Almost done...'
+    elsif remaining_seconds < 20
+      "~#{remaining_seconds}s remaining"
+    else
+      "~#{remaining_seconds}s remaining"
     end
   end
 end

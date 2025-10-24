@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_19_221538) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_24_092303) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -94,6 +94,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_19_221538) do
     t.date "planned_for_date"
     t.json "micro_tips", default: []
     t.json "coaching_insights", default: {}
+    t.json "analysis_data", default: {}
     t.index ["analysis_json"], name: "index_sessions_on_analysis_json_gin"
     t.index ["completed", "created_at"], name: "index_sessions_on_completed_and_created_at"
     t.index ["created_at", "completed"], name: "index_sessions_on_date_completed"

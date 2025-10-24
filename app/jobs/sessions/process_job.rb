@@ -56,25 +56,51 @@ module Sessions
       
       # Step 1: Extract audio from media files
       Rails.logger.info "Step 1: Extracting media for session #{@session.id}"
+      update_processing_stage('extraction', 15)
       media_data = extract_media
       pipeline_result[:media_extraction] = media_data
-      
+
+      # Store initial metrics after extraction
+      store_interim_metrics({
+        duration_seconds: media_data[:duration]
+      })
+
       # Step 2: Transcribe speech to text
       Rails.logger.info "Step 2: Transcribing speech for session #{@session.id}"
+      update_processing_stage('transcription', 35)
       transcript_data = transcribe_speech(media_data)
       pipeline_result[:transcription] = transcript_data
+
+      # Store metrics after transcription
+      store_interim_metrics({
+        duration_seconds: media_data[:duration],
+        word_count: transcript_data[:words]&.length || 0,
+        estimated_wpm: calculate_quick_wpm(transcript_data, media_data[:duration])
+      })
       
       # Step 3: Run rule-based analysis
       Rails.logger.info "Step 3: Running rule-based analysis for session #{@session.id}"
+      update_processing_stage('analysis', 60)
       rule_issues = analyze_with_rules(transcript_data)
       pipeline_result[:rule_analysis] = {
         issues: rule_issues,
         issue_count: rule_issues.length
       }
-      
+
+      # Store metrics after rule-based analysis
+      filler_issues = rule_issues.select { |i| i[:kind] == 'filler_word' }
+      store_interim_metrics({
+        duration_seconds: media_data[:duration],
+        word_count: transcript_data[:words]&.length || 0,
+        estimated_wpm: calculate_quick_wpm(transcript_data, media_data[:duration]),
+        filler_word_count: filler_issues.length,
+        pause_count: rule_issues.select { |i| i[:kind] == 'long_pause' }.length
+      })
+
       # Step 4: AI refinement and enhancement (OPTIMIZED: unified analysis)
       if should_run_ai_analysis?
         Rails.logger.info "Step 4: Running comprehensive AI analysis for session #{@session.id} (optimized)"
+        update_processing_stage('refinement', 80)
         ai_results = refine_with_ai(transcript_data, rule_issues)
         pipeline_result[:ai_refinement] = ai_results
       else
@@ -717,6 +743,31 @@ module Sessions
       rescue => e
         Rails.logger.warn "Failed to cleanup temp file for session #{@session.id}: #{e.message}"
       end
+    end
+
+    # Progressive metrics helpers
+    def update_processing_stage(stage, progress_percent)
+      # Store current stage and progress in session for API to fetch
+      current_data = @session.analysis_data || {}
+      current_data['processing_stage'] = stage
+      current_data['processing_progress'] = progress_percent
+      @session.update_column(:analysis_data, current_data)
+    end
+
+    def store_interim_metrics(metrics)
+      # Store interim metrics that can be displayed during processing
+      current_data = @session.analysis_data || {}
+      current_data['interim_metrics'] = metrics
+      @session.update_column(:analysis_data, current_data)
+      Rails.logger.info "Stored interim metrics for session #{@session.id}: #{metrics.inspect}"
+    end
+
+    def calculate_quick_wpm(transcript_data, duration_seconds)
+      return 0 if transcript_data[:words].blank? || duration_seconds.to_f <= 0
+
+      word_count = transcript_data[:words].length
+      duration_minutes = duration_seconds.to_f / 60.0
+      (word_count / duration_minutes).round
     end
   end
 end

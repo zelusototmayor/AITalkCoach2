@@ -1,15 +1,23 @@
 module Analysis
   class AiRefiner
     class RefinerError < StandardError; end
-    
+
     DEFAULT_MAX_AI_SEGMENTS = 5
     DEFAULT_CONFIDENCE_THRESHOLD = 0.7
     DEFAULT_CACHE_TTL = 6.hours
-    
+
+    # Performance optimization: Use faster model for coaching (creative task)
+    ANALYSIS_MODEL = ENV['AI_MODEL_COACH'] || 'gpt-4o'
+    COACHING_MODEL = ENV['AI_MODEL_COACHING'] || 'gpt-4o-mini'
+
+    # Feature flag for parallel processing (set to false to disable if issues arise)
+    ENABLE_PARALLEL_PROCESSING = ENV.fetch('ENABLE_PARALLEL_AI_PROCESSING', 'true') == 'true'
+
     def initialize(session, options = {})
       @session = session
       @options = options
-      @ai_client = Ai::Client.new(model: ENV['AI_MODEL_COACH'] || 'gpt-4')
+      @ai_client = Ai::Client.new(model: ANALYSIS_MODEL)
+      @coaching_client = Ai::Client.new(model: COACHING_MODEL)
       @max_ai_segments = options[:max_ai_segments] || DEFAULT_MAX_AI_SEGMENTS
       @confidence_threshold = options[:confidence_threshold] || DEFAULT_CONFIDENCE_THRESHOLD
       @cache_ttl = options[:cache_ttl] || DEFAULT_CACHE_TTL
@@ -25,22 +33,23 @@ module Analysis
           rule_issues_count: rule_based_issues.length,
           ai_segments_analyzed: 0, # Always 0 now (no segments)
           cache_hits: 0,
-          processing_time_ms: 0
+          processing_time_ms: 0,
+          parallel_processing_enabled: ENABLE_PARALLEL_PROCESSING
         }
       }
 
       start_time = Time.current
 
       begin
-        # Single comprehensive AI analysis (replaces segments + filler + classification)
-        Rails.logger.info "Starting comprehensive AI analysis for session #{@session.id}"
-        ai_analysis = perform_comprehensive_analysis(transcript_data, rule_based_issues)
-
-        # Process unified AI results
-        refined_issues = process_comprehensive_analysis_results(ai_analysis, transcript_data)
-
-        # Generate personalized coaching recommendations (kept separate)
-        coaching_advice = generate_coaching_recommendations(refined_issues)
+        if ENABLE_PARALLEL_PROCESSING
+          # OPTIMIZED: Run AI analysis and coaching in parallel
+          refined_issues, ai_analysis, coaching_advice, timing_metadata =
+            refine_analysis_parallel(transcript_data, rule_based_issues, start_time)
+        else
+          # FALLBACK: Sequential processing (original behavior)
+          refined_issues, ai_analysis, coaching_advice, timing_metadata =
+            refine_analysis_sequential(transcript_data, rule_based_issues, start_time)
+        end
 
         # Compile final results
         refined_results.update(
@@ -48,11 +57,7 @@ module Analysis
           ai_insights: ai_analysis[:speech_quality] || {},
           segment_analyses: [], # No longer used
           coaching_recommendations: coaching_advice,
-          metadata: refined_results[:metadata].merge(
-            ai_segments_analyzed: 0,
-            processing_time_ms: ((Time.current - start_time) * 1000).round,
-            optimization: 'unified_analysis_v1'
-          )
+          metadata: refined_results[:metadata].merge(timing_metadata)
         )
 
       rescue => e
@@ -71,6 +76,125 @@ module Analysis
     end
     
     private
+
+    # OPTIMIZED: Hybrid parallel processing of AI analysis and coaching
+    # Runs both in parallel, then conditionally regenerates coaching if filler counts differ
+    def refine_analysis_parallel(transcript_data, rule_based_issues, start_time)
+      Rails.logger.info "[Session #{@session.id}] Starting PARALLEL AI processing (analysis + coaching)"
+
+      analysis_start = Time.current
+      coaching_start = nil
+      analysis_duration = nil
+      coaching_duration = nil
+      coaching_regenerated = false
+      regeneration_reason = nil
+
+      begin
+        # Execute both AI operations concurrently
+        analysis_future = Concurrent::Promises.future do
+          Thread.current[:name] = "ai_analysis_#{@session.id}"
+          perform_comprehensive_analysis(transcript_data, rule_based_issues)
+        end
+
+        coaching_future = Concurrent::Promises.future do
+          Thread.current[:name] = "ai_coaching_#{@session.id}"
+          coaching_start = Time.current
+          # Use rule-based issues for preliminary coaching
+          # May be regenerated if counts differ significantly
+          generate_coaching_recommendations(rule_based_issues)
+        end
+
+        # Wait for both to complete with timeout protection
+        ai_analysis, preliminary_coaching = Concurrent::Promises.zip(
+          analysis_future,
+          coaching_future
+        ).value!(120) # 120 second timeout for both operations
+
+        analysis_duration = ((Time.current - analysis_start) * 1000).round
+        coaching_duration = coaching_start ? ((Time.current - coaching_start) * 1000).round : 0
+
+        Rails.logger.info "[Session #{@session.id}] Parallel processing completed - " \
+                         "Analysis: #{analysis_duration}ms, Preliminary coaching: #{coaching_duration}ms"
+
+        # Process the AI analysis results
+        refined_issues = process_comprehensive_analysis_results(ai_analysis, transcript_data)
+
+        # HYBRID OPTIMIZATION: Check if we need to regenerate coaching with accurate counts
+        coaching_advice = preliminary_coaching
+
+        if issue_counts_differ_significantly?(rule_based_issues, refined_issues)
+          Rails.logger.info "[Session #{@session.id}] Filler counts differ significantly - " \
+                           "regenerating coaching with AI-validated issues for accuracy"
+
+          regeneration_start = Time.current
+          coaching_advice = generate_coaching_recommendations(refined_issues)
+          regeneration_duration = ((Time.current - regeneration_start) * 1000).round
+
+          coaching_regenerated = true
+          regeneration_reason = 'filler_count_mismatch'
+          coaching_duration = regeneration_duration # Update to reflect regeneration time
+
+          Rails.logger.info "[Session #{@session.id}] Coaching regenerated with accurate counts " \
+                           "in #{regeneration_duration}ms"
+        else
+          Rails.logger.info "[Session #{@session.id}] Using preliminary coaching (counts are similar)"
+        end
+
+        timing_metadata = {
+          ai_segments_analyzed: 0,
+          processing_time_ms: ((Time.current - start_time) * 1000).round,
+          analysis_duration_ms: analysis_duration,
+          coaching_duration_ms: coaching_duration,
+          coaching_regenerated: coaching_regenerated,
+          regeneration_reason: regeneration_reason,
+          optimization: coaching_regenerated ? 'hybrid_parallel_v1_regenerated' : 'hybrid_parallel_v1',
+          model_analysis: ANALYSIS_MODEL,
+          model_coaching: COACHING_MODEL
+        }
+
+        [refined_issues, ai_analysis, coaching_advice, timing_metadata]
+
+      rescue Concurrent::TimeoutError => e
+        Rails.logger.error "[Session #{@session.id}] Parallel AI processing timeout after 120s"
+        # Fallback to sequential processing on timeout
+        Rails.logger.warn "[Session #{@session.id}] Falling back to sequential processing"
+        refine_analysis_sequential(transcript_data, rule_based_issues, start_time)
+
+      rescue => e
+        Rails.logger.error "[Session #{@session.id}] Parallel processing failed: #{e.message}"
+        raise # Re-raise to be caught by outer rescue
+      end
+    end
+
+    # FALLBACK: Sequential processing (original behavior)
+    def refine_analysis_sequential(transcript_data, rule_based_issues, start_time)
+      Rails.logger.info "[Session #{@session.id}] Starting SEQUENTIAL AI processing"
+
+      analysis_start = Time.current
+      ai_analysis = perform_comprehensive_analysis(transcript_data, rule_based_issues)
+      analysis_duration = ((Time.current - analysis_start) * 1000).round
+
+      refined_issues = process_comprehensive_analysis_results(ai_analysis, transcript_data)
+
+      coaching_start = Time.current
+      coaching_advice = generate_coaching_recommendations(refined_issues)
+      coaching_duration = ((Time.current - coaching_start) * 1000).round
+
+      Rails.logger.info "[Session #{@session.id}] Sequential processing completed - " \
+                       "Total: #{analysis_duration + coaching_duration}ms"
+
+      timing_metadata = {
+        ai_segments_analyzed: 0,
+        processing_time_ms: ((Time.current - start_time) * 1000).round,
+        analysis_duration_ms: analysis_duration,
+        coaching_duration_ms: coaching_duration,
+        optimization: 'sequential_v1',
+        model_analysis: ANALYSIS_MODEL,
+        model_coaching: COACHING_MODEL
+      }
+
+      [refined_issues, ai_analysis, coaching_advice, timing_metadata]
+    end
 
     # NEW: Perform comprehensive analysis in a single API call
     def perform_comprehensive_analysis(transcript_data, rule_based_issues)
@@ -799,7 +923,8 @@ module Analysis
       messages = prompt_builder.build_messages(coaching_data)
 
       begin
-        response = @ai_client.chat_completion(
+        # Use dedicated coaching client (faster model for creative/generative task)
+        response = @coaching_client.chat_completion(
           messages,
           tool_schema: prompt_builder.tool_schema,
           prompt_type: prompt_builder.prompt_type
@@ -1009,7 +1134,34 @@ module Analysis
       else 4
       end
     end
-    
+
+    # Hybrid Optimization: Check if filler word counts differ significantly
+    # between rule-based and AI-validated issues
+    #
+    # @param rule_issues [Array<Hash>] Rule-based detected issues
+    # @param ai_issues [Array<Hash>] AI-validated issues
+    # @param threshold [Float] Percentage difference threshold (default: 20%)
+    # @return [Boolean] true if counts differ by more than threshold
+    def issue_counts_differ_significantly?(rule_issues, ai_issues, threshold: 0.20)
+      rule_filler_count = rule_issues.count { |i| i[:kind] == 'filler_word' }
+      ai_filler_count = ai_issues.count { |i| i[:kind] == 'filler_word' }
+
+      # If both are zero, counts don't differ
+      return false if rule_filler_count == 0 && ai_filler_count == 0
+
+      # If one is zero and the other isn't, they differ significantly
+      return true if rule_filler_count == 0 || ai_filler_count == 0
+
+      # Calculate percentage difference based on rule-based count (baseline)
+      diff_ratio = (rule_filler_count - ai_filler_count).abs.to_f / rule_filler_count
+
+      Rails.logger.debug "[Session #{@session.id}] Filler count comparison: " \
+                         "rule=#{rule_filler_count}, ai=#{ai_filler_count}, " \
+                         "diff=#{(diff_ratio * 100).round(1)}%"
+
+      diff_ratio >= threshold
+    end
+
     def generate_fallback_coaching_advice(issues)
       # Simple rule-based coaching advice as fallback
       issue_counts = issues.group_by { |i| i[:kind] }.transform_values(&:count)
