@@ -1,0 +1,364 @@
+<% content_for :title, "Try a Quick Test - AI Talk Coach" %>
+
+<div class="onboarding-container">
+  <div class="onboarding-content">
+    <!-- Progress Indicator -->
+    <%= render 'onboarding/progress', current_step: 3 %>
+
+    <% if @demo_completed && @trial_session %>
+      <!-- State A: Demo Already Completed - Show as Benchmark -->
+      <div class="onboarding-form-section">
+        <div class="benchmark-badge">
+          <span class="benchmark-icon" aria-hidden="true">🎯</span>
+          <span>Achievement Unlocked!</span>
+        </div>
+
+        <h1 class="onboarding-title">Your Starting Benchmark</h1>
+        <p class="onboarding-subtitle">You've completed your first analysis. These are your baseline metrics - let's commit to improving them together.</p>
+
+        <!-- Benchmark Results Card -->
+        <div class="benchmark-results-card">
+          <!-- Overall Score (if available) -->
+          <% if @trial_session.overall_benchmark_score.present? %>
+            <div class="overall-score-section">
+              <div class="overall-score-label">Your Day 0 Overall Score</div>
+              <div class="overall-score-circle">
+                <div class="score-ring" data-score="<%= @trial_session.overall_benchmark_score %>">
+                  <svg viewBox="0 0 100 100" class="score-svg">
+                    <circle cx="50" cy="50" r="45" class="score-bg"></circle>
+                    <circle cx="50" cy="50" r="45" class="score-fill"
+                            style="stroke-dasharray: <%= 2 * Math::PI * 45 %>;
+                                   stroke-dashoffset: <%= 2 * Math::PI * 45 * (1 - @trial_session.overall_benchmark_score / 100.0) %>;"></circle>
+                  </svg>
+                  <div class="score-value"><%= @trial_session.overall_benchmark_score %><span class="score-unit">/100</span></div>
+                </div>
+              </div>
+              <div class="overall-score-subtext">Your baseline to beat</div>
+            </div>
+          <% end %>
+
+          <!-- Individual Metrics -->
+          <div class="benchmark-metrics-grid">
+            <div class="benchmark-metric">
+              <div class="metric-icon">💎</div>
+              <div class="metric-label">Clarity Score</div>
+              <div class="metric-value">
+                <%= @trial_session.clarity_score&.round || 'N/A' %>
+                <span class="metric-unit">/100</span>
+              </div>
+              <div class="metric-target">
+                <% clarity = @trial_session.clarity_score %>
+                <% if clarity && clarity > 85 %>
+                  ✨ Very clear
+                <% elsif clarity && clarity > 70 %>
+                  ↗ Room to improve
+                <% else %>
+                  🎯 Let's work on this
+                <% end %>
+              </div>
+            </div>
+
+            <div class="benchmark-metric">
+              <div class="metric-icon">🗣️</div>
+              <div class="metric-label">Filler Words</div>
+              <div class="metric-value">
+                <%= @trial_session.filler_rate&.round(1) || 'N/A' %>
+                <span class="metric-unit">%</span>
+              </div>
+              <div class="metric-target">
+                <% if @trial_session.filler_rate && @trial_session.filler_rate < 3 %>
+                  ✨ Under 3% target
+                <% else %>
+                  🎯 Target: &lt;3%
+                <% end %>
+              </div>
+            </div>
+
+            <div class="benchmark-metric">
+              <div class="metric-icon">⚡</div>
+              <div class="metric-label">Speaking Pace</div>
+              <div class="metric-value">
+                <%= @trial_session.wpm&.to_i || 'N/A' %>
+                <span class="metric-unit">wpm</span>
+              </div>
+              <div class="metric-target">
+                <% wpm = @trial_session.wpm&.to_i %>
+                <% if wpm && wpm >= 140 && wpm <= 180 %>
+                  ✨ Natural range
+                <% elsif wpm && wpm < 140 %>
+                  ↗ A bit slow
+                <% elsif wpm %>
+                  ↗ A bit fast
+                <% end %>
+              </div>
+            </div>
+          </div>
+
+          <div class="benchmark-message">
+            <div class="message-icon">💪</div>
+            <p class="message-text">This is where your journey begins. Track your improvement starting today!</p>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="onboarding-actions two-buttons">
+          <%= link_to onboarding_pricing_path, class: 'primary-btn btn-large btn-commitment' do %>
+            <span class="btn-icon">🚀</span>
+            Commit to Improvement
+            <span aria-hidden="true"><%= icon_svg(:arrow_right, css_class: 'icon-inline') %></span>
+          <% end %>
+
+          <%= form_with url: onboarding_test_path, method: :post, class: 'inline-form' do |f| %>
+            <%= button_tag type: 'button', class: 'secondary-btn btn-large', onclick: 'showFreshTest()' do %>
+              Try Another Test
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Hidden Fresh Test Section -->
+      <div id="fresh-test-section" style="display: none;">
+        <%= render partial: 'onboarding/fresh_test' %>
+      </div>
+
+    <% else %>
+      <!-- State B: No Demo / Fresh Test -->
+      <%= render partial: 'onboarding/fresh_test' %>
+    <% end %>
+  </div>
+</div>
+
+<style>
+  /* Benchmark Badge */
+  .benchmark-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border-radius: 24px;
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  }
+
+  .benchmark-icon {
+    font-size: 1.5rem;
+    line-height: 1;
+  }
+
+  /* Benchmark Results Card */
+  .benchmark-results-card {
+    background: linear-gradient(135deg, #f8faff 0%, #ffffff 100%);
+    border: 2px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 2rem;
+    margin: 2rem 0;
+  }
+
+  /* Overall Score Section */
+  .overall-score-section {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    padding-bottom: 2rem;
+    border-bottom: 2px solid #e2e8f0;
+  }
+
+  .overall-score-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 1rem;
+  }
+
+  .overall-score-circle {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+  }
+
+  .score-ring {
+    position: relative;
+    width: 160px;
+    height: 160px;
+  }
+
+  .score-svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+
+  .score-bg {
+    fill: none;
+    stroke: #e2e8f0;
+    stroke-width: 8;
+  }
+
+  .score-fill {
+    fill: none;
+    stroke: #10b981;
+    stroke-width: 8;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s ease-in-out;
+  }
+
+  .score-value {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 3rem;
+    font-weight: 700;
+    color: #1e293b;
+  }
+
+  .score-unit {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #64748b;
+  }
+
+  .overall-score-subtext {
+    font-size: 1rem;
+    color: #64748b;
+    font-weight: 500;
+  }
+
+  /* Benchmark Metrics Grid */
+  .benchmark-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .benchmark-metric {
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+
+  .benchmark-metric:hover {
+    border-color: #10b981;
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.15);
+    transform: translateY(-2px);
+  }
+
+  .metric-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+    line-height: 1;
+  }
+
+  .metric-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.75rem;
+  }
+
+  .metric-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+    line-height: 1;
+  }
+
+  .metric-unit {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #64748b;
+  }
+
+  .metric-target {
+    font-size: 0.875rem;
+    color: #64748b;
+    font-weight: 500;
+  }
+
+  /* Benchmark Message */
+  .benchmark-message {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: white;
+  }
+
+  .message-icon {
+    font-size: 2rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .message-text {
+    font-size: 1rem;
+    font-weight: 500;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  /* Commitment Button */
+  .btn-commitment {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .btn-commitment:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  }
+
+  .btn-icon {
+    font-size: 1.25rem;
+    line-height: 1;
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .benchmark-results-card {
+      padding: 1.5rem;
+    }
+
+    .benchmark-metrics-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .score-ring {
+      width: 140px;
+      height: 140px;
+    }
+
+    .score-value {
+      font-size: 2.5rem;
+    }
+
+    .metric-value {
+      font-size: 2rem;
+    }
+  }
+</style>
+
+<script>
+  function showFreshTest() {
+    // Hide demo results
+    document.querySelector('.onboarding-form-section').style.display = 'none';
+    // Show fresh test interface
+    document.getElementById('fresh-test-section').style.display = 'block';
+  }
+</script>

@@ -20,10 +20,18 @@ class Auth::SessionsController < ApplicationController
   end
 
   def destroy
-    # Simple session clearing
-    session.clear
-    # Redirect to marketing site after logout
-    redirect_to marketing_subdomain_url('/'), allow_other_host: true, notice: 'Logged out successfully'
+    # Log the logout action
+    Rails.logger.info "User logging out: #{current_user&.email}"
+
+    # Clear the session completely
+    reset_session
+
+    # Clear any cached user data
+    @current_user = nil
+
+    # Redirect to marketing landing page (root)
+    # Note: Flash won't persist across subdomain redirects, which is expected
+    redirect_to marketing_subdomain_url('/'), allow_other_host: true
   end
 
   private

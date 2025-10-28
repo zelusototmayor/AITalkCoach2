@@ -30,16 +30,12 @@
                  data-prompt-id="adaptive_<%= category %>_<%= index %>">
 
               <div class="prompt-header">
-                <div class="prompt-meta">
-                  <span class="prompt-category category-recommended">
-                    Recommended
-                  </span>
-                  <span class="improvement-tag">
+                <div class="prompt-header-top">
+                  <span class="prompt-category improvement-tag">
                     <%= category.humanize %>
                   </span>
+                  <h3 class="prompt-title"><%= prompt['title'] %></h3>
                 </div>
-
-                <h3 class="prompt-title"><%= prompt['title'] %></h3>
                 <p class="prompt-description"><%= prompt['description'] %></p>
               </div>
 
@@ -47,33 +43,29 @@
                 <div class="prompt-text">
                   <p><%= prompt['prompt'] %></p>
                 </div>
-
-                <div class="prompt-details">
-                  <div class="detail-item">
-                    <span class="detail-label">Duration:</span>
-                    <span class="detail-value">
-                      <%= distance_of_time_in_words(prompt['target_seconds']) %>
-                    </span>
-                  </div>
-
-                  <% if prompt['focus_areas'] %>
-                    <div class="detail-item">
-                      <span class="detail-label">Focus Areas:</span>
-                      <div class="skill-tags">
-                        <% prompt['focus_areas'].each do |area| %>
-                          <span class="skill-tag focus-area-tag"><%= area %></span>
-                        <% end %>
-                      </div>
-                    </div>
-                  <% end %>
-                </div>
               </div>
 
-              <div class="prompt-actions">
-                <%= link_to practice_path(adaptive_prompt: true, category: category, index: index),
-                      class: "btn btn-primary btn-block" do %>
-                  Practice Prompt
-                <% end %>
+              <div class="prompt-footer">
+                <div class="prompt-footer-left">
+                  <span class="duration-icon">⏱</span>
+                  <span class="duration-text"><%= distance_of_time_in_words(prompt['target_seconds']) %></span>
+                </div>
+
+                <div class="prompt-footer-center">
+                  <% if prompt['focus_areas'] && prompt['focus_areas'].any? %>
+                    <span class="focus-label">Focus: </span>
+                    <span class="focus-areas">
+                      <%= prompt['focus_areas'].first(3).join(', ') %><%= prompt['focus_areas'].length > 3 ? '...' : '' %>
+                    </span>
+                  <% end %>
+                </div>
+
+                <div class="prompt-footer-right">
+                  <%= link_to practice_path(adaptive_prompt: true, category: category, index: index),
+                        class: "btn btn-primary practice-btn" do %>
+                    Practice <span class="chevron">›</span>
+                  <% end %>
+                </div>
               </div>
             </div>
           <% end %>
@@ -135,20 +127,12 @@
              style="<%= 'display: none;' if index >= 6 %>">
 
           <div class="prompt-header">
-            <div class="prompt-meta">
-              <span class="prompt-category category-<%= category.parameterize %>">
+            <div class="prompt-header-top">
+              <span class="prompt-category">
                 <%= category.humanize %>
               </span>
-              <button type="button"
-                      class="favorite-btn"
-                      data-action="click->prompts#toggleFavorite"
-                      data-prompt-id="<%= "#{category}_#{index}" %>"
-                      title="Add to favorites">
-                ☆
-              </button>
+              <h3 class="prompt-title"><%= prompt['title'] %></h3>
             </div>
-
-            <h3 class="prompt-title"><%= prompt['title'] %></h3>
             <p class="prompt-description"><%= prompt['description'] %></p>
           </div>
 
@@ -156,40 +140,29 @@
             <div class="prompt-text">
               <p><%= prompt['prompt'] %></p>
             </div>
-
-            <div class="prompt-details">
-              <div class="detail-item">
-                <span class="detail-label">Duration:</span>
-                <span class="detail-value">
-                  <%= distance_of_time_in_words(prompt['target_seconds']) %>
-                </span>
-              </div>
-
-              <div class="detail-item">
-                <span class="detail-label">Difficulty:</span>
-                <span class="detail-value difficulty-<%= prompt['difficulty'] || 'intermediate' %>">
-                  <%= (prompt['difficulty'] || 'intermediate').humanize %>
-                </span>
-              </div>
-
-              <% if prompt['skills'] %>
-                <div class="detail-item">
-                  <span class="detail-label">Focus Areas:</span>
-                  <div class="skill-tags">
-                    <% prompt['skills'].each do |skill| %>
-                      <span class="skill-tag"><%= skill %></span>
-                    <% end %>
-                  </div>
-                </div>
-              <% end %>
-            </div>
           </div>
 
-          <div class="prompt-actions">
-            <%= link_to practice_path(prompt_id: "#{category}_#{index}"),
-                  class: "btn btn-primary btn-block" do %>
-              Practice Prompt
-            <% end %>
+          <div class="prompt-footer">
+            <div class="prompt-footer-left">
+              <span class="duration-icon">⏱</span>
+              <span class="duration-text"><%= distance_of_time_in_words(prompt['target_seconds']) %></span>
+            </div>
+
+            <div class="prompt-footer-center">
+              <% if prompt['skills'] && prompt['skills'].any? %>
+                <span class="focus-label">Focus: </span>
+                <span class="focus-areas">
+                  <%= prompt['skills'].first(3).join(', ') %><%= prompt['skills'].length > 3 ? '...' : '' %>
+                </span>
+              <% end %>
+            </div>
+
+            <div class="prompt-footer-right">
+              <%= link_to practice_path(prompt_id: "#{category}_#{index}"),
+                    class: "btn btn-primary practice-btn" do %>
+                Practice <span class="chevron">›</span>
+              <% end %>
+            </div>
           </div>
         </div>
       <% end %>

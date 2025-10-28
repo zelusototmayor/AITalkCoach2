@@ -55,6 +55,9 @@ gem "lograge"
 # Security and rate limiting
 gem "rack-attack"
 
+# Payment processing
+gem "stripe", "~> 13.0"
+
 group :development, :test do
   gem "dotenv-rails"
   gem "rspec-rails"

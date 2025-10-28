@@ -1,0 +1,122 @@
+<!-- Fresh Test Interface -->
+<div class="onboarding-form-section"
+     data-controller="recorder"
+     data-recorder-audio-only-value="true"
+     data-recorder-max-duration-sec-value="30">
+  <h1 class="onboarding-title">Let's see where you're at</h1>
+  <p class="onboarding-subtitle">Try a 30-second practice session to experience the app</p>
+
+  <!-- Prompt Display -->
+  <div class="test-prompt-card">
+    <div class="prompt-label">Your Prompt</div>
+    <div class="prompt-text">What was something you enjoyed about last week and why?</div>
+    <div class="prompt-duration">~30 seconds</div>
+  </div>
+
+  <!-- Recording Form -->
+  <%= form_with url: onboarding_test_path, method: :post, data: { recorder_target: "form", turbo: false } do |f| %>
+    <%= hidden_field_tag 'trial_recording', 'true' %>
+    <%= file_field_tag 'audio_file',
+                       accept: 'audio/*,video/*',
+                       style: 'display: none;',
+                       data: { recorder_target: 'fileInput' } %>
+
+    <!-- Recording Interface -->
+    <div class="recording-interface">
+      <!-- Ready State -->
+      <div data-recorder-target="readyState" style="display: block;">
+        <div class="recording-icon ready" aria-hidden="true">
+          <%= icon_svg(:microphone, css_class: 'icon-large') rescue '🎤' %>
+        </div>
+        <button type="button"
+                class="primary-btn btn-large"
+                data-action="click->recorder#startRecording"
+                data-recorder-target="recordBtn">
+          <span class="btn-text">Start Recording</span>
+        </button>
+        <p class="recording-tip">Speak naturally for 30 seconds. Don't worry about perfection!</p>
+        <div data-recorder-target="statusText" class="recording-status-text"></div>
+      </div>
+
+      <!-- Recording State -->
+      <div data-recorder-target="recordingState" style="display: none;">
+        <div class="timer-circle-small" style="margin: 0 auto 1rem;">
+          <svg class="timer-svg" viewBox="0 0 80 80">
+            <circle class="timer-track" cx="40" cy="40" r="36"></circle>
+            <circle class="timer-progress"
+                    cx="40" cy="40" r="36"
+                    data-recorder-target="progressCircle"></circle>
+          </svg>
+          <div class="timer-content">
+            <div class="timer-percentage" data-recorder-target="percentage">0%</div>
+            <div class="timer-status">Recording</div>
+          </div>
+        </div>
+        <div class="recording-timer" data-recorder-target="recordingTimer" style="text-align: center; font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">0:30</div>
+        <p class="recording-status" style="text-align: center; margin-bottom: 1rem;">Speak naturally...</p>
+
+        <!-- Cancel/Stop buttons -->
+        <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1rem;">
+          <button type="button"
+                  class="secondary-btn"
+                  data-action="click->recorder#stopRecording">
+            Finish Early
+          </button>
+          <button type="button"
+                  class="text-btn"
+                  data-action="click->recorder#cancelRecording"
+                  style="color: #dc2626;">
+            Cancel & Start Over
+          </button>
+        </div>
+      </div>
+
+      <!-- Processing State -->
+      <div data-recorder-target="processingState" style="display: none;">
+        <div class="recording-icon processing" aria-hidden="true">
+          <div class="spinner"></div>
+        </div>
+        <p class="processing-message">Processing your recording...</p>
+      </div>
+
+      <!-- Completed State -->
+      <div data-recorder-target="completedState" style="display: none;">
+        <div class="recording-icon completed" aria-hidden="true">
+          <%= icon_svg(:check, css_class: 'icon') %>
+        </div>
+        <p style="text-align: center; color: #10b981; font-weight: 600; margin: 1rem 0;">
+          Recording complete! Uploading for analysis...
+        </p>
+        <audio controls data-recorder-target="audioPreview" style="display: none; width: 100%; margin: 20px 0;"></audio>
+
+        <!-- Hidden submit button (form will auto-submit) -->
+        <button type="submit"
+                class="primary-btn btn-large"
+                data-recorder-target="submitBtn"
+                style="display: none;">
+          <span class="btn-text">Analyze Recording</span>
+        </button>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Skip Option -->
+  <div class="test-skip-section">
+    <p class="skip-text">Not ready to record?</p>
+    <%= form_with url: onboarding_test_path, method: :post do |f| %>
+      <%= hidden_field_tag 'skipped', 'true' %>
+      <%= button_tag type: 'submit', class: 'text-btn' do %>
+        Skip for now and continue
+        <span aria-hidden="true"><%= icon_svg(:arrow_right, css_class: 'icon-inline') %></span>
+      <% end %>
+    <% end %>
+  </div>
+
+  <!-- Back Navigation -->
+  <div class="onboarding-back-action">
+    <%= link_to onboarding_demographics_path, class: 'text-btn' do %>
+      <%= icon_svg(:arrow_right, css_class: 'icon-inline', style: 'transform: rotate(180deg)') %>
+      Back to profile
+    <% end %>
+  </div>
+</div>

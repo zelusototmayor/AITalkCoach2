@@ -1,0 +1,57 @@
+<% content_for :title, "Welcome - AI Talk Coach" %>
+
+<div class="onboarding-container">
+  <div class="onboarding-content">
+    <!-- Header -->
+    <div class="onboarding-header">
+      <div class="logo-container">
+        <img src="/logo.png" alt="AI Talk Coach" class="onboarding-logo" />
+      </div>
+    </div>
+
+    <!-- Welcome Content -->
+    <div class="welcome-section">
+      <div class="welcome-hero">
+        <h1 class="hero-title">
+          Master the <span class="hero-highlight">#1 Skill</span><br>That Opens Every Door
+        </h1>
+        <p class="hero-subtitle">
+          According to LinkedIn, communication is the most in-demand skill across industries.
+        </p>
+      </div>
+
+      <!-- Stat Cards -->
+      <div class="stat-cards">
+        <div class="stat-card">
+          <div class="stat-icon" aria-hidden="true"><%= icon_svg(:target, css_class: 'icon') %></div>
+          <div class="stat-number">85%</div>
+          <div class="stat-label">of career success comes from strong communication skills</div>
+          <div class="stat-source">Harvard Business Review</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon" aria-hidden="true"><%= icon_svg(:trending_up, css_class: 'icon') %></div>
+          <div class="stat-number">40%</div>
+          <div class="stat-label">higher earnings for those with excellent communication</div>
+          <div class="stat-source">National Association of Colleges</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon" aria-hidden="true"><%= icon_svg(:briefcase, css_class: 'icon') %></div>
+          <div class="stat-number">1.9M</div>
+          <div class="stat-label">job postings requiring strong communication skills</div>
+          <div class="stat-source">LinkedIn, 2023</div>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div class="welcome-cta">
+        <%= link_to onboarding_profile_path, class: "primary-btn btn-large" do %>
+          Start Improving Today
+          <span aria-hidden="true"><%= icon_svg(:arrow_right, css_class: 'icon-inline') %></span>
+        <% end %>
+        <p class="cta-subtext">Takes just 3 minutes to get started</p>
+      </div>
+    </div>
+  </div>
+</div>

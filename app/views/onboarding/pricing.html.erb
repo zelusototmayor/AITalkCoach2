@@ -1,0 +1,124 @@
+<% content_for :title, "Choose Your Plan - AI Talk Coach" %>
+
+<% content_for :head do %>
+  <script src="https://js.stripe.com/v3/"></script>
+  <meta name="stripe-publishable-key" content="<%= Rails.configuration.stripe[:publishable_key] %>">
+<% end %>
+
+<div class="onboarding-container">
+  <div class="onboarding-content">
+    <!-- Progress Indicator -->
+    <%= render 'onboarding/progress', current_step: 4 %>
+
+    <!-- Form Section -->
+    <div class="onboarding-form-section">
+      <h1 class="onboarding-title">Practice Daily, Use Free Forever</h1>
+      <p class="onboarding-subtitle">Add a payment method to activate your free trial. You'll only be charged if you miss a day of practice.</p>
+
+      <!-- Free Forever Explanation -->
+      <div class="info-banner">
+        <div class="info-icon" aria-hidden="true"><%= icon_svg(:info, css_class: 'icon') %></div>
+        <div class="info-content">
+          <div class="info-title">How it works:</div>
+          <ul class="info-list">
+            <li>Start with 24 hours of free access</li>
+            <li>Practice for 1+ minute daily to extend your trial by 24 hours</li>
+            <li><strong>Keep practicing daily = Stay free forever!</strong></li>
+            <li>Miss a day? We'll charge you for the plan you selected</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Plan Selection -->
+      <div class="plan-selection" data-controller="onboarding-payment" data-onboarding-payment-setup-intent-value="<%= @setup_intent.client_secret %>">
+        <h2 class="section-title" id="plan-selection-title">Choose your backup plan</h2>
+        <p class="section-subtitle" id="plan-selection-description">Select the plan you'll be charged if you miss a practice day</p>
+
+        <div class="pricing-cards-compact" role="radiogroup" aria-labelledby="plan-selection-title" aria-describedby="plan-selection-description" aria-required="true">
+          <!-- Monthly Plan -->
+          <label class="pricing-card-compact" tabindex="0">
+            <input type="radio" name="selected_plan" value="monthly" class="plan-radio" id="plan_monthly" data-onboarding-payment-target="planRadio" data-action="change->onboarding-payment#selectPlan" aria-describedby="plan-monthly-details">
+            <div class="plan-content" id="plan-monthly-details">
+              <div class="plan-header">
+                <div class="plan-name">Monthly Plan</div>
+                <div class="plan-price">
+                  <span class="price-amount">€9.99</span>
+                  <span class="price-period">/month</span>
+                </div>
+              </div>
+              <div class="plan-features">
+                <div class="feature-item">✓ Free forever if you practice daily</div>
+                <div class="feature-item">✓ Unlimited sessions</div>
+                <div class="feature-item">✓ AI-powered insights</div>
+              </div>
+            </div>
+          </label>
+
+          <!-- Yearly Plan (Recommended) -->
+          <label class="pricing-card-compact recommended" tabindex="0">
+            <input type="radio" name="selected_plan" value="yearly" class="plan-radio" id="plan_yearly" data-onboarding-payment-target="planRadio" data-action="change->onboarding-payment#selectPlan" aria-describedby="plan-yearly-details" checked>
+            <div class="best-value-badge" aria-label="Recommended plan - best value">BEST VALUE</div>
+            <div class="plan-content" id="plan-yearly-details">
+              <div class="plan-header">
+                <div class="plan-name">Yearly Plan</div>
+                <div class="plan-price">
+                  <span class="price-amount">€60</span>
+                  <span class="price-period">/year</span>
+                </div>
+                <div class="plan-savings">Just €5/month • Save 50%</div>
+              </div>
+              <div class="plan-features">
+                <div class="feature-item">✓ Everything in Monthly</div>
+                <div class="feature-item">✓ Save €60 per year</div>
+                <div class="feature-item">✓ Lock in your price</div>
+              </div>
+            </div>
+          </label>
+        </div>
+
+        <!-- Payment Method Section -->
+        <div class="payment-section">
+          <h3 class="section-title" id="payment-method-title">Payment Method</h3>
+          <p class="payment-notice" id="payment-notice" role="status" aria-live="polite">
+            <%= icon_svg(:shield, css_class: 'icon-inline') %> Your card will only be charged after you miss a day of practice
+          </p>
+
+          <!-- Stripe Card Element -->
+          <div id="stripe-card-element"
+               class="stripe-card-element"
+               role="group"
+               aria-labelledby="payment-method-title"
+               aria-describedby="payment-notice card-errors"></div>
+          <div id="card-errors" class="card-errors" role="alert" aria-live="polite" aria-atomic="true"></div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="onboarding-actions">
+          <button type="button"
+                  class="primary-btn btn-large"
+                  data-onboarding-payment-target="submitBtn"
+                  data-action="click->onboarding-payment#submitPayment"
+                  aria-describedby="submit-note">
+            <span data-onboarding-payment-target="submitText">Add Payment Method & Start Free</span>
+            <span data-onboarding-payment-target="submitLoader" class="btn-loader" style="display: none;" aria-hidden="true"></span>
+          </button>
+          <p class="submit-note" id="submit-note">Cancel anytime • No charge if you practice daily</p>
+        </div>
+
+        <% if flash[:alert] %>
+          <div class="form-error" role="alert" aria-live="assertive" aria-atomic="true">
+            <%= flash[:alert] %>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Back Navigation -->
+      <div class="onboarding-back-action">
+        <%= link_to onboarding_test_path, class: 'text-btn' do %>
+          <%= icon_svg(:arrow_right, css_class: 'icon-inline', style: 'transform: rotate(180deg)') %>
+          Back to test
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

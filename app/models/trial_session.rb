@@ -71,6 +71,44 @@ class TrialSession < ApplicationRecord
     [base_score - penalty, 0].max
   end
 
+  def filler_words_per_minute
+    return 0 unless filler_count && duration_seconds && duration_seconds > 0
+    (filler_count / (duration_seconds / 60.0)).round(1)
+  end
+
+  # Calculate overall benchmark score (0-100)
+  # This is used in onboarding to show a single "overall" metric
+  def overall_benchmark_score
+    return nil unless clarity_score && wpm && filler_rate
+
+    # Start with clarity score as the base (weighted 50%)
+    score = clarity_score * 0.5
+
+    # Add pace score (weighted 30%)
+    # Optimal range is 140-180 WPM, score 100% in that range
+    pace_score = if wpm >= 140 && wpm <= 180
+      100
+    elsif wpm < 140
+      # Below optimal - scale down
+      [100 - (140 - wpm) * 2, 0].max
+    else
+      # Above optimal - scale down
+      [100 - (wpm - 180) * 2, 0].max
+    end
+    score += pace_score * 0.3
+
+    # Add filler rate score (weighted 20%)
+    # Target is < 3%, score decreases as filler rate increases
+    filler_score = if filler_rate < 3
+      100
+    else
+      [100 - (filler_rate - 3) * 10, 0].max
+    end
+    score += filler_score * 0.2
+
+    score.round
+  end
+
   # Class methods
   def self.cleanup_expired
     expired.destroy_all

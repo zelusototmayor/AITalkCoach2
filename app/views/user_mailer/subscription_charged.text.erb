@@ -1,0 +1,26 @@
+✅ PAYMENT RECEIVED
+
+Hi <%= @user.name %>!
+
+Your payment has been successfully processed. Thank you for being part of AI Talk Coach!
+
+RECEIPT DETAILS
+================
+Invoice Date: <%= @invoice_date %>
+Plan: <%= @plan&.titleize || 'Subscription' %> Plan
+Payment Method: Card ending in <%= @payment_intent['payment_method']&.last(4) || '****' %>
+<% if @next_billing_date %>Next Billing Date: <%= @next_billing_date %><% end %>
+
+Amount Charged: <%= @amount %>
+
+WHAT'S NEXT?
+Keep practicing daily to improve your communication skills. Remember, consistency is key to mastery!
+
+MANAGE YOUR SUBSCRIPTION
+<%= @manage_url %>
+
+This is your receipt for tax purposes. If you have any questions about this charge, please don't hesitate to contact us.
+
+---
+Questions? Email us at support@aitalkcoach.com
+AI Talk Coach | Your Communication Partner

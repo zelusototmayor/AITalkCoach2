@@ -1,5 +1,6 @@
 class PromptsController < ApplicationController
-  before_action :set_user
+  before_action :require_login
+  before_action :require_subscription
 
   def index
     @prompts = load_prompts_from_config
@@ -10,39 +11,35 @@ class PromptsController < ApplicationController
 
   private
 
-  def set_user
-    @current_user = logged_in? ? current_user : User.find_by(email: 'guest@aitalkcoach.local')
-  end
-  
   def load_prompts_from_config
     config = YAML.load_file(Rails.root.join('config', 'prompts.yml'))
     config['base_prompts'] || {}
   end
   
   def get_adaptive_prompts
-    return {} unless @current_user
-    
+    return {} unless current_user
+
     config = YAML.load_file(Rails.root.join('config', 'prompts.yml'))
     weaknesses = analyze_user_weaknesses
-    
+
     return {} if weaknesses.empty?
-    
+
     adaptive_prompts = {}
-    
+
     weaknesses.each do |weakness|
       if config['adaptive_prompts'][weakness]
         adaptive_prompts[weakness] = config['adaptive_prompts'][weakness]
       end
     end
-    
+
     adaptive_prompts
   end
-  
+
   def analyze_user_weaknesses
-    return [] unless @current_user
-    
+    return [] unless current_user
+
     # Get recent sessions for analysis
-    recent_sessions = @current_user.sessions
+    recent_sessions = current_user.sessions
       .where(completed: true)
       .where('created_at >= ?', 30.days.ago)
       .includes(:issues)

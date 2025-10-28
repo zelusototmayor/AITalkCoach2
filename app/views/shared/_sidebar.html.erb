@@ -80,6 +80,18 @@
       </li>
 
       <li class="sidebar-nav-item">
+        <%= link_to subscription_path,
+              class: "sidebar-nav-link #{'active' if current_page?(subscription_path)}",
+              aria: { current: (current_page?(subscription_path) ? "page" : nil) } do %>
+          <svg class="sidebar-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+            <line x1="1" y1="10" x2="23" y2="10"/>
+          </svg>
+          <span class="sidebar-nav-text">Billing</span>
+        <% end %>
+      </li>
+
+      <li class="sidebar-nav-item">
         <%= link_to settings_path,
               class: "sidebar-nav-link #{'active' if current_page?(settings_path)}",
               aria: { current: (current_page?(settings_path) ? "page" : nil) } do %>
@@ -95,13 +107,76 @@
 
   <!-- User Profile Section -->
   <div class="sidebar-footer">
+    <!-- Subscription Status Badge -->
+    <% if current_user.subscription_lifetime? %>
+      <div class="sidebar-subscription-badge" style="padding: 12px; background: linear-gradient(135deg, #F0F9FF, #E0F2FE); border-radius: 8px; margin-bottom: 12px; text-align: center; border: 1px solid #BAE6FD;">
+        <div style="font-size: 11px; font-weight: 600; color: #0369A1; margin-bottom: 2px;">
+          ✨ LIFETIME ACCESS
+        </div>
+        <div style="font-size: 9px; color: #64748B;">
+          Unlimited forever
+        </div>
+      </div>
+    <% elsif current_user.subscription_active? %>
+      <div class="sidebar-subscription-badge" style="padding: 12px; background: linear-gradient(135deg, #F0FDF4, #DCFCE7); border-radius: 8px; margin-bottom: 12px; text-align: center; border: 1px solid #BBF7D0;">
+        <div style="font-size: 11px; font-weight: 600; color: #15803D; margin-bottom: 2px;">
+          <%= current_user.subscription_plan&.upcase %> PLAN
+        </div>
+        <% if current_user.current_period_end %>
+          <div style="font-size: 9px; color: #64748B;">
+            Renews <%= current_user.current_period_end.strftime('%b %d, %Y') %>
+          </div>
+        <% end %>
+        <%= link_to 'Manage', subscription_path, style: 'display: block; margin-top: 6px; padding: 4px 8px; background: white; color: #15803D; text-decoration: none; border-radius: 4px; font-size: 10px; font-weight: 600; border: 1px solid #BBF7D0;' %>
+      </div>
+    <% elsif current_user.subscription_past_due? %>
+      <div class="sidebar-subscription-badge" style="padding: 12px; background: linear-gradient(135deg, #FEF2F2, #FEE2E2); border-radius: 8px; margin-bottom: 12px; text-align: center; border: 1px solid #FECACA;">
+        <div style="font-size: 11px; font-weight: 600; color: #DC2626; margin-bottom: 2px;">
+          ⚠️ PAYMENT FAILED
+        </div>
+        <div style="font-size: 9px; color: #64748B;">
+          Update payment method
+        </div>
+        <%= link_to 'Update', subscription_path, style: 'display: block; margin-top: 6px; padding: 4px 8px; background: white; color: #DC2626; text-decoration: none; border-radius: 4px; font-size: 10px; font-weight: 600; border: 1px solid #FECACA;' %>
+      </div>
+    <% elsif current_user.trial_active? %>
+      <div class="sidebar-trial-banner" style="padding: 12px; background: linear-gradient(135deg, #FFF5F0, #FFEFE6); border-radius: 8px; margin-bottom: 12px; text-align: center;">
+        <% if current_user.practiced_today? %>
+          <div style="font-size: 11px; font-weight: 600; color: #10b981; margin-bottom: 4px;">
+            ✅ TODAY'S PRACTICE DONE!
+          </div>
+          <div style="font-size: 9px; color: var(--muted); line-height: 1.4;">
+            Free access until <%= Date.tomorrow.end_of_day.strftime('%b %d, %I:%M %p') %>
+          </div>
+        <% else %>
+          <div style="font-size: 11px; font-weight: 600; color: var(--brand-500); margin-bottom: 4px;">
+            🎯 PRACTICE = FREE FOREVER
+          </div>
+          <div style="font-size: 9px; color: var(--muted); line-height: 1.4; margin-bottom: 6px;">
+            Complete 1+ min session today → Free tomorrow too!
+          </div>
+          <div style="font-size: 10px; color: var(--muted);">
+            Trial expires in <%= current_user.trial_hours_remaining %>h
+          </div>
+        <% end %>
+        <%= link_to 'View Plans', pricing_url, style: 'display: block; margin-top: 8px; padding: 6px 12px; background: white; color: var(--brand-500); text-decoration: none; border-radius: 6px; font-size: 11px; font-weight: 600; border: 1px solid var(--brand-500);' %>
+      </div>
+    <% else %>
+      <div class="sidebar-subscription-badge" style="padding: 12px; background: linear-gradient(135deg, #FEF2F2, #FEE2E2); border-radius: 8px; margin-bottom: 12px; text-align: center; border: 1px solid #FECACA;">
+        <div style="font-size: 11px; font-weight: 600; color: #DC2626; margin-bottom: 2px;">
+          NO SUBSCRIPTION
+        </div>
+        <%= link_to 'Subscribe', pricing_url, style: 'display: block; margin-top: 6px; padding: 6px 12px; background: var(--gradient-primary); color: white; text-decoration: none; border-radius: 6px; font-size: 11px; font-weight: 600;' %>
+      </div>
+    <% end %>
+
     <div class="sidebar-user">
       <div class="sidebar-user-avatar">
         <%= current_user.name.first.upcase %>
       </div>
       <div class="sidebar-user-info">
         <div class="sidebar-user-name"><%= current_user.name %></div>
-        <%= link_to logout_path, class: "sidebar-logout-link", data: { turbo_method: :delete } do %>
+        <%= button_to app_subdomain_url('/logout'), method: :delete, class: "sidebar-logout-link", form: { style: "display: inline;" } do %>
           <span class="sidebar-logout-icon">↗</span>
           <span>Logout</span>
         <% end %>

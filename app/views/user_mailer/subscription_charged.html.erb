@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f8fafc;
+      margin: 0;
+      padding: 0;
+    }
+    .email-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #ffffff;
+    }
+    .header {
+      background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+      padding: 40px 20px;
+      text-align: center;
+    }
+    .header h1 {
+      color: #ffffff;
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0;
+    }
+    .content {
+      padding: 40px 30px;
+    }
+    .greeting {
+      font-size: 18px;
+      color: #0F172A;
+      margin: 0 0 20px 0;
+    }
+    .text-block {
+      font-size: 16px;
+      line-height: 1.6;
+      color: #475569;
+      margin: 0 0 20px 0;
+    }
+    .receipt-box {
+      background-color: #f8fafc;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 30px 0;
+    }
+    .receipt-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .receipt-row:last-child {
+      border-bottom: none;
+      padding-top: 16px;
+      font-weight: 600;
+      font-size: 18px;
+    }
+    .receipt-label {
+      color: #64748B;
+      font-size: 14px;
+    }
+    .receipt-value {
+      color: #0F172A;
+      font-weight: 500;
+      font-size: 14px;
+    }
+    .total-label {
+      color: #0F172A;
+      font-size: 18px;
+    }
+    .total-value {
+      color: #10B981;
+      font-size: 24px;
+    }
+    .cta-button {
+      display: inline-block;
+      background: linear-gradient(135deg, #FF8C42 0%, #FF6B35 100%);
+      color: #ffffff !important;
+      text-decoration: none;
+      padding: 14px 28px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 15px;
+      margin: 20px 0;
+    }
+    .footer {
+      background-color: #f8fafc;
+      padding: 30px;
+      text-align: center;
+      border-top: 1px solid #e2e8f0;
+    }
+    .footer p {
+      font-size: 14px;
+      color: #64748B;
+      margin: 0 0 8px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <!-- Header -->
+    <div class="header">
+      <h1>✅ Payment Received</h1>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+      <p class="greeting">Hi <%= @user.name %>!</p>
+
+      <p class="text-block">
+        Your payment has been successfully processed. Thank you for being part of AI Talk Coach!
+      </p>
+
+      <!-- Receipt -->
+      <div class="receipt-box">
+        <div class="receipt-row">
+          <span class="receipt-label">Invoice Date</span>
+          <span class="receipt-value"><%= @invoice_date %></span>
+        </div>
+        <div class="receipt-row">
+          <span class="receipt-label">Plan</span>
+          <span class="receipt-value"><%= @plan&.titleize || 'Subscription' %> Plan</span>
+        </div>
+        <div class="receipt-row">
+          <span class="receipt-label">Payment Method</span>
+          <span class="receipt-value">Card ending in <%= @payment_intent['payment_method']&.last(4) || '****' %></span>
+        </div>
+        <% if @next_billing_date %>
+        <div class="receipt-row">
+          <span class="receipt-label">Next Billing Date</span>
+          <span class="receipt-value"><%= @next_billing_date %></span>
+        </div>
+        <% end %>
+        <div class="receipt-row">
+          <span class="total-label">Amount Charged</span>
+          <span class="total-value"><%= @amount %></span>
+        </div>
+      </div>
+
+      <p class="text-block">
+        <strong>What's next?</strong> Keep practicing daily to improve your communication skills. Remember, consistency is key to mastery!
+      </p>
+
+      <center>
+        <a href="<%= @manage_url %>" class="cta-button">Manage Subscription</a>
+      </center>
+
+      <p class="text-block" style="margin-top: 30px; font-size: 14px; color: #64748B;">
+        This is your receipt for tax purposes. If you have any questions about this charge, please don't hesitate to contact us.
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>Questions? Email us at support@aitalkcoach.com</p>
+      <p style="color: #94A3B8; font-size: 12px; margin-top: 16px;">
+        AI Talk Coach | Your Communication Partner
+      </p>
+    </div>
+  </div>
+</body>
+</html>

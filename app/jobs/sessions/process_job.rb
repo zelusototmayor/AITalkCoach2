@@ -12,11 +12,18 @@ module Sessions
     class AnalysisError < ProcessingError; end
     
     def perform(session_id, options = {})
-      @session = Session.find(session_id)
       @options = options.with_indifferent_access
-      @start_time = Time.current
 
-      Rails.logger.info "Starting speech analysis for session #{session_id} - Job execution confirmed"
+      # Determine if this is a trial session or regular session
+      if @options[:is_trial]
+        @session = TrialSession.find(session_id)
+        Rails.logger.info "Starting speech analysis for TRIAL session #{session_id} - Job execution confirmed"
+      else
+        @session = Session.find(session_id)
+        Rails.logger.info "Starting speech analysis for session #{session_id} - Job execution confirmed"
+      end
+
+      @start_time = Time.current
 
       begin
         # Update session state and record job execution time
@@ -437,6 +444,9 @@ module Sessions
 
       Rails.logger.info "Session #{@session.id} finalized successfully"
 
+      # Extend trial if user practiced with 1+ minute session
+      extend_trial_if_qualified
+
       # Clean up temporary files
       cleanup_temp_files(pipeline_result)
     end
@@ -573,7 +583,22 @@ module Sessions
       # Could check subscription status, daily limits, etc.
       true
     end
-    
+
+    # Extend trial for users who practice with 1+ minute sessions
+    # Uses calendar day logic: session on day X = free access through end of day X+1
+    def extend_trial_if_qualified
+      user = @session.user
+      return unless user
+      return unless user.subscription_free_trial?
+
+      # Attempt to extend trial based on this session
+      if user.extend_trial_for_practice!(@session)
+        Rails.logger.info "Trial extended for user #{user.id} until #{user.trial_expires_at} (session #{@session.id})"
+      end
+    rescue => e
+      Rails.logger.error "Failed to extend trial for user #{user.id}: #{e.message}"
+    end
+
     def skip_ai_reason
       return 'disabled_by_option' if @options[:skip_ai]
       return 'api_key_missing' unless ai_service_available?

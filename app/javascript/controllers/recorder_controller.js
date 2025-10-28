@@ -1,9 +1,9 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["recordBtn", "status", "statusText", "indicator", "preview", "form", "timer", "progressBar", "videoPreview", "audioPreview", "fileInput", "submitBtn", "countdownDisplay", "durationInput", "titleInput", "titleError", "languageSelect", "mediaKindSelect", "titleInputPreview", "languageSelectPreview", "mediaKindSelectPreview", "sessionConfig", "postRecordingActions", "recordingDuration", "recordingTarget"]
-  static values = { 
-    maxDurationSec: Number, 
+  static targets = ["recordBtn", "status", "statusText", "indicator", "preview", "form", "timer", "progressBar", "videoPreview", "audioPreview", "fileInput", "submitBtn", "countdownDisplay", "durationInput", "titleInput", "titleError", "languageSelect", "mediaKindSelect", "titleInputPreview", "languageSelectPreview", "mediaKindSelectPreview", "sessionConfig", "postRecordingActions", "recordingDuration", "recordingTarget", "readyState", "recordingState", "processingState", "completedState", "recordingTimer", "progressCircle", "percentage"]
+  static values = {
+    maxDurationSec: Number,
     maxFileSizeMb: Number,
     audioOnly: Boolean,
     videoWidth: Number,
@@ -205,8 +205,20 @@ export default class extends Controller {
         return
       }
 
-      // In practice timer mode, let practice timer handle the UI
-      if (this.isPracticeTimerMode) {
+      // Check if we're in onboarding mode (has state targets)
+      const isOnboardingMode = this.hasReadyStateTarget && this.hasCompletedStateTarget
+
+      if (isOnboardingMode) {
+        // For onboarding, auto-submit after a brief preview
+        this.updateUI("ready_to_submit")
+
+        // Auto-submit after 2 seconds to give user a moment to see the recording was successful
+        console.log('Onboarding mode: Auto-submitting recording in 2 seconds...')
+        setTimeout(() => {
+          this.submitRecording()
+        }, 2000)
+      } else if (this.isPracticeTimerMode) {
+        // In practice timer mode, let practice timer handle the UI
         console.log('Recorder: Recording complete in practice timer mode')
         // Practice timer will show the new post-recording actions
       } else {
@@ -343,6 +355,11 @@ export default class extends Controller {
     const hasTimer = this.hasTimerTarget
     const hasSubmitBtn = this.hasSubmitBtnTarget
 
+    // Handle state transitions for onboarding interface
+    if (this.hasReadyStateTarget && this.hasRecordingStateTarget && this.hasProcessingStateTarget) {
+      this.updateOnboardingStates(state)
+    }
+
     // When ready to submit, populate preview form
     if (state === "ready_to_submit") {
       this.populatePreviewForm()
@@ -457,28 +474,80 @@ export default class extends Controller {
     }
   }
 
+  updateOnboardingStates(state) {
+    // Hide all states first
+    if (this.hasReadyStateTarget) this.readyStateTarget.style.display = 'none'
+    if (this.hasRecordingStateTarget) this.recordingStateTarget.style.display = 'none'
+    if (this.hasProcessingStateTarget) this.processingStateTarget.style.display = 'none'
+    if (this.hasCompletedStateTarget) this.completedStateTarget.style.display = 'none'
+
+    // Show the appropriate state
+    switch (state) {
+      case "ready":
+      case "error":
+        if (this.hasReadyStateTarget) this.readyStateTarget.style.display = 'block'
+        break
+      case "requesting":
+      case "recording":
+        if (this.hasRecordingStateTarget) this.recordingStateTarget.style.display = 'block'
+        break
+      case "processing":
+        if (this.hasProcessingStateTarget) this.processingStateTarget.style.display = 'block'
+        break
+      case "ready_to_submit":
+        if (this.hasCompletedStateTarget) {
+          this.completedStateTarget.style.display = 'block'
+          // Show audio preview if available
+          if (this.hasAudioPreviewTarget && this.audioPreviewTarget.src) {
+            this.audioPreviewTarget.style.display = 'block'
+          }
+        }
+        break
+    }
+  }
+
   startRecordingTimer() {
-    if (!this.hasStatusTextTarget) return
-    
+    if (!this.hasStatusTextTarget && !this.hasRecordingTimerTarget) return
+
     this.countdownTimer = setInterval(() => {
       const elapsed = Math.floor((Date.now() - this.startTime) / 1000)
       const remaining = this.maxDurationSecValue - elapsed
-      
+
       if (this.hasStatusTextTarget) {
         this.statusTextTarget.textContent = `Recording... ${this.formatTime(remaining)} remaining`
       }
-      
+
       // Update countdown display
       if (this.hasCountdownDisplayTarget) {
         this.countdownDisplayTarget.textContent = this.formatTime(remaining)
       }
-      
+
+      // Update onboarding recording timer (countdown)
+      if (this.hasRecordingTimerTarget) {
+        this.recordingTimerTarget.textContent = this.formatTime(remaining)
+      }
+
       // Update progress bar (countdown style)
       if (this.hasProgressBarTarget) {
         const progress = (remaining / this.maxDurationSecValue) * 100
         this.progressBarTarget.style.width = `${Math.max(progress, 0)}%`
       }
-      
+
+      // Update SVG circular progress (onboarding)
+      if (this.hasProgressCircleTarget) {
+        const progress = (elapsed / this.maxDurationSecValue) * 100
+        const circumference = 2 * Math.PI * 36 // radius = 36
+        const offset = circumference - (progress / 100) * circumference
+        this.progressCircleTarget.style.strokeDasharray = `${circumference} ${circumference}`
+        this.progressCircleTarget.style.strokeDashoffset = offset
+      }
+
+      // Update percentage display (onboarding)
+      if (this.hasPercentageTarget) {
+        const progress = Math.round((elapsed / this.maxDurationSecValue) * 100)
+        this.percentageTarget.textContent = `${Math.min(progress, 100)}%`
+      }
+
       // Auto-stop when time runs out
       if (remaining <= 0) {
         this.stopRecording()
@@ -575,6 +644,11 @@ export default class extends Controller {
       this.postRecordingActionsTarget.style.display = "none"
     }
 
+    // Hide completed state for onboarding
+    if (this.hasCompletedStateTarget) {
+      this.completedStateTarget.style.display = "none"
+    }
+
     if (this.hasVideoPreviewTarget) {
       this.videoPreviewTarget.style.display = "none"
       this.videoPreviewTarget.src = ""
@@ -585,7 +659,14 @@ export default class extends Controller {
       this.audioPreviewTarget.src = ""
     }
 
+    // Clear file input
+    if (this.hasFileInputTarget) {
+      this.fileInputTarget.value = ''
+    }
+
     this.recordedChunks = []
+    this.attachedBlob = null
+    this.attachedFile = null
     this.releaseStream()
     this.updateUI("ready")
   }
@@ -601,8 +682,8 @@ export default class extends Controller {
   }
 
   submitRecording() {
-    // Validate title before submitting
-    if (!this.validateTitle()) {
+    // Only validate title if we have a title input (not in onboarding mode)
+    if (this.hasTitleInputTarget && !this.validateTitle()) {
       return
     }
 
@@ -665,18 +746,27 @@ export default class extends Controller {
       // Create FormData from form
       const formData = new FormData(form)
 
+      // Detect if this is onboarding/trial mode by checking for trial_recording input
+      const isTrialMode = formData.get('trial_recording') === 'true'
+      const fileParamName = isTrialMode ? 'audio_file' : 'session[media_files][]'
+
+      console.log('Submit mode:', isTrialMode ? 'trial/onboarding' : 'regular session')
+      console.log('Using file parameter name:', fileParamName)
+
       // Ensure the audio file is included in FormData
       if (this.attachedFile) {
-        // Remove any existing media_files and add our blob
+        // Remove any existing files and add our blob with correct parameter name
         formData.delete('session[media_files][]')
-        formData.append('session[media_files][]', this.attachedFile, this.attachedFile.name)
-        console.log('Added audio file to FormData:', this.attachedFile.name, this.attachedFile.size, 'bytes')
+        formData.delete('audio_file')
+        formData.append(fileParamName, this.attachedFile, this.attachedFile.name)
+        console.log('Added audio file to FormData:', this.attachedFile.name, this.attachedFile.size, 'bytes', 'as', fileParamName)
       } else if (this.attachedBlob) {
         // Fallback to blob if file not available
         formData.delete('session[media_files][]')
+        formData.delete('audio_file')
         const fileName = this.generateFileName()
-        formData.append('session[media_files][]', this.attachedBlob, fileName)
-        console.log('Added audio blob to FormData:', fileName, this.attachedBlob.size, 'bytes')
+        formData.append(fileParamName, this.attachedBlob, fileName)
+        console.log('Added audio blob to FormData:', fileName, this.attachedBlob.size, 'bytes', 'as', fileParamName)
       } else {
         console.error('No audio file or blob available for submission')
         this.showNotification('❌ No recording found. Please record again.', 'error')

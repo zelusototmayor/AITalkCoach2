@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f8fafc;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+    .email-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #ffffff;
+    }
+    .header {
+      background: linear-gradient(135deg, #FF8C42 0%, #FF6B35 100%);
+      padding: 40px 20px;
+      text-align: center;
+    }
+    .header h1 {
+      color: #ffffff;
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0 0 10px 0;
+    }
+    .header p {
+      color: #ffffff;
+      font-size: 16px;
+      margin: 0;
+      opacity: 0.95;
+    }
+    .content {
+      padding: 40px 30px;
+    }
+    .greeting {
+      font-size: 18px;
+      color: #0F172A;
+      margin: 0 0 20px 0;
+    }
+    .text-block {
+      font-size: 16px;
+      line-height: 1.6;
+      color: #475569;
+      margin: 0 0 20px 0;
+    }
+    .steps {
+      background-color: #f8fafc;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 30px 0;
+    }
+    .steps h2 {
+      font-size: 20px;
+      color: #0F172A;
+      margin: 0 0 20px 0;
+    }
+    .step {
+      display: flex;
+      margin-bottom: 20px;
+      align-items: flex-start;
+    }
+    .step:last-child {
+      margin-bottom: 0;
+    }
+    .step-number {
+      background: linear-gradient(135deg, #FF8C42 0%, #FF6B35 100%);
+      color: #ffffff;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 16px;
+      flex-shrink: 0;
+      margin-right: 16px;
+    }
+    .step-content {
+      flex: 1;
+    }
+    .step-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #0F172A;
+      margin: 0 0 4px 0;
+    }
+    .step-description {
+      font-size: 14px;
+      color: #64748B;
+      margin: 0;
+    }
+    .highlight-box {
+      background-color: #FEF3C7;
+      border-left: 4px solid #F59E0B;
+      padding: 16px 20px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+    .highlight-box p {
+      margin: 0;
+      color: #92400E;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+    .cta-button {
+      display: inline-block;
+      background: linear-gradient(135deg, #FF8C42 0%, #FF6B35 100%);
+      color: #ffffff !important;
+      text-decoration: none;
+      padding: 16px 32px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 16px;
+      margin: 20px 0;
+      text-align: center;
+    }
+    .footer {
+      background-color: #f8fafc;
+      padding: 30px;
+      text-align: center;
+      border-top: 1px solid #e2e8f0;
+    }
+    .footer p {
+      font-size: 14px;
+      color: #64748B;
+      margin: 0 0 8px 0;
+    }
+    .footer a {
+      color: #FF8C42;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <!-- Header -->
+    <div class="header">
+      <h1>🎯 Welcome to AI Talk Coach!</h1>
+      <p>Your personalized journey to better communication starts now</p>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+      <p class="greeting">Hi <%= @user.name %>!</p>
+
+      <p class="text-block">
+        We're thrilled to have you join our community of speakers who practice daily to master the #1 career skill: communication.
+      </p>
+
+      <p class="text-block">
+        You've just completed your setup, and your <strong>24-hour free trial is now active</strong>. Here's how to make the most of it:
+      </p>
+
+      <!-- Quick Start Steps -->
+      <div class="steps">
+        <h2>🚀 Quick Start Guide</h2>
+
+        <div class="step">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <div class="step-title">Practice Daily (Even 30 Seconds!)</div>
+            <div class="step-description">Record yourself speaking on any topic. The more you practice, the better you get.</div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <div class="step-title">Review Your AI Insights</div>
+            <div class="step-description">Get instant feedback on pace, clarity, filler words, and more.</div>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <div class="step-title">Keep It Free Forever</div>
+            <div class="step-description">Practice at least 1 minute daily and you'll never be charged. Miss a day? That's when we charge.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Highlight Box -->
+      <div class="highlight-box">
+        <p>
+          <strong>💡 Pro Tip:</strong> Set a daily reminder to practice. Even 30-60 seconds a day will transform your speaking skills over time. Consistency beats perfection!
+        </p>
+      </div>
+
+      <!-- CTA -->
+      <center>
+        <a href="<%= @app_url %>" class="cta-button">Start Your First Practice Session</a>
+      </center>
+
+      <p class="text-block" style="margin-top: 30px;">
+        We're here to support you every step of the way. If you have any questions, just reply to this email.
+      </p>
+
+      <p class="text-block">
+        Here's to your speaking success!<br/>
+        <strong>The AI Talk Coach Team</strong>
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>Questions? Email us at <a href="mailto:support@aitalkcoach.com">support@aitalkcoach.com</a></p>
+      <p style="color: #94A3B8; font-size: 12px; margin-top: 16px;">
+        AI Talk Coach | Practice daily, stay free forever
+      </p>
+    </div>
+  </div>
+</body>
+</html>

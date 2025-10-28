@@ -1,0 +1,176 @@
+<% content_for :title, "About You - AI Talk Coach" %>
+
+<div class="onboarding-container">
+  <div class="onboarding-content">
+    <!-- Progress Indicator -->
+    <%= render 'onboarding/progress', current_step: 2 %>
+
+    <!-- Form Section -->
+    <div class="onboarding-form-section">
+      <h1 class="onboarding-title">Tell us a bit about yourself</h1>
+      <p class="onboarding-subtitle">This helps us personalize your coaching experience.</p>
+
+      <%= form_with url: onboarding_demographics_path, method: :post, class: "onboarding-form", aria: { label: "Demographics form" } do |f| %>
+
+        <!-- Section A: Communication Style -->
+        <div class="form-section" id="communication-style-section">
+          <h3 class="form-section-title" id="communication-style-label">How would you describe your communication style?</h3>
+          <div class="radio-options" role="radiogroup" aria-labelledby="communication-style-label" aria-required="true">
+            <label class="radio-option" tabindex="0">
+              <%= radio_button_tag 'speaking_style', 'Introvert', current_user&.speaking_style == 'Introvert', class: 'radio-input', id: 'style_introvert', required: true %>
+              <div class="radio-content">
+                <div class="radio-label">Introvert</div>
+                <div class="radio-description">I prefer one-on-one conversations and need time to recharge alone</div>
+              </div>
+            </label>
+
+            <label class="radio-option" tabindex="0">
+              <%= radio_button_tag 'speaking_style', 'Extrovert', current_user&.speaking_style == 'Extrovert', class: 'radio-input', id: 'style_extrovert' %>
+              <div class="radio-content">
+                <div class="radio-label">Extrovert</div>
+                <div class="radio-description">I thrive in social settings and energize through interaction</div>
+              </div>
+            </label>
+
+            <label class="radio-option" tabindex="0">
+              <%= radio_button_tag 'speaking_style', 'Ambivert', current_user&.speaking_style == 'Ambivert', class: 'radio-input', id: 'style_ambivert' %>
+              <div class="radio-content">
+                <div class="radio-label">Ambivert</div>
+                <div class="radio-description">I'm comfortable both alone and in social settings</div>
+              </div>
+            </label>
+
+            <label class="radio-option" tabindex="0">
+              <%= radio_button_tag 'speaking_style', 'Not sure yet', current_user&.speaking_style == 'Not sure yet', class: 'radio-input', id: 'style_unsure' %>
+              <div class="radio-content">
+                <div class="radio-label">Not sure yet</div>
+                <div class="radio-description">I'm still figuring it out</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Section B: Demographics -->
+        <div class="form-section" id="demographics-section">
+          <h3 class="form-section-title" id="demographics-label">Demographics</h3>
+
+          <div class="form-section" id="age-range-section">
+            <h3 class="form-section-title" id="age-range-label">
+              Age Range <span class="required-indicator" aria-label="required">*</span>
+            </h3>
+            <div class="pill-buttons" role="radiogroup" aria-labelledby="age-range-label" aria-required="true">
+              <label class="pill-button" tabindex="0">
+                <%= radio_button_tag 'age_range', '-18', current_user&.age_range == '-18', class: 'pill-radio', id: 'age_under_18', required: true %>
+                <span class="pill-button-text">Under 18</span>
+              </label>
+
+              <label class="pill-button" tabindex="0">
+                <%= radio_button_tag 'age_range', '18-24', current_user&.age_range == '18-24', class: 'pill-radio', id: 'age_18_24' %>
+                <span class="pill-button-text">18-24</span>
+              </label>
+
+              <label class="pill-button" tabindex="0">
+                <%= radio_button_tag 'age_range', '25-34', current_user&.age_range == '25-34', class: 'pill-radio', id: 'age_25_34' %>
+                <span class="pill-button-text">25-34</span>
+              </label>
+
+              <label class="pill-button" tabindex="0">
+                <%= radio_button_tag 'age_range', '35-44', current_user&.age_range == '35-44', class: 'pill-radio', id: 'age_35_44' %>
+                <span class="pill-button-text">35-44</span>
+              </label>
+
+              <label class="pill-button" tabindex="0">
+                <%= radio_button_tag 'age_range', '45-54', current_user&.age_range == '45-54', class: 'pill-radio', id: 'age_45_54' %>
+                <span class="pill-button-text">45-54</span>
+              </label>
+
+              <label class="pill-button" tabindex="0">
+                <%= radio_button_tag 'age_range', '55+', current_user&.age_range == '55+', class: 'pill-radio', id: 'age_55_plus' %>
+                <span class="pill-button-text">55+</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="profession" class="form-label">Profession <span class="optional-indicator">(Optional)</span></label>
+            <%= text_field_tag 'profession', current_user&.profession,
+                placeholder: 'e.g., Software Engineer, Teacher, Student',
+                class: 'form-input',
+                id: 'profession',
+                autocomplete: 'organization-title',
+                'aria-describedby': 'profession-hint',
+                maxlength: 100 %>
+            <span id="profession-hint" class="sr-only">Enter your current profession or leave blank</span>
+          </div>
+        </div>
+
+        <!-- Section C: Pronouns (Optional) -->
+        <div class="form-section" id="pronouns-section">
+          <h3 class="form-section-title" id="pronouns-label">
+            How should we refer to you?
+            <span class="optional-badge" aria-label="This field is optional">Optional</span>
+          </h3>
+          <p class="form-section-description" id="pronouns-description">This helps us personalize your coaching experience.</p>
+
+          <div class="radio-options" role="radiogroup" aria-labelledby="pronouns-label" aria-describedby="pronouns-description" aria-required="false">
+            <label class="radio-option" tabindex="0">
+              <%= radio_button_tag 'preferred_pronouns', 'He/Him', current_user&.preferred_pronouns == 'He/Him', class: 'radio-input', id: 'pronouns_he' %>
+              <div class="radio-content">
+                <div class="radio-label">He/Him</div>
+              </div>
+            </label>
+
+            <label class="radio-option" tabindex="0">
+              <%= radio_button_tag 'preferred_pronouns', 'She/Her', current_user&.preferred_pronouns == 'She/Her', class: 'radio-input', id: 'pronouns_she' %>
+              <div class="radio-content">
+                <div class="radio-label">She/Her</div>
+              </div>
+            </label>
+
+            <label class="radio-option" tabindex="0">
+              <%= radio_button_tag 'preferred_pronouns', 'They/Them', current_user&.preferred_pronouns == 'They/Them', class: 'radio-input', id: 'pronouns_they' %>
+              <div class="radio-content">
+                <div class="radio-label">They/Them</div>
+              </div>
+            </label>
+
+            <label class="radio-option" tabindex="0">
+              <%= radio_button_tag 'preferred_pronouns', 'Prefer not to say', current_user&.preferred_pronouns == 'Prefer not to say', class: 'radio-input', id: 'pronouns_none' %>
+              <div class="radio-content">
+                <div class="radio-label">Prefer not to say</div>
+              </div>
+            </label>
+
+            <label class="radio-option" tabindex="0">
+              <%= radio_button_tag 'preferred_pronouns', 'Other', current_user&.preferred_pronouns == 'Other', class: 'radio-input', id: 'pronouns_other' %>
+              <div class="radio-content">
+                <div class="radio-label">Other</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <% if flash[:alert] %>
+          <div class="form-error" role="alert" aria-live="polite" aria-atomic="true">
+            <%= flash[:alert] %>
+          </div>
+        <% end %>
+
+        <div class="onboarding-actions">
+          <%= button_tag type: 'submit', class: 'primary-btn btn-large' do %>
+            Next Step
+            <span aria-hidden="true"><%= icon_svg(:arrow_right, css_class: 'icon-inline') %></span>
+          <% end %>
+        </div>
+      <% end %>
+
+      <!-- Back Navigation -->
+      <div class="onboarding-back-action">
+        <%= link_to onboarding_profile_path, class: 'text-btn' do %>
+          <%= icon_svg(:arrow_right, css_class: 'icon-inline', style: 'transform: rotate(180deg)') %>
+          Back to goals
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

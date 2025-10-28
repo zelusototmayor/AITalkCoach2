@@ -1,0 +1,152 @@
+<% content_for :title, "Subscription - AI Talk Coach" %>
+
+<div style="min-height: 100vh; background: var(--bg); padding: 2rem 1rem;">
+  <div style="max-width: 800px; margin: 0 auto;">
+
+    <!-- Header -->
+    <div style="margin-bottom: 2rem;">
+      <h1 style="font-size: 2rem; font-weight: 800; color: var(--text); margin-bottom: 0.5rem;">
+        Subscription Management
+      </h1>
+      <p style="color: var(--muted);">
+        Manage your billing and subscription settings
+      </p>
+    </div>
+
+    <!-- Current Plan -->
+    <div class="card" style="padding: 2rem; margin-bottom: 2rem;">
+      <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1.5rem;">
+        <div>
+          <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text);">
+            Current Plan
+          </h2>
+          <p style="color: var(--muted); font-size: 0.9rem;">
+            <%= current_user.subscription_display_status %>
+          </p>
+        </div>
+        <% if current_user.subscription_active? %>
+          <span style="display: inline-block; padding: 0.5rem 1rem; background: linear-gradient(135deg, #10B981, #059669); color: white; border-radius: 20px; font-size: 0.875rem; font-weight: 600;">
+            Active
+          </span>
+        <% end %>
+      </div>
+
+      <% if current_user.subscription_active? %>
+        <div style="background: var(--bg); padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem;">
+          <div style="display: grid; gap: 1rem;">
+            <div>
+              <p style="font-size: 0.875rem; color: var(--muted); margin-bottom: 0.25rem;">
+                Plan Type
+              </p>
+              <p style="font-weight: 600; color: var(--text);">
+                <%= current_user.subscription_plan&.titleize %>
+              </p>
+            </div>
+
+            <% if current_user.current_period_end %>
+              <div>
+                <p style="font-size: 0.875rem; color: var(--muted); margin-bottom: 0.25rem;">
+                  <%= current_user.subscription_canceled? ? 'Access Until' : 'Next Billing Date' %>
+                </p>
+                <p style="font-weight: 600; color: var(--text);">
+                  <%= current_user.current_period_end.strftime('%B %d, %Y') %>
+                </p>
+              </div>
+            <% end %>
+
+            <% if @upcoming_invoice %>
+              <div>
+                <p style="font-size: 0.875rem; color: var(--muted); margin-bottom: 0.25rem;">
+                  Next Charge
+                </p>
+                <p style="font-weight: 600; color: var(--text);">
+                  €<%= sprintf('%.2f', @upcoming_invoice.amount_due / 100.0) %>
+                </p>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <!-- Manage Subscription Button -->
+        <%= button_to 'Manage Subscription', manage_subscription_path, method: :post, style: 'width: 100%; padding: 1rem; font-size: 1rem; font-weight: 600; border-radius: 12px; border: none; cursor: pointer; background: var(--gradient-primary); color: white; transition: transform 0.2s;' %>
+        <p style="font-size: 0.875rem; color: var(--muted); margin-top: 0.75rem; text-align: center;">
+          Update payment method, change plan, or cancel subscription
+        </p>
+      <% else %>
+        <p style="color: var(--muted); margin-bottom: 1.5rem;">
+          You don't have an active subscription. Subscribe now to access all features!
+        </p>
+        <%= link_to 'View Pricing Plans', pricing_url, style: 'display: inline-block; padding: 1rem 2rem; font-size: 1rem; font-weight: 600; border-radius: 12px; background: var(--gradient-primary); color: white; text-decoration: none;' %>
+      <% end %>
+    </div>
+
+    <!-- Trial Info (if on trial) -->
+    <% if current_user.trial_active? %>
+      <div class="card" style="padding: 2rem; margin-bottom: 2rem; border-left: 4px solid var(--brand-500);">
+        <h3 style="font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem; color: var(--text);">
+          Free Trial Status
+        </h3>
+        <div style="background: var(--bg); padding: 1.5rem; border-radius: 12px;">
+          <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+            <span style="font-size: 2rem;">⏰</span>
+            <div>
+              <p style="font-weight: 600; color: var(--text);">
+                <%= current_user.trial_hours_remaining %> hours remaining
+              </p>
+              <p style="font-size: 0.875rem; color: var(--muted);">
+                Expires: <%= current_user.trial_expires_at.strftime('%B %d at %I:%M %p') %>
+              </p>
+            </div>
+          </div>
+          <div style="background: #FFF5F0; padding: 1rem; border-radius: 8px; border-left: 3px solid var(--brand-500);">
+            <p style="font-size: 0.9rem; color: var(--text);">
+              <strong>Keep your trial active:</strong> Complete a 1+ minute session today to extend your trial for another 24 hours!
+            </p>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Quick Actions -->
+    <div class="card" style="padding: 2rem;">
+      <h3 style="font-size: 1.125rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--text);">
+        Quick Actions
+      </h3>
+      <div style="display: grid; gap: 1rem;">
+        <%= link_to app_root_path, style: 'display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--bg); border-radius: 8px; text-decoration: none; transition: transform 0.2s;' do %>
+          <span style="font-size: 1.5rem;">🎤</span>
+          <div style="flex: 1;">
+            <p style="font-weight: 600; color: var(--text);">Start Practicing</p>
+            <p style="font-size: 0.875rem; color: var(--muted);">Record a new speech session</p>
+          </div>
+          <span style="color: var(--brand-500);">→</span>
+        <% end %>
+
+        <%= link_to pricing_url, style: 'display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--bg); border-radius: 8px; text-decoration: none; transition: transform 0.2s;' do %>
+          <span style="font-size: 1.5rem;">💳</span>
+          <div style="flex: 1;">
+            <p style="font-weight: 600; color: var(--text);">View Pricing</p>
+            <p style="font-size: 0.875rem; color: var(--muted);">Compare plans and features</p>
+          </div>
+          <span style="color: var(--brand-500);">→</span>
+        <% end %>
+
+        <%= link_to settings_path, style: 'display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--bg); border-radius: 8px; text-decoration: none; transition: transform 0.2s;' do %>
+          <span style="font-size: 1.5rem;">⚙️</span>
+          <div style="flex: 1;">
+            <p style="font-weight: 600; color: var(--text);">Account Settings</p>
+            <p style="font-size: 0.875rem; color: var(--muted);">Manage your account</p>
+          </div>
+          <span style="color: var(--brand-500);">→</span>
+        <% end %>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<style>
+  .card:hover {
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  }
+</style>

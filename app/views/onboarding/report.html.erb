@@ -1,0 +1,466 @@
+<% content_for :title, "Your Results - AI Talk Coach" %>
+
+<div class="onboarding-container">
+  <div class="onboarding-content">
+    <!-- Progress Indicator -->
+    <%= render 'onboarding/progress', current_step: 3 %>
+
+    <!-- Report Section with Trial Session Report Styling -->
+    <div class="onboarding-report-section">
+      <div class="success-badge">
+        <span class="success-icon" aria-hidden="true"><%= icon_svg(:check, css_class: 'icon-inline') %></span>
+        <span>Analysis Complete</span>
+      </div>
+
+      <h1 class="session-title-main">Your Demo Results</h1>
+      <p class="report-subtitle">Here's a preview of what you'll get with every practice session</p>
+
+      <!-- Media Player Section -->
+      <% if @trial_session.media_files.attached? %>
+        <div class="media-player-section-top">
+          <div class="player-container">
+            <% media_file = @trial_session.media_files.first %>
+            <% if @trial_session.media_kind == 'video' %>
+              <video controls preload="metadata" class="media-player">
+                <source src="<%= url_for(media_file) %>" type="<%= media_file.content_type %>">
+                Your browser doesn't support video playback.
+              </video>
+            <% else %>
+              <audio controls preload="metadata" class="media-player">
+                <source src="<%= url_for(media_file) %>" type="<%= media_file.content_type %>">
+                Your browser doesn't support audio playback.
+              </audio>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Metrics Cards -->
+      <div class="metrics-row-compact">
+        <!-- Clarity Score -->
+        <% if @trial_session.clarity_score.present? %>
+          <div class="metric-card-compact">
+            <div class="circular-progress-small"
+                 data-controller="circular-progress"
+                 data-circular-progress-percentage-value="<%= @trial_session.clarity_score.round %>">
+              <svg class="progress-ring" width="80" height="80">
+                <circle class="progress-ring__circle"
+                        stroke="#e6f3ff"
+                        stroke-width="6"
+                        fill="transparent"
+                        r="34"
+                        cx="40"
+                        cy="40"/>
+                <circle class="progress-ring__circle progress-ring__circle--active"
+                        stroke="#4F46E5"
+                        stroke-width="6"
+                        fill="transparent"
+                        r="34"
+                        cx="40"
+                        cy="40"/>
+              </svg>
+              <div class="progress-percentage-small">
+                <%= @trial_session.clarity_score.round %>%
+              </div>
+            </div>
+            <div class="metric-label-compact">Clarity</div>
+            <div class="metric-status-compact">
+              <% clarity = @trial_session.clarity_score %>
+              <% if clarity > 85 %>
+                Very clear
+              <% elsif clarity > 70 %>
+                Generally clear
+              <% else %>
+                Needs improvement
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+
+        <!-- Filler % -->
+        <% if @trial_session.filler_rate.present? %>
+          <div class="metric-card-compact">
+            <div class="metric-value-compact-large">
+              <%= @trial_session.filler_rate.round(1) %>%
+            </div>
+            <div class="metric-label-compact">Filler %</div>
+            <div class="metric-status-compact">
+              <% if @trial_session.filler_rate < 3 %>
+                <span style="color: #10b981;">&lt;3% target</span>
+              <% else %>
+                &lt;3% target
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+
+        <!-- Pace (WPM) -->
+        <% if @trial_session.wpm.present? %>
+          <div class="metric-card-compact">
+            <div class="metric-value-compact-large">
+              <%= @trial_session.wpm.to_i %> <span class="unit">wpm</span>
+            </div>
+            <div class="metric-label-compact">Pace</div>
+            <div class="metric-status-compact">
+              <% wpm = @trial_session.wpm.to_i %>
+              <% if wpm >= 140 && wpm <= 180 %>
+                <span style="color: #10b981;">Natural range</span>
+              <% elsif wpm < 140 %>
+                <span style="color: #f59e0b;">Too slow</span>
+              <% else %>
+                <span style="color: #f59e0b;">Too fast</span>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Transcript Section -->
+      <% if @trial_session.transcript.present? %>
+        <div class="transcript-section-preview">
+          <div class="section-label-small">TRANSCRIPT</div>
+          <h2 class="section-heading">What You Said</h2>
+          <p class="section-description">This is a preview. With full access, you'll get detailed issue detection and tips.</p>
+
+          <div class="transcript-content-preview">
+            <%= simple_format(@trial_session.transcript) %>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- What You'll Unlock Section -->
+      <div class="unlock-features-section">
+        <div class="section-label-small">WHAT YOU'LL UNLOCK</div>
+        <h2 class="section-heading">Get Full Access to Unlock These Features</h2>
+
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon"><%= icon_svg(:target, css_class: 'icon') %></div>
+            <h3 class="feature-title">Detailed Issue Detection</h3>
+            <p class="feature-description">Get timestamped feedback on every filler word, pause, and unclear moment with actionable tips.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon"><%= icon_svg(:lightbulb, css_class: 'icon') %></div>
+            <h3 class="feature-title">AI Coach Recommendations</h3>
+            <p class="feature-description">Personalized weekly focus areas and practice plans based on your performance patterns.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon"><%= icon_svg(:chart_bar, css_class: 'icon') %></div>
+            <h3 class="feature-title">Progress Tracking</h3>
+            <p class="feature-description">Track your improvement over time with detailed charts and session-to-session comparisons.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon"><%= icon_svg(:file_text, css_class: 'icon') %></div>
+            <h3 class="feature-title">Full Transcript Analysis</h3>
+            <p class="feature-description">Highlighted filler words, clickable timestamps, and color-coded issue markers in your transcript.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon"><%= icon_svg(:calendar, css_class: 'icon') %></div>
+            <h3 class="feature-title">Weekly Focus Areas</h3>
+            <p class="feature-description">Set and track weekly goals with daily practice plans tailored to your improvement areas.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon"><%= icon_svg(:activity, css_class: 'icon') %></div>
+            <h3 class="feature-title">Advanced Metrics</h3>
+            <p class="feature-description">Fluency, engagement, pace consistency, and more metrics to help you speak like a pro.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Actions -->
+      <div class="onboarding-actions">
+        <%= link_to onboarding_pricing_path, class: 'primary-btn btn-large btn-cta' do %>
+          Get Full Access
+          <span aria-hidden="true"><%= icon_svg(:arrow_right, css_class: 'icon-inline') %></span>
+        <% end %>
+
+        <%= link_to onboarding_test_path(new_recording: true), class: 'secondary-btn btn-large' do %>
+          <%= icon_svg(:microphone, css_class: 'icon-inline') %>
+          Record Again
+        <% end %>
+      </div>
+
+      <div class="onboarding-back-action">
+        <%= link_to onboarding_demographics_path, class: 'text-btn' do %>
+          <%= icon_svg(:arrow_right, css_class: 'icon-inline', style: 'transform: rotate(180deg)') %>
+          Back to profile
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Session Report Styling - Adapted for Onboarding */
+  .onboarding-report-section {
+    max-width: 900px;
+    margin: 2rem auto;
+  }
+
+  .session-title-main {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 1.5rem 0 0.5rem 0;
+    line-height: 1.2;
+  }
+
+  .report-subtitle {
+    font-size: 1.0625rem;
+    color: #64748b;
+    margin: 0 0 2rem 0;
+  }
+
+  /* Media Player Section */
+  .media-player-section-top {
+    margin: 2rem 0;
+  }
+
+  .player-container {
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+
+  .media-player {
+    width: 100%;
+    border-radius: 8px;
+    outline: none;
+  }
+
+  /* Metrics Cards */
+  .metrics-row-compact {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.25rem;
+    margin: 2rem 0;
+  }
+
+  .metric-card-compact {
+    background: #ffffff;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: all 0.2s ease;
+  }
+
+  .metric-card-compact:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  .circular-progress-small {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    margin-bottom: 1rem;
+  }
+
+  .progress-ring {
+    transform: rotate(-90deg);
+  }
+
+  .progress-ring__circle--active {
+    transition: stroke-dashoffset 1s ease-in-out;
+  }
+
+  .progress-percentage-small {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+  }
+
+  .metric-value-compact-large {
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+  }
+
+  .metric-value-compact-large .unit {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #64748b;
+  }
+
+  .metric-label-compact {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+  }
+
+  .metric-status-compact {
+    font-size: 0.8125rem;
+    color: #64748b;
+  }
+
+  /* Transcript Section */
+  .transcript-section-preview {
+    margin: 3rem 0;
+  }
+
+  .section-label-small {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+  }
+
+  .section-heading {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0.5rem 0 0.25rem 0;
+  }
+
+  .section-description {
+    font-size: 0.9375rem;
+    color: #64748b;
+    margin: 0 0 1.5rem 0;
+  }
+
+  .transcript-content-preview {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1.5rem;
+    font-size: 1rem;
+    line-height: 1.7;
+    color: #1e293b;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  /* What You'll Unlock Section */
+  .unlock-features-section {
+    margin: 3rem 0;
+    padding: 2rem;
+    background: linear-gradient(135deg, #f8faff 0%, #ffffff 100%);
+    border: 2px solid #e2e8f0;
+    border-radius: 16px;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .feature-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.2s ease;
+  }
+
+  .feature-card:hover {
+    border-color: #4F46E5;
+    box-shadow: 0 4px 16px rgba(79, 70, 229, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .feature-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #4F46E5 0%, #6366F1 100%);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+  }
+
+  .feature-icon svg {
+    width: 24px;
+    height: 24px;
+    color: white;
+  }
+
+  .feature-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .feature-description {
+    font-size: 0.9375rem;
+    color: #64748b;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  /* CTA Button Enhancement */
+  .btn-cta {
+    background: linear-gradient(135deg, #4F46E5 0%, #6366F1 100%);
+    font-size: 1.125rem;
+    font-weight: 600;
+    box-shadow: 0 4px 16px rgba(79, 70, 229, 0.25);
+  }
+
+  .btn-cta:hover {
+    background: linear-gradient(135deg, #4338CA 0%, #4F46E5 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(79, 70, 229, 0.35);
+  }
+
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .session-title-main {
+      font-size: 1.5rem;
+    }
+
+    .metrics-row-compact {
+      grid-template-columns: 1fr;
+    }
+
+    .features-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .unlock-features-section {
+      padding: 1.5rem;
+    }
+  }
+</style>
+
+<script>
+  // Circular progress animation
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('[data-controller="circular-progress"]').forEach(function(element) {
+      const percentage = parseFloat(element.dataset.circularProgressPercentageValue);
+      const circle = element.querySelector('.progress-ring__circle--active');
+      const radius = circle.r.baseVal.value;
+      const circumference = radius * 2 * Math.PI;
+
+      circle.style.strokeDasharray = `${circumference} ${circumference}`;
+      circle.style.strokeDashoffset = circumference;
+
+      setTimeout(() => {
+        const offset = circumference - (percentage / 100) * circumference;
+        circle.style.strokeDashoffset = offset;
+      }, 100);
+    });
+  });
+</script>

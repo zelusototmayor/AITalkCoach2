@@ -1,11 +1,18 @@
 class Api::TrialSessionsController < ApplicationController
   before_action :set_trial_session
+  skip_before_action :require_onboarding, only: [:status]
 
   def status
+    # Get processing stage from analysis_data if available
+    processing_stage = @trial_session.analysis_data&.dig('processing_stage')
+    incomplete_reason = @trial_session.incomplete_reason
+
     render json: {
       token: @trial_session.token,
       processing_state: @trial_session.processing_state,
+      processing_stage: processing_stage,
       completed: @trial_session.completed,
+      incomplete_reason: incomplete_reason,
       expired: @trial_session.expired?,
       updated_at: @trial_session.updated_at,
       progress_info: get_trial_progress_info(@trial_session)
@@ -15,7 +22,14 @@ class Api::TrialSessionsController < ApplicationController
   private
 
   def set_trial_session
-    @trial_session = TrialSession.find_by!(token: params[:token])
+    # Support both token and ID lookup
+    if params[:token].present?
+      @trial_session = TrialSession.find_by!(token: params[:token])
+    elsif params[:id].present?
+      @trial_session = TrialSession.find(params[:id])
+    else
+      raise ActiveRecord::RecordNotFound
+    end
   rescue ActiveRecord::RecordNotFound
     render json: { error: 'Trial session not found or expired' }, status: :not_found
   end

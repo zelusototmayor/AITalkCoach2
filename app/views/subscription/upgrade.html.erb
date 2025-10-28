@@ -1,0 +1,208 @@
+<% content_for :title, "Upgrade Your Account" %>
+
+<div class="upgrade-page" style="max-width: 1000px; margin: 0 auto; padding: 2rem 1rem;">
+  <!-- Header -->
+  <div style="text-align: center; margin-bottom: 3rem;">
+    <h1 style="font-size: 2rem; font-weight: 700; color: var(--text); margin-bottom: 0.5rem;">
+      Upgrade Your Account
+    </h1>
+    <% if @practiced_today %>
+      <p style="font-size: 1.125rem; color: #10b981; margin-bottom: 0.5rem;">
+        ✅ Great job! You've practiced today.
+      </p>
+      <p style="font-size: 0.95rem; color: var(--muted);">
+        Your free access is extended until <%= Date.tomorrow.end_of_day.strftime('%B %d, %I:%M %p') %><br>
+        Upgrade now to unlock unlimited access without daily practice requirements.
+      </p>
+    <% else %>
+      <p style="font-size: 1.125rem; color: var(--brand-500); margin-bottom: 0.5rem;">
+        🎯 <%= @trial_hours_remaining %> hours remaining in your free trial
+      </p>
+      <p style="font-size: 0.95rem; color: var(--muted);">
+        Continue with free access by practicing daily (1+ min sessions),<br>
+        or upgrade now for unlimited access without daily requirements.
+      </p>
+    <% end %>
+  </div>
+
+  <!-- Upgrade Options -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 3rem;">
+
+    <!-- Free Forever Option -->
+    <div class="card" style="padding: 2rem; border: 2px solid #10b981; position: relative;">
+      <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #10b981; color: white; padding: 0.5rem 1.5rem; border-radius: 20px; font-weight: 700; font-size: 0.875rem; white-space: nowrap;">
+        KEEP IT FREE
+      </div>
+
+      <div style="text-align: center; margin-top: 1rem;">
+        <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;">
+          Free Forever
+        </h2>
+        <div style="font-size: 3rem; font-weight: 800; color: #10b981; margin-bottom: 0.5rem;">
+          €0
+        </div>
+        <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 2rem;">
+          Practice daily to keep free access
+        </p>
+
+        <ul style="list-style: none; padding: 0; margin: 0 0 2rem 0; text-align: left;">
+          <li style="display: flex; align-items: start; gap: 0.75rem; margin-bottom: 1rem;">
+            <span style="color: #10b981; font-size: 1.25rem; line-height: 1;">✓</span>
+            <span>Complete 1+ min session today = free tomorrow</span>
+          </li>
+          <li style="display: flex; align-items: start; gap: 0.75rem; margin-bottom: 1rem;">
+            <span style="color: #10b981; font-size: 1.25rem; line-height: 1;">✓</span>
+            <span>Full access to all features</span>
+          </li>
+          <li style="display: flex; align-items: start; gap: 0.75rem; margin-bottom: 1rem;">
+            <span style="color: #10b981; font-size: 1.25rem; line-height: 1;">✓</span>
+            <span>Keep all your data and progress</span>
+          </li>
+          <li style="display: flex; align-items: start; gap: 0.75rem;">
+            <span style="color: #10b981; font-size: 1.25rem; line-height: 1;">✓</span>
+            <span>No payment required ever</span>
+          </li>
+        </ul>
+
+        <%= link_to 'Continue with Free', practice_path, class: 'btn btn-outline', style: 'width: 100%; padding: 1rem; text-align: center; display: block; text-decoration: none; border: 2px solid #10b981; color: #10b981; border-radius: 8px; font-weight: 600;' %>
+      </div>
+    </div>
+
+    <!-- Monthly Plan -->
+    <div class="card" style="padding: 2rem;">
+      <div style="text-align: center;">
+        <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;">
+          Monthly Plan
+        </h2>
+        <div style="font-size: 3rem; font-weight: 800; color: var(--brand-500); margin-bottom: 0.5rem;">
+          €<%= @monthly_price %>
+        </div>
+        <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 2rem;">
+          per month
+        </p>
+
+        <ul style="list-style: none; padding: 0; margin: 0 0 2rem 0; text-align: left;">
+          <li style="display: flex; align-items: start; gap: 0.75rem; margin-bottom: 1rem;">
+            <span style="color: var(--brand-500); font-size: 1.25rem; line-height: 1;">✓</span>
+            <span>No daily practice requirement</span>
+          </li>
+          <li style="display: flex; align-items: start; gap: 0.75rem; margin-bottom: 1rem;">
+            <span style="color: var(--brand-500); font-size: 1.25rem; line-height: 1;">✓</span>
+            <span>Unlimited sessions anytime</span>
+          </li>
+          <li style="display: flex; align-items: start; gap: 0.75rem; margin-bottom: 1rem;">
+            <span style="color: var(--brand-500); font-size: 1.25rem; line-height: 1;">✓</span>
+            <span>All features included</span>
+          </li>
+          <li style="display: flex; align-items: start; gap: 0.75rem;">
+            <span style="color: var(--brand-500); font-size: 1.25rem; line-height: 1;">✓</span>
+            <span>Cancel anytime</span>
+          </li>
+        </ul>
+
+        <%= button_to 'Subscribe Monthly', subscription_path(plan: :monthly), method: :post, class: 'btn btn-primary', style: 'width: 100%; padding: 1rem; text-align: center; display: block; border: none; background: var(--gradient-primary); color: white; border-radius: 8px; font-weight: 600; cursor: pointer;', form: { data: { turbo: false } } %>
+      </div>
+    </div>
+
+    <!-- Yearly Plan (Best Value) -->
+    <div class="card" style="padding: 2rem; border: 2px solid var(--brand-500); position: relative;">
+      <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--gradient-primary); color: white; padding: 0.5rem 1.5rem; border-radius: 20px; font-weight: 700; font-size: 0.875rem; white-space: nowrap;">
+        BEST VALUE
+      </div>
+
+      <div style="text-align: center; margin-top: 1rem;">
+        <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;">
+          Yearly Plan
+        </h2>
+        <div style="font-size: 3rem; font-weight: 800; color: var(--brand-500); margin-bottom: 0.25rem;">
+          €<%= @yearly_price %>
+        </div>
+        <p style="color: var(--brand-500); font-weight: 600; font-size: 0.95rem; margin-bottom: 0.25rem;">
+          Just €<%= @yearly_monthly_equivalent %>/month
+        </p>
+        <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 2rem;">
+          Save <%= @savings_percentage %>% compared to monthly!
+        </p>
+
+        <ul style="list-style: none; padding: 0; margin: 0 0 2rem 0; text-align: left;">
+          <li style="display: flex; align-items: start; gap: 0.75rem; margin-bottom: 1rem;">
+            <span style="color: var(--brand-500); font-size: 1.25rem; line-height: 1;">✓</span>
+            <span><strong>Everything in Monthly</strong></span>
+          </li>
+          <li style="display: flex; align-items: start; gap: 0.75rem; margin-bottom: 1rem;">
+            <span style="color: var(--brand-500); font-size: 1.25rem; line-height: 1;">✓</span>
+            <span><strong>Save €60 per year</strong></span>
+          </li>
+          <li style="display: flex; align-items: start; gap: 0.75rem; margin-bottom: 1rem;">
+            <span style="color: var(--brand-500); font-size: 1.25rem; line-height: 1;">✓</span>
+            <span>Lock in your price for 12 months</span>
+          </li>
+          <li style="display: flex; align-items: start; gap: 0.75rem;">
+            <span style="color: var(--brand-500); font-size: 1.25rem; line-height: 1;">✓</span>
+            <span>Priority support</span>
+          </li>
+        </ul>
+
+        <%= button_to 'Subscribe Yearly', subscription_path(plan: :yearly), method: :post, class: 'btn btn-primary', style: 'width: 100%; padding: 1rem; text-align: center; display: block; border: none; background: var(--gradient-primary); color: white; border-radius: 8px; font-weight: 600; cursor: pointer;', form: { data: { turbo: false } } %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Benefits Section -->
+  <div class="card" style="padding: 2rem; background: linear-gradient(135deg, #F0F9FF, #E0F2FE); margin-bottom: 2rem;">
+    <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text); margin-bottom: 1rem; text-align: center;">
+      Why Upgrade?
+    </h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+      <div>
+        <div style="font-size: 2rem; margin-bottom: 0.5rem;">🚀</div>
+        <h4 style="font-weight: 600; margin-bottom: 0.5rem;">Practice on Your Schedule</h4>
+        <p style="font-size: 0.9rem; color: var(--muted);">
+          No daily practice requirement. Use the app whenever you want, however often you want.
+        </p>
+      </div>
+      <div>
+        <div style="font-size: 2rem; margin-bottom: 0.5rem;">📊</div>
+        <h4 style="font-weight: 600; margin-bottom: 0.5rem;">Full Feature Access</h4>
+        <p style="font-size: 0.9rem; color: var(--muted);">
+          Keep all the features you love: progress tracking, AI analysis, detailed feedback, and more.
+        </p>
+      </div>
+      <div>
+        <div style="font-size: 2rem; margin-bottom: 0.5rem;">💾</div>
+        <h4 style="font-weight: 600; margin-bottom: 0.5rem;">Keep Your Progress</h4>
+        <p style="font-size: 0.9rem; color: var(--muted);">
+          All your sessions, data, and improvements are preserved when you upgrade.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Back to Practice -->
+  <div style="text-align: center;">
+    <%= link_to '← Back to Practice', practice_path, style: 'color: var(--brand-500); text-decoration: none; font-weight: 600;' %>
+  </div>
+</div>
+
+<style>
+  .card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 10px 20px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1), 0 16px 24px rgba(0, 0, 0, 0.15);
+  }
+
+  .btn {
+    transition: all 0.2s;
+  }
+
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+</style>

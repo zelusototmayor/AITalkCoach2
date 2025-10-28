@@ -162,26 +162,52 @@
     </button>
 
     <% if logged_in? %>
-      <!-- Dashboard Layout with Sidebar (for logged-in users) -->
-      <div class="app-layout-with-sidebar">
-        <%= render 'shared/sidebar' %>
+      <!-- Check if user is in onboarding flow -->
+      <% in_onboarding = request.path.starts_with?('/onboarding') %>
 
+      <% if in_onboarding %>
+        <!-- Onboarding Layout (no sidebar) -->
         <% if notice %>
-          <div class="flash notice" role="alert" aria-live="polite">
-            <span aria-hidden="true"><%= icon_svg(:check, css_class: 'icon-inline') %></span> <%= notice %>
+          <div class="flash notice" role="alert" aria-live="polite" data-controller="flash" data-action="click->flash#close">
+            <span aria-hidden="true"><%= icon_svg(:check, css_class: 'icon-inline') %></span>
+            <span><%= notice %></span>
           </div>
         <% end %>
 
         <% if alert %>
-          <div class="flash alert" role="alert" aria-live="assertive">
-            <span aria-hidden="true"><%= icon_svg(:alert, css_class: 'icon-inline') %></span> <%= alert %>
+          <div class="flash alert" role="alert" aria-live="assertive" data-controller="flash" data-action="click->flash#close">
+            <span aria-hidden="true"><%= icon_svg(:alert, css_class: 'icon-inline') %></span>
+            <span><%= alert %></span>
           </div>
         <% end %>
 
         <main class="main-content" id="main-content" role="main" tabindex="-1">
           <%= yield %>
         </main>
-      </div>
+      <% else %>
+        <!-- Dashboard Layout with Sidebar (for logged-in users) -->
+        <div class="app-layout-with-sidebar">
+          <%= render 'shared/sidebar' %>
+
+          <% if notice %>
+            <div class="flash notice" role="alert" aria-live="polite" data-controller="flash" data-action="click->flash#close">
+              <span aria-hidden="true"><%= icon_svg(:check, css_class: 'icon-inline') %></span>
+              <span><%= notice %></span>
+            </div>
+          <% end %>
+
+          <% if alert %>
+            <div class="flash alert" role="alert" aria-live="assertive" data-controller="flash" data-action="click->flash#close">
+              <span aria-hidden="true"><%= icon_svg(:alert, css_class: 'icon-inline') %></span>
+              <span><%= alert %></span>
+            </div>
+          <% end %>
+
+          <main class="main-content" id="main-content" role="main" tabindex="-1">
+            <%= yield %>
+          </main>
+        </div>
+      <% end %>
     <% else %>
       <!-- Marketing Site Layout with Top Navigation (for non-logged-in users) -->
       <header class="main-header" role="banner">
@@ -215,30 +241,19 @@
           <div class="nav-menu" id="nav-menu" data-navigation-target="menu">
             <ul class="nav-links" role="menubar">
               <li class="nav-item" role="none">
-                <%= link_to app_subdomain_url('/prompts'),
+                <%= link_to marketing_subdomain_url('/'),
                       class: "nav-link",
                       role: "menuitem",
                       data: { action: "click->navigation#closeMenu" } do %>
-                  <span class="nav-icon" aria-hidden="true"><%= icon_svg(:lightbulb, css_class: 'icon-inline') %></span>
-                  <span class="nav-text">Prompts</span>
+                  <span class="nav-text">Home</span>
                 <% end %>
               </li>
               <li class="nav-item" role="none">
-                <button type="button"
-                        class="nav-link"
-                        role="menuitem"
-                        data-action="click->feedback-menu#openAccessibilityPanel click->navigation#closeMenu">
-                  <span class="nav-icon" aria-hidden="true"><%= icon_svg(:eye, css_class: 'icon-inline') %></span>
-                  <span class="nav-text">Accessibility</span>
-                </button>
-              </li>
-              <li class="nav-item" role="none">
-                <%= link_to app_subdomain_url('/privacy_settings'),
+                <%= link_to marketing_subdomain_url('/pricing'),
                       class: "nav-link",
                       role: "menuitem",
                       data: { action: "click->navigation#closeMenu" } do %>
-                  <span class="nav-icon" aria-hidden="true"><%= icon_svg(:lock, css_class: 'icon-inline') %></span>
-                  <span class="nav-text">Privacy</span>
+                  <span class="nav-text">Pricing</span>
                 <% end %>
               </li>
               <li class="nav-item" role="none">
@@ -246,8 +261,7 @@
                       class: "nav-link",
                       role: "menuitem",
                       data: { action: "click->navigation#closeMenu" } do %>
-                  <span class="nav-icon" aria-hidden="true"><%= icon_svg(:lock, css_class: 'icon-inline') %></span>
-                  <span class="nav-text">Login</span>
+                  <span class="nav-text">Log in</span>
                 <% end %>
               </li>
               <li class="nav-item" role="none">
@@ -255,7 +269,6 @@
                       class: "nav-link signup-link",
                       role: "menuitem",
                       data: { action: "click->navigation#closeMenu" } do %>
-                  <span class="nav-icon" aria-hidden="true"><%= icon_svg(:sparkles, css_class: 'icon-inline') %></span>
                   <span class="nav-text">Sign Up</span>
                 <% end %>
               </li>
@@ -265,14 +278,16 @@
       </header>
 
       <% if notice %>
-        <div class="flash notice" role="alert" aria-live="polite">
-          <span aria-hidden="true"><%= icon_svg(:check, css_class: 'icon-inline') %></span> <%= notice %>
+        <div class="flash notice" role="alert" aria-live="polite" data-controller="flash" data-action="click->flash#close">
+          <span aria-hidden="true"><%= icon_svg(:check, css_class: 'icon-inline') %></span>
+          <span><%= notice %></span>
         </div>
       <% end %>
 
       <% if alert %>
-        <div class="flash alert" role="alert" aria-live="assertive">
-          <span aria-hidden="true"><%= icon_svg(:alert, css_class: 'icon-inline') %></span> <%= alert %>
+        <div class="flash alert" role="alert" aria-live="assertive" data-controller="flash" data-action="click->flash#close">
+          <span aria-hidden="true"><%= icon_svg(:alert, css_class: 'icon-inline') %></span>
+          <span><%= alert %></span>
         </div>
       <% end %>
 

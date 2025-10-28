@@ -1,18 +1,29 @@
 class SessionsController < ApplicationController
+  before_action :activate_trial_if_requested
   before_action :require_login, except: [:index, :create]
   before_action :require_login_or_trial, only: [:index, :create]
+  before_action :require_subscription, except: [:index, :create]
   before_action :set_session, only: [:show, :destroy]
   
   def index
-    # Handle trial activation
-    if params[:trial] == 'true' && !logged_in?
-      activate_trial
-      # Note: Analytics tracking for trial_started happens on the frontend when user clicks the trial button
+    # Trial mode is only available on marketing site (not app subdomain)
+    # On app subdomain, users must be logged in with paid subscription
+    if on_app_subdomain?
+      # App subdomain: require paid subscription
+      unless logged_in?
+        redirect_to app_subdomain_url(login_path), allow_other_host: true, alert: 'Please login to continue'
+        return
+      end
+
+      unless current_user.can_access_app?
+        redirect_to pricing_url, alert: 'Please subscribe to access the app.', allow_other_host: true
+        return
+      end
     end
 
-    if trial_mode?
-      # Trial mode: simplified interface
-      @trial_prompt = "Describe your biggest professional challenge and how you're tackling it. Keep it under 30 seconds."
+    if trial_mode? && !on_app_subdomain?
+      # Trial mode: simplified interface (marketing site only)
+      @trial_prompt = "What was something you enjoyed about last week and why?"
       @default_prompt = @trial_prompt
       @default_prompt_data = { prompt: @trial_prompt, target_seconds: 30 }
 
@@ -34,7 +45,7 @@ class SessionsController < ApplicationController
       @adaptive_prompts = {}
       @categories = []
       @user_weaknesses = []
-    else
+    elsif logged_in? && current_user.can_access_app?
       # Regular authenticated flow
       # Note: Analytics tracking for real_session_started happens on the frontend
       @prompts = load_prompts_from_config
@@ -79,6 +90,9 @@ class SessionsController < ApplicationController
         @default_prompt = get_default_prompt
         @default_prompt_data = get_default_prompt_data
       end
+    else
+      # Not logged in or no subscription - redirect to pricing
+      redirect_to pricing_url, alert: 'Please subscribe to access the app.', allow_other_host: true
     end
   end
 
@@ -158,10 +172,11 @@ class SessionsController < ApplicationController
   
   
   def create
-    if trial_mode?
+    # Trial sessions only allowed on marketing site, not app subdomain
+    if trial_mode? && !on_app_subdomain?
       # Handle trial session - no DB persistence
       handle_trial_session
-    else
+    elsif logged_in? && current_user.can_access_app?
       # Regular authenticated session
       @session = current_user.sessions.build(session_params)
       @session.processing_state = 'pending'
@@ -225,6 +240,17 @@ class SessionsController < ApplicationController
           @user_weaknesses = analyze_user_weaknesses
           render :index, status: :unprocessable_content
         end
+      end
+    else
+      # Not authorized - redirect to pricing
+      if request.xhr?
+        render json: {
+          success: false,
+          message: 'Please subscribe to access the app.',
+          redirect_url: pricing_url
+        }, status: :forbidden
+      else
+        redirect_to pricing_url, alert: 'Please subscribe to access the app.'
       end
     end
   end
@@ -818,8 +844,29 @@ class SessionsController < ApplicationController
     end
   end
 
+  # Subdomain detection
+  def on_app_subdomain?
+    request.subdomain.present? && request.subdomain == 'app'
+  end
+
   # Trial mode helpers
   def require_login_or_trial
+    # On app subdomain, require paid subscription (no trial access)
+    if on_app_subdomain?
+      return if logged_in? && current_user.can_access_app?
+
+      unless logged_in?
+        store_location
+        redirect_to app_subdomain_url(login_path), allow_other_host: true, alert: 'Please login to continue'
+        return
+      end
+
+      # Logged in but no subscription
+      redirect_to pricing_url, alert: 'Please subscribe to access the app.', allow_other_host: true
+      return
+    end
+
+    # Marketing site: allow trial access or login
     return if logged_in?
 
     # Allow trial access if trial parameter is present or trial is already active
@@ -827,8 +874,7 @@ class SessionsController < ApplicationController
       return
     end
 
-    # For app subdomain, redirect to marketing site with trial option
-    # This prevents infinite redirect loops
+    # Redirect to marketing site with trial option
     store_location
     redirect_to marketing_subdomain_url('/?trial=true'), allow_other_host: true, alert: 'Please login or try our demo'
   end
@@ -893,6 +939,13 @@ class SessionsController < ApplicationController
 
     # Attach the media file
     @trial_session.media_files.attach(uploaded_file)
+
+    # Store trial token in cookie for onboarding flow (expires in 1 hour)
+    cookies[:demo_trial_token] = {
+      value: @trial_session.token,
+      expires: 1.hour.from_now,
+      httponly: false  # Allow JavaScript access if needed
+    }
 
     # Start background processing
     Sessions::TrialProcessJob.perform_later(@trial_session.token)
@@ -1155,6 +1208,12 @@ class SessionsController < ApplicationController
     end
 
     streak
+  end
+
+  def activate_trial_if_requested
+    if params[:trial] == 'true' && !logged_in?
+      activate_trial
+    end
   end
 
 end

@@ -8,7 +8,7 @@ if Rails.env.production? || Rails.env.staging?
       policy.default_src :self, :https
       
       # Allow specific script sources (Google Analytics requires unsafe-inline)
-      policy.script_src :self, :unsafe_inline, 'https://cdn.jsdelivr.net', 'https://unpkg.com', 'https://www.googletagmanager.com', 'https://www.google-analytics.com', 'https://ssl.google-analytics.com'
+      policy.script_src :self, :unsafe_inline, 'https://cdn.jsdelivr.net', 'https://unpkg.com', 'https://www.googletagmanager.com', 'https://www.google-analytics.com', 'https://ssl.google-analytics.com', 'https://js.stripe.com'
       
       # Allow specific style sources
       policy.style_src :self, :unsafe_inline, 'https://fonts.googleapis.com'
@@ -20,7 +20,7 @@ if Rails.env.production? || Rails.env.staging?
       policy.font_src :self, 'https://fonts.gstatic.com'
       
       # Allow connections to specific hosts
-      policy.connect_src :self, 'https://api.openai.com', 'https://api.deepgram.com', 'https://www.google-analytics.com', 'https://region1.google-analytics.com', 'https://analytics.google.com', 'https://stats.g.doubleclick.net', 'https://www.googletagmanager.com'
+      policy.connect_src :self, 'https://api.openai.com', 'https://api.deepgram.com', 'https://api.stripe.com', 'https://www.google-analytics.com', 'https://region1.google-analytics.com', 'https://analytics.google.com', 'https://stats.g.doubleclick.net', 'https://www.googletagmanager.com'
       
       # Media sources for audio/video
       policy.media_src :self, :blob
@@ -118,7 +118,7 @@ class SecurityHeadersMiddleware
       'magnetometer=()',
       'gyroscope=()',
       'fullscreen=(self)',
-      'payment=()',
+      'payment=(self)',  # Allow payment processing for Stripe
       'usb=()',
       'autoplay=()'
     ].join(', ')

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f8fafc;
+      margin: 0;
+      padding: 0;
+    }
+    .email-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #ffffff;
+    }
+    .header {
+      background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+      padding: 40px 20px;
+      text-align: center;
+    }
+    .header h1 {
+      color: #ffffff;
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0;
+    }
+    .content {
+      padding: 40px 30px;
+    }
+    .greeting {
+      font-size: 18px;
+      color: #0F172A;
+      margin: 0 0 20px 0;
+    }
+    .text-block {
+      font-size: 16px;
+      line-height: 1.6;
+      color: #475569;
+      margin: 0 0 20px 0;
+    }
+    .alert-box {
+      background-color: #FEF2F2;
+      border-left: 4px solid #EF4444;
+      padding: 20px;
+      margin: 30px 0;
+      border-radius: 4px;
+    }
+    .alert-box h3 {
+      margin: 0 0 10px 0;
+      color: #DC2626;
+      font-size: 16px;
+    }
+    .alert-box p {
+      margin: 0;
+      color: #991B1B;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .steps-box {
+      background-color: #f8fafc;
+      border-radius: 12px;
+      padding: 24px;
+      margin: 20px 0;
+    }
+    .steps-box h3 {
+      margin: 0 0 16px 0;
+      color: #0F172A;
+      font-size: 18px;
+    }
+    .steps-box ol {
+      margin: 0;
+      padding-left: 20px;
+    }
+    .steps-box li {
+      margin-bottom: 12px;
+      color: #475569;
+      line-height: 1.6;
+    }
+    .cta-button {
+      display: inline-block;
+      background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+      color: #ffffff !important;
+      text-decoration: none;
+      padding: 16px 32px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 16px;
+      margin: 20px 0;
+    }
+    .footer {
+      background-color: #f8fafc;
+      padding: 30px;
+      text-align: center;
+      border-top: 1px solid #e2e8f0;
+    }
+    .footer p {
+      font-size: 14px;
+      color: #64748B;
+      margin: 0 0 8px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <!-- Header -->
+    <div class="header">
+      <h1>⚠️ Payment Issue</h1>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+      <p class="greeting">Hi <%= @user.name %>,</p>
+
+      <p class="text-block">
+        We tried to process your AI Talk Coach subscription payment, but unfortunately it was declined.
+      </p>
+
+      <!-- Alert Box -->
+      <div class="alert-box">
+        <h3>What happened?</h3>
+        <p><%= @error_message || 'Your card was declined. This could be due to insufficient funds, an expired card, or your bank blocking the transaction.' %></p>
+      </div>
+
+      <p class="text-block">
+        Don't worry—this happens sometimes! Here's what you can do:
+      </p>
+
+      <!-- Steps -->
+      <div class="steps-box">
+        <h3>How to fix this</h3>
+        <ol>
+          <li><strong>Update your payment method</strong> - Add a new card or update your existing one</li>
+          <li><strong>Check with your bank</strong> - Make sure there are no restrictions on your card</li>
+          <li><strong>Contact us</strong> - If you need help, we're here for you</li>
+        </ol>
+      </div>
+
+      <p class="text-block">
+        To avoid any interruption to your account, please update your payment information as soon as possible.
+      </p>
+
+      <center>
+        <a href="<%= @update_payment_url %>" class="cta-button">Update Payment Method</a>
+      </center>
+
+      <p class="text-block" style="margin-top: 30px;">
+        We'll automatically retry your payment in a few days. If you have any questions or need assistance, please don't hesitate to reach out to our support team.
+      </p>
+
+      <p class="text-block">
+        Thank you for your understanding,<br/>
+        <strong>The AI Talk Coach Team</strong>
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>Need help? Email us at support@aitalkcoach.com</p>
+      <p style="color: #94A3B8; font-size: 12px; margin-top: 16px;">
+        AI Talk Coach | Your Communication Partner
+      </p>
+    </div>
+  </div>
+</body>
+</html>

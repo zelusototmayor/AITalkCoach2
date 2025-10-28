@@ -1,0 +1,250 @@
+<% content_for :title, "Analyzing Your Speech - AI Talk Coach" %>
+
+<div class="onboarding-container">
+  <div class="onboarding-content">
+    <!-- Progress Indicator -->
+    <%= render 'onboarding/progress', current_step: 3 %>
+
+    <!-- Waiting/Processing Section -->
+    <div class="onboarding-form-section">
+      <h1 class="onboarding-title">Analyzing Your Speech</h1>
+      <p class="onboarding-subtitle">Our AI is carefully analyzing your recording. This takes about 15-30 seconds...</p>
+
+      <!-- Processing Animation -->
+      <div class="processing-animation" style="text-align: center; margin: 2rem 0;">
+        <div class="timer-circle-small" style="margin: 0 auto;">
+          <svg class="timer-svg" viewBox="0 0 80 80">
+            <circle class="timer-track" cx="40" cy="40" r="36"></circle>
+            <circle class="timer-progress processing-spinner"
+                    cx="40" cy="40" r="36"
+                    style="
+                      stroke-dasharray: 226;
+                      stroke-dashoffset: 113;
+                      animation: spin 2s linear infinite;
+                    "></circle>
+          </svg>
+          <div class="timer-content">
+            <div class="timer-status" id="processing-status">Processing...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Processing Steps -->
+      <div class="processing-steps" style="max-width: 400px; margin: 0 auto; text-align: left;">
+        <div class="processing-step completed" id="step-1">
+          <span class="step-icon">✓</span>
+          <span class="step-text">Recording uploaded</span>
+        </div>
+        <div class="processing-step active" id="step-2">
+          <span class="step-icon">
+            <div class="spinner-small"></div>
+          </span>
+          <span class="step-text">Transcribing speech</span>
+        </div>
+        <div class="processing-step" id="step-3">
+          <span class="step-icon">○</span>
+          <span class="step-text">Analyzing patterns</span>
+        </div>
+        <div class="processing-step" id="step-4">
+          <span class="step-icon">○</span>
+          <span class="step-text">Generating insights</span>
+        </div>
+      </div>
+
+      <!-- Fun fact or tip while waiting -->
+      <div class="waiting-tip" style="margin-top: 2rem; padding: 1.5rem; background: #f8f9fa; border-radius: 8px; text-align: center;">
+        <p style="margin: 0; color: #666; font-size: 0.95rem;">
+          <strong>💡 Did you know?</strong> Research shows that reducing filler words by just 50% can increase your perceived confidence by up to 30%.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .processing-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .processing-step {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    opacity: 0.5;
+  }
+
+  .processing-step.completed {
+    opacity: 1;
+    background: #f0fdf4;
+  }
+
+  .processing-step.active {
+    opacity: 1;
+    background: #eff6ff;
+    font-weight: 500;
+  }
+
+  .processing-step .step-icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+  }
+
+  .processing-step.completed .step-icon {
+    color: #10b981;
+    font-weight: bold;
+  }
+
+  .processing-step.active .step-icon {
+    color: #3b82f6;
+  }
+
+  .spinner-small {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #e5e7eb;
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .processing-spinner {
+    animation: spin 2s linear infinite;
+    transform-origin: center;
+  }
+</style>
+
+<script>
+  // Poll for completion status
+  const trialSessionId = <%= @trial_session&.id || 'null' %>;
+  let pollCount = 0;
+  const maxPolls = 60; // 60 polls × 2 seconds = 2 minutes max wait
+
+  // Debug logging
+  console.log('Waiting page loaded, trial session ID:', trialSessionId);
+
+  // Check if we have a valid trial session ID
+  if (!trialSessionId) {
+    console.error('No trial session ID found!');
+    document.querySelector('.onboarding-subtitle').textContent = 'Error: No recording session found. Redirecting...';
+    setTimeout(() => {
+      window.location.href = '<%= onboarding_test_path %>';
+    }, 2000);
+  }
+
+  function updateProcessingSteps(stage) {
+    const steps = {
+      'extraction': 1,
+      'transcription': 2,
+      'analysis': 3,
+      'refinement': 4,
+      'completed': 4
+    };
+
+    const currentStep = steps[stage] || 2;
+
+    // Update steps UI
+    for (let i = 1; i <= 4; i++) {
+      const stepEl = document.getElementById(`step-${i}`);
+      if (i < currentStep) {
+        stepEl.classList.remove('active');
+        stepEl.classList.add('completed');
+        stepEl.querySelector('.step-icon').textContent = '✓';
+      } else if (i === currentStep) {
+        stepEl.classList.add('active');
+        stepEl.classList.remove('completed');
+        if (!stepEl.querySelector('.spinner-small')) {
+          stepEl.querySelector('.step-icon').innerHTML = '<div class="spinner-small"></div>';
+        }
+      } else {
+        stepEl.classList.remove('active', 'completed');
+        stepEl.querySelector('.step-icon').textContent = '○';
+      }
+    }
+  }
+
+  function checkStatus() {
+    pollCount++;
+    console.log(`Polling attempt ${pollCount}/${maxPolls} for trial session ${trialSessionId}`);
+
+    if (pollCount > maxPolls) {
+      // Timeout - show error
+      console.error('Polling timeout reached');
+      document.getElementById('processing-status').textContent = 'Taking longer than expected...';
+      document.querySelector('.onboarding-subtitle').textContent =
+        'Analysis is taking longer than expected. Please refresh the page or contact support if this persists.';
+      return;
+    }
+
+    fetch(`/api/trial_sessions/${trialSessionId}/status`, {
+      headers: {
+        'Accept': 'application/json',
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+      }
+    })
+    .then(response => {
+      console.log('Poll response status:', response.status);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Poll response data:', data);
+
+      if (data.completed) {
+        // Processing complete - redirect to report
+        updateProcessingSteps('completed');
+        document.getElementById('processing-status').textContent = 'Complete!';
+
+        setTimeout(() => {
+          window.location.href = '<%= onboarding_report_path %>';
+        }, 500);
+      } else if (data.processing_state === 'failed') {
+        // Processing failed
+        document.getElementById('processing-status').textContent = 'Analysis failed';
+        document.querySelector('.onboarding-subtitle').textContent =
+          data.incomplete_reason || 'Unable to analyze recording. Please try again.';
+
+        // Show retry button
+        const retryBtn = document.createElement('a');
+        retryBtn.href = '<%= onboarding_test_path %>';
+        retryBtn.className = 'primary-btn btn-large';
+        retryBtn.style.marginTop = '2rem';
+        retryBtn.textContent = 'Try Again';
+        document.querySelector('.onboarding-form-section').appendChild(retryBtn);
+      } else {
+        // Still processing - update progress
+        updateProcessingSteps(data.processing_stage || 'transcription');
+
+        // Continue polling
+        setTimeout(checkStatus, 2000);
+      }
+    })
+    .catch(error => {
+      console.error('Polling error:', error);
+      // Retry on error
+      setTimeout(checkStatus, 3000);
+    });
+  }
+
+  // Start polling after a brief delay (only if we have a valid session ID)
+  if (trialSessionId) {
+    console.log('Starting polling in 1 second...');
+    setTimeout(checkStatus, 1000);
+  } else {
+    console.error('Cannot start polling: no trial session ID');
+  }
+</script>

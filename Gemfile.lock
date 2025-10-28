@@ -415,6 +415,7 @@ GEM
     streamio-ffmpeg (3.0.2)
       multi_json (~> 1.8)
     stringio (3.1.7)
+    stripe (13.5.1)
     thor (1.4.0)
     thruster (0.1.15)
     thruster (0.1.15-aarch64-linux)
@@ -496,6 +497,7 @@ DEPENDENCIES
   sqlite3 (>= 2.1)
   stimulus-rails
   streamio-ffmpeg
+  stripe (~> 13.0)
   thruster
   turbo-rails
   tzinfo-data

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_24_092303) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_28_103651) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -112,6 +112,16 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_24_092303) do
     t.index ["weekly_focus_id"], name: "index_sessions_on_weekly_focus_id"
   end
 
+  create_table "stripe_events", force: :cascade do |t|
+    t.string "stripe_event_id"
+    t.string "event_type"
+    t.datetime "processed_at"
+    t.text "payload"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["stripe_event_id"], name: "index_stripe_events_on_stripe_event_id", unique: true
+  end
+
   create_table "trial_sessions", force: :cascade do |t|
     t.string "token", null: false
     t.string "title", null: false
@@ -126,6 +136,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_24_092303) do
     t.datetime "expires_at", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "incomplete_reason"
+    t.text "error_text"
     t.index ["created_at"], name: "index_trial_sessions_on_created_at"
     t.index ["expires_at"], name: "index_trial_sessions_on_expires_at"
     t.index ["processing_state"], name: "index_trial_sessions_on_processing_state"
@@ -163,7 +175,28 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_24_092303) do
     t.string "password_digest"
     t.string "reset_password_token"
     t.datetime "reset_password_sent_at"
+    t.string "stripe_customer_id"
+    t.string "stripe_subscription_id"
+    t.string "subscription_status", default: "free_trial"
+    t.string "subscription_plan"
+    t.datetime "trial_expires_at"
+    t.datetime "last_qualifying_session_at"
+    t.datetime "subscription_started_at"
+    t.datetime "current_period_end"
+    t.text "speaking_goal", default: "[]"
+    t.string "speaking_style"
+    t.string "age_range"
+    t.string "profession"
+    t.string "preferred_pronouns"
+    t.datetime "onboarding_completed_at"
+    t.integer "onboarding_demo_session_id"
+    t.datetime "trial_starts_at"
+    t.string "stripe_payment_method_id"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+    t.index ["stripe_customer_id"], name: "index_users_on_stripe_customer_id"
+    t.index ["stripe_subscription_id"], name: "index_users_on_stripe_subscription_id"
+    t.index ["subscription_status"], name: "index_users_on_subscription_status"
+    t.index ["trial_expires_at"], name: "index_users_on_trial_expires_at"
   end
 
   create_table "weekly_focuses", force: :cascade do |t|

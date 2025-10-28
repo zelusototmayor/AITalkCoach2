@@ -10,6 +10,9 @@ class ApplicationController < ActionController::Base
   # Request tracking
   before_action :set_request_context
 
+  # Onboarding check - redirect users who haven't completed onboarding
+  before_action :require_onboarding, unless: :skip_onboarding_check?
+
   # Authentication
   helper_method :current_user, :logged_in?, :trial_mode?
   
@@ -99,6 +102,26 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  # Subscription access control - requires active subscription, lifetime access, or valid trial
+  def require_subscription
+    return unless logged_in?
+
+    # Only allow users with active paid subscription, lifetime access, or valid trial
+    unless current_user.can_access_app?
+      redirect_to pricing_url, alert: 'Please subscribe to access the app.' and return
+    end
+
+    # Show warning if subscription is expiring soon (less than 7 days) - only for non-lifetime users
+    if current_user.subscription_active? && !current_user.subscription_lifetime?
+      days_remaining = ((current_user.current_period_end - Time.current) / 1.day).ceil
+      if days_remaining <= 7 && days_remaining > 0
+        flash.now[:warning] = "Your subscription renews in #{days_remaining} days."
+      end
+    end
+  end
+
+  helper_method :require_subscription
+
   def store_location
     session[:forwarding_url] = request.original_url if request.get?
   end
@@ -148,7 +171,11 @@ class ApplicationController < ActionController::Base
     "#{protocol}#{host}#{port}#{path}"
   end
 
-  helper_method :app_subdomain_url, :marketing_subdomain_url
+  def pricing_url
+    marketing_subdomain_url('/pricing')
+  end
+
+  helper_method :app_subdomain_url, :marketing_subdomain_url, :pricing_url
 
   # Trial mode detection
   def trial_mode?
@@ -166,5 +193,30 @@ class ApplicationController < ActionController::Base
 
   def mark_trial_used
     session[:trial_used] = true
+  end
+
+  # Onboarding enforcement
+  def require_onboarding
+    if logged_in? && current_user.needs_onboarding?
+      unless request.path.starts_with?('/onboarding')
+        redirect_to onboarding_welcome_path, alert: "Please complete your profile setup"
+      end
+    end
+  end
+
+  def skip_onboarding_check?
+    # Skip onboarding check for:
+    # - Authentication controllers (login, signup, password reset)
+    # - Marketing site controllers (landing, pricing)
+    # - Onboarding controllers (to avoid redirect loop)
+    # - Webhook endpoints
+    # - API health checks
+    controller_path.starts_with?('auth/') ||
+    controller_name == 'landing' ||
+    controller_name == 'pricing' ||
+    controller_name == 'trial_sessions' ||
+    controller_path.starts_with?('onboarding/') ||
+    controller_name == 'webhooks' ||
+    controller_path.starts_with?('admin/health')
   end
 end

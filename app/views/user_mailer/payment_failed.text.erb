@@ -1,0 +1,30 @@
+⚠️ PAYMENT ISSUE
+
+Hi <%= @user.name %>,
+
+We tried to process your AI Talk Coach subscription payment, but unfortunately it was declined.
+
+WHAT HAPPENED?
+<%= @error_message || 'Your card was declined. This could be due to insufficient funds, an expired card, or your bank blocking the transaction.' %>
+
+Don't worry—this happens sometimes! Here's what you can do:
+
+HOW TO FIX THIS
+================
+1. Update your payment method - Add a new card or update your existing one
+2. Check with your bank - Make sure there are no restrictions on your card
+3. Contact us - If you need help, we're here for you
+
+To avoid any interruption to your account, please update your payment information as soon as possible.
+
+UPDATE PAYMENT METHOD
+<%= @update_payment_url %>
+
+We'll automatically retry your payment in a few days. If you have any questions or need assistance, please don't hesitate to reach out to our support team.
+
+Thank you for your understanding,
+The AI Talk Coach Team
+
+---
+Need help? Email us at support@aitalkcoach.com
+AI Talk Coach | Your Communication Partner

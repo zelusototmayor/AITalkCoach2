@@ -1,0 +1,32 @@
+<%#
+  Progress indicator for onboarding flow
+  Usage: render 'onboarding/progress', current_step: 1
+  current_step should be 1, 2, 3, or 4
+%>
+
+<div class="onboarding-progress" role="progressbar" aria-label="Onboarding progress" aria-valuenow="<%= current_step %>" aria-valuemin="1" aria-valuemax="4">
+  <div class="progress-steps">
+    <div class="progress-step <%= 'active' if current_step >= 1 %> <%= 'completed' if current_step > 1 %>" <%= 'aria-current="step"' if current_step == 1 %>>
+      <div class="step-number" aria-label="Step 1: Goals <%= '(completed)' if current_step > 1 %><%= '(current)' if current_step == 1 %>">1</div>
+      <div class="step-label" aria-hidden="true">Goals</div>
+    </div>
+    <div class="progress-connector <%= 'active' if current_step >= 2 %>" aria-hidden="true"></div>
+    <div class="progress-step <%= 'active' if current_step >= 2 %> <%= 'completed' if current_step > 2 %>" <%= 'aria-current="step"' if current_step == 2 %>>
+      <div class="step-number" aria-label="Step 2: Profile <%= '(completed)' if current_step > 2 %><%= '(current)' if current_step == 2 %>">2</div>
+      <div class="step-label" aria-hidden="true">Profile</div>
+    </div>
+    <div class="progress-connector <%= 'active' if current_step >= 3 %>" aria-hidden="true"></div>
+    <div class="progress-step <%= 'active' if current_step >= 3 %> <%= 'completed' if current_step > 3 %>" <%= 'aria-current="step"' if current_step == 3 %>>
+      <div class="step-number" aria-label="Step 3: Test <%= '(completed)' if current_step > 3 %><%= '(current)' if current_step == 3 %>">3</div>
+      <div class="step-label" aria-hidden="true">Test</div>
+    </div>
+    <div class="progress-connector <%= 'active' if current_step >= 4 %>" aria-hidden="true"></div>
+    <div class="progress-step <%= 'active' if current_step >= 4 %> <%= 'completed' if current_step > 4 %>" <%= 'aria-current="step"' if current_step == 4 %>>
+      <div class="step-number" aria-label="Step 4: Payment <%= '(completed)' if current_step > 4 %><%= '(current)' if current_step == 4 %>">4</div>
+      <div class="step-label" aria-hidden="true">Payment</div>
+    </div>
+  </div>
+  <div class="progress-text" role="status" aria-live="polite">
+    Step <%= current_step %> of 4
+  </div>
+</div>

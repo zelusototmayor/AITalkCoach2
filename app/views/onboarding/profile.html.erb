@@ -1,0 +1,105 @@
+<% content_for :title, "Your Speaking Goals - AI Talk Coach" %>
+
+<div class="onboarding-container">
+  <div class="onboarding-content">
+    <!-- Progress Indicator -->
+    <%= render 'onboarding/progress', current_step: 1 %>
+
+    <!-- Form Section -->
+    <div class="onboarding-form-section">
+      <h1 class="onboarding-title">What are your speaking goals?</h1>
+      <p class="onboarding-subtitle">Select all that apply - we'll personalize your coaching experience.</p>
+
+      <%= form_with url: onboarding_profile_path, method: :post, class: "onboarding-form", aria: { label: "Speaking goals selection" } do |f| %>
+        <div class="goal-cards" role="group" aria-label="Select your speaking goals (you can choose multiple)" aria-required="true">
+          <% user_goals = current_user&.speaking_goal || [] %>
+          <% user_goals = [user_goals] unless user_goals.is_a?(Array) %>
+
+          <label class="goal-card" tabindex="0">
+            <%= check_box_tag 'speaking_goals[]', 'Better public speaking', user_goals.include?('Better public speaking'), class: 'goal-checkbox', id: 'goal_public_speaking' %>
+            <div class="goal-card-content">
+              <div class="goal-icon" aria-hidden="true"><%= icon_svg(:mic, css_class: 'icon') %></div>
+              <div class="goal-title">Better public speaking</div>
+              <div class="goal-description">Speak confidently to large audiences</div>
+            </div>
+          </label>
+
+          <label class="goal-card" tabindex="0">
+            <%= check_box_tag 'speaking_goals[]', 'Nail presentations at work', user_goals.include?('Nail presentations at work'), class: 'goal-checkbox', id: 'goal_presentations' %>
+            <div class="goal-card-content">
+              <div class="goal-icon" aria-hidden="true"><%= icon_svg(:briefcase, css_class: 'icon') %></div>
+              <div class="goal-title">Nail presentations at work</div>
+              <div class="goal-description">Deliver impactful professional presentations</div>
+            </div>
+          </label>
+
+          <label class="goal-card" tabindex="0">
+            <%= check_box_tag 'speaking_goals[]', 'Improve social conversations', user_goals.include?('Improve social conversations'), class: 'goal-checkbox', id: 'goal_social' %>
+            <div class="goal-card-content">
+              <div class="goal-icon" aria-hidden="true"><%= icon_svg(:message, css_class: 'icon') %></div>
+              <div class="goal-title">Improve social conversations</div>
+              <div class="goal-description">Feel more confident in everyday interactions</div>
+            </div>
+          </label>
+
+          <label class="goal-card" tabindex="0">
+            <%= check_box_tag 'speaking_goals[]', 'Podcasting/content creation', user_goals.include?('Podcasting/content creation'), class: 'goal-checkbox', id: 'goal_podcasting' %>
+            <div class="goal-card-content">
+              <div class="goal-icon" aria-hidden="true"><%= icon_svg(:music, css_class: 'icon') %></div>
+              <div class="goal-title">Podcasting/content creation</div>
+              <div class="goal-description">Create engaging audio/video content</div>
+            </div>
+          </label>
+
+          <label class="goal-card" tabindex="0">
+            <%= check_box_tag 'speaking_goals[]', 'Sales & persuasion', user_goals.include?('Sales & persuasion'), class: 'goal-checkbox', id: 'goal_sales' %>
+            <div class="goal-card-content">
+              <div class="goal-icon" aria-hidden="true"><%= icon_svg(:lightbulb, css_class: 'icon') %></div>
+              <div class="goal-title">Sales & persuasion</div>
+              <div class="goal-description">Influence and persuade effectively</div>
+            </div>
+          </label>
+
+          <label class="goal-card" tabindex="0">
+            <%= check_box_tag 'speaking_goals[]', 'Job interviews', user_goals.include?('Job interviews'), class: 'goal-checkbox', id: 'goal_interviews' %>
+            <div class="goal-card-content">
+              <div class="goal-icon" aria-hidden="true"><%= icon_svg(:briefcase, css_class: 'icon') %></div>
+              <div class="goal-title">Job interviews</div>
+              <div class="goal-description">Make a great impression in interviews</div>
+            </div>
+          </label>
+
+          <label class="goal-card" tabindex="0">
+            <%= check_box_tag 'speaking_goals[]', 'Other', user_goals.include?('Other'), class: 'goal-checkbox', id: 'goal_other' %>
+            <div class="goal-card-content">
+              <div class="goal-icon" aria-hidden="true"><%= icon_svg(:sparkles, css_class: 'icon') %></div>
+              <div class="goal-title">Other</div>
+              <div class="goal-description">I have a different goal in mind</div>
+            </div>
+          </label>
+        </div>
+
+        <% if flash[:alert] %>
+          <div class="form-error" role="alert" aria-live="polite" aria-atomic="true">
+            <%= flash[:alert] %>
+          </div>
+        <% end %>
+
+        <div class="onboarding-actions">
+          <%= button_tag type: 'submit', class: 'primary-btn btn-large' do %>
+            Next Step
+            <span aria-hidden="true"><%= icon_svg(:arrow_right, css_class: 'icon-inline') %></span>
+          <% end %>
+        </div>
+      <% end %>
+
+      <!-- Back Navigation -->
+      <div class="onboarding-back-action">
+        <%= link_to onboarding_welcome_path, class: 'text-btn' do %>
+          <%= icon_svg(:arrow_right, css_class: 'icon-inline', style: 'transform: rotate(180deg)') %>
+          Back to welcome
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
