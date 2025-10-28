@@ -41,6 +41,17 @@ class UserMailer < ApplicationMailer
     )
   end
 
+  def subscription_canceled(user, reason)
+    @user = user
+    @reason = reason
+    @reactivate_url = build_app_url + '/subscription'
+
+    mail(
+      to: @user.email,
+      subject: 'Subscription Canceled - AI Talk Coach'
+    )
+  end
+
   private
 
   def format_currency(cents)

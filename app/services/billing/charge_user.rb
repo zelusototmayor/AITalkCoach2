@@ -96,12 +96,27 @@ module Billing
     def handle_failed_charge(reason)
       Rails.logger.error "Failed to charge user #{user.id}: #{reason}"
 
-      # TODO: Implement retry logic and user notification
-      # For now, just log the failure
+      retry_count = user.payment_retry_count || 0
+
+      if retry_count < MAX_RETRY_ATTEMPTS
+        # Increment retry count
+        user.update(payment_retry_count: retry_count + 1)
+        Rails.logger.info "Payment will be retried for user #{user.id} (attempt #{retry_count + 1}/#{MAX_RETRY_ATTEMPTS})"
+      else
+        # Max retries exceeded - cancel subscription
+        Rails.logger.error "Max payment retries exceeded for user #{user.id}, canceling subscription"
+        user.update(
+          subscription_status: 'canceled',
+          payment_retry_count: 0
+        )
+        UserMailer.payment_failed(user, "Payment failed after #{MAX_RETRY_ATTEMPTS} attempts").deliver_later
+      end
     end
 
     def handle_card_error(error)
       Rails.logger.error "Card error charging user #{user.id}: #{error.message}"
+
+      retry_count = user.payment_retry_count || 0
 
       # Mark subscription as past_due
       user.update(subscription_status: 'past_due')
@@ -110,8 +125,29 @@ module Billing
       UserMailer.payment_failed(user, error.message).deliver_later
       Rails.logger.info "Payment failure email queued for #{user.email}"
 
-      # TODO: Implement retry logic (3 attempts)
-      # TODO: After 3 failed attempts, block access
+      # Implement retry logic (3 attempts)
+      if retry_count < MAX_RETRY_ATTEMPTS
+        user.update(payment_retry_count: retry_count + 1)
+        Rails.logger.info "Scheduling retry #{retry_count + 1}/#{MAX_RETRY_ATTEMPTS} for user #{user.id}"
+
+        # Schedule retry job - exponential backoff: 1 day, 3 days, 7 days
+        retry_delay = case retry_count
+                      when 0 then 1.day
+                      when 1 then 3.days
+                      when 2 then 7.days
+                      else 1.day
+                      end
+
+        Billing::RetryChargeJob.set(wait: retry_delay).perform_later(user.id)
+      else
+        # After 3 failed attempts, block access
+        Rails.logger.error "Max retries exceeded for user #{user.id}, canceling subscription"
+        user.update(
+          subscription_status: 'canceled',
+          payment_retry_count: 0
+        )
+        UserMailer.subscription_canceled(user, "Payment failed after #{MAX_RETRY_ATTEMPTS} attempts").deliver_later
+      end
     end
 
     def handle_stripe_error(error)

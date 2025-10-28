@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_28_103651) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_28_195610) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -192,6 +192,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_28_103651) do
     t.integer "onboarding_demo_session_id"
     t.datetime "trial_starts_at"
     t.string "stripe_payment_method_id"
+    t.integer "payment_retry_count", default: 0, null: false
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
     t.index ["stripe_customer_id"], name: "index_users_on_stripe_customer_id"
     t.index ["stripe_subscription_id"], name: "index_users_on_stripe_subscription_id"

@@ -125,7 +125,10 @@ module Billing
 
       user.update!(subscription_status: 'past_due')
 
-      # TODO: Send email notification to user about failed payment
+      # Send email notification to user about failed payment
+      error_message = invoice.last_payment_error&.message || "Payment declined by your bank"
+      UserMailer.payment_failed(user, error_message).deliver_later
+      Rails.logger.info "Payment failure notification sent to #{user.email}"
     end
 
     def find_user_by_customer_id(customer_id)
