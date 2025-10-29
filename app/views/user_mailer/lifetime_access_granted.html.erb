@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f8fafc;
+      margin: 0;
+      padding: 0;
+    }
+    .email-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #ffffff;
+    }
+    .header {
+      background: linear-gradient(135deg, #FF8C42 0%, #FF6B35 100%);
+      padding: 40px 20px;
+      text-align: center;
+    }
+    .header h1 {
+      color: #ffffff;
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0;
+    }
+    .content {
+      padding: 40px 30px;
+    }
+    .greeting {
+      font-size: 18px;
+      color: #0F172A;
+      margin: 0 0 20px 0;
+    }
+    .text-block {
+      font-size: 16px;
+      line-height: 1.6;
+      color: #475569;
+      margin: 0 0 20px 0;
+    }
+    .highlight-box {
+      background: linear-gradient(135deg, #FFF5EB 0%, #FFE8D6 100%);
+      border-left: 4px solid #FF8C42;
+      border-radius: 8px;
+      padding: 24px;
+      margin: 30px 0;
+    }
+    .highlight-box h2 {
+      color: #FF6B35;
+      font-size: 20px;
+      margin: 0 0 12px 0;
+    }
+    .highlight-box p {
+      color: #0F172A;
+      font-size: 16px;
+      margin: 0;
+      line-height: 1.5;
+    }
+    .cta-button {
+      display: inline-block;
+      background: linear-gradient(135deg, #FF8C42 0%, #FF6B35 100%);
+      color: #ffffff !important;
+      text-decoration: none;
+      padding: 14px 28px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 15px;
+      margin: 10px 10px 10px 0;
+    }
+    .cta-button.secondary {
+      background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+    }
+    .footer {
+      background-color: #f8fafc;
+      padding: 30px;
+      text-align: center;
+      border-top: 1px solid #e2e8f0;
+    }
+    .footer p {
+      font-size: 14px;
+      color: #64748B;
+      margin: 0 0 8px 0;
+    }
+    ul {
+      color: #475569;
+      line-height: 1.8;
+      margin: 20px 0;
+    }
+    ul li {
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <!-- Header -->
+    <div class="header">
+      <h1>Thank You, Early Supporter!</h1>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+      <p class="greeting">Hi <%= @user.name %>!</p>
+
+      <p class="text-block">
+        You're one of our earliest users, and your support means the world to us. As a token of our gratitude, we're excited to give you <strong>lifetime free access</strong> to AI Talk Coach!
+      </p>
+
+      <!-- Highlight Box -->
+      <div class="highlight-box">
+        <h2>What This Means for You</h2>
+        <p>
+          You now have unlimited access to all features of AI Talk Coach—forever. No payments, no subscriptions, just continuous improvement of your communication skills.
+        </p>
+      </div>
+
+      <p class="text-block">
+        <strong>What's Included:</strong>
+      </p>
+      <ul>
+        <li>Unlimited practice sessions with AI-powered feedback</li>
+        <li>Advanced speech analysis and personalized coaching</li>
+        <li>Progress tracking and performance insights</li>
+        <li>Access to all current and future features</li>
+        <li>Priority support from our team</li>
+      </ul>
+
+      <p class="text-block">
+        <strong>We Need Your Help!</strong><br>
+        As we continue building and improving AI Talk Coach, your feedback is invaluable. We'd love to hear about:
+      </p>
+      <ul>
+        <li>What you love about the platform</li>
+        <li>What features you'd like to see next</li>
+        <li>Any bugs or issues you've encountered</li>
+        <li>How AI Talk Coach has helped your communication skills</li>
+      </ul>
+
+      <center>
+        <a href="<%= @app_url %>" class="cta-button">Start Practicing Now</a>
+        <a href="<%= @feedback_url %>" class="cta-button secondary">Share Your Feedback</a>
+      </center>
+
+      <p class="text-block" style="margin-top: 30px;">
+        Thank you for being part of our journey. Your early support and feedback help us build a better product for everyone.
+      </p>
+
+      <p class="text-block">
+        Keep practicing, keep improving!<br>
+        <strong>The AI Talk Coach Team</strong>
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>Questions? Email us at support@aitalkcoach.com</p>
+      <p style="color: #94A3B8; font-size: 12px; margin-top: 16px;">
+        AI Talk Coach | Your Communication Partner
+      </p>
+    </div>
+  </div>
+</body>
+</html>

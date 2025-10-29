@@ -1559,28 +1559,29 @@ h4 { font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem; }
 .btn-lg { padding: 1rem 1.5rem; font-size: 1rem; }
 .btn-block { width: 100%; justify-content: center; }
 
-/* Flash Messages - Floating Toast Notifications */
+/* Flash Messages - Minimal Toast Notifications */
 .flash {
   position: fixed;
   top: 20px;
   right: 20px;
-  padding: 1rem 1.5rem;
+  padding: 0.75rem 1rem;
   border-radius: 0.5rem;
-  max-width: 400px;
-  min-width: 300px;
+  max-width: 280px;
   z-index: 9999;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15), 0 5px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
   animation: slideInRight 0.3s ease-out;
   transition: opacity 0.3s ease-out, transform 0.3s ease-out;
   cursor: pointer;
+  font-size: 0.875rem;
+  pointer-events: auto;
 }
 
 .flash:hover {
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2), 0 6px 12px rgba(0, 0, 0, 0.12);
-  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15), 0 3px 6px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
 }
 
 .flash.fade-out {
@@ -1602,31 +1603,34 @@ h4 { font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem; }
 .flash.notice {
   background-color: #ffffff;
   color: var(--aqua-600);
-  border-left: 4px solid var(--aqua-400);
+  border-left: 3px solid var(--aqua-400);
 }
 
 .flash.alert {
   background-color: #ffffff;
   color: #d97706;
-  border-left: 4px solid var(--warning);
+  border-left: 3px solid var(--warning);
 }
 
 /* Stack multiple flash messages */
 .flash:nth-of-type(2) {
-  top: calc(20px + 80px);
+  top: calc(20px + 60px);
 }
 
 .flash:nth-of-type(3) {
-  top: calc(20px + 160px);
+  top: calc(20px + 120px);
+}
+
+.flash:nth-of-type(4) {
+  top: calc(20px + 180px);
 }
 
 /* Mobile responsive */
 @media (max-width: 768px) {
   .flash {
     right: 10px;
-    left: 10px;
-    max-width: none;
-    min-width: auto;
+    max-width: calc(100vw - 20px);
+    font-size: 0.8125rem;
   }
 }
 

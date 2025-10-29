@@ -52,6 +52,17 @@ class UserMailer < ApplicationMailer
     )
   end
 
+  def lifetime_access_granted(user)
+    @user = user
+    @app_url = build_app_url
+    @feedback_url = "https://forms.gle/your-feedback-form" # You can replace this with your actual feedback form
+
+    mail(
+      to: @user.email,
+      subject: "Thank You! Lifetime Free Access Granted"
+    )
+  end
+
   private
 
   def format_currency(cents)
