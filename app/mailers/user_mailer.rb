@@ -55,7 +55,19 @@ class UserMailer < ApplicationMailer
   def lifetime_access_granted(user)
     @user = user
     @app_url = build_app_url
-    @feedback_url = "https://forms.gle/your-feedback-form" # You can replace this with your actual feedback form
+
+    # Create mailto link with pre-filled subject and body
+    feedback_subject = "AI Talk Coach Feedback"
+    feedback_body = "Hi Jose,\n\n" \
+                    "I wanted to share my feedback about AI Talk Coach:\n\n" \
+                    "What led me to sign up for AI Talk Coach:\n\n\n" \
+                    "What I love about the platform:\n\n\n" \
+                    "Features I'd like to see next:\n\n\n" \
+                    "Any bugs or issues I've encountered:\n\n\n" \
+                    "How AI Talk Coach has helped my communication skills:\n\n\n" \
+                    "Best,\n#{@user.name}"
+
+    @feedback_url = "mailto:zsottomayor@gmail.com?subject=#{ERB::Util.url_encode(feedback_subject)}&body=#{ERB::Util.url_encode(feedback_body)}"
 
     mail(
       to: @user.email,
