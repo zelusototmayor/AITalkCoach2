@@ -7,7 +7,7 @@ RSpec.describe 'Analysis Pipeline Performance', type: :performance do
   describe 'Rule-based analysis performance' do
     it 'processes rules efficiently for typical session sizes' do
       session = create(:session, user: guest_user, duration_ms: 120000) # 2 minutes
-      
+
       # Create a realistic transcript size (approximately 300 words for 2 minutes)
       transcript_segments = (1..300).map do |i|
         {
@@ -36,8 +36,8 @@ RSpec.describe 'Analysis Pipeline Performance', type: :performance do
 
     it 'handles large vocabulary rule sets efficiently' do
       # Test with multiple languages and large rule sets
-      languages = ['en', 'pt']
-      
+      languages = [ 'en', 'pt' ]
+
       languages.each do |language|
         time_taken = Benchmark.realtime do
           # Process 100 different text samples
@@ -66,9 +66,9 @@ RSpec.describe 'Analysis Pipeline Performance', type: :performance do
         metadata: { duration: 1.0 }
       }
       detector = Analysis::RuleDetector.new(transcript_data, language: 'en')
-      
+
       times = []
-      
+
       # Run 50 iterations to test consistency
       50.times do
         time_taken = Benchmark.realtime do
@@ -81,10 +81,10 @@ RSpec.describe 'Analysis Pipeline Performance', type: :performance do
       mean_time = times.sum / times.length
       variance = times.map { |t| (t - mean_time) ** 2 }.sum / times.length
       std_deviation = Math.sqrt(variance)
-      
+
       # Standard deviation should be less than 20% of mean time
       expect(std_deviation).to be < (mean_time * 0.2)
-      
+
       # No single call should take more than 10x the mean
       expect(times.max).to be < (mean_time * 10)
     end
@@ -108,7 +108,7 @@ RSpec.describe 'Analysis Pipeline Performance', type: :performance do
       time_taken = Benchmark.realtime do
         metrics = Analysis::Metrics.new(session_data)
         wpm = metrics.calculate_wpm
-        filler_rate = metrics.calculate_filler_rate(['um', 'uh', 'like'])
+        filler_rate = metrics.calculate_filler_rate([ 'um', 'uh', 'like' ])
         clarity_score = metrics.calculate_clarity_score([])
       end
 
@@ -130,7 +130,7 @@ RSpec.describe 'Analysis Pipeline Performance', type: :performance do
           expect {
             metrics = Analysis::Metrics.new(session_data)
             metrics.calculate_wpm
-            metrics.calculate_filler_rate(['um'])
+            metrics.calculate_filler_rate([ 'um' ])
             metrics.calculate_clarity_score([])
           }.not_to raise_error
         end
@@ -145,9 +145,9 @@ RSpec.describe 'Analysis Pipeline Performance', type: :performance do
     it 'does not leak memory during repeated analysis' do
       # This is a basic memory leak detection test
       # In a real application, you might use more sophisticated tools
-      
+
       initial_objects = ObjectSpace.count_objects
-      
+
       # Process many sessions to check for memory growth
       20.times do |i|
         session_data = {
@@ -164,8 +164,8 @@ RSpec.describe 'Analysis Pipeline Performance', type: :performance do
         # Create and process metrics
         metrics = Analysis::Metrics.new(session_data)
         metrics.calculate_wpm
-        metrics.calculate_filler_rate(['um'])
-        
+        metrics.calculate_filler_rate([ 'um' ])
+
         # Create and use rule detector
         transcript_data = {
           transcript: "Session #{i} text",
@@ -178,9 +178,9 @@ RSpec.describe 'Analysis Pipeline Performance', type: :performance do
 
       # Force garbage collection
       GC.start
-      
+
       final_objects = ObjectSpace.count_objects
-      
+
       # Object count shouldn't grow dramatically (allow some growth for caching)
       object_growth_ratio = final_objects[:TOTAL].to_f / initial_objects[:TOTAL]
       expect(object_growth_ratio).to be < 1.5 # Allow up to 50% growth
@@ -198,7 +198,7 @@ RSpec.describe 'Analysis Pipeline Performance', type: :performance do
           Thread.new do
             # Simulate analysis processing
             text = "This is concurrent session processing with um some filler words."
-            
+
             10.times do |j|
               transcript_data = {
                 transcript: "#{text} Iteration #{j}",
@@ -214,10 +214,10 @@ RSpec.describe 'Analysis Pipeline Performance', type: :performance do
               'transcript' => text * 10,
               'segments' => 10.times.map { |k| { 'start_ms' => k * 1000, 'end_ms' => (k + 1) * 1000, 'text' => text } }
             }
-            
+
             metrics = Analysis::Metrics.new(session_data)
             metrics.calculate_wpm
-            metrics.calculate_filler_rate(['um', 'uh'])
+            metrics.calculate_filler_rate([ 'um', 'uh' ])
           end
         end
 
@@ -233,8 +233,8 @@ RSpec.describe 'Analysis Pipeline Performance', type: :performance do
     it 'efficiently queries sessions with issues for insights' do
       # Create multiple sessions with issues
       10.times do |i|
-        session = create(:session, 
-          user: guest_user, 
+        session = create(:session,
+          user: guest_user,
           completed: true,
           created_at: i.days.ago,
           analysis_data: {
@@ -243,12 +243,12 @@ RSpec.describe 'Analysis Pipeline Performance', type: :performance do
             'filler_rate' => 0.05
           }
         )
-        
+
         # Create multiple issues per session
         5.times do |j|
-          create(:issue, 
+          create(:issue,
             session: session,
-            kind: ['filler_word', 'pace_too_fast', 'unclear_speech'].sample,
+            kind: [ 'filler_word', 'pace_too_fast', 'unclear_speech' ].sample,
             start_ms: j * 1000,
             end_ms: (j + 1) * 1000
           )
@@ -278,17 +278,17 @@ RSpec.describe 'Analysis Pipeline Performance', type: :performance do
     it 'efficiently handles user weakness analysis queries' do
       # Create sessions for weakness analysis (as done in prompts controller)
       20.times do |i|
-        session = create(:session, 
-          user: guest_user, 
+        session = create(:session,
+          user: guest_user,
           completed: true,
           created_at: i.days.ago,
           analysis_data: {
-            'wpm' => [100, 150, 200].sample,
-            'clarity_score' => [0.5, 0.7, 0.9].sample,
-            'filler_rate' => [0.02, 0.05, 0.1].sample
+            'wpm' => [ 100, 150, 200 ].sample,
+            'clarity_score' => [ 0.5, 0.7, 0.9 ].sample,
+            'filler_rate' => [ 0.02, 0.05, 0.1 ].sample
           }
         )
-        
+
         # Some sessions have issues
         if i < 15
           create(:issue, session: session, kind: 'filler_word')
@@ -310,7 +310,7 @@ RSpec.describe 'Analysis Pipeline Performance', type: :performance do
           session.issues.any? { |issue| issue.kind == 'filler_word' }
         end
 
-        # Pace analysis  
+        # Pace analysis
         pace_sessions = recent_sessions.select do |session|
           wpm = session.analysis_data['wpm']
           wpm && (wpm < 120 || wpm > 200)
@@ -332,14 +332,14 @@ RSpec.describe 'Analysis Pipeline Performance', type: :performance do
     it 'handles very short sessions efficiently' do
       session_data = {
         'transcript' => 'Hi.',
-        'segments' => [{ 'start_ms' => 0, 'end_ms' => 500, 'text' => 'Hi.' }]
+        'segments' => [ { 'start_ms' => 0, 'end_ms' => 500, 'text' => 'Hi.' } ]
       }
 
       time_taken = Benchmark.realtime do
         100.times do
           metrics = Analysis::Metrics.new(session_data)
           metrics.calculate_wpm
-          
+
           transcript_data = {
             transcript: 'Hi.',
             words: [],
@@ -371,9 +371,9 @@ RSpec.describe 'Analysis Pipeline Performance', type: :performance do
       time_taken = Benchmark.realtime do
         metrics = Analysis::Metrics.new(session_data)
         wpm = metrics.calculate_wpm
-        filler_rate = metrics.calculate_filler_rate(['um', 'uh', 'like', 'you', 'know'])
+        filler_rate = metrics.calculate_filler_rate([ 'um', 'uh', 'like', 'you', 'know' ])
         clarity_score = metrics.calculate_clarity_score([])
-        
+
         # Only test rule detection on a subset to avoid very long test times
         sample_text = session_data['segments'].first(100).map { |s| s['text'] }.join(' ')
         transcript_data = {

@@ -19,7 +19,7 @@ class FeedbackController < ApplicationController
     end
 
     # Ensure images is an array
-    images = [images] unless images.is_a?(Array)
+    images = [ images ] unless images.is_a?(Array)
     images = images.compact.reject(&:blank?)
 
     # Get user info if logged in

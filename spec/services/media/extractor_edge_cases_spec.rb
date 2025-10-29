@@ -3,7 +3,7 @@ require 'rails_helper'
 RSpec.describe Media::Extractor, type: :service do
   let(:extractor) { described_class.new }
   let(:temp_dir) { Dir.mktmpdir }
-  
+
   after do
     FileUtils.remove_entry(temp_dir) if Dir.exist?(temp_dir)
   end
@@ -90,7 +90,7 @@ RSpec.describe Media::Extractor, type: :service do
 
       it 'extracts basic info from minimal files' do
         result = extractor.extract_audio_info(tiny_audio_file)
-        
+
         if result[:success]
           expect(result[:sample_rate]).to be_present
           expect(result[:channels]).to be_present
@@ -181,7 +181,7 @@ RSpec.describe Media::Extractor, type: :service do
   describe 'resource management' do
     it 'cleans up temporary files properly' do
       temp_files_before = Dir.glob(File.join(Dir.tmpdir, '*')).count
-      
+
       # Perform multiple operations that might create temp files
       5.times do |i|
         temp_file = File.join(temp_dir, "test#{i}.wav")
@@ -191,9 +191,9 @@ RSpec.describe Media::Extractor, type: :service do
 
       # Give time for any background cleanup
       sleep(0.1)
-      
+
       temp_files_after = Dir.glob(File.join(Dir.tmpdir, '*')).count
-      
+
       # Should not accumulate significantly more temp files
       expect(temp_files_after - temp_files_before).to be < 10
     end
@@ -201,7 +201,7 @@ RSpec.describe Media::Extractor, type: :service do
     it 'handles multiple concurrent extractions' do
       threads = []
       results = []
-      
+
       5.times do |i|
         threads << Thread.new do
           temp_file = File.join(temp_dir, "concurrent#{i}.wav")
@@ -212,7 +212,7 @@ RSpec.describe Media::Extractor, type: :service do
       end
 
       threads.each(&:join)
-      
+
       expect(results.length).to eq(5)
       results.each do |result|
         expect(result).to be_a(Hash)
@@ -225,14 +225,14 @@ RSpec.describe Media::Extractor, type: :service do
     it 'continues processing after encountering bad files' do
       bad_file = File.join(temp_dir, 'bad.wav')
       File.write(bad_file, 'invalid audio')
-      
+
       good_file = File.join(temp_dir, 'good.wav')
       File.write(good_file, 'fake but consistent audio data')
-      
+
       # Process bad file first
       bad_result = extractor.extract_audio_info(bad_file)
       expect(bad_result[:success]).to be false
-      
+
       # Should still be able to process files after error
       good_result = extractor.extract_audio_info(good_file)
       expect(good_result).to be_a(Hash)
@@ -246,7 +246,7 @@ RSpec.describe Media::Extractor, type: :service do
         File.join(temp_dir, 'nonexistent.wav'),
         File.join(temp_dir, 'corrupted.wav')
       ]
-      
+
       # Create empty and corrupted files
       File.write(error_files[0], '')
       File.write(error_files[2], 'not audio data')
@@ -277,12 +277,12 @@ RSpec.describe Media::Extractor, type: :service do
 
       it 'completes processing within reasonable time limits' do
         start_time = Time.current
-        
+
         result = extractor.extract_audio_info(complex_file)
-        
+
         end_time = Time.current
         processing_time = end_time - start_time
-        
+
         # Should not take more than 10 seconds for any file
         expect(processing_time).to be < 10.0
         expect(result).to be_a(Hash)
@@ -296,16 +296,16 @@ RSpec.describe Media::Extractor, type: :service do
       # Create a moderately large file (1MB)
       large_data = 'A' * 1_000_000
       File.write(large_file, large_data)
-      
+
       # Monitor memory usage (basic check)
       initial_objects = ObjectSpace.count_objects
-      
+
       result = extractor.extract_audio_info(large_file)
-      
+
       # Force garbage collection
       GC.start
       final_objects = ObjectSpace.count_objects
-      
+
       # Memory usage shouldn't grow excessively
       object_growth = final_objects[:TOTAL] - initial_objects[:TOTAL]
       expect(object_growth).to be < 10_000  # Allow some growth but not excessive
@@ -328,7 +328,7 @@ RSpec.describe Media::Extractor, type: :service do
         format_test_files.each do |filename, fake_data|
           file_path = File.join(temp_dir, filename)
           File.write(file_path, fake_data)
-          
+
           expect {
             result = extractor.extract_audio_info(file_path)
             expect(result).to be_a(Hash)
@@ -341,9 +341,9 @@ RSpec.describe Media::Extractor, type: :service do
         format_test_files.each do |filename, fake_data|
           file_path = File.join(temp_dir, filename)
           File.write(file_path, fake_data)
-          
+
           result = extractor.extract_audio_info(file_path)
-          
+
           # Since these are fake files, they should fail but gracefully
           if result[:success] == false
             expect(result[:error]).to be_present
@@ -359,7 +359,7 @@ RSpec.describe Media::Extractor, type: :service do
     it 'handles missing or unusual metadata gracefully' do
       # Test with minimal file that has some structure but unusual properties
       unusual_file = File.join(temp_dir, 'unusual.wav')
-      
+
       # Create a file with minimal but valid WAV structure
       minimal_wav = [
         'RIFF', 36, 'WAVE', 'fmt ', 16,
@@ -369,13 +369,13 @@ RSpec.describe Media::Extractor, type: :service do
         0, 0, 0, # Other audio params
         'data', 0
       ].pack('a4Va4a4VvvVVvva4V')
-      
+
       File.write(unusual_file, minimal_wav)
-      
+
       result = extractor.extract_audio_info(unusual_file)
-      
+
       expect(result).to be_a(Hash)
-      
+
       # Should handle unusual values gracefully
       if result[:success]
         expect(result[:channels]).to be_an(Integer)

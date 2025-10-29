@@ -6,8 +6,8 @@ class AddWeeklyFocusFieldsToSessions < ActiveRecord::Migration[8.0]
 
     add_foreign_key :sessions, :weekly_focuses, column: :weekly_focus_id
     add_index :sessions, :weekly_focus_id
-    add_index :sessions, [:weekly_focus_id, :completed]
-    add_index :sessions, [:planned_for_date, :completed]
-    add_index :sessions, [:user_id, :planned_for_date]
+    add_index :sessions, [ :weekly_focus_id, :completed ]
+    add_index :sessions, [ :planned_for_date, :completed ]
+    add_index :sessions, [ :user_id, :planned_for_date ]
   end
 end

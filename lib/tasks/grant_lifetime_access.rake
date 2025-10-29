@@ -5,7 +5,7 @@ namespace :users do
     # Usage: rails users:grant_lifetime_access
     # Or with specific emails: rails users:grant_lifetime_access EMAILS="user1@example.com,user2@example.com"
 
-    email_list = ENV['EMAILS']&.split(',')&.map(&:strip)
+    email_list = ENV["EMAILS"]&.split(",")&.map(&:strip)
 
     users = if email_list.present?
       User.where(email: email_list)
@@ -22,13 +22,13 @@ namespace :users do
     users.each { |u| puts "  - #{u.email} (#{u.name})" }
 
     # Check for auto-confirm flag or prompt for confirmation
-    if ENV['CONFIRM'] == 'yes'
+    if ENV["CONFIRM"] == "yes"
       puts "Auto-confirming due to CONFIRM=yes environment variable"
     else
       print "\nAre you sure you want to grant lifetime access to these users? (yes/no): "
       confirmation = STDIN.gets.chomp.downcase
 
-      unless confirmation == 'yes'
+      unless confirmation == "yes"
         puts "Cancelled."
         exit
       end
@@ -38,8 +38,8 @@ namespace :users do
 
     users.each do |user|
       user.update!(
-        subscription_status: 'lifetime',
-        subscription_plan: 'lifetime',
+        subscription_status: "lifetime",
+        subscription_plan: "lifetime",
         subscription_started_at: Time.current,
         current_period_end: far_future_date,
         trial_expires_at: nil  # Clear trial expiration
@@ -69,7 +69,7 @@ namespace :users do
         "Plan: #{user.subscription_plan || 'N/A'}",
         "Period End: #{user.current_period_end&.strftime('%Y-%m-%d %H:%M') || 'N/A'}",
         "Trial Expires: #{user.trial_expires_at&.strftime('%Y-%m-%d %H:%M') || 'N/A'}"
-      ].join(' | ')
+      ].join(" | ")
 
       puts status_info
     end

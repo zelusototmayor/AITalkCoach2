@@ -7,7 +7,7 @@ namespace :metrics do
     affected_sessions = Session.where(completed: true)
                               .where("analysis_json IS NOT NULL")
                               .select do |session|
-      overall_score = session.analysis_data&.dig('overall_score')
+      overall_score = session.analysis_data&.dig("overall_score")
       overall_score && overall_score.to_f > 1.0
     end
 
@@ -19,10 +19,10 @@ namespace :metrics do
     affected_sessions.each do |session|
       begin
         # Reprocess the metrics using the stored transcript data
-        if session.analysis_data['transcript'].present? && session.analysis_data['metrics'].present?
+        if session.analysis_data["transcript"].present? && session.analysis_data["metrics"].present?
           # Extract the words data needed for metrics calculation
-          words = session.analysis_data.dig('metrics', 'basic_metrics', 'word_count') ?
-                    session.analysis_data['words'] : []
+          words = session.analysis_data.dig("metrics", "basic_metrics", "word_count") ?
+                    session.analysis_data["words"] : []
 
           # Skip if we don't have the necessary data
           if words.blank?
@@ -33,18 +33,18 @@ namespace :metrics do
 
           # Recalculate metrics
           transcript_data = {
-            transcript: session.analysis_data['transcript'],
+            transcript: session.analysis_data["transcript"],
             words: words,
-            metadata: session.analysis_data.dig('metrics', 'basic_metrics') || {}
+            metadata: session.analysis_data.dig("metrics", "basic_metrics") || {}
           }
 
           metrics_service = Analysis::Metrics.new(transcript_data, session.issues.to_a)
           new_metrics = metrics_service.calculate_all_metrics
 
           # Update only the overall_scores section
-          session.analysis_data['overall_score'] = new_metrics[:overall_scores][:overall_score]
-          session.analysis_data['component_scores'] = new_metrics[:overall_scores][:component_scores]
-          session.analysis_data['grade'] = new_metrics[:overall_scores][:grade]
+          session.analysis_data["overall_score"] = new_metrics[:overall_scores][:overall_score]
+          session.analysis_data["component_scores"] = new_metrics[:overall_scores][:component_scores]
+          session.analysis_data["grade"] = new_metrics[:overall_scores][:grade]
 
           # Save the updated data
           session.save!
@@ -67,7 +67,7 @@ namespace :metrics do
   end
 
   desc "Reprocess a specific session's metrics"
-  task :reprocess_session, [:session_id] => :environment do |t, args|
+  task :reprocess_session, [ :session_id ] => :environment do |t, args|
     session_id = args[:session_id]
 
     unless session_id

@@ -1,13 +1,13 @@
 module Analysis
   class Metrics
     class MetricsError < StandardError; end
-    
+
     # Standard speech rate ranges (words per minute)
     OPTIMAL_WPM_RANGE = (140..160).freeze
     ACCEPTABLE_WPM_RANGE = (120..180).freeze
     SLOW_WPM_THRESHOLD = 120
     FAST_WPM_THRESHOLD = 180
-    
+
     # Clarity scoring weights
     CLARITY_WEIGHTS = {
       filler_rate: 0.25,       # was 0.3
@@ -17,17 +17,17 @@ module Analysis
       inflection: 0.15,         # NEW
       fluency: 0.10             # unchanged
     }.freeze
-    
+
     def initialize(transcript_data, issues = [], options = {})
       @transcript_data = transcript_data
       @issues = Array(issues)
       @options = options
-      @language = options[:language] || 'en'
+      @language = options[:language] || "en"
       @audio_file = options[:audio_file]
       @ai_detected_fillers = options[:ai_detected_fillers] || []
       @amplitude_data = options[:amplitude_data] || []
     end
-    
+
     def calculate_all_metrics
       {
         basic_metrics: calculate_basic_metrics,
@@ -66,11 +66,11 @@ module Analysis
       Rails.logger.error "Coaching insights extraction error: #{e.message}"
       {}
     end
-    
+
     def calculate_basic_metrics
       words = extract_words
       duration_ms = extract_duration_ms
-      
+
       {
         word_count: words.length,
         unique_word_count: count_unique_words(words),
@@ -82,14 +82,14 @@ module Analysis
         syllable_count: estimate_syllable_count(words)
       }
     end
-    
+
     def calculate_speaking_metrics
       words = extract_words
       duration_ms = extract_duration_ms
       speaking_time_ms = calculate_speaking_time(words)
-      
+
       return default_speaking_metrics if words.empty? || duration_ms <= 0
-      
+
       # Core speaking rate calculations
       wpm = calculate_words_per_minute(words, duration_ms)
       effective_wpm = calculate_effective_wpm(words, speaking_time_ms)
@@ -103,7 +103,7 @@ module Analysis
         speech_to_silence_ratio: calculate_speech_to_silence_ratio(speaking_time_ms, duration_ms)
       }
     end
-    
+
     def calculate_clarity_metrics
       words = extract_words
 
@@ -133,10 +133,10 @@ module Analysis
         inflection_score: inflection_score
       }
     end
-    
+
     def calculate_fluency_metrics
       words = extract_words
-      
+
       {
         fluency_score: (calculate_fluency_score(words) / 100.0).round(4),
         hesitation_count: count_hesitations,
@@ -146,10 +146,10 @@ module Analysis
         speech_smoothness: calculate_speech_smoothness(words)
       }
     end
-    
+
     def calculate_engagement_metrics
       words = extract_words
-      
+
       {
         energy_level: calculate_energy_level,
         pace_variation: calculate_pace_variation_score,
@@ -159,14 +159,14 @@ module Analysis
         engagement_score: (calculate_overall_engagement_score / 100.0).round(4)
       }
     end
-    
+
     def calculate_overall_scores
       basic = calculate_basic_metrics
       speaking = calculate_speaking_metrics
       clarity = calculate_clarity_metrics
       fluency = calculate_fluency_metrics
       engagement = calculate_engagement_metrics
-      
+
       # Get component scores and normalize to 0-1 range
       pace_score = score_speaking_pace(speaking[:words_per_minute]) / 100.0  # Convert from 0-100 to 0-1
       clarity_score = clarity[:clarity_score]  # Already 0-1
@@ -199,29 +199,29 @@ module Analysis
         },
         grade: score_to_grade(overall_score),
         improvement_potential: calculate_improvement_potential(overall_score),
-        strengths: identify_strengths(component_weights.keys.zip([(pace_score * 100), (clarity_score * 100), (fluency_score * 100), (engagement_score * 100)])),
-        areas_for_improvement: identify_improvement_areas(component_weights.keys.zip([(pace_score * 100), (clarity_score * 100), (fluency_score * 100), (engagement_score * 100)]))
+        strengths: identify_strengths(component_weights.keys.zip([ (pace_score * 100), (clarity_score * 100), (fluency_score * 100), (engagement_score * 100) ])),
+        areas_for_improvement: identify_improvement_areas(component_weights.keys.zip([ (pace_score * 100), (clarity_score * 100), (fluency_score * 100), (engagement_score * 100) ]))
       }
     end
-    
+
     private
 
     # Coaching insights extraction methods
 
     def extract_pause_patterns(pause_metrics)
       distribution = pause_metrics[:pause_distribution] || {}
-      optimal_pct = distribution.dig('optimal', :percentage) || 0
-      long_pct = distribution.dig('long', :percentage) || 0
-      very_long_pct = distribution.dig('very_long', :percentage) || 0
+      optimal_pct = distribution.dig("optimal", :percentage) || 0
+      long_pct = distribution.dig("long", :percentage) || 0
+      very_long_pct = distribution.dig("very_long", :percentage) || 0
 
       quality_breakdown = if pause_metrics[:pause_quality_score] >= 80
-        'mostly_optimal'
+        "mostly_optimal"
       elsif long_pct > 20 || very_long_pct > 10
-        'mostly_good_with_awkward_long_pauses'
+        "mostly_good_with_awkward_long_pauses"
       elsif optimal_pct < 40
-        'inconsistent_timing'
+        "inconsistent_timing"
       else
-        'generally_acceptable'
+        "generally_acceptable"
       end
 
       specific_issue = nil
@@ -232,7 +232,7 @@ module Analysis
       {
         distribution: {
           optimal: optimal_pct,
-          acceptable: distribution.dig('acceptable', :percentage) || 0,
+          acceptable: distribution.dig("acceptable", :percentage) || 0,
           long: long_pct,
           very_long: very_long_pct
         },
@@ -247,7 +247,7 @@ module Analysis
       return default_pace_patterns if words.length < 10
 
       # Analyze pace trajectory throughout session
-      segment_size = [words.length / 5, 10].max.to_i
+      segment_size = [ words.length / 5, 10 ].max.to_i
       segment_wpms = []
 
       (0...words.length).step(segment_size) do |i|
@@ -269,13 +269,13 @@ module Analysis
         trajectory: trajectory,
         consistency: consistency,
         variation_type: variation_type,
-        wpm_range: segment_wpms.empty? ? [0, 0] : [segment_wpms.min.round, segment_wpms.max.round],
+        wpm_range: segment_wpms.empty? ? [ 0, 0 ] : [ segment_wpms.min.round, segment_wpms.max.round ],
         average_wpm: speaking_metrics[:words_per_minute]
       }
     end
 
     def analyze_pace_trajectory(segment_wpms)
-      return 'insufficient_data' if segment_wpms.length < 3
+      return "insufficient_data" if segment_wpms.length < 3
 
       first_third = segment_wpms[0...(segment_wpms.length / 3)]
       middle_third = segment_wpms[(segment_wpms.length / 3)...(2 * segment_wpms.length / 3)]
@@ -286,31 +286,31 @@ module Analysis
       avg_last = last_third.sum / last_third.length.to_f
 
       if avg_middle > avg_first * 1.2 && avg_last < avg_middle * 0.9
-        'starts_slow_rushes_middle_settles'
+        "starts_slow_rushes_middle_settles"
       elsif avg_middle > avg_first * 1.15
-        'starts_slow_accelerates'
+        "starts_slow_accelerates"
       elsif avg_first > avg_last * 1.15
-        'starts_fast_decelerates'
+        "starts_fast_decelerates"
       elsif (avg_first - avg_last).abs < avg_first * 0.1
-        'consistent_throughout'
+        "consistent_throughout"
       else
-        'variable'
+        "variable"
       end
     end
 
     def categorize_pace_variation(segment_wpms, consistency)
-      return 'unknown' if segment_wpms.empty?
+      return "unknown" if segment_wpms.empty?
 
       cv = coefficient_of_variation(segment_wpms)
 
       if cv > 0.3
-        'high_variance'
+        "high_variance"
       elsif cv > 0.2
-        'moderate_variance'
+        "moderate_variance"
       elsif cv < 0.1
-        'very_consistent'
+        "very_consistent"
       else
-        'low_variance'
+        "low_variance"
       end
     end
 
@@ -320,11 +320,11 @@ module Analysis
       questions = engagement_metrics[:question_usage] || 0
 
       pattern = if energy_level < 40
-        'low_energy_throughout'
+        "low_energy_throughout"
       elsif energy_level > 75
-        'high_energy_throughout'
+        "high_energy_throughout"
       else
-        'moderate_energy'
+        "moderate_energy"
       end
 
       engagement_elements = []
@@ -346,13 +346,13 @@ module Analysis
       word_flow_score = (smoothness * 0.6 + pause_quality * 0.4).round(1)
 
       primary_issue = if fluency_metrics[:hesitation_count] > 5
-        'frequent_hesitations'
+        "frequent_hesitations"
       elsif fluency_metrics[:restart_count] > 3
-        'frequent_restarts'
+        "frequent_restarts"
       elsif pause_quality < 50
-        'irregular_pauses'
+        "irregular_pauses"
       elsif smoothness < 60
-        'choppy_word_delivery'
+        "choppy_word_delivery"
       else
         nil
       end
@@ -399,18 +399,18 @@ module Analysis
       end
 
       if start_hesitations > sentences.length * 0.5
-        'mostly_at_sentence_starts'
+        "mostly_at_sentence_starts"
       else
-        'distributed_throughout'
+        "distributed_throughout"
       end
     end
 
     def default_pace_patterns
       {
-        trajectory: 'insufficient_data',
+        trajectory: "insufficient_data",
         consistency: 0,
-        variation_type: 'unknown',
-        wpm_range: [0, 0],
+        variation_type: "unknown",
+        wpm_range: [ 0, 0 ],
         average_wpm: 0
       }
     end
@@ -418,143 +418,143 @@ module Analysis
     def extract_words
       @transcript_data[:words] || []
     end
-    
+
     def extract_duration_ms
       (@transcript_data.dig(:metadata, :duration) || 0) * 1000
     end
-    
+
     def extract_transcript_text
-      @transcript_data[:transcript] || ''
+      @transcript_data[:transcript] || ""
     end
-    
+
     def count_unique_words(words)
-      words.map { |w| (w[:word] || '').downcase }.uniq.length
+      words.map { |w| (w[:word] || "").downcase }.uniq.length
     end
-    
+
     def calculate_speaking_time(words)
       return 0 if words.empty?
-      
+
       total_word_duration = 0
       words.each do |word|
         total_word_duration += (word[:end] - word[:start])
       end
       total_word_duration
     end
-    
+
     def calculate_total_pause_time(words)
       total_duration = extract_duration_ms
       speaking_time = calculate_speaking_time(words)
-      [total_duration - speaking_time, 0].max
+      [ total_duration - speaking_time, 0 ].max
     end
-    
+
     def calculate_average_word_length(words)
       return 0 if words.empty?
-      
-      total_length = words.sum { |w| (w[:word] || '').length }
+
+      total_length = words.sum { |w| (w[:word] || "").length }
       (total_length.to_f / words.length).round(2)
     end
-    
+
     def estimate_syllable_count(words)
       # Simple syllable estimation based on vowel patterns
       total_syllables = 0
-      
+
       words.each do |word|
-        word_text = (word[:word] || '').downcase
+        word_text = (word[:word] || "").downcase
         # Count vowel groups (rough syllable estimation)
         syllable_count = word_text.scan(/[aeiouy]+/).length
         syllable_count = 1 if syllable_count == 0 && !word_text.empty?
         total_syllables += syllable_count
       end
-      
+
       total_syllables
     end
-    
+
     def calculate_words_per_minute(words, duration_ms)
       return 0 if words.empty? || duration_ms <= 0
 
       duration_minutes = duration_ms / 60_000.0
       words.length / duration_minutes
     end
-    
+
     def calculate_effective_wpm(words, speaking_time_ms)
       return 0 if words.empty? || speaking_time_ms <= 0
-      
+
       speaking_minutes = speaking_time_ms / 60_000.0
       words.length / speaking_minutes
     end
-    
+
     def assess_speaking_rate(wpm)
       case wpm
       when 0..SLOW_WPM_THRESHOLD
-        'too_slow'
+        "too_slow"
       when SLOW_WPM_THRESHOLD..OPTIMAL_WPM_RANGE.min
-        'slow'
+        "slow"
       when OPTIMAL_WPM_RANGE
-        'optimal'
+        "optimal"
       when OPTIMAL_WPM_RANGE.max..FAST_WPM_THRESHOLD
-        'fast'
+        "fast"
       else
-        'too_fast'
+        "too_fast"
       end
     end
-    
+
     def calculate_pace_consistency(words)
       return 100 if words.length < 10
-      
+
       # Calculate WPM for sliding windows
-      window_size = [words.length / 5, 10].max.to_i
+      window_size = [ words.length / 5, 10 ].max.to_i
       window_wpms = []
-      
+
       (0..words.length - window_size).step(window_size / 2) do |i|
         window_words = words[i, window_size]
         next if window_words.empty?
-        
+
         window_duration = window_words.last[:end] - window_words.first[:start]
         next if window_duration <= 0
-        
+
         window_wpm = (window_words.length / (window_duration / 60_000.0))
         window_wpms << window_wpm
       end
-      
+
       return 100 if window_wpms.length < 2
-      
+
       # Calculate coefficient of variation (lower is more consistent)
       mean = window_wpms.sum / window_wpms.length
       variance = window_wpms.sum { |wpm| (wpm - mean) ** 2 } / window_wpms.length
       cv = Math.sqrt(variance) / mean
-      
+
       # Convert to 0-100 score (lower variation = higher score)
-      consistency_score = [100 - (cv * 100), 0].max
+      consistency_score = [ 100 - (cv * 100), 0 ].max
       consistency_score.round(1)
     end
-    
+
     def calculate_pace_variation_coefficient(words)
       return 0 if words.length < 2
-      
+
       pause_durations = []
       words.each_cons(2) do |current, next_word|
         pause = next_word[:start] - current[:end]
         pause_durations << pause if pause > 50 # Ignore very short gaps
       end
-      
+
       return 0 if pause_durations.empty?
-      
+
       mean = pause_durations.sum.to_f / pause_durations.length
       return 0 if mean == 0
-      
+
       variance = pause_durations.sum { |p| (p - mean) ** 2 } / pause_durations.length
       (Math.sqrt(variance) / mean).round(3)
     end
-    
+
     def calculate_speech_to_silence_ratio(speaking_time_ms, total_duration_ms)
       return 0 if total_duration_ms <= 0
-      
+
       silence_time_ms = total_duration_ms - speaking_time_ms
       return Float::INFINITY if silence_time_ms <= 0
-      
+
       (speaking_time_ms.to_f / silence_time_ms).round(2)
     end
-    
+
     def calculate_filler_metrics(words)
       total_words = words.length
 
@@ -564,7 +564,7 @@ module Analysis
 
         # Build filler breakdown from AI detections
         filler_counts = @ai_detected_fillers
-          .group_by { |f| f[:filler_word] || f['filler_word'] }
+          .group_by { |f| f[:filler_word] || f["filler_word"] }
           .transform_values(&:count)
 
         Rails.logger.info "Using AI-detected fillers: #{total_fillers} total"
@@ -595,66 +595,66 @@ module Analysis
         filler_rate_per_minute: calculate_fillers_per_minute(total_fillers),
         filler_breakdown: filler_counts,
         filler_density: assess_filler_density(filler_rate_percentage),
-        source: @ai_detected_fillers.any? ? 'ai' : 'regex_fallback'
+        source: @ai_detected_fillers.any? ? "ai" : "regex_fallback"
       }
     end
 
     def filler_patterns_for_language(language)
       case language
-      when 'pt'
+      when "pt"
         # Portuguese (Portugal) filler words and patterns
         {
-          'eh' => /\b(eh|é)\b/i,
-          'ah' => /\b(ah|hm|ahn)\b/i,
-          'tipo' => /\btipo\b/i,
-          'ne' => /\bné\b/i,
-          'entao' => /\bentão\b/i,
-          'assim' => /\bassim\b/i,
-          'sei_la' => /\bsei lá\b/i,
-          'meio_que' => /\bmeio que\b/i,
-          'tipo_assim' => /\btipo assim\b/i,
-          'mais_ou_menos' => /\bmais ou menos\b/i
+          "eh" => /\b(eh|é)\b/i,
+          "ah" => /\b(ah|hm|ahn)\b/i,
+          "tipo" => /\btipo\b/i,
+          "ne" => /\bné\b/i,
+          "entao" => /\bentão\b/i,
+          "assim" => /\bassim\b/i,
+          "sei_la" => /\bsei lá\b/i,
+          "meio_que" => /\bmeio que\b/i,
+          "tipo_assim" => /\btipo assim\b/i,
+          "mais_ou_menos" => /\bmais ou menos\b/i
         }
-      when 'es'
+      when "es"
         # Spanish filler words and patterns
         {
-          'eh' => /\b(eh|este|esto)\b/i,
-          'pues' => /\bpues\b/i,
-          'bueno' => /\bbueno\b/i,
-          'o_sea' => /\bo sea\b/i,
-          'como' => /\bcomo\b(?!\s+(que|si|cuando))/i
+          "eh" => /\b(eh|este|esto)\b/i,
+          "pues" => /\bpues\b/i,
+          "bueno" => /\bbueno\b/i,
+          "o_sea" => /\bo sea\b/i,
+          "como" => /\bcomo\b(?!\s+(que|si|cuando))/i
         }
       else
         # English (default) filler words and patterns
         {
-          'um' => /\b(um|uhm)\b/i,
-          'uh' => /\b(uh|er|ah)\b/i,
-          'like' => /\blike\b/i,
-          'you_know' => /\byou know\b/i,
-          'basically' => /\bbasically\b/i,
-          'actually' => /\bactually\b/i,
-          'so' => /\bso\b(?!\s+(that|what|how|when|where|why))/i
+          "um" => /\b(um|uhm)\b/i,
+          "uh" => /\b(uh|er|ah)\b/i,
+          "like" => /\blike\b/i,
+          "you_know" => /\byou know\b/i,
+          "basically" => /\bbasically\b/i,
+          "actually" => /\bactually\b/i,
+          "so" => /\bso\b(?!\s+(that|what|how|when|where|why))/i
         }
       end
     end
-    
+
     def calculate_fillers_per_minute(total_fillers)
       duration_minutes = extract_duration_ms / 60_000.0
       return 0 if duration_minutes <= 0
-      
+
       (total_fillers / duration_minutes).round(1)
     end
-    
+
     def assess_filler_density(filler_rate)
       case filler_rate
-      when 0..2 then 'excellent'
-      when 2..5 then 'good'
-      when 5..10 then 'moderate'
-      when 10..15 then 'high'
-      else 'very_high'
+      when 0..2 then "excellent"
+      when 2..5 then "good"
+      when 5..10 then "moderate"
+      when 10..15 then "high"
+      else "very_high"
       end
     end
-    
+
     def calculate_pause_metrics(words)
       return default_pause_metrics if words.length < 2
 
@@ -698,7 +698,7 @@ module Analysis
         pause_distribution: calculate_pause_distribution(pauses)
       }
     end
-    
+
     def assess_pause_quality(avg_pause, longest_pause, long_pause_count, total_pauses, duration_minutes, pauses)
       base_score = 100
 
@@ -735,27 +735,27 @@ module Analysis
         end
       end
 
-      [base_score, 0].max
+      [ base_score, 0 ].max
     end
-    
+
     def calculate_pause_distribution(pauses)
       ranges = {
-        'optimal' => (200..800),      # 0.2-0.8 seconds
-        'acceptable' => (800..1500),  # 0.8-1.5 seconds
-        'long' => (1500..3000),       # 1.5-3 seconds
-        'very_long' => (3000..Float::INFINITY) # > 3 seconds
+        "optimal" => (200..800),      # 0.2-0.8 seconds
+        "acceptable" => (800..1500),  # 0.8-1.5 seconds
+        "long" => (1500..3000),       # 1.5-3 seconds
+        "very_long" => (3000..Float::INFINITY) # > 3 seconds
       }
-      
+
       distribution = {}
       ranges.each do |category, range|
         count = pauses.count { |p| range.include?(p) }
         percentage = pauses.empty? ? 0 : (count.to_f / pauses.length * 100).round(1)
         distribution[category] = { count: count, percentage: percentage }
       end
-      
+
       distribution
     end
-    
+
     def calculate_articulation_score
       words = extract_words
       return 70 if words.empty? # Default score for no data
@@ -770,7 +770,7 @@ module Analysis
       blended_score = (confidence_score * 0.6) + (duration_score * 0.4)
 
       # Clamp to valid range
-      [[blended_score, 0].max, 100].min.round(1)
+      [ [ blended_score, 0 ].max, 100 ].min.round(1)
     end
 
     def calculate_confidence_articulation_score(words)
@@ -794,10 +794,10 @@ module Analysis
       base_score -= (mumbling_segments * 10) # Additional penalty for clusters
 
       # Also penalize articulation-specific issues from analysis
-      issue_penalty = @issues.select { |i| i[:kind] == 'articulation' }.length * 5
+      issue_penalty = @issues.select { |i| i[:kind] == "articulation" }.length * 5
       base_score -= issue_penalty
 
-      [[base_score, 0].max, 100].min
+      [ [ base_score, 0 ].max, 100 ].min
     end
 
     def calculate_word_duration_score(words)
@@ -809,7 +809,7 @@ module Analysis
       words.each do |word|
         next unless word[:start] && word[:end]
 
-        word_text = word[:word] || word[:punctuated_word] || ''
+        word_text = word[:word] || word[:punctuated_word] || ""
         next if word_text.empty?
 
         # Estimate syllables for this word
@@ -834,14 +834,14 @@ module Analysis
 
       # Calculate score based on outlier percentage
       outlier_percentage = (outliers.to_f / total_analyzed) * 100
-      duration_score = [100 - (outlier_percentage * 2), 0].max
+      duration_score = [ 100 - (outlier_percentage * 2), 0 ].max
 
       duration_score.round(1)
     end
 
     def estimate_word_syllables(word_text)
       # Simple syllable estimation based on vowel patterns
-      word_clean = word_text.downcase.gsub(/[^a-z]/, '')
+      word_clean = word_text.downcase.gsub(/[^a-z]/, "")
       return 1 if word_clean.empty?
 
       syllable_count = word_clean.scan(/[aeiouy]+/).length
@@ -863,7 +863,7 @@ module Analysis
         blended_score = punctuation_score
       end
 
-      [[blended_score, 0].max, 100].min.round(1)
+      [ [ blended_score, 0 ].max, 100 ].min.round(1)
     end
 
     def calculate_amplitude_inflection_score
@@ -898,9 +898,9 @@ module Analysis
       # Bonus for emphasized words (indicates expressive speech)
       emphasized_count = @amplitude_data.count { |w| w[:is_emphasized] }
       emphasized_ratio = emphasized_count.to_f / @amplitude_data.length
-      emphasis_bonus = [emphasized_ratio * 20, 10].min # Max +10 points
+      emphasis_bonus = [ emphasized_ratio * 20, 10 ].min # Max +10 points
 
-      [[base_score + emphasis_bonus, 0].max, 100].min
+      [ [ base_score + emphasis_bonus, 0 ].max, 100 ].min
     end
 
     def calculate_punctuation_inflection_score
@@ -915,12 +915,12 @@ module Analysis
 
       # Calculate intonation variety
       total_sentences = sentences.length
-      unique_types = [questions > 0, exclamations > 0, statements > 0].count(true)
+      unique_types = [ questions > 0, exclamations > 0, statements > 0 ].count(true)
       variety_score = (unique_types / 3.0) * 100
 
       # Detect statement-questions (rising inflection patterns)
       statement_questions = detect_statement_questions(transcript)
-      statement_question_bonus = [statement_questions.length * 5, 10].min
+      statement_question_bonus = [ statement_questions.length * 5, 10 ].min
 
       # Calculate question clustering (too many questions = uncertain)
       question_ratio = questions.to_f / total_sentences
@@ -929,7 +929,7 @@ module Analysis
       base_score = (variety_score * 0.7) + 30 # Base 30, variety adds up to 70
       final_score = base_score + statement_question_bonus + confidence_penalty
 
-      [[final_score, 0].max, 100].min
+      [ [ final_score, 0 ].max, 100 ].min
     end
 
     def detect_statement_questions(transcript)
@@ -970,7 +970,7 @@ module Analysis
 
       clusters
     end
-    
+
     def calculate_fluency_score(words)
       base_score = 100
 
@@ -985,9 +985,9 @@ module Analysis
       base_score += smoothness_adjustment
 
       # Ensure score stays within valid range
-      [[base_score, 0].max, 100].min.round(1)
+      [ [ base_score, 0 ].max, 100 ].min.round(1)
     end
-    
+
     def count_hesitations
       transcript = extract_transcript_text.downcase
       hesitation_patterns = [
@@ -995,17 +995,17 @@ module Analysis
         /\.\.\./,  # ellipses indicating hesitation
         /--/       # dashes indicating hesitation
       ]
-      
+
       hesitation_patterns.sum { |pattern| transcript.scan(pattern).length }
     end
-    
+
     def count_restarts
       transcript = extract_transcript_text
       # Look for patterns like "I was-- I mean"
       restart_pattern = /\b\w+--?\s+\w+/
       transcript.scan(restart_pattern).length
     end
-    
+
     def count_incomplete_thoughts
       transcript = extract_transcript_text
       # Look for trailing off patterns
@@ -1013,18 +1013,18 @@ module Analysis
         /\b(and|but|so|then)\s*\.\.\./i,
         /\b(i|we|they|it)\s+(was|were|will|would|should)\s*\.\.\./i
       ]
-      
+
       incomplete_patterns.sum { |pattern| transcript.scan(pattern).length }
     end
-    
+
     def count_flow_interruptions
       # Count only unique flow interruptions, avoid double counting with fluency deductions
-      long_pause_issues = @issues.count { |i| i[:kind] == 'long_pause' }
+      long_pause_issues = @issues.count { |i| i[:kind] == "long_pause" }
       unusual_patterns = count_restarts + count_incomplete_thoughts
 
       long_pause_issues + unusual_patterns
     end
-    
+
     def calculate_speech_smoothness(words)
       return 80 if words.length < 5 # Return target score for minimal data
 
@@ -1041,27 +1041,27 @@ module Analysis
       pause_cv = coefficient_of_variation(pause_durations)
 
       # Calculate raw smoothness (lower variation = higher smoothness)
-      word_smoothness = [100 - (word_cv * 50), 0].max
-      pause_smoothness = [100 - (pause_cv * 30), 0].max
+      word_smoothness = [ 100 - (word_cv * 50), 0 ].max
+      pause_smoothness = [ 100 - (pause_cv * 30), 0 ].max
       raw_smoothness = ((word_smoothness + pause_smoothness) / 2).round(1)
 
       # Transform to make 80 the perfect score with symmetric penalties
       # Raw smoothness of 80 = 100 points, deviations penalized
-      final_score = [100 - ((raw_smoothness - 80).abs * 1.5), 0].max
+      final_score = [ 100 - ((raw_smoothness - 80).abs * 1.5), 0 ].max
 
       final_score.round(1)
     end
-    
+
     def coefficient_of_variation(values)
       return 0 if values.empty? || values.length < 2
-      
+
       mean = values.sum.to_f / values.length
       return 0 if mean == 0
-      
+
       variance = values.sum { |v| (v - mean) ** 2 } / values.length
       Math.sqrt(variance) / mean
     end
-    
+
     def calculate_energy_level
       # Analyze patterns that indicate energy/enthusiasm
       transcript = extract_transcript_text
@@ -1078,35 +1078,35 @@ module Analysis
 
       # Adjusted multiplier to compensate for removed ALL CAPS indicator
       energy_ratio = energy_indicators.values.sum.to_f / total_words
-      energy_score = [50 + (energy_ratio * 600), 100].min
+      energy_score = [ 50 + (energy_ratio * 600), 100 ].min
 
       energy_score.round(1)
     end
-    
+
     def calculate_pace_variation_score
       words = extract_words
       return 50 if words.length < 10
-      
+
       # Calculate WPM for segments
-      segment_size = [words.length / 5, 5].max
+      segment_size = [ words.length / 5, 5 ].max
       segment_wpms = []
-      
+
       (0...words.length).step(segment_size) do |i|
         segment = words[i, segment_size]
         next if segment.length < 3
-        
+
         duration = segment.last[:end] - segment.first[:start]
         next if duration <= 0
-        
+
         wpm = (segment.length / (duration / 60_000.0))
         segment_wpms << wpm
       end
-      
+
       return 50 if segment_wpms.length < 2
-      
+
       # Good variation is moderate (not too monotone, not too erratic)
       cv = coefficient_of_variation(segment_wpms)
-      
+
       # Optimal CV is around 0.2-0.4
       if cv.between?(0.2, 0.4)
         100
@@ -1118,7 +1118,7 @@ module Analysis
         40
       end
     end
-    
+
     def detect_emphasis_patterns
       transcript = extract_transcript_text
 
@@ -1128,31 +1128,31 @@ module Analysis
         question_engagement: transcript.scan(/\?/).length
       }
     end
-    
+
     def count_questions
       extract_transcript_text.scan(/\?/).length
     end
-    
+
     def count_exclamations
       extract_transcript_text.scan(/!/).length
     end
-    
+
     def calculate_overall_engagement_score
       energy = calculate_energy_level
       variation = calculate_pace_variation_score
       emphasis = detect_emphasis_patterns.values.sum
-      
+
       base_score = (energy + variation) / 2
-      emphasis_bonus = [emphasis * 2, 20].min # Cap emphasis bonus at 20 points
-      
-      [base_score + emphasis_bonus, 100].min.round(1)
+      emphasis_bonus = [ emphasis * 2, 20 ].min # Cap emphasis bonus at 20 points
+
+      [ base_score + emphasis_bonus, 100 ].min.round(1)
     end
-    
+
     def calculate_pace_clarity_score
       wpm = calculate_words_per_minute(extract_words, extract_duration_ms)
       score_speaking_pace(wpm)
     end
-    
+
     def score_speaking_pace(wpm)
       case wpm
       when OPTIMAL_WPM_RANGE then 100
@@ -1164,45 +1164,45 @@ module Analysis
       else 30
       end
     end
-    
+
     def calculate_weighted_score(components, weights)
       total_weighted = 0
       total_weight = 0
-      
+
       components.each do |component, score|
         weight = weights[component] || 0
         total_weighted += score * weight
         total_weight += weight
       end
-      
+
       return 0 if total_weight == 0
       total_weighted / total_weight
     end
-    
+
     def score_to_grade(score)
       if score >= 90
-        'A'
+        "A"
       elsif score >= 80
-        'B'
+        "B"
       elsif score >= 70
-        'C'
+        "C"
       elsif score >= 60
-        'D'
+        "D"
       else
-        'F'
+        "F"
       end
     end
-    
+
     def calculate_improvement_potential(current_score)
       potential = 100 - current_score
       case potential
-      when 0..10 then 'minimal'
-      when 10..25 then 'moderate'
-      when 25..40 then 'significant'
-      else 'high'
+      when 0..10 then "minimal"
+      when 10..25 then "moderate"
+      when 25..40 then "significant"
+      else "high"
       end
     end
-    
+
     def identify_strengths(component_scores)
       component_scores
         .select { |_, score| score >= 80 }
@@ -1210,7 +1210,7 @@ module Analysis
         .first(3)
         .map { |component, _| component.to_s.humanize }
     end
-    
+
     def identify_improvement_areas(component_scores)
       component_scores
         .select { |_, score| score < 75 }
@@ -1218,63 +1218,63 @@ module Analysis
         .first(3)
         .map { |component, _| component.to_s.humanize }
     end
-    
+
     def assess_transcript_quality
       words = extract_words
       transcript = extract_transcript_text
-      
+
       quality_indicators = {
         has_timing: words.any? { |w| w[:start] && w[:end] },
         has_punctuation: transcript.match?(/[.!?]/),
         reasonable_length: transcript.length > 50,
         word_confidence: words.any? { |w| w[:confidence] }
       }
-      
+
       quality_score = quality_indicators.values.count(true).to_f / quality_indicators.length
-      
+
       case quality_score
-      when 0.8..1.0 then 'high'
-      when 0.6..0.8 then 'medium'
-      when 0.4..0.6 then 'low'
-      else 'very_low'
+      when 0.8..1.0 then "high"
+      when 0.6..0.8 then "medium"
+      when 0.4..0.6 then "low"
+      else "very_low"
       end
     end
-    
+
     def calculate_confidence_level
       words = extract_words
       transcript = extract_transcript_text
-      
+
       # Base confidence on data completeness
       base_confidence = 0.7
-      
+
       # Boost for complete timing data
       base_confidence += 0.1 if words.all? { |w| w[:start] && w[:end] }
-      
+
       # Boost for reasonable transcript length
       base_confidence += 0.1 if transcript.length > 100
-      
+
       # Reduce for very short recordings
       base_confidence -= 0.2 if extract_duration_ms < 5000 # Less than 5 seconds
-      
+
       # Reduce for very few words
       base_confidence -= 0.2 if words.length < 10
-      
-      [base_confidence, 1.0].min.round(2)
+
+      [ base_confidence, 1.0 ].min.round(2)
     end
-    
+
     # Default values for error conditions
-    
+
     def default_speaking_metrics
       {
         words_per_minute: 0,
         effective_words_per_minute: 0,
-        speaking_rate_assessment: 'unknown',
+        speaking_rate_assessment: "unknown",
         pace_consistency: 0,
         pace_variation_coefficient: 0,
         speech_to_silence_ratio: 0
       }
     end
-    
+
     def default_pause_metrics
       {
         total_pause_count: 0,

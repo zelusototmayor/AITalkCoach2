@@ -1,4 +1,4 @@
-require 'test_helper'
+require "test_helper"
 
 class EnhancedProgressTest < ActionDispatch::IntegrationTest
   setup do
@@ -18,10 +18,10 @@ class EnhancedProgressTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     # Should render enhanced processing status partial
-    assert_select '.enhanced-processing-container'
-    assert_select '.processing-timeline'
-    assert_select '.progressive-metrics-area'
-    assert_select '.coaching-tips-carousel'
+    assert_select ".enhanced-processing-container"
+    assert_select ".processing-timeline"
+    assert_select ".progressive-metrics-area"
+    assert_select ".coaching-tips-carousel"
   end
 
   test "session show page uses enhanced progress for processing sessions" do
@@ -35,7 +35,7 @@ class EnhancedProgressTest < ActionDispatch::IntegrationTest
     get session_path(session)
     assert_response :success
 
-    assert_select '.enhanced-processing-container'
+    assert_select ".enhanced-processing-container"
   end
 
   test "session show page shows regular content for completed sessions" do
@@ -56,8 +56,8 @@ class EnhancedProgressTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     # Should show regular analysis content, not processing UI
-    assert_select '.enhanced-processing-container', count: 0
-    assert_select '.session-title-main'
+    assert_select ".enhanced-processing-container", count: 0
+    assert_select ".session-title-main"
   end
 
   test "API status endpoint returns progressive metrics" do
@@ -83,23 +83,23 @@ class EnhancedProgressTest < ActionDispatch::IntegrationTest
     json = JSON.parse(response.body)
 
     # Check basic fields
-    assert_equal session.id, json['id']
-    assert_equal 'processing', json['processing_state']
+    assert_equal session.id, json["id"]
+    assert_equal "processing", json["processing_state"]
 
     # Check progress info
-    assert json['progress_info'].present?
-    assert_equal 35, json['progress_info']['progress']
-    assert_equal 'transcription', json['progress_info']['current_stage']
+    assert json["progress_info"].present?
+    assert_equal 35, json["progress_info"]["progress"]
+    assert_equal "transcription", json["progress_info"]["current_stage"]
 
     # Check interim metrics
-    assert json['interim_metrics'].present?
-    assert_equal 45, json['interim_metrics']['duration_seconds']
-    assert_equal 120, json['interim_metrics']['word_count']
-    assert_equal 160, json['interim_metrics']['estimated_wpm']
+    assert json["interim_metrics"].present?
+    assert_equal 45, json["interim_metrics"]["duration_seconds"]
+    assert_equal 120, json["interim_metrics"]["word_count"]
+    assert_equal 160, json["interim_metrics"]["estimated_wpm"]
 
     # Check processing stage
-    assert_equal 'transcription', json['processing_stage']
-    assert_equal 35, json['processing_progress']
+    assert_equal "transcription", json["processing_stage"]
+    assert_equal 35, json["processing_progress"]
   end
 
   test "API status endpoint handles sessions without interim metrics" do
@@ -116,7 +116,7 @@ class EnhancedProgressTest < ActionDispatch::IntegrationTest
     json = JSON.parse(response.body)
 
     # Should return empty interim metrics
-    assert_equal({}, json['interim_metrics'])
+    assert_equal({}, json["interim_metrics"])
   end
 
   test "estimated time calculation" do
@@ -135,7 +135,7 @@ class EnhancedProgressTest < ActionDispatch::IntegrationTest
     json = JSON.parse(response.body)
 
     # At 60% progress, should show remaining time
-    assert_match(/\d+s remaining/, json['progress_info']['estimated_time'])
+    assert_match(/\d+s remaining/, json["progress_info"]["estimated_time"])
   end
 
   test "stage completion detection" do
@@ -150,8 +150,8 @@ class EnhancedProgressTest < ActionDispatch::IntegrationTest
     get api_session_status_path(session), as: :json
     json = JSON.parse(response.body)
 
-    assert_equal 'completed', json['processing_state']
-    assert_equal 100, json['progress_info']['progress']
-    assert_equal 'Done', json['progress_info']['estimated_time']
+    assert_equal "completed", json["processing_state"]
+    assert_equal 100, json["progress_info"]["progress"]
+    assert_equal "Done", json["progress_info"]["estimated_time"]
   end
 end

@@ -1,4 +1,4 @@
-require 'test_helper'
+require "test_helper"
 
 class OptimizedSpeechAnalysisTest < ActionDispatch::IntegrationTest
   setup do
@@ -8,7 +8,7 @@ class OptimizedSpeechAnalysisTest < ActionDispatch::IntegrationTest
 
   test "comprehensive analysis completes faster than legacy approach" do
     # This test validates that the new optimized flow works end-to-end
-    skip "Requires OpenAI API key" unless ENV['OPENAI_API_KEY'].present?
+    skip "Requires OpenAI API key" unless ENV["OPENAI_API_KEY"].present?
 
     # Create a test session with sample audio
     session = Session.create!(
@@ -27,7 +27,7 @@ class OptimizedSpeechAnalysisTest < ActionDispatch::IntegrationTest
       transcript: "The reason I like steak is because the food has a very nostalgic reference to me. Um, I was very young when I started eating it.",
       words: [
         { word: "The", start: 0, end: 200, punctuated_word: "The" },
-        { word: "reason", start: 200, end: 600, punctuated_word: "reason" },
+        { word: "reason", start: 200, end: 600, punctuated_word: "reason" }
         # ... (abbreviated for test)
       ],
       metadata: { duration: 10.0 }
@@ -36,13 +36,13 @@ class OptimizedSpeechAnalysisTest < ActionDispatch::IntegrationTest
     # Test rule-based issues
     rule_issues = [
       {
-        kind: 'professionalism',
+        kind: "professionalism",
         start_ms: 5000,
         end_ms: 6000,
-        text: 'like steak',
-        rationale: 'Casual language detected',
-        severity: 'medium',
-        category: 'professional_issues'
+        text: "like steak",
+        rationale: "Casual language detected",
+        severity: "medium",
+        category: "professional_issues"
       }
     ]
 
@@ -58,11 +58,11 @@ class OptimizedSpeechAnalysisTest < ActionDispatch::IntegrationTest
 
       # Assertions
       assert results[:refined_issues].present?, "Should have refined issues"
-      assert_includes [true, false], results[:fallback_mode] || false
+      assert_includes [ true, false ], results[:fallback_mode] || false
       assert processing_time < 15000, "Processing should complete in < 15 seconds (got #{processing_time}ms)"
 
       # Verify metadata indicates optimization
-      assert_equal 'unified_analysis_v1', results.dig(:metadata, :optimization)
+      assert_equal "unified_analysis_v1", results.dig(:metadata, :optimization)
       assert_equal 0, results.dig(:metadata, :ai_segments_analyzed), "Should not use segments"
 
       puts "\n✅ Optimization Test Results:"
@@ -91,8 +91,8 @@ class OptimizedSpeechAnalysisTest < ActionDispatch::IntegrationTest
     }
 
     rule_issues = [
-      { kind: 'test_issue', start_ms: 0, end_ms: 1000, text: 'test',
-        rationale: 'test', severity: 'low', category: 'test' }
+      { kind: "test_issue", start_ms: 0, end_ms: 1000, text: "test",
+        rationale: "test", severity: "low", category: "test" }
     ]
 
     # Mock AI client to fail
@@ -110,7 +110,7 @@ class OptimizedSpeechAnalysisTest < ActionDispatch::IntegrationTest
   end
 
   test "comprehensive analysis detects fillers and validates issues" do
-    skip "Requires OpenAI API key" unless ENV['OPENAI_API_KEY'].present?
+    skip "Requires OpenAI API key" unless ENV["OPENAI_API_KEY"].present?
 
     session = Session.create!(
       user: @user,
@@ -124,7 +124,7 @@ class OptimizedSpeechAnalysisTest < ActionDispatch::IntegrationTest
         { word: "I", start: 0, end: 100, punctuated_word: "I" },
         { word: "think", start: 100, end: 400, punctuated_word: "think" },
         { word: "um", start: 500, end: 700, punctuated_word: "um" },
-        { word: "we", start: 700, end: 900, punctuated_word: "we" },
+        { word: "we", start: 700, end: 900, punctuated_word: "we" }
         # ... (abbreviated)
       ],
       metadata: { duration: 5.0 }
@@ -135,7 +135,7 @@ class OptimizedSpeechAnalysisTest < ActionDispatch::IntegrationTest
 
     unless results[:fallback_mode]
       # Should detect filler words
-      filler_issues = results[:refined_issues].select { |i| i[:kind] == 'filler_word' }
+      filler_issues = results[:refined_issues].select { |i| i[:kind] == "filler_word" }
       assert filler_issues.any?, "Should detect filler words (um, like, you know)"
 
       puts "\n✅ Filler Detection Test:"

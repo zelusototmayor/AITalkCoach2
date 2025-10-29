@@ -1,10 +1,10 @@
 class Api::SessionsController < ApplicationController
   before_action :require_login
-  before_action :set_session, except: [:count]
-  
+  before_action :set_session, except: [ :count ]
+
   def timeline
     issues = @session.issues.order(:start_ms)
-    
+
     timeline_data = issues.map do |issue|
       {
         id: issue.id,
@@ -16,24 +16,24 @@ class Api::SessionsController < ApplicationController
         source: issue.source
       }
     end
-    
+
     render json: {
       session_id: @session.id,
       duration_ms: @session.duration_ms,
       issues: timeline_data
     }
   end
-  
+
   def export
     case params[:format]
-    when 'txt'
+    when "txt"
       transcript = generate_transcript_export
-      render plain: transcript, content_type: 'text/plain'
-    when 'csv'
+      render plain: transcript, content_type: "text/plain"
+    when "csv"
       csv_data = generate_csv_export
-      send_data csv_data, 
+      send_data csv_data,
                 filename: "#{@session.title.parameterize}-analysis.csv",
-                type: 'text/csv'
+                type: "text/csv"
     else
       export_data = {
         session: {
@@ -66,57 +66,57 @@ class Api::SessionsController < ApplicationController
       render json: export_data
     end
   end
-  
+
   def reprocess_ai
     # Allow reprocessing of completed or failed sessions, but not pending/processing ones
-    if @session.processing_state.in?(['completed', 'failed'])
+    if @session.processing_state.in?([ "completed", "failed" ])
       # Store original state for logic
-      was_failed = @session.processing_state == 'failed'
-      
+      was_failed = @session.processing_state == "failed"
+
       # Clear any existing analysis data and issues for fresh reprocessing
       if was_failed
         @session.issues.destroy_all
         @session.update!(analysis_data: {})
       end
-      
+
       # Reset session state for reprocessing
       @session.update!(
-        processing_state: 'pending',
+        processing_state: "pending",
         incomplete_reason: nil,
         completed: false
       )
-      
+
       # Enqueue reprocessing job
       Sessions::ProcessJob.perform_later(@session.id, { reprocess: true })
-      
-      render json: { 
-        message: 'Reprocessing started successfully', 
+
+      render json: {
+        message: "Reprocessing started successfully",
         session_id: @session.id,
-        new_state: 'pending'
+        new_state: "pending"
       }, status: :accepted
     else
       current_state = @session.processing_state
-      render json: { 
+      render json: {
         error: "Cannot reprocess session in '#{current_state}' state. Please wait for current processing to complete or fail.",
         current_state: current_state
       }, status: :unprocessable_content
     end
   end
-  
+
   def insights
-    timeframe = params[:timeframe] || '30d'
-    
+    timeframe = params[:timeframe] || "30d"
+
     # Calculate date range
     days = case timeframe
-    when '7d' then 7
-    when '30d' then 30
-    when '90d' then 90
+    when "7d" then 7
+    when "30d" then 30
+    when "90d" then 90
     else 30
     end
-    
+
     user_sessions = current_user.sessions
       .where(completed: true)
-      .where('created_at >= ?', days.days.ago)
+      .where("created_at >= ?", days.days.ago)
       .includes(:issues)
       .order(:created_at)
       .limit(100) # Limit to prevent huge payloads
@@ -129,14 +129,14 @@ class Api::SessionsController < ApplicationController
           metrics: extract_session_metrics(session)
         }
       end
-    
+
     render json: {
       sessions: user_sessions,
       timeframe: timeframe,
       total_count: current_user.sessions.where(completed: true).count
     }
   end
-  
+
   def status
     render json: {
       id: @session.id,
@@ -146,8 +146,8 @@ class Api::SessionsController < ApplicationController
       updated_at: @session.updated_at,
       progress_info: get_progress_info(@session),
       interim_metrics: get_interim_metrics(@session),
-      processing_stage: @session.analysis_data&.dig('processing_stage'),
-      processing_progress: @session.analysis_data&.dig('processing_progress')
+      processing_stage: @session.analysis_data&.dig("processing_stage"),
+      processing_progress: @session.analysis_data&.dig("processing_progress")
     }
   end
 
@@ -155,53 +155,53 @@ class Api::SessionsController < ApplicationController
     total_count = current_user.sessions.count
     render json: { count: total_count }
   end
-  
+
   private
-  
+
   def set_session
     @session = current_user.sessions.find(params[:id])
   end
-  
-  
+
+
   def generate_transcript_export
     # Safely access analysis_data to avoid circular references
     analysis_data = @session.analysis_data || {}
-    transcript = analysis_data['transcript'] || 'No transcript available'
+    transcript = analysis_data["transcript"] || "No transcript available"
     issues_count = @session.issues.count
-    
+
     # Safely handle duration calculation
     duration_ms = @session.duration_ms || 0
-    duration_str = duration_ms > 0 ? Time.at(duration_ms / 1000.0).utc.strftime('%M:%S') : '00:00'
-    
+    duration_str = duration_ms > 0 ? Time.at(duration_ms / 1000.0).utc.strftime("%M:%S") : "00:00"
+
     header = "#{@session.title}\n"
     header << "Language: #{@session.language.upcase}\n"
     header << "Duration: #{duration_str}\n"
     header << "Date: #{@session.created_at.strftime('%B %d, %Y at %l:%M %p')}\n"
     header << "Issues Found: #{issues_count}\n"
     header << "\n" + "="*50 + "\n\n"
-    
+
     content = header + transcript
-    
+
     if issues_count > 0
       content << "\n\n" + "="*50 + "\n"
       content << "SPEECH ANALYSIS ISSUES\n"
       content << "="*50 + "\n\n"
-      
+
       # Safely load issues to avoid N+1 queries and circular references
       issues_by_category = @session.issues.includes(:session).group_by(&:category)
-      
+
       issues_by_category.each do |category, category_issues|
         next if category.blank?
-        
+
         category_name = category.to_s.humanize
         content << "#{category_name.upcase} (#{category_issues.count})\n"
         content << "-" * (category_name.length + 10) + "\n\n"
-        
+
         category_issues.each do |issue|
           # Safely handle timestamp calculation
           start_ms = issue.start_ms || 0
           timestamp = start_ms > 0 ? Time.at(start_ms / 1000.0).utc.strftime("%M:%S") : "00:00"
-          
+
           # Safely handle text field to avoid circular references
           issue_text = issue.text.to_s.strip
           content << "[#{timestamp}] \"#{issue_text}\"\n"
@@ -211,16 +211,16 @@ class Api::SessionsController < ApplicationController
         end
       end
     end
-    
+
     content
   end
-  
+
   def generate_csv_export
-    require 'csv'
-    
+    require "csv"
+
     CSV.generate(headers: true) do |csv|
-      csv << ['Timestamp', 'Category', 'Issue Text', 'Coaching Note', 'Suggested Rewrite', 'Confidence', 'Severity']
-      
+      csv << [ "Timestamp", "Category", "Issue Text", "Coaching Note", "Suggested Rewrite", "Confidence", "Severity" ]
+
       @session.issues.order(:start_ms).each do |issue|
         timestamp = Time.at(issue.start_ms / 1000.0).utc.strftime("%M:%S")
         csv << [
@@ -238,41 +238,41 @@ class Api::SessionsController < ApplicationController
 
   def extract_session_metrics(session)
     return {} unless session.analysis_data.present?
-    
+
     analysis = session.analysis_data
     issues_count = session.issues.count
-    
+
     {
-      clarity_score: analysis['clarity_score'] || calculate_clarity_from_issues(session),
-      words_per_minute: analysis['wpm'],
-      filler_rate: analysis['filler_rate'],
+      clarity_score: analysis["clarity_score"] || calculate_clarity_from_issues(session),
+      words_per_minute: analysis["wpm"],
+      filler_rate: analysis["filler_rate"],
       issues_count: issues_count
     }.compact
   end
 
   def calculate_clarity_from_issues(session)
     return nil unless session.duration_ms && session.duration_ms > 0
-    
+
     total_issue_duration = session.issues.sum(&:duration_ms) || 0
     clarity_score = 1.0 - (total_issue_duration.to_f / session.duration_ms)
-    [clarity_score, 0.0].max
+    [ clarity_score, 0.0 ].max
   end
 
   def get_progress_info(session)
     # Use stored progress if available (from ProcessJob)
-    if session.analysis_data&.dig('processing_stage') && session.analysis_data&.dig('processing_progress')
-      stage = session.analysis_data['processing_stage']
-      progress = session.analysis_data['processing_progress']
+    if session.analysis_data&.dig("processing_stage") && session.analysis_data&.dig("processing_progress")
+      stage = session.analysis_data["processing_stage"]
+      progress = session.analysis_data["processing_progress"]
 
       stage_messages = {
-        'extraction' => 'Extracting audio from your recording...',
-        'transcription' => 'Transcribing your speech to text...',
-        'analysis' => 'Detecting speech patterns and issues...',
-        'refinement' => 'AI is refining the analysis...'
+        "extraction" => "Extracting audio from your recording...",
+        "transcription" => "Transcribing your speech to text...",
+        "analysis" => "Detecting speech patterns and issues...",
+        "refinement" => "AI is refining the analysis..."
       }
 
       return {
-        step: stage_messages[stage] || 'Processing...',
+        step: stage_messages[stage] || "Processing...",
         progress: progress,
         estimated_time: estimate_remaining_time(progress),
         current_stage: stage
@@ -281,38 +281,38 @@ class Api::SessionsController < ApplicationController
 
     # Fallback to time-based estimation if no stored progress
     case session.processing_state
-    when 'pending'
+    when "pending"
       {
-        step: 'Queued for processing',
+        step: "Queued for processing",
         progress: 5,
-        estimated_time: 'Starting analysis...',
-        current_stage: 'pending'
+        estimated_time: "Starting analysis...",
+        current_stage: "pending"
       }
-    when 'processing'
+    when "processing"
       # Better progress indication without confusing countdown
       processing_duration = Time.current - session.updated_at
 
       # Progressive status messages based on duration
       if processing_duration < 10
-        step_message = 'Extracting audio...'
+        step_message = "Extracting audio..."
         progress = 15
-        stage = 'extraction'
+        stage = "extraction"
       elsif processing_duration < 30
-        step_message = 'Transcribing speech...'
+        step_message = "Transcribing speech..."
         progress = 35
-        stage = 'transcription'
+        stage = "transcription"
       elsif processing_duration < 60
-        step_message = 'Analyzing speech patterns...'
+        step_message = "Analyzing speech patterns..."
         progress = 60
-        stage = 'analysis'
+        stage = "analysis"
       elsif processing_duration < 90
-        step_message = 'Generating insights...'
+        step_message = "Generating insights..."
         progress = 80
-        stage = 'refinement'
+        stage = "refinement"
       else
-        step_message = 'Finalizing analysis...'
+        step_message = "Finalizing analysis..."
         progress = 90
-        stage = 'refinement'
+        stage = "refinement"
       end
 
       {
@@ -321,38 +321,38 @@ class Api::SessionsController < ApplicationController
         estimated_time: estimate_remaining_time(progress),
         current_stage: stage
       }
-    when 'completed'
+    when "completed"
       {
-        step: 'Analysis complete',
+        step: "Analysis complete",
         progress: 100,
-        estimated_time: 'Done',
-        current_stage: 'completed'
+        estimated_time: "Done",
+        current_stage: "completed"
       }
-    when 'failed'
+    when "failed"
       {
-        step: 'Processing failed',
+        step: "Processing failed",
         progress: 0,
-        estimated_time: 'Please try again',
-        current_stage: 'failed'
+        estimated_time: "Please try again",
+        current_stage: "failed"
       }
     else
       {
-        step: 'Unknown state',
+        step: "Unknown state",
         progress: 0,
-        estimated_time: 'Please refresh the page',
-        current_stage: 'unknown'
+        estimated_time: "Please refresh the page",
+        current_stage: "unknown"
       }
     end
   end
 
   def get_interim_metrics(session)
     # Return interim metrics if available
-    session.analysis_data&.dig('interim_metrics') || {}
+    session.analysis_data&.dig("interim_metrics") || {}
   end
 
   def estimate_remaining_time(progress_percent)
-    return 'Done' if progress_percent >= 100
-    return 'Just a moment...' if progress_percent >= 90
+    return "Done" if progress_percent >= 100
+    return "Just a moment..." if progress_percent >= 90
 
     # Assume total time is ~40 seconds
     total_estimated_seconds = 40
@@ -360,7 +360,7 @@ class Api::SessionsController < ApplicationController
     remaining_seconds = (total_estimated_seconds * remaining_percent / 100.0).round
 
     if remaining_seconds < 10
-      'Almost done...'
+      "Almost done..."
     elsif remaining_seconds < 20
       "~#{remaining_seconds}s remaining"
     else

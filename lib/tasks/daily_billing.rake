@@ -9,7 +9,7 @@ namespace :billing do
     # - subscription_status is still 'free_trial' (not yet converted to active)
     # - onboarding_completed_at is present (they completed setup)
     users_to_charge = User.where("trial_expires_at < ?", Time.current)
-                          .where(subscription_status: 'free_trial')
+                          .where(subscription_status: "free_trial")
                           .where.not(onboarding_completed_at: nil)
                           .where.not(stripe_payment_method_id: nil)
 
@@ -50,7 +50,7 @@ namespace :billing do
   desc "Show users due for billing"
   task preview_expired_trials: :environment do
     users_to_charge = User.where("trial_expires_at < ?", Time.current)
-                          .where(subscription_status: 'free_trial')
+                          .where(subscription_status: "free_trial")
                           .where.not(onboarding_completed_at: nil)
                           .where.not(stripe_payment_method_id: nil)
 
@@ -59,7 +59,7 @@ namespace :billing do
     puts "=" * 60
 
     users_to_charge.each do |user|
-      amount = user.subscription_plan == 'yearly' ? '€60' : '€9.99'
+      amount = user.subscription_plan == "yearly" ? "€60" : "€9.99"
       puts "\nUser ID: #{user.id}"
       puts "Email: #{user.email}"
       puts "Plan: #{user.subscription_plan}"
@@ -72,7 +72,7 @@ namespace :billing do
   end
 
   desc "Test charging a specific user by ID"
-  task :test_charge, [:user_id] => :environment do |t, args|
+  task :test_charge, [ :user_id ] => :environment do |t, args|
     unless args[:user_id]
       puts "Usage: rake billing:test_charge[USER_ID]"
       exit

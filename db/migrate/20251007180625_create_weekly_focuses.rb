@@ -13,8 +13,8 @@ class CreateWeeklyFocuses < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :weekly_focuses, [:user_id, :week_start]
-    add_index :weekly_focuses, [:user_id, :status]
+    add_index :weekly_focuses, [ :user_id, :week_start ]
+    add_index :weekly_focuses, [ :user_id, :status ]
     add_index :weekly_focuses, :status
   end
 end

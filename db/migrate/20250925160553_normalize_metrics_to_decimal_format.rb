@@ -5,7 +5,7 @@ class NormalizeMetricsToDecimalFormat < ActiveRecord::Migration[8.0]
     # Update sessions with analysis data
     sessions_updated = 0
 
-    Session.where.not(analysis_json: [nil, "", "{}"]).find_each do |session|
+    Session.where.not(analysis_json: [ nil, "", "{}" ]).find_each do |session|
       begin
         data = session.analysis_data
         updated = false
@@ -104,7 +104,7 @@ class NormalizeMetricsToDecimalFormat < ActiveRecord::Migration[8.0]
 
     sessions_updated = 0
 
-    Session.where.not(analysis_json: [nil, "", "{}"]).find_each do |session|
+    Session.where.not(analysis_json: [ nil, "", "{}" ]).find_each do |session|
       begin
         data = session.analysis_data
         updated = false

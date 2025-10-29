@@ -1,12 +1,12 @@
 class ApplicationController < ActionController::Base
   # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
   allow_browser versions: :modern
-  
+
   # Error handling
   rescue_from ActiveRecord::RecordNotFound, with: :record_not_found
   rescue_from ActiveRecord::RecordInvalid, with: :record_invalid
   rescue_from StandardError, with: :handle_standard_error
-  
+
   # Request tracking
   before_action :set_request_context
 
@@ -15,23 +15,23 @@ class ApplicationController < ActionController::Base
 
   # Authentication
   helper_method :current_user, :logged_in?, :trial_mode?
-  
+
   private
-  
+
   def record_not_found(exception)
     respond_to do |format|
-      format.html { redirect_to root_path, alert: 'Resource not found.' }
-      format.json { render json: { error: 'Resource not found' }, status: :not_found }
+      format.html { redirect_to root_path, alert: "Resource not found." }
+      format.json { render json: { error: "Resource not found" }, status: :not_found }
     end
   end
-  
+
   def record_invalid(exception)
     respond_to do |format|
-      format.html { redirect_back(fallback_location: root_path, alert: 'Invalid data provided.') }
-      format.json { render json: { error: 'Invalid data', details: exception.record.errors }, status: :unprocessable_content }
+      format.html { redirect_back(fallback_location: root_path, alert: "Invalid data provided.") }
+      format.json { render json: { error: "Invalid data", details: exception.record.errors }, status: :unprocessable_content }
     end
   end
-  
+
   def handle_standard_error(exception)
     # In development, don't redirect on errors – show the actual exception to avoid redirect loops
     if Rails.env.development?
@@ -46,20 +46,20 @@ class ApplicationController < ActionController::Base
     Sentry.capture_exception(exception) if defined?(Sentry)
 
     # Avoid redirect loop if error happened on root
-    safe_location = request.path == root_path ? '/500.html' : root_path
+    safe_location = request.path == root_path ? "/500.html" : root_path
 
     respond_to do |format|
       format.html do
-        if safe_location == '/500.html'
-          render file: Rails.root.join('public', '500.html'), layout: false, status: :internal_server_error
+        if safe_location == "/500.html"
+          render file: Rails.root.join("public", "500.html"), layout: false, status: :internal_server_error
         else
-          redirect_to safe_location, alert: 'An unexpected error occurred. Please try again.'
+          redirect_to safe_location, alert: "An unexpected error occurred. Please try again."
         end
       end
-      format.json { render json: { error: 'Internal server error' }, status: :internal_server_error }
+      format.json { render json: { error: "Internal server error" }, status: :internal_server_error }
     end
   end
-  
+
   def set_request_context
     # Set Sentry context if available
     if defined?(Sentry)
@@ -98,7 +98,7 @@ class ApplicationController < ActionController::Base
   def require_login
     unless logged_in?
       store_location
-    redirect_to app_subdomain_url(login_path), allow_other_host: true, alert: 'Please login to continue'
+    redirect_to app_subdomain_url(login_path), allow_other_host: true, alert: "Please login to continue"
     end
   end
 
@@ -108,7 +108,7 @@ class ApplicationController < ActionController::Base
 
     # Only allow users with active paid subscription, lifetime access, or valid trial
     unless current_user.can_access_app?
-      redirect_to pricing_url, alert: 'Please subscribe to access the app.' and return
+      redirect_to pricing_url, alert: "Please subscribe to access the app." and return
     end
 
     # Show warning if subscription is expiring soon (less than 7 days) - only for non-lifetime users
@@ -123,7 +123,7 @@ class ApplicationController < ActionController::Base
   helper_method :require_subscription
 
   def store_location
-    session[:forwarding_url] = request.original_url if request.get?
+    session[:forwarding_url] = request.original_url if request.get? || request.head?
   end
 
   def redirect_back_or(default)
@@ -133,25 +133,25 @@ class ApplicationController < ActionController::Base
 
   def require_logout
     if logged_in?
-      redirect_to practice_path, notice: 'You are already logged in'
+      redirect_to practice_path, notice: "You are already logged in"
     end
   end
 
   # Subdomain URL helpers
-  def app_subdomain_url(path = '/')
-    build_subdomain_url('app', path)
+  def app_subdomain_url(path = "/")
+    build_subdomain_url("app", path)
   end
 
-  def marketing_subdomain_url(path = '/')
-    build_subdomain_url('', path)
+  def marketing_subdomain_url(path = "/")
+    build_subdomain_url("", path)
   end
 
   def build_subdomain_url(subdomain, path)
     # Get the base domain from the current request
     base_domain = if Rails.env.development?
-      'aitalkcoach.local'
+      "aitalkcoach.local"
     else
-      'aitalkcoach.com'
+      "aitalkcoach.com"
     end
 
     # Build the full host
@@ -162,17 +162,17 @@ class ApplicationController < ActionController::Base
     end
 
     # Use HTTPS in all environments (development now supports SSL for getUserMedia)
-    protocol = 'https://'
+    protocol = "https://"
 
     # Include port for development
-    port = Rails.env.development? ? ":#{request.port}" : ''
+    port = Rails.env.development? ? ":#{request.port}" : ""
 
     # Build the full URL
     "#{protocol}#{host}#{port}#{path}"
   end
 
   def pricing_url
-    marketing_subdomain_url('/pricing')
+    marketing_subdomain_url("/pricing")
   end
 
   helper_method :app_subdomain_url, :marketing_subdomain_url, :pricing_url
@@ -198,7 +198,7 @@ class ApplicationController < ActionController::Base
   # Onboarding enforcement
   def require_onboarding
     if logged_in? && current_user.needs_onboarding?
-      unless request.path.starts_with?('/onboarding')
+      unless request.path.starts_with?("/onboarding")
         redirect_to onboarding_welcome_path, alert: "Please complete your profile setup"
       end
     end
@@ -211,12 +211,12 @@ class ApplicationController < ActionController::Base
     # - Onboarding controllers (to avoid redirect loop)
     # - Webhook endpoints
     # - API health checks
-    controller_path.starts_with?('auth/') ||
-    controller_name == 'landing' ||
-    controller_name == 'pricing' ||
-    controller_name == 'trial_sessions' ||
-    controller_path.starts_with?('onboarding/') ||
-    controller_name == 'webhooks' ||
-    controller_path.starts_with?('admin/health')
+    controller_path.starts_with?("auth/") ||
+    controller_name == "landing" ||
+    controller_name == "pricing" ||
+    controller_name == "trial_sessions" ||
+    controller_path.starts_with?("onboarding/") ||
+    controller_name == "webhooks" ||
+    controller_path.starts_with?("admin/health")
   end
 end

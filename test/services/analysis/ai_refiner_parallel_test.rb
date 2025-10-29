@@ -4,8 +4,15 @@ module Analysis
   class AiRefinerParallelTest < ActiveSupport::TestCase
     setup do
       # Create test user and session without fixtures
-      @user = User.create!(email: 'test@example.com', password: 'password123')
-      @session = Session.create!(user: @user)
+      @user = User.create!(name: "AI Test User", email: "aitest@example.com", password: "password123")
+      @session = @user.sessions.build(
+        title: "Test Session",
+        language: "en",
+        media_kind: "audio",
+        processing_state: "pending",
+        target_seconds: 30
+      )
+      @session.save(validate: false) # Skip media_files validation for tests
 
       @transcript_data = {
         transcript: "Um, well, you know, I think this is a great presentation about our product.",
@@ -20,12 +27,12 @@ module Analysis
 
       @rule_based_issues = [
         {
-          kind: 'filler_word',
-          text: 'Um',
+          kind: "filler_word",
+          text: "Um",
           start_ms: 0,
           end_ms: 200,
-          severity: 'medium',
-          rationale: 'Hesitation filler'
+          severity: "medium",
+          rationale: "Hesitation filler"
         }
       ]
     end
@@ -48,20 +55,20 @@ module Analysis
 
       # Mock the AI calls to avoid actual API requests
       mock_ai_analysis = {
-        'filler_words' => [],
-        'validated_issues' => [],
-        'false_positives' => [],
-        'speech_quality' => { overall_clarity: 0.8 },
-        'summary' => {
-          'total_filler_count' => 0,
-          'total_valid_issues' => 0
+        "filler_words" => [],
+        "validated_issues" => [],
+        "false_positives" => [],
+        "speech_quality" => { overall_clarity: 0.8 },
+        "summary" => {
+          "total_filler_count" => 0,
+          "total_valid_issues" => 0
         }
       }
 
       mock_coaching = {
-        'focus_areas' => [],
-        'weekly_goals' => [],
-        'motivation_message' => 'Keep practicing!'
+        "focus_areas" => [],
+        "weekly_goals" => [],
+        "motivation_message" => "Keep practicing!"
       }
 
       refiner.stub(:perform_comprehensive_analysis, mock_ai_analysis) do
@@ -70,7 +77,7 @@ module Analysis
 
           # Verify metadata
           assert result[:metadata][:parallel_processing_enabled]
-          assert_includes ['parallel_processing_v1', 'sequential_v1'],
+          assert_includes [ "parallel_processing_v1", "sequential_v1" ],
                          result[:metadata][:optimization]
           assert result[:metadata][:model_analysis]
           assert result[:metadata][:model_coaching]
@@ -89,23 +96,23 @@ module Analysis
         refiner = AiRefiner.new(@session)
 
         mock_ai_analysis = {
-          'filler_words' => [],
-          'validated_issues' => [],
-          'false_positives' => [],
-          'speech_quality' => {},
-          'summary' => {
-            'total_filler_count' => 0,
-            'total_valid_issues' => 0
+          "filler_words" => [],
+          "validated_issues" => [],
+          "false_positives" => [],
+          "speech_quality" => {},
+          "summary" => {
+            "total_filler_count" => 0,
+            "total_valid_issues" => 0
           }
         }
 
-        mock_coaching = { 'focus_areas' => [] }
+        mock_coaching = { "focus_areas" => [] }
 
         refiner.stub(:perform_comprehensive_analysis, mock_ai_analysis) do
           refiner.stub(:generate_coaching_recommendations, mock_coaching) do
             result = refiner.refine_analysis(@transcript_data, @rule_based_issues)
 
-            assert_equal 'sequential_v1', result[:metadata][:optimization]
+            assert_equal "sequential_v1", result[:metadata][:optimization]
           end
         end
       ensure
@@ -118,7 +125,7 @@ module Analysis
       refiner = AiRefiner.new(@session)
 
       # Force an error in AI processing
-      refiner.stub(:perform_comprehensive_analysis, -> (*) { raise StandardError, "API Error" }) do
+      refiner.stub(:perform_comprehensive_analysis, ->(*) { raise StandardError, "API Error" }) do
         result = refiner.refine_analysis(@transcript_data, @rule_based_issues)
 
         # Should fallback to rule-based issues
@@ -132,14 +139,14 @@ module Analysis
       refiner = AiRefiner.new(@session)
 
       mock_ai_analysis = {
-        'filler_words' => [],
-        'validated_issues' => [],
-        'false_positives' => [],
-        'speech_quality' => {},
-        'summary' => { 'total_filler_count' => 0, 'total_valid_issues' => 0 }
+        "filler_words" => [],
+        "validated_issues" => [],
+        "false_positives" => [],
+        "speech_quality" => {},
+        "summary" => { "total_filler_count" => 0, "total_valid_issues" => 0 }
       }
 
-      mock_coaching = { 'focus_areas' => [] }
+      mock_coaching = { "focus_areas" => [] }
 
       refiner.stub(:perform_comprehensive_analysis, mock_ai_analysis) do
         refiner.stub(:generate_coaching_recommendations, mock_coaching) do
@@ -151,7 +158,7 @@ module Analysis
           assert result[:metadata][:coaching_duration_ms] >= 0
 
           # In parallel mode, total time should be less than sum of individual times
-          if result[:metadata][:optimization].to_s.start_with?('hybrid_parallel_v1')
+          if result[:metadata][:optimization].to_s.start_with?("hybrid_parallel_v1")
             total = result[:metadata][:processing_time_ms]
             individual_sum = result[:metadata][:analysis_duration_ms] +
                            result[:metadata][:coaching_duration_ms]
@@ -169,25 +176,25 @@ module Analysis
 
       # Test: No difference - both have same count
       rule_issues = [
-        { kind: 'filler_word', text: 'um' },
-        { kind: 'filler_word', text: 'uh' }
+        { kind: "filler_word", text: "um" },
+        { kind: "filler_word", text: "uh" }
       ]
       ai_issues = [
-        { kind: 'filler_word', text: 'um' },
-        { kind: 'filler_word', text: 'uh' }
+        { kind: "filler_word", text: "um" },
+        { kind: "filler_word", text: "uh" }
       ]
       refute refiner.send(:issue_counts_differ_significantly?, rule_issues, ai_issues),
         "Should not differ when counts are the same"
 
       # Test: Significant difference - rule has 10, AI has 5 (50% diff > 20% threshold)
-      rule_issues_many = Array.new(10) { { kind: 'filler_word', text: 'um' } }
-      ai_issues_few = Array.new(5) { { kind: 'filler_word', text: 'um' } }
+      rule_issues_many = Array.new(10) { { kind: "filler_word", text: "um" } }
+      ai_issues_few = Array.new(5) { { kind: "filler_word", text: "um" } }
       assert refiner.send(:issue_counts_differ_significantly?, rule_issues_many, ai_issues_few),
         "Should differ when difference is > 20%"
 
       # Test: Small difference - rule has 10, AI has 9 (10% diff < 20% threshold)
-      rule_issues_10 = Array.new(10) { { kind: 'filler_word', text: 'um' } }
-      ai_issues_9 = Array.new(9) { { kind: 'filler_word', text: 'um' } }
+      rule_issues_10 = Array.new(10) { { kind: "filler_word", text: "um" } }
+      ai_issues_9 = Array.new(9) { { kind: "filler_word", text: "um" } }
       refute refiner.send(:issue_counts_differ_significantly?, rule_issues_10, ai_issues_9),
         "Should not differ when difference is < 20%"
 
@@ -205,26 +212,26 @@ module Analysis
 
       # Mock AI analysis with fewer fillers than rule-based
       mock_ai_analysis = {
-        'filler_words' => [{ 'word' => 'um', 'text_snippet' => 'um well', 'start_ms' => 0, 'confidence' => 0.9, 'rationale' => 'test', 'severity' => 'medium' }],
-        'validated_issues' => [],
-        'false_positives' => [],
-        'speech_quality' => {},
-        'summary' => { 'total_filler_count' => 1, 'total_valid_issues' => 0 }
+        "filler_words" => [ { "word" => "um", "text_snippet" => "um well", "start_ms" => 0, "confidence" => 0.9, "rationale" => "test", "severity" => "medium" } ],
+        "validated_issues" => [],
+        "false_positives" => [],
+        "speech_quality" => {},
+        "summary" => { "total_filler_count" => 1, "total_valid_issues" => 0 }
       }
 
       # Rule-based has many fillers (will trigger regeneration)
       rule_based_many = Array.new(10) {
-        { kind: 'filler_word', text: 'um', start_ms: 0, end_ms: 100, severity: 'medium', rationale: 'test' }
+        { kind: "filler_word", text: "um", start_ms: 0, end_ms: 100, severity: "medium", rationale: "test" }
       }
 
-      mock_coaching = { 'focus_areas' => [] }
+      mock_coaching = { "focus_areas" => [] }
 
       refiner.stub(:perform_comprehensive_analysis, mock_ai_analysis) do
         refiner.stub(:generate_coaching_recommendations, mock_coaching) do
           result = refiner.refine_analysis(@transcript_data, rule_based_many)
 
           # Should indicate regeneration happened
-          if result[:metadata][:optimization].to_s.include?('parallel')
+          if result[:metadata][:optimization].to_s.include?("parallel")
             assert result[:metadata].key?(:coaching_regenerated),
               "Metadata should include coaching_regenerated flag"
 

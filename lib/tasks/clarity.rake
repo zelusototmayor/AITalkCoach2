@@ -3,38 +3,38 @@ namespace :clarity do
   task validate_all: :environment do
     puts "Validating all language rule configurations..."
     puts
-    
+
     results = Analysis::RuleValidator.validate_all_languages
     report = Analysis::RuleValidator.generate_report(results)
-    
+
     puts report
-    
+
     # Exit with error code if any language has errors
     has_errors = results.any? { |_, result| !result[:valid] }
     exit(1) if has_errors
   end
-  
+
   desc "Validate a specific language rule file"
-  task :validate, [:language] => :environment do |t, args|
-    language = args[:language] || 'en'
-    
+  task :validate, [ :language ] => :environment do |t, args|
+    language = args[:language] || "en"
+
     puts "Validating #{language} language rules..."
     puts
-    
+
     result = Analysis::RuleValidator.validate_language(language)
-    
+
     if result[:valid]
       puts "✅ #{language.upcase} rules are valid!"
     else
       puts "❌ #{language.upcase} rules have errors:"
       result[:errors].each { |error| puts "   - #{error}" }
     end
-    
+
     unless result[:warnings].empty?
       puts "\n⚠️  Warnings:"
       result[:warnings].each { |warning| puts "   - #{warning}" }
     end
-    
+
     if result[:stats]
       puts "\n📊 Statistics:"
       puts "   Total rules: #{result[:stats][:total_rules]}"
@@ -44,21 +44,21 @@ namespace :clarity do
       end
       puts "   Severities: #{result[:stats][:severities].map { |k, v| "#{k}(#{v})" }.join(', ')}"
     end
-    
+
     exit(1) unless result[:valid]
   end
-  
+
   desc "Test rule patterns against sample text"
-  task :test_patterns, [:language, :text] => :environment do |t, args|
-    language = args[:language] || 'en'
+  task :test_patterns, [ :language, :text ] => :environment do |t, args|
+    language = args[:language] || "en"
     text = args[:text] || "Um, I think this is, like, you know, a test sentence."
-    
+
     puts "Testing #{language} patterns against: '#{text}'"
     puts "=" * 60
-    
+
     begin
       rules = Analysis::Rulepacks.load_rules(language)
-      
+
       # Create proper transcript data structure
       transcript_data = {
         transcript: text,
@@ -66,9 +66,9 @@ namespace :clarity do
         metadata: { duration: 5.0 }
       }
       detector = Analysis::RuleDetector.new(transcript_data, language: language)
-      
+
       issues = detector.detect_all_issues
-      
+
       if issues.empty?
         puts "✅ No issues detected in the sample text."
       else
@@ -80,49 +80,49 @@ namespace :clarity do
           puts
         end
       end
-      
+
     rescue => e
       puts "❌ Error testing patterns: #{e.message}"
       exit(1)
     end
   end
-  
+
   desc "Show available languages and their rule counts"
   task stats: :environment do
     puts "Language Rule Statistics"
     puts "=" * 30
-    
+
     Analysis::Rulepacks.available_languages.each do |language|
       begin
         rules = Analysis::Rulepacks.load_rules(language)
         total_rules = rules.values.sum(&:length)
-        
+
         puts "#{language.upcase}:"
         puts "   Total rules: #{total_rules}"
-        
+
         rules.each do |category, rule_list|
           severity_counts = rule_list.group_by { |rule| rule[:severity] }
                                     .transform_values(&:length)
-          severity_str = severity_counts.map { |sev, count| "#{sev}(#{count})" }.join(', ')
+          severity_str = severity_counts.map { |sev, count| "#{sev}(#{count})" }.join(", ")
           puts "   #{category}: #{rule_list.length} rules [#{severity_str}]"
         end
         puts
-        
+
       rescue Analysis::Rulepacks::RuleLoadError => e
         puts "#{language.upcase}: ERROR - #{e.message}"
         puts
       end
     end
   end
-  
+
   desc "Export rules to JSON format"
-  task :export, [:language, :output] => :environment do |t, args|
-    language = args[:language] || 'en'
+  task :export, [ :language, :output ] => :environment do |t, args|
+    language = args[:language] || "en"
     output_file = args[:output] || "clarity_rules_#{language}.json"
-    
+
     begin
       rules = Analysis::Rulepacks.load_rules(language)
-      
+
       # Convert to a more portable format
       export_data = {
         language: language,
@@ -142,10 +142,10 @@ namespace :clarity do
           end
         end
       }
-      
+
       File.write(output_file, JSON.pretty_generate(export_data))
       puts "✅ Exported #{language} rules to #{output_file}"
-      
+
     rescue => e
       puts "❌ Error exporting rules: #{e.message}"
       exit(1)

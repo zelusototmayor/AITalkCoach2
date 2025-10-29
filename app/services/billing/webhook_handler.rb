@@ -22,15 +22,15 @@ module Billing
 
       # Process based on event type
       case event.type
-      when 'customer.subscription.created'
+      when "customer.subscription.created"
         handle_subscription_created
-      when 'customer.subscription.updated'
+      when "customer.subscription.updated"
         handle_subscription_updated
-      when 'customer.subscription.deleted'
+      when "customer.subscription.deleted"
         handle_subscription_deleted
-      when 'invoice.payment_succeeded'
+      when "invoice.payment_succeeded"
         handle_payment_succeeded
-      when 'invoice.payment_failed'
+      when "invoice.payment_failed"
         handle_payment_failed
       else
         Rails.logger.info "Unhandled Stripe event type: #{event.type}"
@@ -57,7 +57,7 @@ module Billing
 
       user.update!(
         stripe_subscription_id: subscription.id,
-        subscription_status: 'active',
+        subscription_status: "active",
         subscription_plan: plan_from_subscription(subscription),
         subscription_started_at: Time.at(subscription.current_period_start),
         current_period_end: Time.at(subscription.current_period_end)
@@ -73,11 +73,11 @@ module Billing
 
       # Map Stripe status to our status
       status = case subscription.status
-               when 'active' then 'active'
-               when 'canceled', 'unpaid' then 'canceled'
-               when 'past_due' then 'past_due'
-               else 'active'
-               end
+      when "active" then "active"
+      when "canceled", "unpaid" then "canceled"
+      when "past_due" then "past_due"
+      else "active"
+      end
 
       user.update!(
         subscription_status: status,
@@ -94,7 +94,7 @@ module Billing
       Rails.logger.info "Subscription deleted for user #{user.id}: #{subscription.id}"
 
       user.update!(
-        subscription_status: 'canceled',
+        subscription_status: "canceled",
         current_period_end: Time.at(subscription.current_period_end)
       )
     end
@@ -111,7 +111,7 @@ module Billing
         subscription = ::Stripe::Subscription.retrieve(invoice.subscription)
         user.update!(
           current_period_end: Time.at(subscription.current_period_end),
-          subscription_status: 'active'
+          subscription_status: "active"
         )
       end
     end
@@ -123,7 +123,7 @@ module Billing
 
       Rails.logger.info "Payment failed for user #{user.id}: #{invoice.id}"
 
-      user.update!(subscription_status: 'past_due')
+      user.update!(subscription_status: "past_due")
 
       # Send email notification to user about failed payment
       error_message = invoice.last_payment_error&.message || "Payment declined by your bank"
@@ -146,12 +146,12 @@ module Billing
 
       # Check interval to determine plan type
       case price.recurring&.interval
-      when 'month'
-        'monthly'
-      when 'year'
-        'yearly'
+      when "month"
+        "monthly"
+      when "year"
+        "yearly"
       else
-        'monthly' # default
+        "monthly" # default
       end
     end
   end

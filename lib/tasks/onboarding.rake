@@ -100,7 +100,7 @@ namespace :onboarding do
 
   desc "Daily onboarding statistics"
   task stats: :environment do
-    date = ENV['DATE'] ? Date.parse(ENV['DATE']) : Date.today
+    date = ENV["DATE"] ? Date.parse(ENV["DATE"]) : Date.today
 
     puts "\n" + "=" * 60
     puts "Onboarding Stats for #{date}"
@@ -131,10 +131,10 @@ namespace :onboarding do
 
     # Plan selection breakdown
     monthly_today = User.where(onboarding_completed_at: date.beginning_of_day..date.end_of_day)
-                       .where(subscription_plan: 'monthly')
+                       .where(subscription_plan: "monthly")
                        .count
     yearly_today = User.where(onboarding_completed_at: date.beginning_of_day..date.end_of_day)
-                      .where(subscription_plan: 'yearly')
+                      .where(subscription_plan: "yearly")
                       .count
 
     puts "\nPlan selection:"
@@ -145,34 +145,34 @@ namespace :onboarding do
   end
 
   desc "List users who abandoned onboarding at specific screen"
-  task :abandoned, [:screen] => :environment do |t, args|
-    screen = args[:screen] || 'all'
+  task :abandoned, [ :screen ] => :environment do |t, args|
+    screen = args[:screen] || "all"
 
     puts "\n" + "=" * 60
     puts "Abandoned Onboarding - Screen: #{screen.upcase}"
     puts "=" * 60
 
     case screen
-    when 'welcome', '1'
+    when "welcome", "1"
       users = User.where(onboarding_completed_at: nil, speaking_goal: nil)
                   .where("created_at < ?", 1.hour.ago)
                   .order(created_at: :desc)
       puts "\nUsers who signed up but never started onboarding:"
-    when 'profile', '2'
+    when "profile", "2"
       users = User.where(onboarding_completed_at: nil)
                   .where.not(speaking_goal: nil)
                   .where(speaking_style: nil)
                   .where("created_at < ?", 1.hour.ago)
                   .order(created_at: :desc)
       puts "\nUsers who abandoned after profile screen:"
-    when 'demographics', '3'
+    when "demographics", "3"
       users = User.where(onboarding_completed_at: nil)
                   .where.not(speaking_style: nil)
                   .where(age_range: nil)
                   .where("created_at < ?", 1.hour.ago)
                   .order(created_at: :desc)
       puts "\nUsers who abandoned after demographics screen:"
-    when 'payment', '4', '5'
+    when "payment", "4", "5"
       users = User.where(onboarding_completed_at: nil)
                   .where.not(age_range: nil)
                   .where(stripe_payment_method_id: nil)

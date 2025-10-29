@@ -1,0 +1,31 @@
+# Test users for integration tests
+one:
+  id: 1
+  name: "Test User"
+  email: "test@example.com"
+  password_digest: <%= BCrypt::Password.create('password123', cost: 4) %>
+  subscription_status: "active"
+  onboarding_completed_at: <%= 1.week.ago %>
+  created_at: <%= 1.month.ago %>
+  updated_at: <%= 1.day.ago %>
+
+two:
+  id: 2
+  name: "Another User"
+  email: "another@example.com"
+  password_digest: <%= BCrypt::Password.create('password123', cost: 4) %>
+  subscription_status: "free_trial"
+  trial_expires_at: <%= 2.weeks.from_now %>
+  onboarding_completed_at: <%= 3.days.ago %>
+  created_at: <%= 2.weeks.ago %>
+  updated_at: <%= 1.day.ago %>
+
+default_user:
+  id: 3
+  name: "Default User"
+  email: "default@example.com"
+  password_digest: <%= BCrypt::Password.create('password123', cost: 4) %>
+  subscription_status: "active"
+  onboarding_completed_at: <%= 1.week.ago %>
+  created_at: <%= 1.month.ago %>
+  updated_at: <%= 1.day.ago %>

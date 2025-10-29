@@ -1,5 +1,5 @@
 class WeeklyFocus < ApplicationRecord
-  self.table_name = 'weekly_focuses'
+  self.table_name = "weekly_focuses"
 
   belongs_to :user
   has_many :sessions, dependent: :nullify
@@ -27,10 +27,10 @@ class WeeklyFocus < ApplicationRecord
   validate :one_active_focus_per_user
 
   # Scopes
-  scope :active, -> { where(status: 'active') }
-  scope :completed, -> { where(status: 'completed') }
+  scope :active, -> { where(status: "active") }
+  scope :completed, -> { where(status: "completed") }
   scope :for_user, ->(user) { where(user: user) }
-  scope :current_week, -> { where('week_start <= ? AND week_end >= ?', Date.current, Date.current) }
+  scope :current_week, -> { where("week_start <= ? AND week_end >= ?", Date.current, Date.current) }
   scope :recent, -> { order(week_start: :desc).limit(10) }
 
   # Class methods
@@ -53,7 +53,7 @@ class WeeklyFocus < ApplicationRecord
       week_start: week_start,
       week_end: week_end,
       target_sessions_per_week: 10,
-      status: 'active'
+      status: "active"
     )
   end
 
@@ -76,27 +76,27 @@ class WeeklyFocus < ApplicationRecord
   end
 
   def is_current?
-    Date.current.between?(week_start, week_end) && status == 'active'
+    Date.current.between?(week_start, week_end) && status == "active"
   end
 
   def mark_completed!
-    update(status: 'completed')
+    update(status: "completed")
   end
 
   def mark_missed!
-    update(status: 'missed')
+    update(status: "missed")
   end
 
   # Human-readable focus type
   def focus_type_humanized
     case focus_type
-    when 'reduce_fillers' then 'Reduce Filler Words'
-    when 'improve_pace' then 'Improve Speaking Pace'
-    when 'enhance_clarity' then 'Enhance Speech Clarity'
-    when 'boost_engagement' then 'Boost Engagement'
-    when 'increase_fluency' then 'Increase Fluency'
-    when 'fix_long_pauses' then 'Fix Long Pauses'
-    when 'professional_language' then 'Use Professional Language'
+    when "reduce_fillers" then "Reduce Filler Words"
+    when "improve_pace" then "Improve Speaking Pace"
+    when "enhance_clarity" then "Enhance Speech Clarity"
+    when "boost_engagement" then "Boost Engagement"
+    when "increase_fluency" then "Increase Fluency"
+    when "fix_long_pauses" then "Fix Long Pauses"
+    when "professional_language" then "Use Professional Language"
     else focus_type.humanize
     end
   end
@@ -110,7 +110,7 @@ class WeeklyFocus < ApplicationRecord
   end
 
   def one_active_focus_per_user
-    return unless status == 'active' && user.present?
+    return unless status == "active" && user.present?
 
     existing_active = user.weekly_focuses.active.current_week.where.not(id: id)
     if existing_active.exists?

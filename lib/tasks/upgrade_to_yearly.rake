@@ -7,9 +7,9 @@ namespace :subscriptions do
     puts ""
 
     # Get the yearly price ID from environment
-    yearly_price_id = ENV.fetch('STRIPE_YEARLY_PRICE_ID', nil)
+    yearly_price_id = ENV.fetch("STRIPE_YEARLY_PRICE_ID", nil)
 
-    if yearly_price_id.blank? || yearly_price_id.include?('placeholder')
+    if yearly_price_id.blank? || yearly_price_id.include?("placeholder")
       puts "❌ ERROR: STRIPE_YEARLY_PRICE_ID not set in environment!"
       puts "Please set the yearly price ID in your .env file"
       exit 1
@@ -28,20 +28,20 @@ namespace :subscriptions do
     choice = STDIN.gets.chomp
 
     users = case choice
-            when "1"
+    when "1"
               User.all
-            when "2"
+    when "2"
               print "Enter email: "
               email = STDIN.gets.chomp
               User.where(email: email)
-            when "3"
+    when "3"
               print "Enter status (free_trial, active, canceled, past_due): "
               status = STDIN.gets.chomp
               User.where(subscription_status: status)
-            else
+    else
               puts "Invalid choice"
               exit 1
-            end
+    end
 
     puts ""
     puts "Found #{users.count} user(s) to upgrade"
@@ -61,7 +61,7 @@ namespace :subscriptions do
     print "Do you want to proceed with upgrading these users? (yes/no): "
     confirmation = STDIN.gets.chomp.downcase
 
-    unless confirmation == 'yes'
+    unless confirmation == "yes"
       puts "Aborted"
       exit 0
     end
@@ -85,7 +85,7 @@ namespace :subscriptions do
         if user.stripe_subscription_id.present?
           begin
             existing_sub = Stripe::Subscription.retrieve(user.stripe_subscription_id)
-            if existing_sub.status != 'canceled'
+            if existing_sub.status != "canceled"
               Stripe::Subscription.cancel(user.stripe_subscription_id)
               puts "  ✓ Canceled existing subscription: #{user.stripe_subscription_id}"
             end
@@ -97,12 +97,12 @@ namespace :subscriptions do
         # Create new yearly subscription
         subscription = Stripe::Subscription.create(
           customer: customer.id,
-          items: [{ price: yearly_price_id }],
+          items: [ { price: yearly_price_id } ],
           metadata: {
             user_id: user.id,
-            plan: 'yearly',
+            plan: "yearly",
             upgraded_at: Time.current.iso8601,
-            upgraded_by: 'admin_script'
+            upgraded_by: "admin_script"
           }
         )
         puts "  ✓ Created yearly subscription: #{subscription.id}"
@@ -110,8 +110,8 @@ namespace :subscriptions do
         # Update user record
         user.update!(
           stripe_subscription_id: subscription.id,
-          subscription_status: 'active',
-          subscription_plan: 'yearly',
+          subscription_status: "active",
+          subscription_plan: "yearly",
           subscription_started_at: Time.at(subscription.current_period_start),
           current_period_end: Time.at(subscription.current_period_end)
         )
@@ -142,7 +142,7 @@ namespace :subscriptions do
   end
 
   desc "Upgrade a single user to yearly plan by email"
-  task :upgrade_user_to_yearly, [:email] => :environment do |t, args|
+  task :upgrade_user_to_yearly, [ :email ] => :environment do |t, args|
     unless args[:email]
       puts "Usage: rails subscriptions:upgrade_user_to_yearly[user@example.com]"
       exit 1
@@ -154,9 +154,9 @@ namespace :subscriptions do
       exit 1
     end
 
-    yearly_price_id = ENV.fetch('STRIPE_YEARLY_PRICE_ID', nil)
+    yearly_price_id = ENV.fetch("STRIPE_YEARLY_PRICE_ID", nil)
 
-    if yearly_price_id.blank? || yearly_price_id.include?('placeholder')
+    if yearly_price_id.blank? || yearly_price_id.include?("placeholder")
       puts "ERROR: STRIPE_YEARLY_PRICE_ID not set in environment!"
       exit 1
     end
@@ -173,7 +173,7 @@ namespace :subscriptions do
       if user.stripe_subscription_id.present?
         begin
           existing_sub = Stripe::Subscription.retrieve(user.stripe_subscription_id)
-          if existing_sub.status != 'canceled'
+          if existing_sub.status != "canceled"
             Stripe::Subscription.cancel(user.stripe_subscription_id)
             puts "✓ Canceled existing subscription: #{user.stripe_subscription_id}"
           end
@@ -185,12 +185,12 @@ namespace :subscriptions do
       # Create new yearly subscription
       subscription = Stripe::Subscription.create(
         customer: customer.id,
-        items: [{ price: yearly_price_id }],
+        items: [ { price: yearly_price_id } ],
         metadata: {
           user_id: user.id,
-          plan: 'yearly',
+          plan: "yearly",
           upgraded_at: Time.current.iso8601,
-          upgraded_by: 'admin_script'
+          upgraded_by: "admin_script"
         }
       )
       puts "✓ Created yearly subscription: #{subscription.id}"
@@ -198,8 +198,8 @@ namespace :subscriptions do
       # Update user record
       user.update!(
         stripe_subscription_id: subscription.id,
-        subscription_status: 'active',
-        subscription_plan: 'yearly',
+        subscription_status: "active",
+        subscription_plan: "yearly",
         subscription_started_at: Time.at(subscription.current_period_start),
         current_period_end: Time.at(subscription.current_period_end)
       )

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module IconHelper
-  def icon_svg(name, css_class: 'icon', **options)
+  def icon_svg(name, css_class: "icon", **options)
     svg_content = case name.to_sym
     when :mic, :microphone
       '<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3"/>'
@@ -92,15 +92,15 @@ module IconHelper
     # Build attributes
     attrs = {
       class: css_class,
-      viewBox: '0 0 24 24',
-      fill: 'none',
-      stroke: 'currentColor',
-      'stroke-width': '2',
-      'stroke-linecap': 'round',
-      'stroke-linejoin': 'round'
+      viewBox: "0 0 24 24",
+      fill: "none",
+      stroke: "currentColor",
+      'stroke-width': "2",
+      'stroke-linecap': "round",
+      'stroke-linejoin': "round"
     }.merge(options)
 
-    attr_string = attrs.map { |k, v| %(#{k}="#{v}") }.join(' ')
+    attr_string = attrs.map { |k, v| %(#{k}="#{v}") }.join(" ")
 
     %(<svg #{attr_string}>#{svg_content}</svg>).html_safe
   end
@@ -108,52 +108,52 @@ module IconHelper
   # Map emoji to icon name for backend compatibility
   def emoji_to_icon(emoji_string)
     mapping = {
-      '🎤' => :mic,
-      '⭐' => :star,
-      '🎯' => :target,
-      '⏱️' => :clock,
-      '🎵' => :music,
-      '🗣️' => :mic,
-      '👄' => :mic,
-      '🔍' => :search,
-      '💡' => :lightbulb,
-      '⚡' => :lightning,
-      '📖' => :book,
-      '❓' => :question,
-      '🎲' => :shuffle,
-      '🔗' => :link,
-      '🌊' => :wave,
-      '📝' => :file_text,
-      '🌉' => :bridge,
-      '📋' => :clipboard,
-      '💼' => :briefcase,
-      '📊' => :chart,
-      '🎓' => :star,
-      '✓' => :check,
-      '🚀' => :rocket,
-      '🔥' => :fire,
-      '🔒' => :lock,
-      '✨' => :sparkles,
-      '💬' => :message,
-      '📈' => :trending_up,
-      '🎙️' => :mic,
-      '❌' => :x_circle,
-      '⏳' => :hourglass,
-      '🛡️' => :shield,
-      '📅' => :calendar,
-      '♾️' => :infinity,
-      '🗑️' => :trash,
-      '⚠️' => :alert,
-      '👁️' => :eye,
-      '📤' => :upload,
-      '☆' => :star
+      "🎤" => :mic,
+      "⭐" => :star,
+      "🎯" => :target,
+      "⏱️" => :clock,
+      "🎵" => :music,
+      "🗣️" => :mic,
+      "👄" => :mic,
+      "🔍" => :search,
+      "💡" => :lightbulb,
+      "⚡" => :lightning,
+      "📖" => :book,
+      "❓" => :question,
+      "🎲" => :shuffle,
+      "🔗" => :link,
+      "🌊" => :wave,
+      "📝" => :file_text,
+      "🌉" => :bridge,
+      "📋" => :clipboard,
+      "💼" => :briefcase,
+      "📊" => :chart,
+      "🎓" => :star,
+      "✓" => :check,
+      "🚀" => :rocket,
+      "🔥" => :fire,
+      "🔒" => :lock,
+      "✨" => :sparkles,
+      "💬" => :message,
+      "📈" => :trending_up,
+      "🎙️" => :mic,
+      "❌" => :x_circle,
+      "⏳" => :hourglass,
+      "🛡️" => :shield,
+      "📅" => :calendar,
+      "♾️" => :infinity,
+      "🗑️" => :trash,
+      "⚠️" => :alert,
+      "👁️" => :eye,
+      "📤" => :upload,
+      "☆" => :star
     }
 
     mapping[emoji_string] || :info  # default fallback
   end
 
   # Render icon from emoji (for backend data)
-  def icon_from_emoji(emoji_string, css_class: 'icon-inline')
+  def icon_from_emoji(emoji_string, css_class: "icon-inline")
     icon_name = emoji_to_icon(emoji_string)
     icon_svg(icon_name, css_class: css_class)
   end

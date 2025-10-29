@@ -1,10 +1,10 @@
 class Api::TrialSessionsController < ApplicationController
   before_action :set_trial_session
-  skip_before_action :require_onboarding, only: [:status]
+  skip_before_action :require_onboarding, only: [ :status ]
 
   def status
     # Get processing stage from analysis_data if available
-    processing_stage = @trial_session.analysis_data&.dig('processing_stage')
+    processing_stage = @trial_session.analysis_data&.dig("processing_stage")
     incomplete_reason = @trial_session.incomplete_reason
 
     render json: {
@@ -31,32 +31,32 @@ class Api::TrialSessionsController < ApplicationController
       raise ActiveRecord::RecordNotFound
     end
   rescue ActiveRecord::RecordNotFound
-    render json: { error: 'Trial session not found or expired' }, status: :not_found
+    render json: { error: "Trial session not found or expired" }, status: :not_found
   end
 
   def get_trial_progress_info(trial_session)
     case trial_session.processing_state
-    when 'pending'
+    when "pending"
       {
-        step: 'Analysis Queued',
+        step: "Analysis Queued",
         progress: 5,
         estimated_time: trial_session.estimated_completion_time
       }
-    when 'processing'
+    when "processing"
       # Better progress indication for trial sessions
       processing_duration = Time.current - trial_session.updated_at
 
       if processing_duration < 5
-        step_message = 'Starting analysis...'
+        step_message = "Starting analysis..."
         progress = 15
       elsif processing_duration < 15
-        step_message = 'Transcribing speech...'
+        step_message = "Transcribing speech..."
         progress = 40
       elsif processing_duration < 25
-        step_message = 'Analyzing patterns...'
+        step_message = "Analyzing patterns..."
         progress = 70
       else
-        step_message = 'Finalizing results...'
+        step_message = "Finalizing results..."
         progress = 90
       end
 
@@ -65,23 +65,23 @@ class Api::TrialSessionsController < ApplicationController
         progress: progress,
         estimated_time: trial_session.estimated_completion_time
       }
-    when 'completed'
+    when "completed"
       {
-        step: 'Analysis complete',
+        step: "Analysis complete",
         progress: 100,
-        estimated_time: 'Done'
+        estimated_time: "Done"
       }
-    when 'failed'
+    when "failed"
       {
-        step: 'Analysis failed',
+        step: "Analysis failed",
         progress: 0,
-        estimated_time: 'Please try again'
+        estimated_time: "Please try again"
       }
     else
       {
-        step: 'Unknown state',
+        step: "Unknown state",
         progress: 0,
-        estimated_time: 'Please refresh the page'
+        estimated_time: "Please refresh the page"
       }
     end
   end

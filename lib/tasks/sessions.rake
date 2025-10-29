@@ -3,8 +3,8 @@ namespace :sessions do
   task check_stuck: :environment do
     stuck_timeout = 30.minutes
 
-    stuck_sessions = Session.where(processing_state: 'processing')
-                           .where('updated_at < ?', stuck_timeout.ago)
+    stuck_sessions = Session.where(processing_state: "processing")
+                           .where("updated_at < ?", stuck_timeout.ago)
 
     if stuck_sessions.any?
       puts "Found #{stuck_sessions.count} stuck sessions:"
@@ -14,7 +14,7 @@ namespace :sessions do
         puts "  Session #{session.id}: stuck for #{duration.to_i / 60} minutes"
 
         session.update!(
-          processing_state: 'failed',
+          processing_state: "failed",
           completed: false,
           incomplete_reason: "Processing timeout after #{duration.to_i / 60} minutes - possible job queue issue"
         )
@@ -49,8 +49,8 @@ namespace :sessions do
     end
 
     # Check for sessions that may have been enqueued but never processed
-    potentially_stuck = Session.where(processing_state: 'processing')
-                               .where('updated_at < ?', 10.minutes.ago)
+    potentially_stuck = Session.where(processing_state: "processing")
+                               .where("updated_at < ?", 10.minutes.ago)
 
     if potentially_stuck.any?
       puts "⚠ Found #{potentially_stuck.count} sessions that may be stuck:"

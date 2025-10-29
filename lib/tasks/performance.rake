@@ -2,21 +2,21 @@ namespace :performance do
   desc "Run comprehensive performance analysis"
   task analyze: :environment do
     puts "Running comprehensive performance analysis..."
-    
+
     analyzer = Performance::Optimizer.new
-    
+
     puts "\n" + "="*80
     puts "PERFORMANCE ANALYSIS REPORT"
     puts "="*80
     puts "Started at: #{Time.current.iso8601}"
-    
+
     # Database optimization analysis
     puts "\n📊 Database Query Optimization"
     puts "-" * 40
     db_report = analyzer.optimize_database_queries
     puts "Indexes created: #{db_report[:indexes_created]}"
     db_report[:recommendations].each { |rec| puts "• #{rec[:recommendation] || rec}" }
-    
+
     # N+1 query analysis
     puts "\n🔍 N+1 Query Analysis"
     puts "-" * 40
@@ -28,7 +28,7 @@ namespace :performance do
       puts "   Example: #{opp[:query_example]}"
       puts
     end
-    
+
     # Active Storage optimization
     puts "\n💾 Active Storage Optimization"
     puts "-" * 40
@@ -39,7 +39,7 @@ namespace :performance do
       puts "  Impact: #{opt[:impact]}"
       puts
     end
-    
+
     # Session loading optimization
     puts "\n⚡ Session Loading Optimization"
     puts "-" * 40
@@ -59,7 +59,7 @@ namespace :performance do
       end
       puts
     end
-    
+
     # Performance benchmarks
     puts "\n🏃 Performance Benchmarks"
     puts "-" * 40
@@ -71,23 +71,23 @@ namespace :performance do
       puts "   #{result[:recommendation]}" if result[:recommendation]
       puts "   Error: #{result[:error]}" if result[:error]
     end
-    
+
     puts "\n" + "="*80
     puts "Analysis completed at: #{Time.current.iso8601}"
   end
-  
+
   desc "Monitor real-time performance metrics"
   task monitor: :environment do
     puts "Starting real-time performance monitoring..."
     puts "Press Ctrl+C to stop monitoring"
-    
+
     trap("INT") do
       puts "\nMonitoring stopped."
       exit 0
     end
-    
+
     last_gc_count = GC.count
-    
+
     loop do
       begin
         # Memory statistics
@@ -97,16 +97,16 @@ namespace :performance do
           gc_count = GC.count
           gc_diff = gc_count - last_gc_count
           last_gc_count = gc_count
-          
+
           puts "\n#{Time.current.strftime('%H:%M:%S')} - Memory: #{memory_mb.round(1)}MB | GC runs: #{gc_diff}"
         end
-        
+
         # Database connection pool status
         if ActiveRecord::Base.connected?
           pool = ActiveRecord::Base.connection_pool
           puts "DB Pool - Size: #{pool.size} | Checked out: #{pool.connections.size} | Available: #{pool.available.size}"
         end
-        
+
         # Job queue status (if SolidQueue available)
         if defined?(SolidQueue)
           begin
@@ -117,7 +117,7 @@ namespace :performance do
             puts "Jobs - Queue status unavailable"
           end
         end
-        
+
         # Cache statistics (if available)
         if Rails.cache.respond_to?(:stats)
           cache_stats = Rails.cache.stats
@@ -125,7 +125,7 @@ namespace :performance do
             puts "Cache - Hit rate: #{(cache_stats[:hit_rate] * 100).round(1)}% | Size: #{cache_stats[:size] || 'N/A'}"
           end
         end
-        
+
         sleep 5
       rescue => e
         puts "Monitoring error: #{e.message}"
@@ -133,86 +133,86 @@ namespace :performance do
       end
     end
   end
-  
+
   desc "Generate missing database indexes"
   task create_indexes: :environment do
     puts "Analyzing and creating missing database indexes..."
-    
+
     optimizer = Performance::Optimizer.new
     report = optimizer.optimize_database_queries
-    
+
     if report[:indexes_created] > 0
       puts "✅ Created #{report[:indexes_created]} database indexes"
       report[:optimizations].each { |opt| puts "  • #{opt}" }
     else
       puts "ℹ️  No missing indexes found or no indexes could be created"
     end
-    
+
     if report[:recommendations].any?
       puts "\n📋 Manual actions recommended:"
       report[:recommendations].each { |rec| puts "  • #{rec}" }
     end
   end
-  
+
   desc "Benchmark specific operations"
   task benchmark: :environment do
-    operation = ENV['OPERATION']
-    iterations = ENV['ITERATIONS']&.to_i || 10
-    
+    operation = ENV["OPERATION"]
+    iterations = ENV["ITERATIONS"]&.to_i || 10
+
     unless operation
       puts "Usage: rake performance:benchmark OPERATION=session_creation ITERATIONS=10"
       puts "Available operations: session_creation, audio_processing, ai_processing, database_queries"
       exit 1
     end
-    
+
     puts "Benchmarking #{operation} (#{iterations} iterations)..."
-    
+
     results = []
-    
+
     iterations.times do |i|
       print "Iteration #{i + 1}/#{iterations}... "
-      
+
       start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-      
+
       case operation
-      when 'session_creation'
+      when "session_creation"
         user = User.first || User.create!(email: "bench_#{SecureRandom.hex(4)}@test.com")
-        session = Session.new(user: user, language: 'en')
+        session = Session.new(user: user, language: "en")
         session.valid? # Trigger validations without saving
-      when 'database_queries'
+      when "database_queries"
         Session.includes(:issues).limit(5).to_a
         User.includes(:sessions).limit(3).to_a
-      when 'ai_processing'
+      when "ai_processing"
         # Simulate AI processing setup
-        Ai::Client.new(model: 'gpt-4o')
+        Ai::Client.new(model: "gpt-4o")
       else
         puts "Unknown operation: #{operation}"
         exit 1
       end
-      
+
       end_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       duration = (end_time - start_time) * 1000
       results << duration
-      
+
       puts "#{duration.round(2)}ms"
     rescue => e
       puts "ERROR: #{e.message}"
       results << nil
     end
-    
+
     # Calculate statistics
     valid_results = results.compact
     if valid_results.any?
       avg = valid_results.sum / valid_results.size
       min_val = valid_results.min
       max_val = valid_results.max
-      
+
       puts "\n📊 Benchmark Results:"
       puts "Average: #{avg.round(2)}ms"
       puts "Minimum: #{min_val.round(2)}ms"
       puts "Maximum: #{max_val.round(2)}ms"
       puts "Success rate: #{(valid_results.size.to_f / iterations * 100).round(1)}%"
-      
+
       # Performance assessment
       case avg
       when 0..50
@@ -228,11 +228,11 @@ namespace :performance do
       puts "❌ All iterations failed"
     end
   end
-  
+
   desc "Check system resource usage"
   task system_check: :environment do
     puts "Checking system resource usage..."
-    
+
     puts "\n💾 Memory Usage:"
     if defined?(GC)
       gc_stat = GC.stat
@@ -241,16 +241,16 @@ namespace :performance do
       puts "GC runs: #{GC.count}"
       puts "Heap pages: #{gc_stat[:heap_allocated_pages]}"
     end
-    
+
     puts "\n💿 Disk Usage:"
     begin
       df_output = `df #{Rails.root} | tail -1`.split
       usage_percent = df_output[4].to_i
       available_gb = (df_output[3].to_i / 1024.0 / 1024.0).round(1)
-      
+
       puts "Disk usage: #{usage_percent}%"
       puts "Available space: #{available_gb}GB"
-      
+
       if usage_percent > 90
         puts "🔴 Critical: Disk space very low!"
       elsif usage_percent > 80
@@ -261,17 +261,17 @@ namespace :performance do
     rescue
       puts "Unable to check disk usage (not Unix-like system)"
     end
-    
+
     puts "\n🗄️ Database:"
     if ActiveRecord::Base.connected?
       pool = ActiveRecord::Base.connection_pool
       puts "Connection pool size: #{pool.size}"
       puts "Active connections: #{pool.connections.size}"
       puts "Available connections: #{pool.available.size}"
-      
+
       # Table sizes
       puts "\nTable row counts:"
-      [User, Session, Issue, AiCache, UserIssueEmbedding].each do |model|
+      [ User, Session, Issue, AiCache, UserIssueEmbedding ].each do |model|
         begin
           count = model.count
           puts "#{model.name.pluralize}: #{count}"
@@ -282,7 +282,7 @@ namespace :performance do
     else
       puts "Database not connected"
     end
-    
+
     puts "\n🔧 Rails Cache:"
     puts "Cache store: #{Rails.cache.class.name}"
     if Rails.cache.respond_to?(:stats)

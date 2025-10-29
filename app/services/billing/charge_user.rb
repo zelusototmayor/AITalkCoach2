@@ -23,7 +23,7 @@ module Billing
         # Create and confirm payment intent
         payment_intent = Stripe::PaymentIntent.create(
           amount: amount,
-          currency: 'eur',
+          currency: "eur",
           customer: user.stripe_customer_id,
           payment_method: user.stripe_payment_method_id,
           off_session: true,
@@ -35,7 +35,7 @@ module Billing
           }
         )
 
-        if payment_intent.status == 'succeeded'
+        if payment_intent.status == "succeeded"
           handle_successful_charge(payment_intent)
           true
         else
@@ -62,9 +62,9 @@ module Billing
 
     def calculate_amount
       case user.subscription_plan
-      when 'yearly'
+      when "yearly"
         YEARLY_AMOUNT
-      when 'monthly'
+      when "monthly"
         MONTHLY_AMOUNT
       else
         raise ArgumentError, "Invalid subscription plan: #{user.subscription_plan}"
@@ -75,7 +75,7 @@ module Billing
       Rails.logger.info "Successfully charged user #{user.id}: #{payment_intent.id}"
 
       # Calculate next billing date based on plan
-      next_billing_date = if user.subscription_plan == 'yearly'
+      next_billing_date = if user.subscription_plan == "yearly"
         1.year.from_now
       else
         1.month.from_now
@@ -83,7 +83,7 @@ module Billing
 
       # Update user to active subscriber
       user.update!(
-        subscription_status: 'active',
+        subscription_status: "active",
         subscription_started_at: Time.current,
         current_period_end: next_billing_date
       )
@@ -106,7 +106,7 @@ module Billing
         # Max retries exceeded - cancel subscription
         Rails.logger.error "Max payment retries exceeded for user #{user.id}, canceling subscription"
         user.update(
-          subscription_status: 'canceled',
+          subscription_status: "canceled",
           payment_retry_count: 0
         )
         UserMailer.payment_failed(user, "Payment failed after #{MAX_RETRY_ATTEMPTS} attempts").deliver_later
@@ -119,7 +119,7 @@ module Billing
       retry_count = user.payment_retry_count || 0
 
       # Mark subscription as past_due
-      user.update(subscription_status: 'past_due')
+      user.update(subscription_status: "past_due")
 
       # Send payment failure notification
       UserMailer.payment_failed(user, error.message).deliver_later
@@ -132,18 +132,18 @@ module Billing
 
         # Schedule retry job - exponential backoff: 1 day, 3 days, 7 days
         retry_delay = case retry_count
-                      when 0 then 1.day
-                      when 1 then 3.days
-                      when 2 then 7.days
-                      else 1.day
-                      end
+        when 0 then 1.day
+        when 1 then 3.days
+        when 2 then 7.days
+        else 1.day
+        end
 
         Billing::RetryChargeJob.set(wait: retry_delay).perform_later(user.id)
       else
         # After 3 failed attempts, block access
         Rails.logger.error "Max retries exceeded for user #{user.id}, canceling subscription"
         user.update(
-          subscription_status: 'canceled',
+          subscription_status: "canceled",
           payment_retry_count: 0
         )
         UserMailer.subscription_canceled(user, "Payment failed after #{MAX_RETRY_ATTEMPTS} attempts").deliver_later

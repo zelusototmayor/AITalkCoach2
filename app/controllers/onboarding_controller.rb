@@ -1,7 +1,7 @@
 class OnboardingController < ApplicationController
   before_action :require_login
   skip_before_action :require_onboarding
-  before_action :redirect_if_completed, except: [:complete]
+  before_action :redirect_if_completed, except: [ :complete ]
 
   # Screen 1: Why communication matters (informational page)
   def welcome
@@ -56,7 +56,7 @@ class OnboardingController < ApplicationController
   def test
     if request.get?
       # Check if user explicitly wants to re-record by clearing previous session
-      if params[:new_recording] == 'true'
+      if params[:new_recording] == "true"
         # Clear previous demo session
         current_user.update(onboarding_demo_session_id: nil) if current_user.onboarding_demo_session_id.present?
         cookies.delete(:demo_trial_token)
@@ -76,9 +76,9 @@ class OnboardingController < ApplicationController
       end
     elsif request.post?
       # Handle fresh test recording or skip
-      if params[:skipped] == 'true'
+      if params[:skipped] == "true"
         redirect_to onboarding_pricing_path(skipped: true)
-      elsif params[:audio_file].present? && params[:trial_recording] == 'true'
+      elsif params[:audio_file].present? && params[:trial_recording] == "true"
         # Handle trial recording upload
         begin
           trial_session = TrialSession.create!(
@@ -102,7 +102,7 @@ class OnboardingController < ApplicationController
           # Return JSON for AJAX submission - redirect to waiting page
           render json: {
             success: true,
-            message: 'Recording uploaded successfully',
+            message: "Recording uploaded successfully",
             trial_token: trial_session.token,
             redirect_url: onboarding_waiting_path
           }
@@ -110,8 +110,8 @@ class OnboardingController < ApplicationController
           Rails.logger.error "Onboarding trial recording error: #{e.message}"
           render json: {
             success: false,
-            message: 'Failed to process recording. Please try again.',
-            errors: [e.message]
+            message: "Failed to process recording. Please try again.",
+            errors: [ e.message ]
           }, status: :unprocessable_entity
         end
       else
@@ -186,7 +186,7 @@ class OnboardingController < ApplicationController
 
       @setup_intent = ::Stripe::SetupIntent.create(
         customer: current_user.stripe_customer_id,
-        payment_method_types: ['card']
+        payment_method_types: [ "card" ]
       )
     elsif request.post?
       # Verify SetupIntent and save payment method
@@ -197,7 +197,7 @@ class OnboardingController < ApplicationController
         # Verify the SetupIntent with Stripe
         setup_intent = ::Stripe::SetupIntent.retrieve(setup_intent_id)
 
-        if setup_intent.status == 'succeeded'
+        if setup_intent.status == "succeeded"
           # Save payment method to customer
           payment_method = setup_intent.payment_method
 

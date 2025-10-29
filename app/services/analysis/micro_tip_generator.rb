@@ -50,13 +50,13 @@ module Analysis
       quality_score = @metrics.dig(:clarity_metrics, :pause_metrics, :pause_quality_score) || 100
 
       # Only suggest if there's room for improvement
-      if quality_score < 70 && pause_patterns[:quality_breakdown] == 'mostly_good_with_awkward_long_pauses'
+      if quality_score < 70 && pause_patterns[:quality_breakdown] == "mostly_good_with_awkward_long_pauses"
         tips << {
-          category: 'pause_consistency',
-          title: 'Pause Consistency',
-          icon: '🔄',
+          category: "pause_consistency",
+          title: "Pause Consistency",
+          icon: "🔄",
           description: build_pause_description(pause_patterns, quality_score),
-          action: 'Aim for 0.5-1 second pauses between thoughts',
+          action: "Aim for 0.5-1 second pauses between thoughts",
           impact: IMPACT_MEDIUM,
           effort: EFFORT_LOW,
           priority_score: calculate_priority_score(IMPACT_MEDIUM, EFFORT_LOW),
@@ -74,19 +74,19 @@ module Analysis
       tips = []
       pace_patterns = @coaching_insights[:pace_patterns] || {}
 
-      return tips if pace_patterns.empty? || pace_patterns[:trajectory] == 'insufficient_data'
+      return tips if pace_patterns.empty? || pace_patterns[:trajectory] == "insufficient_data"
 
       consistency = pace_patterns[:consistency] || 1.0
       trajectory = pace_patterns[:trajectory]
 
       # Suggest pace consistency improvement
-      if consistency < 0.6 && trajectory != 'consistent_throughout'
+      if consistency < 0.6 && trajectory != "consistent_throughout"
         tips << {
-          category: 'pace_consistency',
-          title: 'Pace Consistency',
-          icon: '⚡',
+          category: "pace_consistency",
+          title: "Pace Consistency",
+          icon: "⚡",
           description: build_pace_description(pace_patterns, consistency),
-          action: 'Practice maintaining steady pace throughout your talk',
+          action: "Practice maintaining steady pace throughout your talk",
           impact: IMPACT_MEDIUM,
           effort: EFFORT_MEDIUM,
           priority_score: calculate_priority_score(IMPACT_MEDIUM, EFFORT_MEDIUM),
@@ -110,11 +110,11 @@ module Analysis
       # Only suggest if energy is notably low
       if energy_patterns[:needs_boost] && energy_patterns[:overall_level] < 40
         tips << {
-          category: 'energy',
-          title: 'Energy Level',
-          icon: '⚡',
+          category: "energy",
+          title: "Energy Level",
+          icon: "⚡",
           description: "Your energy level is low (#{energy_patterns[:overall_level].round}/100). Adding vocal variety and emphasis can make your speech more engaging.",
-          action: 'Try using more varied intonation and emphasis on key points',
+          action: "Try using more varied intonation and emphasis on key points",
           impact: IMPACT_HIGH,
           effort: EFFORT_LOW,
           priority_score: calculate_priority_score(IMPACT_HIGH, EFFORT_LOW),
@@ -139,11 +139,11 @@ module Analysis
       # Only suggest if filler rate is problematic (>5%)
       if filler_rate > 5 && hesitation[:most_common]
         tips << {
-          category: 'filler_words',
-          title: 'Reduce Filler Words',
-          icon: '🎤',
+          category: "filler_words",
+          title: "Reduce Filler Words",
+          icon: "🎤",
           description: build_filler_description(hesitation, filler_rate),
-          action: 'Practice pausing silently instead of saying filler words',
+          action: "Practice pausing silently instead of saying filler words",
           impact: IMPACT_HIGH,
           effort: EFFORT_MEDIUM,
           priority_score: calculate_priority_score(IMPACT_HIGH, EFFORT_MEDIUM),
@@ -167,11 +167,11 @@ module Analysis
       # Only suggest if there's a clear primary issue
       if smoothness[:primary_issue] && smoothness[:word_flow_score] < 60
         tips << {
-          category: 'fluency',
-          title: 'Speech Fluency',
-          icon: '💬',
+          category: "fluency",
+          title: "Speech Fluency",
+          icon: "💬",
           description: build_fluency_description(smoothness),
-          action: 'Practice completing thoughts smoothly without restarts',
+          action: "Practice completing thoughts smoothly without restarts",
           impact: IMPACT_MEDIUM,
           effort: EFFORT_MEDIUM,
           priority_score: calculate_priority_score(IMPACT_MEDIUM, EFFORT_MEDIUM),
@@ -198,11 +198,11 @@ module Analysis
       wpm_range = pace_patterns[:wpm_range]
 
       trajectory_text = case trajectory
-      when 'starts_slow_rushes_middle_settles'
+      when "starts_slow_rushes_middle_settles"
         "You start slow (#{wpm_range[0]} WPM) then rush in the middle (#{wpm_range[1]} WPM)"
-      when 'starts_slow_accelerates'
+      when "starts_slow_accelerates"
         "You start slow and gradually accelerate"
-      when 'starts_fast_decelerates'
+      when "starts_fast_decelerates"
         "You start fast and slow down as you continue"
       else
         "Your pace varies significantly (#{wpm_range[0]}-#{wpm_range[1]} WPM)"
@@ -215,9 +215,9 @@ module Analysis
       most_common = hesitation[:most_common]
       locations = hesitation[:typical_locations]
 
-      location_text = locations == 'mostly_at_sentence_starts' ?
-        'mostly when starting new thoughts' :
-        'throughout your speech'
+      location_text = locations == "mostly_at_sentence_starts" ?
+        "mostly when starting new thoughts" :
+        "throughout your speech"
 
       "You use filler words at #{filler_rate.round(1)}% rate. " +
       "Most common: '#{most_common}' #{location_text}."
@@ -227,13 +227,13 @@ module Analysis
       issue = smoothness[:primary_issue]
 
       issue_text = case issue
-      when 'frequent_hesitations'
+      when "frequent_hesitations"
         "You hesitate frequently (#{smoothness[:hesitation_count]} times)"
-      when 'frequent_restarts'
+      when "frequent_restarts"
         "You restart sentences often (#{smoothness[:restart_count]} times)"
-      when 'irregular_pauses'
+      when "irregular_pauses"
         "Your pauses are irregular and disrupt flow"
-      when 'choppy_word_delivery'
+      when "choppy_word_delivery"
         "Your word delivery feels choppy"
       else
         "Your speech flow could be smoother"
@@ -267,19 +267,19 @@ module Analysis
 
     def normalize_category(area_name)
       # Map focus area names to tip categories
-      normalized = area_name.to_s.downcase.gsub(/[^a-z_]/, '_')
+      normalized = area_name.to_s.downcase.gsub(/[^a-z_]/, "_")
 
       case normalized
       when /filler|um|uh/
-        'filler_words'
+        "filler_words"
       when /pace|speed|wpm/
-        'pace_consistency'
+        "pace_consistency"
       when /pause/
-        'pause_consistency'
+        "pause_consistency"
       when /energy|enthusiasm/
-        'energy'
+        "energy"
       when /fluen|smooth|flow/
-        'fluency'
+        "fluency"
       else
         normalized
       end
@@ -288,18 +288,18 @@ module Analysis
     def map_recommendation_to_category(recommendation_type)
       # Map PriorityRecommender types to MicroTipGenerator categories
       case recommendation_type.to_s
-      when 'reduce_fillers'
-        'filler_words'
-      when 'improve_pace'
-        'pace_consistency'
-      when 'fix_long_pauses'
-        'pause_consistency'
-      when 'boost_engagement'
-        'energy'
-      when 'increase_fluency'
-        'fluency'
-      when 'enhance_clarity'
-        'fluency' # Clarity improvements often relate to fluency
+      when "reduce_fillers"
+        "filler_words"
+      when "improve_pace"
+        "pace_consistency"
+      when "fix_long_pauses"
+        "pause_consistency"
+      when "boost_engagement"
+        "energy"
+      when "increase_fluency"
+        "fluency"
+      when "enhance_clarity"
+        "fluency" # Clarity improvements often relate to fluency
       else
         recommendation_type.to_s
       end

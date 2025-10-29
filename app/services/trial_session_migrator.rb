@@ -287,7 +287,7 @@ class TrialSessionMigrator
 
     return 60 if actual_duration <= 0 # Default fallback
 
-    valid_durations = [30, 45, 60, 90, 120, 300]
+    valid_durations = [ 30, 45, 60, 90, 120, 300 ]
 
     # Find the closest valid duration
     closest_duration = valid_durations.min_by { |duration| (duration - actual_duration).abs }

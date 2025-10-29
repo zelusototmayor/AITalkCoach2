@@ -1,7 +1,7 @@
 module Ai
   class PromptBuilder
     class PromptError < StandardError; end
-    
+
     PROMPT_TYPES = %w[
       speech_analysis
       issue_classification
@@ -11,62 +11,62 @@ module Ai
       filler_word_detection
       comprehensive_speech_analysis
     ].freeze
-    
+
     def initialize(prompt_type, options = {})
       unless PROMPT_TYPES.include?(prompt_type.to_s)
         raise PromptError, "Invalid prompt type: #{prompt_type}"
       end
-      
+
       @prompt_type = prompt_type.to_s
       @options = options
     end
-    
+
     def build_system_prompt
       case @prompt_type
-      when 'speech_analysis'
+      when "speech_analysis"
         build_speech_analysis_system_prompt
-      when 'issue_classification'
+      when "issue_classification"
         build_issue_classification_system_prompt
-      when 'coaching_advice'
+      when "coaching_advice"
         build_coaching_advice_system_prompt
-      when 'segment_evaluation'
+      when "segment_evaluation"
         build_segment_evaluation_system_prompt
-      when 'progress_assessment'
+      when "progress_assessment"
         build_progress_assessment_system_prompt
-      when 'filler_word_detection'
+      when "filler_word_detection"
         build_filler_word_detection_system_prompt
-      when 'comprehensive_speech_analysis'
+      when "comprehensive_speech_analysis"
         build_comprehensive_speech_analysis_system_prompt
       else
         raise PromptError, "No system prompt defined for: #{@prompt_type}"
       end
     end
-    
+
     def build_user_prompt(data)
       case @prompt_type
-      when 'speech_analysis'
+      when "speech_analysis"
         build_speech_analysis_user_prompt(data)
-      when 'issue_classification'
+      when "issue_classification"
         build_issue_classification_user_prompt(data)
-      when 'coaching_advice'
+      when "coaching_advice"
         build_coaching_advice_user_prompt(data)
-      when 'segment_evaluation'
+      when "segment_evaluation"
         build_segment_evaluation_user_prompt(data)
-      when 'progress_assessment'
+      when "progress_assessment"
         build_progress_assessment_user_prompt(data)
-      when 'filler_word_detection'
+      when "filler_word_detection"
         build_filler_word_detection_user_prompt(data)
-      when 'comprehensive_speech_analysis'
+      when "comprehensive_speech_analysis"
         build_comprehensive_speech_analysis_user_prompt(data)
       else
         raise PromptError, "No user prompt defined for: #{@prompt_type}"
       end
     end
-    
+
     def build_messages(data)
       [
-        { role: 'system', content: build_system_prompt },
-        { role: 'user', content: build_user_prompt(data) }
+        { role: "system", content: build_system_prompt },
+        { role: "user", content: build_user_prompt(data) }
       ]
     end
 
@@ -82,51 +82,51 @@ module Ai
 
     def expected_json_schema
       case @prompt_type
-      when 'speech_analysis'
+      when "speech_analysis"
         speech_analysis_json_schema
-      when 'issue_classification'
+      when "issue_classification"
         issue_classification_json_schema
-      when 'coaching_advice'
+      when "coaching_advice"
         coaching_advice_json_schema
-      when 'segment_evaluation'
+      when "segment_evaluation"
         segment_evaluation_json_schema
-      when 'progress_assessment'
+      when "progress_assessment"
         progress_assessment_json_schema
-      when 'filler_word_detection'
+      when "filler_word_detection"
         filler_word_detection_json_schema
-      when 'comprehensive_speech_analysis'
+      when "comprehensive_speech_analysis"
         comprehensive_speech_analysis_json_schema
       else
         {}
       end
     end
-    
+
     private
-    
+
     def build_speech_analysis_system_prompt
-      language = @options[:language] || 'en'
-      target_audience = @options[:target_audience] || 'general'
-      
+      language = @options[:language] || "en"
+      target_audience = @options[:target_audience] || "general"
+
       <<~PROMPT
-        You are an expert speech coach specializing in #{language} communication analysis. 
+        You are an expert speech coach specializing in #{language} communication analysis.#{' '}
         Your role is to analyze speech segments for a #{target_audience} audience and provide constructive feedback.
-        
+
         Focus on these key areas:
         1. **Clarity & Articulation**: Word pronunciation, enunciation, speech rate
         2. **Professional Language**: Word choice, grammar, appropriateness
         3. **Confidence & Presence**: Voice projection, hesitation patterns, assertiveness
         4. **Engagement**: Energy level, variation in pace/tone, audience connection
         5. **Structure & Flow**: Logical progression, transitions, coherence
-        
+
         Important analysis guidelines:
         - Be constructive and encouraging while being specific about improvements
         - Provide confidence scores (0.0-1.0) for each identified issue
         - Focus on 3-5 most impactful improvements rather than listing every minor issue
         - Consider the context and purpose of the speech when making assessments
         - Provide actionable, specific recommendations
-        
+
         CRITICAL: You must respond with valid JSON only. No additional text, explanations, or formatting.
-        
+
         The JSON structure must be:
         {
           "overall_assessment": {
@@ -157,63 +157,63 @@ module Ai
         }
       PROMPT
     end
-    
+
     def build_speech_analysis_user_prompt(data)
       transcript = data[:transcript] || data[:text]
       context = data[:context] || {}
-      
+
       prompt = "Analyze this speech segment:\n\n"
       prompt += "**Transcript:**\n\"#{transcript}\"\n\n"
-      
+
       if context[:duration_seconds]
         prompt += "**Duration:** #{context[:duration_seconds]} seconds\n"
       end
-      
+
       if context[:word_count]
         prompt += "**Word Count:** #{context[:word_count]} words\n"
       end
-      
+
       if context[:speech_type]
         prompt += "**Speech Type:** #{context[:speech_type]}\n"
       end
-      
+
       if context[:target_audience]
         prompt += "**Target Audience:** #{context[:target_audience]}\n"
       end
-      
+
       if data[:detected_issues]&.any?
         prompt += "\n**Pre-detected Issues (for context):**\n"
         data[:detected_issues].each do |issue|
           prompt += "- #{issue[:kind]}: #{issue[:text]} (severity: #{issue[:severity]})\n"
         end
       end
-      
+
       prompt += "\nProvide your analysis in the specified JSON format."
     end
-    
+
     def build_issue_classification_system_prompt
       <<~PROMPT
         You are a speech pattern classifier with expertise in identifying and validating communication issues.
-        
+
         Your task is to review detected speech patterns and:
         1. Validate if they are genuinely problematic
         2. Assess the confidence level of each detection
         3. Determine appropriate severity levels
         4. Provide specific, actionable coaching recommendations
         5. Prioritize issues based on impact and user level
-        
+
         Classification Guidelines:
         - **Confidence (0.0-1.0)**: How certain you are this is actually an issue
         - **Severity**: low (minor impact), medium (noticeable impact), high (significant impact)
         - **Priority**: low (address later), medium (address soon), high (address immediately)
-        
+
         Consider user experience level when making recommendations:
         - Beginners: Focus on 1-2 fundamental issues, gentle guidance
         - Intermediate: Address 3-4 issues with specific techniques
         - Advanced: Provide nuanced feedback on subtle patterns
-        
+
         CRITICAL: Return only valid JSON, no additional text.
-        
+
         Expected JSON structure:
         {
           "validated_issues": [
@@ -246,13 +246,13 @@ module Ai
         }
       PROMPT
     end
-    
+
     def build_issue_classification_user_prompt(data)
       issues = data[:issues] || []
       context = data[:context] || {}
-      
+
       prompt = "Please validate and classify these detected speech issues:\n\n"
-      
+
       issues.each_with_index do |issue, index|
         prompt += "**Issue #{index + 1}:**\n"
         prompt += "- Type: #{issue[:kind]}\n"
@@ -261,24 +261,24 @@ module Ai
         prompt += "- Detection rationale: #{issue[:rationale]}\n"
         prompt += "- Time range: #{issue[:start_ms]/1000.0}s - #{issue[:end_ms]/1000.0}s\n\n"
       end
-      
+
       if context[:user_level]
         prompt += "**User Experience Level:** #{context[:user_level]}\n"
       end
-      
+
       if context[:session_count]
         prompt += "**Session Count:** #{context[:session_count]} sessions completed\n"
       end
-      
+
       if context[:previous_issues]
         prompt += "**Recurring Issues:** #{context[:previous_issues].join(', ')}\n"
       end
-      
+
       prompt += "\nValidate each detection and provide classification in the specified JSON format."
     end
-    
+
     def build_coaching_advice_system_prompt
-      coaching_style = @options[:coaching_style] || 'supportive'
+      coaching_style = @options[:coaching_style] || "supportive"
 
       <<~PROMPT
         You are a personalized speech coach with a #{coaching_style} approach. Create individualized coaching plans based on user progress and patterns.
@@ -316,9 +316,9 @@ module Ai
         3. **Practice Exercises**: Concrete activities with time commitments
         4. **Progress Tracking**: How to measure improvement
         5. **Motivation**: Acknowledge progress and build confidence
-        
+
         CRITICAL: Respond only with valid JSON, no additional text.
-        
+
         Expected JSON format:
         {
           "focus_areas": [
@@ -355,7 +355,7 @@ module Ai
         }
       PROMPT
     end
-    
+
     def build_coaching_advice_user_prompt(data)
       user_profile = data[:user_profile] || {}
       recent_sessions = data[:recent_sessions] || []
@@ -417,24 +417,24 @@ module Ai
 
       prompt += "Based on this data, create a personalized coaching plan in the specified JSON format."
     end
-    
+
     def build_segment_evaluation_system_prompt
       <<~PROMPT
         You are a speech segment evaluator specializing in identifying the most valuable segments for detailed analysis.
-        
+
         Your task is to assess speech segments and determine:
         1. **Educational Value**: How much can the user learn from analyzing this segment?
         2. **Issue Density**: Are there meaningful patterns or problems to address?
         3. **Representativeness**: Does this segment reflect typical speaking patterns?
         4. **Coaching Potential**: Can specific, actionable advice be provided?
-        
+
         Evaluation Criteria:
         - High value: Multiple learnable issues, clear improvement opportunities
         - Medium value: Some issues present, moderate learning potential
         - Low value: Few issues, limited coaching opportunities
-        
+
         CRITICAL: Return only valid JSON, no additional text.
-        
+
         Expected JSON structure:
         {
           "evaluation": {
@@ -457,60 +457,60 @@ module Ai
         }
       PROMPT
     end
-    
+
     def build_segment_evaluation_user_prompt(data)
       segment = data[:segment]
       context = data[:context] || {}
-      
+
       prompt = "Evaluate this speech segment for AI analysis potential:\n\n"
       prompt += "**Segment Text:**\n\"#{segment[:text]}\"\n\n"
       prompt += "**Segment Details:**\n"
       prompt += "- Duration: #{segment[:duration_ms]/1000.0} seconds\n"
       prompt += "- Word count: #{segment[:word_count]}\n"
       prompt += "- Time range: #{segment[:start_ms]/1000.0}s - #{segment[:end_ms]/1000.0}s\n\n"
-      
+
       if segment[:quality_score]
         prompt += "- Quality score: #{segment[:quality_score]}\n"
       end
-      
+
       if segment[:speaking_rate]
         prompt += "- Speaking rate: #{segment[:speaking_rate]} WPM\n"
       end
-      
+
       if data[:related_issues]&.any?
         prompt += "\n**Related Rule-Based Issues:**\n"
         data[:related_issues].each do |issue|
           prompt += "- #{issue[:kind]}: #{issue[:severity]} severity\n"
         end
       end
-      
+
       if context[:session_context]
         prompt += "\n**Session Context:**\n"
         prompt += "- Total session duration: #{context[:session_context][:total_duration]}s\n"
         prompt += "- User level: #{context[:session_context][:user_level]}\n"
       end
-      
+
       prompt += "\nEvaluate this segment's potential for AI analysis in the specified JSON format."
     end
-    
+
     def build_progress_assessment_system_prompt
       <<~PROMPT
         You are a progress assessment specialist focused on tracking speech improvement over time.
-        
+
         Your role is to:
         1. Compare current performance against historical data
         2. Identify improvement trends and persistent challenges
         3. Assess goal achievement and set new targets
         4. Provide motivational feedback based on progress
-        
+
         Assessment Framework:
         - **Improvement Rate**: Quantify changes in key metrics
         - **Consistency**: Evaluate performance stability
         - **Skill Development**: Track growth in specific areas
         - **Challenge Areas**: Identify persistent issues needing focus
-        
+
         CRITICAL: Return only valid JSON, no additional text.
-        
+
         Expected JSON structure:
         {
           "progress_summary": {
@@ -557,21 +557,21 @@ module Ai
         }
       PROMPT
     end
-    
+
     def build_progress_assessment_user_prompt(data)
       historical_data = data[:historical_sessions] || []
       current_session = data[:current_session]
       goals = data[:goals] || []
-      
+
       prompt = "Assess progress for this user based on their session history:\n\n"
-      
+
       if current_session
         prompt += "**Current Session:**\n"
         prompt += "- Date: #{current_session[:date]}\n"
         prompt += "- Overall score: #{current_session[:overall_score]}/100\n"
         prompt += "- Key metrics: #{current_session[:metrics]}\n\n"
       end
-      
+
       if historical_data.any?
         prompt += "**Historical Performance (Last #{historical_data.length} sessions):**\n"
         historical_data.each_with_index do |session, index|
@@ -581,7 +581,7 @@ module Ai
         end
         prompt += "\n"
       end
-      
+
       if goals.any?
         prompt += "**Current Goals:**\n"
         goals.each do |goal|
@@ -589,260 +589,260 @@ module Ai
         end
         prompt += "\n"
       end
-      
+
       prompt += "Assess the user's progress and provide insights in the specified JSON format."
     end
     # JSON Schema definitions for validation
-    
+
     def speech_analysis_json_schema
       {
-        type: 'object',
+        type: "object",
         required: %w[overall_assessment strengths improvement_areas coaching_insights],
         properties: {
           overall_assessment: {
-            type: 'object',
+            type: "object",
             required: %w[clarity_score confidence_score engagement_score professionalism_score overall_score],
             properties: {
-              clarity_score: { type: 'integer', minimum: 0, maximum: 100 },
-              confidence_score: { type: 'integer', minimum: 0, maximum: 100 },
-              engagement_score: { type: 'integer', minimum: 0, maximum: 100 },
-              professionalism_score: { type: 'integer', minimum: 0, maximum: 100 },
-              overall_score: { type: 'integer', minimum: 0, maximum: 100 }
+              clarity_score: { type: "integer", minimum: 0, maximum: 100 },
+              confidence_score: { type: "integer", minimum: 0, maximum: 100 },
+              engagement_score: { type: "integer", minimum: 0, maximum: 100 },
+              professionalism_score: { type: "integer", minimum: 0, maximum: 100 },
+              overall_score: { type: "integer", minimum: 0, maximum: 100 }
             }
           },
-          strengths: { type: 'array', items: { type: 'string' } },
+          strengths: { type: "array", items: { type: "string" } },
           improvement_areas: {
-            type: 'array',
+            type: "array",
             items: {
-              type: 'object',
+              type: "object",
               required: %w[category issue confidence severity specific_recommendation priority],
               properties: {
-                category: { type: 'string' },
-                issue: { type: 'string' },
-                confidence: { type: 'number', minimum: 0, maximum: 1 },
+                category: { type: "string" },
+                issue: { type: "string" },
+                confidence: { type: "number", minimum: 0, maximum: 1 },
                 severity: { enum: %w[low medium high] },
-                specific_recommendation: { type: 'string' },
+                specific_recommendation: { type: "string" },
                 priority: { enum: %w[low medium high] }
               }
             }
           },
-          coaching_insights: { type: 'array', items: { type: 'string' } }
+          coaching_insights: { type: "array", items: { type: "string" } }
         }
       }
     end
-    
+
     def issue_classification_json_schema
       {
-        type: 'object',
+        type: "object",
         required: %w[validated_issues false_positives summary],
         properties: {
           validated_issues: {
-            type: 'array',
+            type: "array",
             items: {
-              type: 'object',
+              type: "object",
               required: %w[original_detection validation confidence severity impact_description coaching_recommendation priority practice_exercise context_text],
               properties: {
-                original_detection: { type: 'string' },
-                validation: { type: 'string' },
-                confidence: { type: 'number', minimum: 0, maximum: 1 },
+                original_detection: { type: "string" },
+                validation: { type: "string" },
+                confidence: { type: "number", minimum: 0, maximum: 1 },
                 severity: { enum: %w[low medium high] },
-                impact_description: { type: 'string' },
-                coaching_recommendation: { type: 'string' },
+                impact_description: { type: "string" },
+                coaching_recommendation: { type: "string" },
                 priority: { enum: %w[low medium high] },
-                practice_exercise: { type: 'string' },
-                context_text: { type: 'string' }
+                practice_exercise: { type: "string" },
+                context_text: { type: "string" }
               }
             }
           },
           false_positives: {
-            type: 'array',
+            type: "array",
             items: {
-              type: 'object',
+              type: "object",
               required: %w[original_detection reason confidence_override],
               properties: {
-                original_detection: { type: 'string' },
-                reason: { type: 'string' },
-                confidence_override: { type: 'number', minimum: 0, maximum: 1 }
+                original_detection: { type: "string" },
+                reason: { type: "string" },
+                confidence_override: { type: "number", minimum: 0, maximum: 1 }
               }
             }
           },
           summary: {
-            type: 'object',
+            type: "object",
             required: %w[total_valid_issues high_priority_count medium_priority_count low_priority_count recommended_focus],
             properties: {
-              total_valid_issues: { type: 'integer', minimum: 0 },
-              high_priority_count: { type: 'integer', minimum: 0 },
-              medium_priority_count: { type: 'integer', minimum: 0 },
-              low_priority_count: { type: 'integer', minimum: 0 },
-              recommended_focus: { type: 'string' }
+              total_valid_issues: { type: "integer", minimum: 0 },
+              high_priority_count: { type: "integer", minimum: 0 },
+              medium_priority_count: { type: "integer", minimum: 0 },
+              low_priority_count: { type: "integer", minimum: 0 },
+              recommended_focus: { type: "string" }
             }
           }
         }
       }
     end
-    
+
     def coaching_advice_json_schema
       {
-        type: 'object',
+        type: "object",
         required: %w[focus_areas weekly_goals practice_plan progress_acknowledgment motivation_message],
         properties: {
           focus_areas: {
-            type: 'array',
+            type: "array",
             items: {
-              type: 'object',
+              type: "object",
               required: %w[skill current_level target_improvement timeline],
               properties: {
-                skill: { type: 'string' },
-                current_level: { type: 'string' },
-                target_improvement: { type: 'string' },
-                timeline: { type: 'string' }
+                skill: { type: "string" },
+                current_level: { type: "string" },
+                target_improvement: { type: "string" },
+                timeline: { type: "string" }
               }
             }
           },
           weekly_goals: {
-            type: 'array',
+            type: "array",
             items: {
-              type: 'object',
+              type: "object",
               required: %w[goal strategies measurement difficulty],
               properties: {
-                goal: { type: 'string' },
-                strategies: { type: 'array', items: { type: 'string' } },
-                measurement: { type: 'string' },
-                difficulty: { type: 'string' }
+                goal: { type: "string" },
+                strategies: { type: "array", items: { type: "string" } },
+                measurement: { type: "string" },
+                difficulty: { type: "string" }
               }
             }
           },
           practice_plan: {
-            type: 'array',
+            type: "array",
             items: {
-              type: 'object',
+              type: "object",
               required: %w[exercise duration frequency focus week],
               properties: {
-                exercise: { type: 'string' },
-                duration: { type: 'string' },
-                frequency: { type: 'string' },
-                focus: { type: 'string' },
-                week: { type: 'integer', minimum: 1 }
+                exercise: { type: "string" },
+                duration: { type: "string" },
+                frequency: { type: "string" },
+                focus: { type: "string" },
+                week: { type: "integer", minimum: 1 }
               }
             }
           },
           progress_acknowledgment: {
-            type: 'object',
+            type: "object",
             required: %w[recent_improvements consistency_praise next_milestone],
             properties: {
-              recent_improvements: { type: 'array', items: { type: 'string' } },
-              consistency_praise: { type: 'string' },
-              next_milestone: { type: 'string' }
+              recent_improvements: { type: "array", items: { type: "string" } },
+              consistency_praise: { type: "string" },
+              next_milestone: { type: "string" }
             }
           },
-          motivation_message: { type: 'string' }
+          motivation_message: { type: "string" }
         }
       }
     end
-    
+
     def segment_evaluation_json_schema
       {
-        type: 'object',
+        type: "object",
         required: %w[evaluation key_learning_opportunities recommended_for_ai_analysis analysis_focus_areas segment_summary],
         properties: {
           evaluation: {
-            type: 'object',
+            type: "object",
             required: %w[educational_value issue_density representativeness coaching_potential overall_score],
             properties: {
-              educational_value: { type: 'number', minimum: 0, maximum: 1 },
-              issue_density: { type: 'number', minimum: 0, maximum: 1 },
-              representativeness: { type: 'number', minimum: 0, maximum: 1 },
-              coaching_potential: { type: 'number', minimum: 0, maximum: 1 },
-              overall_score: { type: 'number', minimum: 0, maximum: 1 }
+              educational_value: { type: "number", minimum: 0, maximum: 1 },
+              issue_density: { type: "number", minimum: 0, maximum: 1 },
+              representativeness: { type: "number", minimum: 0, maximum: 1 },
+              coaching_potential: { type: "number", minimum: 0, maximum: 1 },
+              overall_score: { type: "number", minimum: 0, maximum: 1 }
             }
           },
           key_learning_opportunities: {
-            type: 'array',
-            items: { type: 'string' }
+            type: "array",
+            items: { type: "string" }
           },
-          recommended_for_ai_analysis: { type: 'boolean' },
+          recommended_for_ai_analysis: { type: "boolean" },
           analysis_focus_areas: {
-            type: 'array',
-            items: { type: 'string' }
+            type: "array",
+            items: { type: "string" }
           },
-          segment_summary: { type: 'string' }
+          segment_summary: { type: "string" }
         }
       }
     end
-    
+
     def progress_assessment_json_schema
       {
-        type: 'object',
+        type: "object",
         required: %w[progress_summary metric_improvements],
         properties: {
           progress_summary: {
-            type: 'object',
+            type: "object",
             properties: {
-              overall_improvement: { type: 'number' },
-              consistency_score: { type: 'number' },
-              sessions_analyzed: { type: 'integer', minimum: 0 },
-              time_period_days: { type: 'integer', minimum: 0 }
+              overall_improvement: { type: "number" },
+              consistency_score: { type: "number" },
+              sessions_analyzed: { type: "integer", minimum: 0 },
+              time_period_days: { type: "integer", minimum: 0 }
             }
           },
           metric_improvements: {
-            type: 'array',
+            type: "array",
             items: {
-              type: 'object',
+              type: "object",
               required: %w[metric baseline current improvement_percentage trend],
               properties: {
-                metric: { type: 'string' },
-                baseline: { type: 'number' },
-                current: { type: 'number' },
-                improvement_percentage: { type: 'number' },
-                trend: { type: 'string' }
+                metric: { type: "string" },
+                baseline: { type: "number" },
+                current: { type: "number" },
+                improvement_percentage: { type: "number" },
+                trend: { type: "string" }
               }
             }
           },
           achievement_status: {
-            type: 'array',
+            type: "array",
             items: {
-              type: 'object',
+              type: "object",
               required: %w[goal target current status achievement_date],
               properties: {
-                goal: { type: 'string' },
-                target: { type: 'number' },
-                current: { type: 'number' },
-                status: { type: 'string' },
-                achievement_date: { type: 'string' }
+                goal: { type: "string" },
+                target: { type: "number" },
+                current: { type: "number" },
+                status: { type: "string" },
+                achievement_date: { type: "string" }
               }
             }
           },
           persistent_challenges: {
-            type: 'array',
+            type: "array",
             items: {
-              type: 'object',
+              type: "object",
               required: %w[challenge sessions_affected severity_trend recommended_action],
               properties: {
-                challenge: { type: 'string' },
-                sessions_affected: { type: 'integer', minimum: 0 },
-                severity_trend: { type: 'string' },
-                recommended_action: { type: 'string' }
+                challenge: { type: "string" },
+                sessions_affected: { type: "integer", minimum: 0 },
+                severity_trend: { type: "string" },
+                recommended_action: { type: "string" }
               }
             }
           },
           next_focus_recommendations: {
-            type: 'array',
-            items: { type: 'string' }
+            type: "array",
+            items: { type: "string" }
           },
           motivation_insights: {
-            type: 'object',
+            type: "object",
             required: %w[biggest_win improvement_streak next_milestone],
             properties: {
-              biggest_win: { type: 'string' },
-              improvement_streak: { type: 'string' },
-              next_milestone: { type: 'string' }
+              biggest_win: { type: "string" },
+              improvement_streak: { type: "string" },
+              next_milestone: { type: "string" }
             }
           }
         }
       }
     end
     def build_filler_word_detection_system_prompt
-      language = @options[:language] || 'en'
+      language = @options[:language] || "en"
 
       <<~PROMPT
         You are an expert speech coach analyzing filler word usage in #{language}.
@@ -885,7 +885,7 @@ module Ai
     end
 
     def build_filler_word_detection_user_prompt(data)
-      transcript = data[:transcript] || ''
+      transcript = data[:transcript] || ""
       context = data[:context] || {}
 
       prompt = "Analyze this transcript for filler words:\n\n"
@@ -904,32 +904,32 @@ module Ai
 
     def filler_word_detection_json_schema
       {
-        type: 'object',
+        type: "object",
         required: %w[filler_words summary],
         properties: {
           filler_words: {
-            type: 'array',
+            type: "array",
             items: {
-              type: 'object',
+              type: "object",
               required: %w[word text_snippet start_ms confidence rationale severity],
               properties: {
-                word: { type: 'string' },
-                text_snippet: { type: 'string' },
-                start_ms: { type: 'integer', minimum: 0 },
-                confidence: { type: 'number', minimum: 0, maximum: 1 },
-                rationale: { type: 'string' },
+                word: { type: "string" },
+                text_snippet: { type: "string" },
+                start_ms: { type: "integer", minimum: 0 },
+                confidence: { type: "number", minimum: 0, maximum: 1 },
+                rationale: { type: "string" },
                 severity: { enum: %w[low medium high] }
               }
             }
           },
           summary: {
-            type: 'object',
+            type: "object",
             required: %w[total_detected filler_rate_per_minute most_common_fillers recommendation],
             properties: {
-              total_detected: { type: 'integer', minimum: 0 },
-              filler_rate_per_minute: { type: 'number', minimum: 0 },
-              most_common_fillers: { type: 'array', items: { type: 'string' } },
-              recommendation: { type: 'string' }
+              total_detected: { type: "integer", minimum: 0 },
+              filler_rate_per_minute: { type: "number", minimum: 0 },
+              most_common_fillers: { type: "array", items: { type: "string" } },
+              recommendation: { type: "string" }
             }
           }
         }
@@ -938,7 +938,7 @@ module Ai
 
     # Comprehensive Speech Analysis - Combines filler detection + issue classification
     def build_comprehensive_speech_analysis_system_prompt
-      language = @options[:language] || 'en'
+      language = @options[:language] || "en"
 
       <<~PROMPT
         You are an expert speech coach performing comprehensive analysis of #{language} communication.
@@ -1023,7 +1023,7 @@ module Ai
     end
 
     def build_comprehensive_speech_analysis_user_prompt(data)
-      transcript = data[:transcript] || ''
+      transcript = data[:transcript] || ""
       rule_issues = data[:rule_issues] || []
       context = data[:context] || {}
 
@@ -1061,79 +1061,79 @@ module Ai
 
     def comprehensive_speech_analysis_json_schema
       {
-        type: 'object',
+        type: "object",
         required: %w[filler_words validated_issues false_positives speech_quality summary],
         properties: {
           filler_words: {
-            type: 'array',
+            type: "array",
             items: {
-              type: 'object',
+              type: "object",
               required: %w[word text_snippet start_ms confidence rationale severity],
               properties: {
-                word: { type: 'string' },
-                text_snippet: { type: 'string' },
-                start_ms: { type: 'integer', minimum: 0 },
-                confidence: { type: 'number', minimum: 0, maximum: 1 },
-                rationale: { type: 'string' },
+                word: { type: "string" },
+                text_snippet: { type: "string" },
+                start_ms: { type: "integer", minimum: 0 },
+                confidence: { type: "number", minimum: 0, maximum: 1 },
+                rationale: { type: "string" },
                 severity: { enum: %w[low medium high] }
               }
             }
           },
           validated_issues: {
-            type: 'array',
+            type: "array",
             items: {
-              type: 'object',
+              type: "object",
               required: %w[original_detection validation confidence severity impact_description coaching_recommendation priority practice_exercise context_text],
               properties: {
-                original_detection: { type: 'string' },
-                validation: { type: 'string' },
-                confidence: { type: 'number', minimum: 0, maximum: 1 },
+                original_detection: { type: "string" },
+                validation: { type: "string" },
+                confidence: { type: "number", minimum: 0, maximum: 1 },
                 severity: { enum: %w[low medium high] },
-                impact_description: { type: 'string' },
-                coaching_recommendation: { type: 'string' },
+                impact_description: { type: "string" },
+                coaching_recommendation: { type: "string" },
                 priority: { enum: %w[low medium high] },
-                practice_exercise: { type: 'string' },
-                context_text: { type: 'string' }
+                practice_exercise: { type: "string" },
+                context_text: { type: "string" }
               }
             }
           },
           false_positives: {
-            type: 'array',
+            type: "array",
             items: {
-              type: 'object',
+              type: "object",
               required: %w[original_detection reason confidence_override],
               properties: {
-                original_detection: { type: 'string' },
-                reason: { type: 'string' },
-                confidence_override: { type: 'number', minimum: 0, maximum: 1 }
+                original_detection: { type: "string" },
+                reason: { type: "string" },
+                confidence_override: { type: "number", minimum: 0, maximum: 1 }
               }
             }
           },
           speech_quality: {
-            type: 'object',
+            type: "object",
             required: %w[overall_clarity overall_fluency pacing_quality engagement_level key_strengths primary_concern],
             properties: {
-              overall_clarity: { type: 'number', minimum: 0, maximum: 1 },
-              overall_fluency: { type: 'number', minimum: 0, maximum: 1 },
-              pacing_quality: { type: 'number', minimum: 0, maximum: 1 },
-              engagement_level: { type: 'number', minimum: 0, maximum: 1 },
-              key_strengths: { type: 'array', items: { type: 'string' } },
-              primary_concern: { type: 'string' }
+              overall_clarity: { type: "number", minimum: 0, maximum: 1 },
+              overall_fluency: { type: "number", minimum: 0, maximum: 1 },
+              pacing_quality: { type: "number", minimum: 0, maximum: 1 },
+              engagement_level: { type: "number", minimum: 0, maximum: 1 },
+              key_strengths: { type: "array", items: { type: "string" } },
+              primary_concern: { type: "string" }
             }
           },
           summary: {
-            type: 'object',
+            type: "object",
             required: %w[total_filler_count filler_rate_per_minute most_common_fillers total_valid_issues high_priority_count medium_priority_count low_priority_count recommended_focus filler_recommendation],
             properties: {
-              total_filler_count: { type: 'integer', minimum: 0 },
-              filler_rate_per_minute: { type: 'number', minimum: 0 },
-              most_common_fillers: { type: 'array', items: { type: 'string' } },
-              total_valid_issues: { type: 'integer', minimum: 0 },
-              high_priority_count: { type: 'integer', minimum: 0 },
-              medium_priority_count: { type: 'integer', minimum: 0 },
-              low_priority_count: { type: 'integer', minimum: 0 },
-              recommended_focus: { type: 'string' },
-              filler_recommendation: { type: 'string' }
+              total_filler_count: { type: "integer", minimum: 0 },
+              filler_rate_per_minute: { type: "number", minimum: 0 },
+              most_common_fillers: { type: "array", items: { type: "string" } },
+              total_valid_issues: { type: "integer", minimum: 0 },
+              high_priority_count: { type: "integer", minimum: 0 },
+              medium_priority_count: { type: "integer", minimum: 0 },
+              low_priority_count: { type: "integer", minimum: 0 },
+              recommended_focus: { type: "string" },
+              filler_recommendation: { type: "string" }
             }
           }
         }

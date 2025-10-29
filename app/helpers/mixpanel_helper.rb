@@ -49,11 +49,11 @@ module MixpanelHelper
 
   def user_type_for_mixpanel
     if logged_in?
-      'authenticated'
+      "authenticated"
     elsif trial_mode?
-      'trial'
+      "trial"
     else
-      'anonymous'
+      "anonymous"
     end
   end
 end

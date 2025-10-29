@@ -10,15 +10,15 @@ FactoryBot.define do
         timestamp: Time.current.iso8601
       }.to_json
     end
-    
+
     trait :high_similarity do
       embedding_json { "[0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.0]" }
     end
-    
+
     trait :low_similarity do
       embedding_json { "[0.0, 0.1, 0.0, 0.1, 0.0, 0.1, 0.0, 0.1, 0.0, 0.1]" }
     end
-    
+
     trait :pace_issue do
       payload do
         {
@@ -29,7 +29,7 @@ FactoryBot.define do
         }.to_json
       end
     end
-    
+
     trait :clarity_issue do
       payload do
         {

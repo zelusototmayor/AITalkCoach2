@@ -3,7 +3,7 @@ module Monitoring
     class << self
       def report_service_error(service, exception, context = {})
         Rails.logger.error build_error_message(service, exception, context)
-        
+
         if defined?(Sentry) && should_report_to_sentry?(exception)
           Sentry.with_scope do |scope|
             scope.set_tag(:service, service.class.name)
@@ -13,10 +13,10 @@ module Monitoring
           end
         end
       end
-      
+
       def report_job_error(job, exception, context = {})
         Rails.logger.error build_job_error_message(job, exception, context)
-        
+
         if defined?(Sentry) && should_report_to_sentry?(exception)
           Sentry.with_scope do |scope|
             scope.set_tag(:job, job.class.name)
@@ -30,10 +30,10 @@ module Monitoring
           end
         end
       end
-      
+
       def report_api_error(api_name, endpoint, exception, context = {})
         Rails.logger.error build_api_error_message(api_name, endpoint, exception, context)
-        
+
         if defined?(Sentry) && should_report_to_sentry?(exception)
           Sentry.with_scope do |scope|
             scope.set_tag(:api, api_name)
@@ -44,11 +44,11 @@ module Monitoring
           end
         end
       end
-      
+
       def report_performance_issue(operation, duration, threshold, context = {})
         message = "Performance issue: #{operation} took #{duration}ms (threshold: #{threshold}ms)"
         Rails.logger.warn message
-        
+
         if defined?(Sentry)
           Sentry.with_scope do |scope|
             scope.set_tag(:performance_issue, true)
@@ -62,11 +62,11 @@ module Monitoring
           end
         end
       end
-      
+
       def report_security_event(event_type, details = {})
         message = "Security event: #{event_type}"
         Rails.logger.warn message
-        
+
         if defined?(Sentry)
           Sentry.with_scope do |scope|
             scope.set_tag(:security_event, event_type)
@@ -76,9 +76,9 @@ module Monitoring
           end
         end
       end
-      
+
       private
-      
+
       def build_error_message(service, exception, context)
         [
           "Service Error:",
@@ -88,7 +88,7 @@ module Monitoring
           "Backtrace: #{exception.backtrace&.first(5)&.join(', ')}"
         ].join(" | ")
       end
-      
+
       def build_job_error_message(job, exception, context)
         [
           "Job Error:",
@@ -99,7 +99,7 @@ module Monitoring
           "Context: #{context.inspect}"
         ].join(" | ")
       end
-      
+
       def build_api_error_message(api_name, endpoint, exception, context)
         [
           "API Error:",
@@ -109,15 +109,15 @@ module Monitoring
           "Context: #{context.inspect}"
         ].join(" | ")
       end
-      
+
       def should_report_to_sentry?(exception)
         # Don't report test exceptions or common user errors to Sentry
         ignored_exceptions = [
-          'ActiveRecord::RecordNotFound',
-          'ActionController::ParameterMissing',
-          'ActionController::BadRequest'
+          "ActiveRecord::RecordNotFound",
+          "ActionController::ParameterMissing",
+          "ActionController::BadRequest"
         ]
-        
+
         !ignored_exceptions.include?(exception.class.name)
       end
     end

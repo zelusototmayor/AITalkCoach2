@@ -14,7 +14,7 @@ module Sessions
       begin
         # Update session state
         @trial_session.update!(
-          processing_state: 'processing',
+          processing_state: "processing",
           updated_at: Time.current
         )
 
@@ -30,7 +30,7 @@ module Sessions
         # Store results and mark complete
         @trial_session.update!(
           analysis_data: trial_results,
-          processing_state: 'completed',
+          processing_state: "completed",
           completed: true,
           processed_at: Time.current
         )
@@ -105,7 +105,7 @@ module Sessions
 
       transcription_options = {
         language: @trial_session.language,
-        model: 'nova', # Use basic model for trials
+        model: "nova", # Use basic model for trials
         punctuate: true,
         diarize: false,
         timestamps: true
@@ -154,7 +154,7 @@ module Sessions
 
     def handle_trial_error(error)
       error_message = case error.class.name
-      when 'Stt::DeepgramClient::TranscriptionError'
+      when "Stt::DeepgramClient::TranscriptionError"
         if error.message.include?("No speech detected")
           "No speech detected in your recording. Please ensure you spoke clearly and try again."
         elsif error.message.include?("too short")
@@ -170,7 +170,7 @@ module Sessions
 
       # Store error state with demo data
       @trial_session.update!(
-        processing_state: 'failed',
+        processing_state: "failed",
         analysis_data: {
           error: error_message,
           demo_mode: true,

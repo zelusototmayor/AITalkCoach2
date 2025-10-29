@@ -10,19 +10,19 @@ module Analysis
 
     # Difficulty levels for different types of improvements
     DIFFICULTY_LEVELS = {
-      'reduce_fillers' => 2,      # Moderate - requires practice and awareness
-      'improve_pace' => 3,        # Hard - requires timing and rhythm practice
-      'enhance_clarity' => 4,     # Very hard - requires articulation work
-      'boost_engagement' => 3,    # Hard - requires energy and variety
-      'increase_fluency' => 4,    # Very hard - requires extensive practice
-      'fix_long_pauses' => 2,     # Moderate - awareness and preparation help
-      'professional_language' => 1 # Easy - vocabulary substitution
+      "reduce_fillers" => 2,      # Moderate - requires practice and awareness
+      "improve_pace" => 3,        # Hard - requires timing and rhythm practice
+      "enhance_clarity" => 4,     # Very hard - requires articulation work
+      "boost_engagement" => 3,    # Hard - requires energy and variety
+      "increase_fluency" => 4,    # Very hard - requires extensive practice
+      "fix_long_pauses" => 2,     # Moderate - awareness and preparation help
+      "professional_language" => 1 # Easy - vocabulary substitution
     }.freeze
 
     def initialize(session, user_context = {})
       @session = session
       @user_context = user_context
-      @historical_sessions = user_context[:historical_sessions] || [session]
+      @historical_sessions = user_context[:historical_sessions] || [ session ]
       @total_sessions_count = user_context[:total_sessions_count] || @historical_sessions.count
       @analysis_data = session.analysis_data
       @issues = session.issues.includes(:session)
@@ -35,7 +35,7 @@ module Analysis
       # Use total_sessions_count (all user sessions) not historical_sessions (which may be filtered)
       if @total_sessions_count == 1
         return {
-          focus_this_week: [first_session_recommendation],
+          focus_this_week: [ first_session_recommendation ],
           secondary_focus: [],
           long_term_goals: [],
           quick_wins: [],
@@ -91,26 +91,26 @@ module Analysis
 
       # Use rolling average of last 5 sessions (or all if < 5, minimum 2)
       # This prevents one outlier session from drastically changing the weekly focus
-      recent_sessions = @historical_sessions.last([5, @historical_sessions.count].min)
+      recent_sessions = @historical_sessions.last([ 5, @historical_sessions.count ].min)
 
       # Analyze each metric using rolling average for stability
       current_metrics = {
-        filler_rate: calculate_rolling_average(recent_sessions, 'filler_rate'),
-        clarity_score: calculate_rolling_average(recent_sessions, 'clarity_score'),
-        fluency_score: calculate_rolling_average(recent_sessions, 'fluency_score'),
-        engagement_score: calculate_rolling_average(recent_sessions, 'engagement_score'),
-        pace_consistency: calculate_rolling_average(recent_sessions, 'pace_consistency'),
-        overall_score: calculate_rolling_average(recent_sessions, 'overall_score'),
-        wpm: calculate_rolling_average(recent_sessions, 'wpm')
+        filler_rate: calculate_rolling_average(recent_sessions, "filler_rate"),
+        clarity_score: calculate_rolling_average(recent_sessions, "clarity_score"),
+        fluency_score: calculate_rolling_average(recent_sessions, "fluency_score"),
+        engagement_score: calculate_rolling_average(recent_sessions, "engagement_score"),
+        pace_consistency: calculate_rolling_average(recent_sessions, "pace_consistency"),
+        overall_score: calculate_rolling_average(recent_sessions, "overall_score"),
+        wpm: calculate_rolling_average(recent_sessions, "wpm")
       }
 
       # Filler words analysis
       if current_metrics[:filler_rate] > 0.03 # More than 3%
-        avg_filler = calculate_historical_average('filler_rate')
+        avg_filler = calculate_historical_average("filler_rate")
         filler_trend = determine_trend(current_metrics[:filler_rate], avg_filler)
-        severity = current_metrics[:filler_rate] > 0.07 ? 'high' : 'medium'
+        severity = current_metrics[:filler_rate] > 0.07 ? "high" : "medium"
         areas << {
-          type: 'reduce_fillers',
+          type: "reduce_fillers",
           current_value: current_metrics[:filler_rate],
           target_value: 0.02,
           historical_average: avg_filler,
@@ -127,11 +127,11 @@ module Analysis
       if wpm < 140 || wpm > 180
         target_wpm = wpm < 140 ? 150 : 165
         areas << {
-          type: 'improve_pace',
+          type: "improve_pace",
           current_value: wpm,
           target_value: target_wpm,
           potential_improvement: calculate_pace_improvement_impact(wpm, target_wpm),
-          severity: wpm < 120 || wpm > 200 ? 'high' : 'medium',
+          severity: wpm < 120 || wpm > 200 ? "high" : "medium",
           specific_issues: extract_pace_issues
         }
       end
@@ -139,11 +139,11 @@ module Analysis
       # Clarity analysis
       if current_metrics[:clarity_score] < 0.75
         areas << {
-          type: 'enhance_clarity',
+          type: "enhance_clarity",
           current_value: current_metrics[:clarity_score],
           target_value: 0.85,
           potential_improvement: calculate_clarity_improvement_impact(current_metrics[:clarity_score]),
-          severity: current_metrics[:clarity_score] < 0.60 ? 'high' : 'medium',
+          severity: current_metrics[:clarity_score] < 0.60 ? "high" : "medium",
           specific_issues: extract_clarity_issues
         }
       end
@@ -151,11 +151,11 @@ module Analysis
       # Engagement analysis
       if current_metrics[:engagement_score] < 0.70
         areas << {
-          type: 'boost_engagement',
+          type: "boost_engagement",
           current_value: current_metrics[:engagement_score],
           target_value: 0.80,
           potential_improvement: calculate_engagement_improvement_impact(current_metrics[:engagement_score]),
-          severity: current_metrics[:engagement_score] < 0.50 ? 'high' : 'medium',
+          severity: current_metrics[:engagement_score] < 0.50 ? "high" : "medium",
           specific_issues: extract_engagement_issues
         }
       end
@@ -163,37 +163,37 @@ module Analysis
       # Fluency analysis
       if current_metrics[:fluency_score] < 0.75
         areas << {
-          type: 'increase_fluency',
+          type: "increase_fluency",
           current_value: current_metrics[:fluency_score],
           target_value: 0.85,
           potential_improvement: calculate_fluency_improvement_impact(current_metrics[:fluency_score]),
-          severity: current_metrics[:fluency_score] < 0.60 ? 'high' : 'medium',
+          severity: current_metrics[:fluency_score] < 0.60 ? "high" : "medium",
           specific_issues: extract_fluency_issues
         }
       end
 
       # Long pause analysis
-      long_pause_count = @analysis_data['long_pause_count'] || 0
+      long_pause_count = @analysis_data["long_pause_count"] || 0
       if long_pause_count > 2
         areas << {
-          type: 'fix_long_pauses',
+          type: "fix_long_pauses",
           current_value: long_pause_count,
           target_value: 1,
           potential_improvement: calculate_pause_improvement_impact(long_pause_count),
-          severity: long_pause_count > 5 ? 'high' : 'medium',
+          severity: long_pause_count > 5 ? "high" : "medium",
           specific_issues: extract_pause_issues
         }
       end
 
       # Professional language analysis
-      unprofessional_issues = @issues.where(category: 'professional_issues').count
+      unprofessional_issues = @issues.where(category: "professional_issues").count
       if unprofessional_issues > 3
         areas << {
-          type: 'professional_language',
+          type: "professional_language",
           current_value: unprofessional_issues,
           target_value: 1,
           potential_improvement: calculate_professionalism_improvement_impact(unprofessional_issues),
-          severity: unprofessional_issues > 6 ? 'high' : 'low',
+          severity: unprofessional_issues > 6 ? "high" : "low",
           specific_issues: extract_professional_issues
         }
       end
@@ -233,48 +233,48 @@ module Analysis
     def calculate_transferability_score(improvement_type)
       # Some improvements help with multiple areas
       case improvement_type
-      when 'reduce_fillers' then 0.8    # Helps with fluency, clarity, professionalism
-      when 'enhance_clarity' then 0.9   # Helps with everything
-      when 'improve_pace' then 0.7      # Helps with engagement and clarity
-      when 'increase_fluency' then 0.6  # Helps with clarity and engagement
-      when 'professional_language' then 0.5 # Mainly helps with professionalism
-      when 'boost_engagement' then 0.6  # Helps with overall impression
-      when 'fix_long_pauses' then 0.4   # Mainly helps with fluency
+      when "reduce_fillers" then 0.8    # Helps with fluency, clarity, professionalism
+      when "enhance_clarity" then 0.9   # Helps with everything
+      when "improve_pace" then 0.7      # Helps with engagement and clarity
+      when "increase_fluency" then 0.6  # Helps with clarity and engagement
+      when "professional_language" then 0.5 # Mainly helps with professionalism
+      when "boost_engagement" then 0.6  # Helps with overall impression
+      when "fix_long_pauses" then 0.4   # Mainly helps with fluency
       else 0.5
       end
     end
 
     def calculate_context_relevance(improvement_type)
       # Could be enhanced with user-provided context about goals
-      context = @user_context[:speech_context] || 'general'
+      context = @user_context[:speech_context] || "general"
 
       relevance_map = {
-        'interview' => {
-          'professional_language' => 1.0,
-          'reduce_fillers' => 0.9,
-          'enhance_clarity' => 0.8,
-          'fix_long_pauses' => 0.7,
-          'improve_pace' => 0.6,
-          'boost_engagement' => 0.5,
-          'increase_fluency' => 0.8
+        "interview" => {
+          "professional_language" => 1.0,
+          "reduce_fillers" => 0.9,
+          "enhance_clarity" => 0.8,
+          "fix_long_pauses" => 0.7,
+          "improve_pace" => 0.6,
+          "boost_engagement" => 0.5,
+          "increase_fluency" => 0.8
         },
-        'presentation' => {
-          'boost_engagement' => 1.0,
-          'enhance_clarity' => 0.9,
-          'improve_pace' => 0.8,
-          'reduce_fillers' => 0.7,
-          'professional_language' => 0.6,
-          'increase_fluency' => 0.8,
-          'fix_long_pauses' => 0.5
+        "presentation" => {
+          "boost_engagement" => 1.0,
+          "enhance_clarity" => 0.9,
+          "improve_pace" => 0.8,
+          "reduce_fillers" => 0.7,
+          "professional_language" => 0.6,
+          "increase_fluency" => 0.8,
+          "fix_long_pauses" => 0.5
         },
-        'general' => {
-          'reduce_fillers' => 0.8,
-          'enhance_clarity' => 0.8,
-          'improve_pace' => 0.7,
-          'boost_engagement' => 0.7,
-          'increase_fluency' => 0.7,
-          'professional_language' => 0.6,
-          'fix_long_pauses' => 0.6
+        "general" => {
+          "reduce_fillers" => 0.8,
+          "enhance_clarity" => 0.8,
+          "improve_pace" => 0.7,
+          "boost_engagement" => 0.7,
+          "increase_fluency" => 0.7,
+          "professional_language" => 0.6,
+          "fix_long_pauses" => 0.6
         }
       }
 
@@ -297,17 +297,17 @@ module Analysis
 
       top_areas.each do |area|
         case area[:type]
-        when 'reduce_fillers'
+        when "reduce_fillers"
           plan[:daily_practice] << "Practice 2-minute recording focusing on pausing instead of saying 'um' or 'uh'"
           plan[:weekly_goals] << "Reduce filler rate from #{(area[:current_value] * 100).round(1)}% to #{(area[:target_value] * 100).round(1)}%"
           plan[:progress_tracking] << "Count filler words in each practice session"
-        when 'improve_pace'
+        when "improve_pace"
           current_wpm = area[:current_value].round
           target_wpm = area[:target_value].round
           plan[:daily_practice] << "Practice speaking at #{target_wpm} WPM using a metronome or timer"
           plan[:weekly_goals] << "Adjust speaking pace from #{current_wpm} to #{target_wpm} words per minute"
           plan[:progress_tracking] << "Record WPM in 1-minute practice sessions"
-        when 'enhance_clarity'
+        when "enhance_clarity"
           plan[:daily_practice] << "Practice enunciation exercises and record tongue twisters"
           plan[:weekly_goals] << "Improve clarity score from #{(area[:current_value] * 100).round}% to #{(area[:target_value] * 100).round}%"
           plan[:progress_tracking] << "Ask others to rate your speech clarity on a 1-10 scale"
@@ -321,7 +321,7 @@ module Analysis
     def calculate_filler_improvement_impact(current_rate)
       # Reducing filler rate from X to 2% - impact on overall score
       target_rate = 0.02
-      improvement = [current_rate - target_rate, 0].max
+      improvement = [ current_rate - target_rate, 0 ].max
       # Filler reduction can improve overall score by up to 15 points
       (improvement / 0.10) * 0.15
     end
@@ -337,34 +337,34 @@ module Analysis
 
     def calculate_clarity_improvement_impact(current_clarity)
       target_clarity = 0.85
-      improvement = [target_clarity - current_clarity, 0].max
+      improvement = [ target_clarity - current_clarity, 0 ].max
       # Clarity has 35% weight in overall score
       improvement * 0.35
     end
 
     def calculate_engagement_improvement_impact(current_engagement)
       target_engagement = 0.80
-      improvement = [target_engagement - current_engagement, 0].max
+      improvement = [ target_engagement - current_engagement, 0 ].max
       # Engagement has 15% weight in overall score
       improvement * 0.15
     end
 
     def calculate_fluency_improvement_impact(current_fluency)
       target_fluency = 0.85
-      improvement = [target_fluency - current_fluency, 0].max
+      improvement = [ target_fluency - current_fluency, 0 ].max
       # Fluency has 25% weight in overall score
       improvement * 0.25
     end
 
     def calculate_pause_improvement_impact(long_pause_count)
       # Reducing long pauses improves fluency and clarity
-      improvement_ratio = [long_pause_count - 1, 0].max / long_pause_count.to_f
+      improvement_ratio = [ long_pause_count - 1, 0 ].max / long_pause_count.to_f
       improvement_ratio * 0.10
     end
 
     def calculate_professionalism_improvement_impact(unprofessional_count)
       # Professional language mainly affects perception
-      improvement_ratio = [unprofessional_count - 1, 0].max / unprofessional_count.to_f
+      improvement_ratio = [ unprofessional_count - 1, 0 ].max / unprofessional_count.to_f
       improvement_ratio * 0.05
     end
 
@@ -383,9 +383,9 @@ module Analysis
 
       # Adjust based on severity
       severity_multiplier = case area[:severity]
-      when 'high' then 1.5
-      when 'medium' then 1.0
-      when 'low' then 0.5
+      when "high" then 1.5
+      when "medium" then 1.0
+      when "low" then 0.5
       else 1.0
       end
 
@@ -394,14 +394,14 @@ module Analysis
 
     def generate_actionable_steps(area)
       case area[:type]
-      when 'reduce_fillers'
+      when "reduce_fillers"
         [
           "Record yourself speaking for 2 minutes daily",
           "Count and track filler words in each recording",
           "Practice pausing for 1-2 seconds instead of saying 'um'",
           "Have a conversation partner signal when you use fillers"
         ]
-      when 'improve_pace'
+      when "improve_pace"
         if area[:current_value] < 140
           [
             "Practice with a metronome set to match target pace",
@@ -417,35 +417,35 @@ module Analysis
             "Practice breathing techniques for pace control"
           ]
         end
-      when 'enhance_clarity'
+      when "enhance_clarity"
         [
           "Practice tongue twisters for 5 minutes daily",
           "Record yourself reading complex passages",
           "Focus on enunciating consonants clearly",
           "Practice speaking with a pen in your mouth (advanced)"
         ]
-      when 'boost_engagement'
+      when "boost_engagement"
         [
           "Practice varying your vocal tone and energy",
           "Record yourself telling an exciting story",
           "Add strategic pauses for emphasis",
           "Practice gestures and body language (if video)"
         ]
-      when 'increase_fluency'
+      when "increase_fluency"
         [
           "Practice impromptu speaking for 1 minute daily",
           "Record yourself explaining familiar topics",
           "Work on smooth transitions between ideas",
           "Practice speaking without self-corrections"
         ]
-      when 'fix_long_pauses'
+      when "fix_long_pauses"
         [
           "Prepare key talking points before recording",
           "Practice bridging phrases to fill natural gaps",
           "Record yourself with outline notes nearby",
           "Focus on connecting ideas smoothly"
         ]
-      when 'professional_language'
+      when "professional_language"
         [
           "Replace casual words with professional alternatives",
           "Practice formal speech patterns daily",
@@ -453,21 +453,21 @@ module Analysis
           "Review and correct informal language patterns"
         ]
       else
-        ["Practice specific exercises for this area", "Track progress daily", "Record and review regularly"]
+        [ "Practice specific exercises for this area", "Track progress daily", "Record and review regularly" ]
       end
     end
 
     # Issue extraction methods
     def extract_filler_issues
-      @issues.where(category: 'filler_words').limit(3).pluck(:text, :start_ms, :tip)
+      @issues.where(category: "filler_words").limit(3).pluck(:text, :start_ms, :tip)
     end
 
     def extract_pace_issues
-      @issues.where(category: 'pace_issues').limit(3).pluck(:text, :start_ms, :tip)
+      @issues.where(category: "pace_issues").limit(3).pluck(:text, :start_ms, :tip)
     end
 
     def extract_clarity_issues
-      @issues.where(category: 'clarity_issues').limit(3).pluck(:text, :start_ms, :tip)
+      @issues.where(category: "clarity_issues").limit(3).pluck(:text, :start_ms, :tip)
     end
 
     def extract_engagement_issues
@@ -485,7 +485,7 @@ module Analysis
     end
 
     def extract_professional_issues
-      @issues.where(category: 'professional_issues').limit(3).pluck(:text, :start_ms, :tip)
+      @issues.where(category: "professional_issues").limit(3).pluck(:text, :start_ms, :tip)
     end
 
     # Historical analysis methods
@@ -502,24 +502,24 @@ module Analysis
     end
 
     def determine_trend(current_value, historical_average)
-      return 'stable' if @historical_sessions.count < 2 || historical_average.zero?
+      return "stable" if @historical_sessions.count < 2 || historical_average.zero?
 
       # For metrics where higher is worse (filler_rate), improving means decreasing
       percent_change = ((current_value - historical_average) / historical_average).abs
 
       if current_value < historical_average * 0.9 # 10% better
-        'improving'
+        "improving"
       elsif current_value > historical_average * 1.1 # 10% worse
-        'worsening'
+        "worsening"
       else
-        'stable'
+        "stable"
       end
     end
 
     # First session recommendation - always prompt user to record again
     def first_session_recommendation
       {
-        type: 'record_again_for_baseline',
+        type: "record_again_for_baseline",
         actionable_steps: [
           "Record another session so I can analyze your speaking patterns and provide personalized recommendations."
         ],
@@ -539,7 +539,7 @@ module Analysis
 
     # Normalize type strings for comparison
     def self.normalize_type(type)
-      type.to_s.downcase.gsub(/[^a-z_]/, '_')
+      type.to_s.downcase.gsub(/[^a-z_]/, "_")
     end
   end
 end

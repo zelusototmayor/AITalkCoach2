@@ -12,7 +12,7 @@ Rails.application.routes.draw do
   # =============================================================================
   # MARKETING SITE (aitalkcoach.com - no subdomain)
   # =============================================================================
-  constraints subdomain: ['', 'www'] do
+  constraints subdomain: [ "", "www" ] do
     # Root route - landing page
     root "landing#index"
 
@@ -23,10 +23,10 @@ Rails.application.routes.draw do
     get "practice", to: "sessions#index"
 
     # Session creation route for trial mode
-    resources :sessions, only: [:create]
+    resources :sessions, only: [ :create ]
 
     # Trial session routes (public demo)
-    resources :trial_sessions, only: [:show], param: :token, path: 'trial' do
+    resources :trial_sessions, only: [ :show ], param: :token, path: "trial" do
       member do
         get :analysis, action: :show
       end
@@ -45,15 +45,15 @@ Rails.application.routes.draw do
   # =============================================================================
   # APPLICATION (app.aitalkcoach.com)
   # =============================================================================
-  constraints subdomain: 'app' do
+  constraints subdomain: "app" do
     # Redirect root on app subdomain to practice
     root "sessions#index", as: :app_root
 
     # Authentication routes
     namespace :auth do
-      resources :registrations, only: [:new, :create], path: 'signup'
-      resources :sessions, only: [:new, :create, :destroy], path: 'login'
-      resources :password_resets, only: [:new, :create, :edit, :update], path: 'password', param: :token
+      resources :registrations, only: [ :new, :create ], path: "signup"
+      resources :sessions, only: [ :new, :create, :destroy ], path: "login"
+      resources :password_resets, only: [ :new, :create, :edit, :update ], path: "password", param: :token
     end
 
     # Onboarding flow
@@ -74,13 +74,13 @@ Rails.application.routes.draw do
     end
 
     # Convenient aliases
-    get '/login', to: 'auth/sessions#new'
-    post '/login', to: 'auth/sessions#create'
-    delete '/logout', to: 'auth/sessions#destroy', as: :logout
-    get '/logout', to: 'auth/sessions#destroy'  # Fallback for direct GET requests
-    get '/simple_logout', to: 'auth/sessions#destroy'  # Debug route
-    get '/signup', to: 'auth/registrations#new'
-    post '/signup', to: 'auth/registrations#create'
+    get "/login", to: "auth/sessions#new"
+    post "/login", to: "auth/sessions#create"
+    delete "/logout", to: "auth/sessions#destroy", as: :logout
+    get "/logout", to: "auth/sessions#destroy"  # Fallback for direct GET requests
+    get "/simple_logout", to: "auth/sessions#destroy"  # Debug route
+    get "/signup", to: "auth/registrations#new"
+    post "/signup", to: "auth/registrations#create"
 
     # Practice route - the main app interface
     get "practice", to: "sessions#index"
@@ -89,7 +89,7 @@ Rails.application.routes.draw do
     get "progress", to: "sessions#progress"
 
     # Core application routes
-    resources :sessions, except: [:edit, :update, :new] do
+    resources :sessions, except: [ :edit, :update, :new ] do
       collection do
         get :history
       end
@@ -98,20 +98,20 @@ Rails.application.routes.draw do
       end
     end
 
-    resources :prompts, only: [:index]
+    resources :prompts, only: [ :index ]
 
     # Privacy settings
-    resource :privacy_settings, only: [:show, :update]
+    resource :privacy_settings, only: [ :show, :update ]
 
     # Settings
-    get '/settings', to: 'settings#show'
-    patch '/settings', to: 'settings#update'
+    get "/settings", to: "settings#show"
+    patch "/settings", to: "settings#update"
 
     # Feedback
-    post '/feedback', to: 'feedback#create'
+    post "/feedback", to: "feedback#create"
 
     # Subscription routes
-    resource :subscription, only: [:create, :show], controller: 'subscription' do
+    resource :subscription, only: [ :create, :show ], controller: "subscription" do
       collection do
         get :success, action: :success
         post :manage, action: :manage
@@ -119,7 +119,7 @@ Rails.application.routes.draw do
     end
 
     # Webhooks
-    post '/webhooks/stripe', to: 'webhooks#stripe'
+    post "/webhooks/stripe", to: "webhooks#stripe"
 
     # API routes
     namespace :api do
@@ -146,8 +146,8 @@ Rails.application.routes.draw do
 
     # Admin routes
     namespace :admin do
-      get 'health', to: 'health#show'
-      get 'health/detailed', to: 'health#detailed'
+      get "health", to: "health#show"
+      get "health/detailed", to: "health#detailed"
     end
   end
 end

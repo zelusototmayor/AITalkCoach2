@@ -1,12 +1,12 @@
 module ApplicationHelper
   # Extract filler word from issue's coaching_note field
   def extract_filler_word(issue)
-    return nil unless issue.kind == 'filler_word' && issue.source == 'ai'
+    return nil unless issue.kind == "filler_word" && issue.source == "ai"
     issue.coaching_note
   end
 
   def highlight_filler_words(transcript_text, ai_filler_words = [])
-    return '' unless transcript_text.present?
+    return "" unless transcript_text.present?
 
     highlighted_text = transcript_text.dup
 
@@ -27,13 +27,13 @@ module ApplicationHelper
     else
       # Fallback to regex patterns only when AI failed or returned no results
       filler_patterns = {
-        'um' => /\b(um|uhm)\b/i,
-        'uh' => /\b(uh|er|ah)\b/i,
-        'like' => /\blike\b/i,
-        'you_know' => /\byou know\b/i,
-        'basically' => /\bbasically\b/i,
-        'actually' => /\bactually\b/i,
-        'so' => /\bso\b(?!\s+(that|what|how|when|where|why))/i
+        "um" => /\b(um|uhm)\b/i,
+        "uh" => /\b(uh|er|ah)\b/i,
+        "like" => /\blike\b/i,
+        "you_know" => /\byou know\b/i,
+        "basically" => /\bbasically\b/i,
+        "actually" => /\bactually\b/i,
+        "so" => /\bso\b(?!\s+(that|what|how|when|where|why))/i
       }
 
       filler_patterns.each do |type, pattern|
@@ -48,7 +48,7 @@ module ApplicationHelper
   end
 
   def metric_tooltip(metric_name, explanation, options = {})
-    position = options[:position] || 'top'
+    position = options[:position] || "top"
 
     content_tag(:span, class: "metric-with-tooltip", data: { controller: "tooltip", tooltip_position_value: position }) do
       concat content_tag(:span, metric_name, class: "metric-name-text")

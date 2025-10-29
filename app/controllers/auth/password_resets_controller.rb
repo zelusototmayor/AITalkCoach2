@@ -1,7 +1,7 @@
 class Auth::PasswordResetsController < ApplicationController
-  before_action :require_logout, only: [:new, :create]
-  before_action :find_user_by_token, only: [:edit, :update]
-  before_action :check_token_expiration, only: [:edit, :update]
+  before_action :require_logout, only: [ :new, :create ]
+  before_action :find_user_by_token, only: [ :edit, :update ]
+  before_action :check_token_expiration, only: [ :edit, :update ]
 
   # GET /auth/password/new - Request password reset form
   def new
@@ -22,7 +22,7 @@ class Auth::PasswordResetsController < ApplicationController
     end
 
     redirect_to app_subdomain_url(login_path),
-                notice: 'If your email is registered, you will receive password reset instructions shortly.'
+                notice: "If your email is registered, you will receive password reset instructions shortly."
   end
 
   # GET /auth/password/edit?token=xxx - Reset password form
@@ -32,13 +32,13 @@ class Auth::PasswordResetsController < ApplicationController
   # PATCH /auth/password - Update password
   def update
     if params[:password].blank?
-      flash.now[:alert] = 'Password cannot be blank'
+      flash.now[:alert] = "Password cannot be blank"
       render :edit, status: :unprocessable_content
       return
     end
 
     if params[:password] != params[:password_confirmation]
-      flash.now[:alert] = 'Password confirmation does not match'
+      flash.now[:alert] = "Password confirmation does not match"
       render :edit, status: :unprocessable_content
       return
     end
@@ -47,7 +47,7 @@ class Auth::PasswordResetsController < ApplicationController
       @user.reset_password!(params[:password])
       Rails.logger.info "Password reset completed for user #{@user.id}"
       redirect_to app_subdomain_url(login_path),
-                  notice: 'Your password has been reset successfully. Please login with your new password.'
+                  notice: "Your password has been reset successfully. Please login with your new password."
     rescue ActiveRecord::RecordInvalid => e
       flash.now[:alert] = "Password #{e.record.errors[:password].first}"
       render :edit, status: :unprocessable_content
@@ -61,14 +61,14 @@ class Auth::PasswordResetsController < ApplicationController
 
     unless @user
       redirect_to app_subdomain_url(new_password_reset_path),
-                  alert: 'Invalid or expired password reset link. Please request a new one.'
+                  alert: "Invalid or expired password reset link. Please request a new one."
     end
   end
 
   def check_token_expiration
     if @user&.reset_password_token_expired?
       redirect_to app_subdomain_url(new_password_reset_path),
-                  alert: 'Password reset link has expired. Please request a new one.'
+                  alert: "Password reset link has expired. Please request a new one."
     end
   end
 end

@@ -1,22 +1,22 @@
 class SessionsController < ApplicationController
   before_action :activate_trial_if_requested
-  before_action :require_login, except: [:index, :create]
-  before_action :require_login_or_trial, only: [:index, :create]
-  before_action :require_subscription, except: [:index, :create]
-  before_action :set_session, only: [:show, :destroy]
-  
+  before_action :require_login, except: [ :index, :create ]
+  before_action :require_login_or_trial, only: [ :index, :create ]
+  before_action :require_subscription, except: [ :index, :create ]
+  before_action :set_session, only: [ :show, :destroy ]
+
   def index
     # Trial mode is only available on marketing site (not app subdomain)
     # On app subdomain, users must be logged in with paid subscription
     if on_app_subdomain?
       # App subdomain: require paid subscription
       unless logged_in?
-        redirect_to app_subdomain_url(login_path), allow_other_host: true, alert: 'Please login to continue'
+        redirect_to app_subdomain_url(login_path), allow_other_host: true, alert: "Please login to continue"
         return
       end
 
       unless current_user.can_access_app?
-        redirect_to pricing_url, alert: 'Please subscribe to access the app.', allow_other_host: true
+        redirect_to pricing_url, alert: "Please subscribe to access the app.", allow_other_host: true
         return
       end
     end
@@ -28,7 +28,7 @@ class SessionsController < ApplicationController
       @default_prompt_data = { prompt: @trial_prompt, target_seconds: 30 }
 
       # Check for trial results to display
-      if params[:trial_results] == 'true' && session[:trial_results]
+      if params[:trial_results] == "true" && session[:trial_results]
         @trial_results = session[:trial_results]
         session.delete(:trial_results) # Clear after showing
       end
@@ -50,14 +50,14 @@ class SessionsController < ApplicationController
       # Note: Analytics tracking for real_session_started happens on the frontend
       @prompts = load_prompts_from_config
       @adaptive_prompts = get_adaptive_prompts
-      @categories = (@prompts.keys + ['recommended']).uniq.sort
+      @categories = (@prompts.keys + [ "recommended" ]).uniq.sort
       @user_weaknesses = analyze_user_weaknesses
 
       # Quick metrics for insights panel (30-day averages)
       @recent_sessions = current_user.sessions
                                      .where(completed: true)
-                                     .where('sessions.created_at > ?', 30.days.ago)
-                                     .order('sessions.created_at DESC')
+                                     .where("sessions.created_at > ?", 30.days.ago)
+                                     .order("sessions.created_at DESC")
                                      .limit(10)
                                      .includes(:issues)
 
@@ -92,7 +92,7 @@ class SessionsController < ApplicationController
       end
     else
       # Not logged in or no subscription - redirect to pricing
-      redirect_to pricing_url, alert: 'Please subscribe to access the app.', allow_other_host: true
+      redirect_to pricing_url, alert: "Please subscribe to access the app.", allow_other_host: true
     end
   end
 
@@ -116,7 +116,7 @@ class SessionsController < ApplicationController
     # can see their progress dashboard and get recommendations even after practice gaps
     @recent_sessions = current_user.sessions
                                    .where(completed: true)
-                                   .order('sessions.created_at ASC')  # ASC for chronological charts
+                                   .order("sessions.created_at ASC")  # ASC for chronological charts
                                    .includes(:issues)
 
     # Get the most recent completed session for recommendations
@@ -129,7 +129,7 @@ class SessionsController < ApplicationController
         total_sessions_count = current_user.sessions.where(completed: true).count
 
         user_context = {
-          speech_context: @latest_session.speech_context || 'general',
+          speech_context: @latest_session.speech_context || "general",
           historical_sessions: @recent_sessions.to_a,
           total_sessions_count: total_sessions_count
         }
@@ -160,7 +160,7 @@ class SessionsController < ApplicationController
     end
 
     # Prepare chart data for frontend with time range
-    @time_range = params[:time_range] || '7'
+    @time_range = params[:time_range] || "7"
     @chart_data = prepare_progress_chart_data(@recent_sessions, @time_range)
 
     # Prepare skill snapshot data (current vs previous session)
@@ -169,8 +169,8 @@ class SessionsController < ApplicationController
     # Prepare calendar data (last 30 days)
     @calendar_data = prepare_calendar_data(@recent_sessions)
   end
-  
-  
+
+
   def create
     # Trial sessions only allowed on marketing site, not app subdomain
     if trial_mode? && !on_app_subdomain?
@@ -179,7 +179,7 @@ class SessionsController < ApplicationController
     elsif logged_in? && current_user.can_access_app?
       # Regular authenticated session
       @session = current_user.sessions.build(session_params)
-      @session.processing_state = 'pending'
+      @session.processing_state = "pending"
       @session.completed = false
 
       # Set enforcement flag based on whether it's coming from practice interface
@@ -208,11 +208,11 @@ class SessionsController < ApplicationController
             success: true,
             session_id: @session.id,
             redirect_url: session_path(@session),
-            message: 'Recording session created successfully. Analysis will be available shortly.'
+            message: "Recording session created successfully. Analysis will be available shortly."
           }, status: :created
         else
           # Traditional request - redirect as before
-          redirect_to @session, notice: 'Recording session created successfully. Analysis will be available shortly.'
+          redirect_to @session, notice: "Recording session created successfully. Analysis will be available shortly."
         end
       else
         # Handle validation errors
@@ -222,7 +222,7 @@ class SessionsController < ApplicationController
           primary_message = if error_messages.any?
             error_messages.first
           else
-            'Please record audio before submitting'
+            "Please record audio before submitting"
           end
 
           Rails.logger.error "Session validation failed: #{error_messages.join(', ')}"
@@ -236,7 +236,7 @@ class SessionsController < ApplicationController
           # Traditional request - render form with errors
           @prompts = load_prompts_from_config
           @adaptive_prompts = get_adaptive_prompts
-          @categories = (@prompts.keys + ['recommended']).uniq.sort
+          @categories = (@prompts.keys + [ "recommended" ]).uniq.sort
           @user_weaknesses = analyze_user_weaknesses
           render :index, status: :unprocessable_content
         end
@@ -246,15 +246,15 @@ class SessionsController < ApplicationController
       if request.xhr?
         render json: {
           success: false,
-          message: 'Please subscribe to access the app.',
+          message: "Please subscribe to access the app.",
           redirect_url: pricing_url
         }, status: :forbidden
       else
-        redirect_to pricing_url, alert: 'Please subscribe to access the app.'
+        redirect_to pricing_url, alert: "Please subscribe to access the app."
       end
     end
   end
-  
+
   def show
     @issues = @session.issues.order(:start_ms)
 
@@ -264,7 +264,7 @@ class SessionsController < ApplicationController
         # Get last 5 sessions for historical context
         recent_sessions = current_user.sessions
           .where(completed: true)
-          .where('id <= ?', @session.id) # Include current + previous
+          .where("id <= ?", @session.id) # Include current + previous
           .order(created_at: :desc)
           .limit(5)
           .includes(:issues)
@@ -272,11 +272,11 @@ class SessionsController < ApplicationController
         # Get total session count for accurate first-session detection
         total_sessions_count = current_user.sessions
           .where(completed: true)
-          .where('id <= ?', @session.id)
+          .where("id <= ?", @session.id)
           .count
 
         user_context = {
-          speech_context: @session.speech_context || params[:context] || 'general',
+          speech_context: @session.speech_context || params[:context] || "general",
           historical_sessions: recent_sessions.to_a,
           total_sessions_count: total_sessions_count
         }
@@ -326,11 +326,11 @@ class SessionsController < ApplicationController
           # Map recommendation types to tip categories for filtering
           focus_categories = focus_types.map do |type|
             case type
-            when 'reduce_fillers' then 'filler_words'
-            when 'improve_pace' then 'pace_consistency'
-            when 'fix_long_pauses' then 'pause_consistency'
-            when 'boost_engagement' then 'energy'
-            when 'increase_fluency' then 'fluency'
+            when "reduce_fillers" then "filler_words"
+            when "improve_pace" then "pace_consistency"
+            when "fix_long_pauses" then "pause_consistency"
+            when "boost_engagement" then "energy"
+            when "increase_fluency" then "fluency"
             else type
             end
           end
@@ -350,20 +350,20 @@ class SessionsController < ApplicationController
     end
 
     # Set appropriate flash message based on session state
-    if @session.processing_state == 'pending'
-      flash.now[:info] = 'Your session is being processed. Analysis results will appear automatically when ready.'
-    elsif @session.processing_state == 'failed'
-      flash.now[:alert] = 'Session analysis failed. Please try re-processing or contact support.'
-    elsif @session.processing_state == 'completed' && @session.analysis_data.present?
-      flash.now[:success] = 'Analysis complete! Review your detailed feedback below.' if params[:notice].blank?
+    if @session.processing_state == "pending"
+      flash.now[:info] = "Your session is being processed. Analysis results will appear automatically when ready."
+    elsif @session.processing_state == "failed"
+      flash.now[:alert] = "Session analysis failed. Please try re-processing or contact support."
+    elsif @session.processing_state == "completed" && @session.analysis_data.present?
+      flash.now[:success] = "Analysis complete! Review your detailed feedback below." if params[:notice].blank?
     end
 
     # Prepare sessions data for insights controller
     begin
       @user_sessions = current_user.sessions
                                     .where(completed: true)
-                                    .where('sessions.created_at > ?', 90.days.ago)
-                                    .order('sessions.created_at DESC')
+                                    .where("sessions.created_at > ?", 90.days.ago)
+                                    .order("sessions.created_at DESC")
                                     .limit(50)
                                     .includes(:issues)
                                     .map do |session|
@@ -371,16 +371,16 @@ class SessionsController < ApplicationController
           id: session.id,
           created_at: session.created_at&.iso8601,
           analysis_data: session.analysis_data || {},
-          duration: (session.analysis_data&.dig('duration_seconds')&.to_f rescue 0),
+          duration: (session.analysis_data&.dig("duration_seconds")&.to_f rescue 0),
           metrics: {
-            clarity_score: (session.analysis_data&.dig('clarity_score')&.to_f rescue nil),
-            wpm: (session.analysis_data&.dig('wpm')&.to_f rescue nil),
-            filler_rate: (session.analysis_data&.dig('filler_rate')&.to_f rescue nil),
-            pace_consistency: (session.analysis_data&.dig('pace_consistency')&.to_f rescue nil),
-            volume_consistency: (session.analysis_data&.dig('speech_to_silence_ratio')&.to_f rescue nil),
-            engagement_score: (session.analysis_data&.dig('engagement_score')&.to_f rescue nil),
-            fluency_score: (session.analysis_data&.dig('fluency_score')&.to_f rescue nil),
-            overall_score: (session.analysis_data&.dig('overall_score')&.to_f rescue nil)
+            clarity_score: (session.analysis_data&.dig("clarity_score")&.to_f rescue nil),
+            wpm: (session.analysis_data&.dig("wpm")&.to_f rescue nil),
+            filler_rate: (session.analysis_data&.dig("filler_rate")&.to_f rescue nil),
+            pace_consistency: (session.analysis_data&.dig("pace_consistency")&.to_f rescue nil),
+            volume_consistency: (session.analysis_data&.dig("speech_to_silence_ratio")&.to_f rescue nil),
+            engagement_score: (session.analysis_data&.dig("engagement_score")&.to_f rescue nil),
+            fluency_score: (session.analysis_data&.dig("fluency_score")&.to_f rescue nil),
+            overall_score: (session.analysis_data&.dig("overall_score")&.to_f rescue nil)
           }
         }
       end
@@ -389,12 +389,12 @@ class SessionsController < ApplicationController
       @user_sessions = []
     end
   end
-  
+
   def destroy
     @session.destroy
-    redirect_to practice_path, notice: 'Session deleted successfully.'
+    redirect_to practice_path, notice: "Session deleted successfully."
   end
-  
+
   # Make the helper methods available to views
   helper_method :normalize_metric_for_display, :humanize_improvement_type, :format_metric_value, :format_effort_level
 
@@ -411,7 +411,7 @@ class SessionsController < ApplicationController
 
     # All metrics are now consistently stored as decimals (0.85 = 85%)
     case metric_key
-    when 'filler_rate', 'clarity_score', 'fluency_score', 'engagement_score', 'pace_consistency', 'overall_score'
+    when "filler_rate", "clarity_score", "fluency_score", "engagement_score", "pace_consistency", "overall_score"
       (value * 100).round(1)
     else
       value
@@ -420,28 +420,28 @@ class SessionsController < ApplicationController
 
   def humanize_improvement_type(type)
     case type
-    when 'reduce_fillers' then 'Reduce Filler Words'
-    when 'improve_pace' then 'Improve Speaking Pace'
-    when 'enhance_clarity' then 'Enhance Speech Clarity'
-    when 'boost_engagement' then 'Boost Engagement'
-    when 'increase_fluency' then 'Increase Fluency'
-    when 'fix_long_pauses' then 'Fix Long Pauses'
-    when 'professional_language' then 'Use Professional Language'
+    when "reduce_fillers" then "Reduce Filler Words"
+    when "improve_pace" then "Improve Speaking Pace"
+    when "enhance_clarity" then "Enhance Speech Clarity"
+    when "boost_engagement" then "Boost Engagement"
+    when "increase_fluency" then "Increase Fluency"
+    when "fix_long_pauses" then "Fix Long Pauses"
+    when "professional_language" then "Use Professional Language"
     else type.humanize
     end
   end
 
   def format_metric_value(value, type)
     case type
-    when 'reduce_fillers'
+    when "reduce_fillers"
       "#{(value * 100).round(1)}%"
-    when 'improve_pace'
+    when "improve_pace"
       "#{value.round} WPM"
-    when 'enhance_clarity', 'boost_engagement', 'increase_fluency'
+    when "enhance_clarity", "boost_engagement", "increase_fluency"
       "#{(value * 100).round}%"
-    when 'fix_long_pauses'
+    when "fix_long_pauses"
       "#{value} pauses"
-    when 'professional_language'
+    when "professional_language"
       "#{value} issues"
     else
       value.to_s
@@ -450,11 +450,11 @@ class SessionsController < ApplicationController
 
   def format_effort_level(level)
     case level
-    when 1 then 'Easy'
-    when 2 then 'Moderate'
-    when 3 then 'Hard'
-    when 4 then 'Very Hard'
-    else 'Unknown'
+    when 1 then "Easy"
+    when 2 then "Moderate"
+    when 3 then "Hard"
+    when 4 then "Very Hard"
+    else "Unknown"
     end
   end
 
@@ -462,62 +462,62 @@ class SessionsController < ApplicationController
   def session_params
     params.require(:session).permit(:title, :language, :media_kind, :target_seconds, :minimum_duration_enforced, :speech_context, :weekly_focus_id, :is_planned_session, :planned_for_date, media_files: [])
   end
-  
+
   def extract_session_metrics(session)
     return {} unless session.analysis_data.present?
-    
+
     analysis = session.analysis_data
     issues_count = session.issues.count
-    
+
     {
-      clarity_score: analysis['clarity_score'] || calculate_clarity_from_issues(session),
-      words_per_minute: analysis['wpm'],
-      filler_rate: analysis['filler_rate'],
+      clarity_score: analysis["clarity_score"] || calculate_clarity_from_issues(session),
+      words_per_minute: analysis["wpm"],
+      filler_rate: analysis["filler_rate"],
       pace_consistency: calculate_pace_consistency(session),
       volume_consistency: calculate_volume_consistency(session),
       engagement_score: calculate_engagement_score(session)
     }.compact
   end
-  
+
   def calculate_clarity_from_issues(session)
     return nil unless session.duration_ms && session.duration_ms > 0
-    
+
     total_issue_duration = session.issues.sum(&:duration_ms) || 0
     clarity_score = 1.0 - (total_issue_duration.to_f / session.duration_ms)
-    [clarity_score, 0.0].max
+    [ clarity_score, 0.0 ].max
   end
-  
+
   def calculate_pace_consistency(session)
-    return nil unless session.analysis_data['wpm']
-    
+    return nil unless session.analysis_data["wpm"]
+
     # Simple consistency measure - would be enhanced with actual variance calculation
-    wpm = session.analysis_data['wpm'].to_f
+    wpm = session.analysis_data["wpm"].to_f
     ideal_wpm = 150.0
     deviation = (wpm - ideal_wpm).abs / ideal_wpm
-    consistency = 1.0 - [deviation, 1.0].min
-    [consistency, 0.0].max
+    consistency = 1.0 - [ deviation, 1.0 ].min
+    [ consistency, 0.0 ].max
   end
-  
+
   def calculate_volume_consistency(session)
     # Placeholder for volume analysis - would analyze audio amplitude variance
     0.8
   end
-  
+
   def calculate_engagement_score(session)
-    return nil unless session.analysis_data['clarity_score'] && session.analysis_data['wpm']
-    
-    clarity = session.analysis_data['clarity_score'].to_f
-    wpm_score = [session.analysis_data['wpm'].to_f / 150.0, 1.0].min
-    filler_penalty = (session.analysis_data['filler_rate'] || 0) * 2
-    
+    return nil unless session.analysis_data["clarity_score"] && session.analysis_data["wpm"]
+
+    clarity = session.analysis_data["clarity_score"].to_f
+    wpm_score = [ session.analysis_data["wpm"].to_f / 150.0, 1.0 ].min
+    filler_penalty = (session.analysis_data["filler_rate"] || 0) * 2
+
     engagement = (clarity + wpm_score - filler_penalty) / 2.0
-    [[engagement, 0.0].max, 1.0].min
+    [ [ engagement, 0.0 ].max, 1.0 ].min
   end
 
   def load_prompts_from_config
     begin
-      config = YAML.load_file(Rails.root.join('config', 'prompts.yml'))
-      base_prompts = config['base_prompts'] || {}
+      config = YAML.load_file(Rails.root.join("config", "prompts.yml"))
+      base_prompts = config["base_prompts"] || {}
       Rails.logger.debug "Loaded YAML prompts: #{base_prompts.keys}"
       # Ensure we return a valid hash, never nil
       base_prompts.is_a?(Hash) ? base_prompts : {}
@@ -526,92 +526,92 @@ class SessionsController < ApplicationController
       {}
     end
   end
-  
+
   def get_adaptive_prompts
     return {} unless current_user
-    
-    config = YAML.load_file(Rails.root.join('config', 'prompts.yml'))
+
+    config = YAML.load_file(Rails.root.join("config", "prompts.yml"))
     weaknesses = analyze_user_weaknesses
-    
+
     return {} if weaknesses.empty?
-    
+
     adaptive_prompts = {}
-    
+
     weaknesses.each do |weakness|
-      if config['adaptive_prompts'][weakness]
-        adaptive_prompts[weakness] = config['adaptive_prompts'][weakness]
+      if config["adaptive_prompts"][weakness]
+        adaptive_prompts[weakness] = config["adaptive_prompts"][weakness]
       end
     end
-    
+
     adaptive_prompts
   end
-  
+
   def analyze_user_weaknesses
     return [] unless current_user
-    
+
     # Get recent sessions for analysis
     recent_sessions = current_user.sessions
       .where(completed: true)
-      .where('sessions.created_at >= ?', 30.days.ago)
+      .where("sessions.created_at >= ?", 30.days.ago)
       .includes(:issues)
-    
+
     return [] if recent_sessions.count < 3
-    
-    config = YAML.load_file(Rails.root.join('config', 'prompts.yml'))
-    thresholds = config['recommendation_settings']['issue_thresholds']
-    
+
+    config = YAML.load_file(Rails.root.join("config", "prompts.yml"))
+    thresholds = config["recommendation_settings"]["issue_thresholds"]
+
     weaknesses = []
     session_count = recent_sessions.count.to_f
-    
+
     # Analyze filler words
     filler_sessions = recent_sessions.select do |session|
-      session.issues.any? { |issue| issue.category == 'filler_words' }
+      session.issues.any? { |issue| issue.category == "filler_words" }
     end
-    if (filler_sessions.count / session_count) >= thresholds['filler_words']
-      weaknesses << 'filler_words'
+    if (filler_sessions.count / session_count) >= thresholds["filler_words"]
+      weaknesses << "filler_words"
     end
-    
+
     # Analyze pace issues
     pace_sessions = recent_sessions.select do |session|
-      wpm = session.analysis_data['wpm']
+      wpm = session.analysis_data["wpm"]
       wpm && (wpm < 120 || wpm > 200)
     end
-    if (pace_sessions.count / session_count) >= thresholds['pace_issues']
-      weaknesses << 'pace_issues'
+    if (pace_sessions.count / session_count) >= thresholds["pace_issues"]
+      weaknesses << "pace_issues"
     end
-    
+
     # Analyze clarity issues
     clarity_sessions = recent_sessions.select do |session|
-      clarity = session.analysis_data['clarity_score']
+      clarity = session.analysis_data["clarity_score"]
       clarity && clarity < 0.7
     end
-    if (clarity_sessions.count / session_count) >= thresholds['clarity_issues']
-      weaknesses << 'clarity_issues'
+    if (clarity_sessions.count / session_count) >= thresholds["clarity_issues"]
+      weaknesses << "clarity_issues"
     end
-    
+
     # Analyze confidence issues (based on volume and filler frequency)
     confidence_sessions = recent_sessions.select do |session|
-      filler_rate = session.analysis_data['filler_rate']
+      filler_rate = session.analysis_data["filler_rate"]
       issue_count = session.issues.count
       duration_seconds = (session.duration_ms || 0) / 1000.0
-      
+
       (filler_rate && filler_rate > 0.05) || (duration_seconds > 0 && issue_count / duration_seconds > 0.1)
     end
-    if (confidence_sessions.count / session_count) >= thresholds['confidence_issues']
-      weaknesses << 'confidence_issues'
+    if (confidence_sessions.count / session_count) >= thresholds["confidence_issues"]
+      weaknesses << "confidence_issues"
     end
-    
+
     # Analyze engagement issues (based on monotone speech patterns)
     engagement_sessions = recent_sessions.select do |session|
-      clarity = session.analysis_data['clarity_score']
-      wpm = session.analysis_data['wpm']
+      clarity = session.analysis_data["clarity_score"]
+      wpm = session.analysis_data["wpm"]
       # Simple heuristic: low variation in metrics suggests low engagement
       clarity && wpm && clarity < 0.8 && (wpm < 140 || wpm > 180)
     end
-    if (engagement_sessions.count / session_count) >= thresholds['engagement_issues']
-      weaknesses << 'engagement_issues'
+    if (engagement_sessions.count / session_count) >= thresholds["engagement_issues"]
+      weaknesses << "engagement_issues"
     end
-    
+
     weaknesses.uniq
   end
 
@@ -624,7 +624,7 @@ class SessionsController < ApplicationController
     # Get the latest updated_at from sessions without the join to avoid ambiguity
     latest_update = current_user.sessions
                                  .where(id: sessions.map(&:id))
-                                 .maximum('sessions.updated_at')
+                                 .maximum("sessions.updated_at")
     cache_key = "user_#{current_user.id}_quick_metrics_#{latest_update&.to_i}"
 
     Rails.cache.fetch(cache_key, expires_in: 15.minutes) do
@@ -633,9 +633,9 @@ class SessionsController < ApplicationController
                                    .where(completed: true)
                                    .count
 
-      wpm_values = sessions.filter_map { |s| s.analysis_data['wpm'] }
-      filler_values = sessions.filter_map { |s| s.analysis_data['filler_rate'] }
-      clarity_values = sessions.filter_map { |s| s.analysis_data['clarity_score'] }
+      wpm_values = sessions.filter_map { |s| s.analysis_data["wpm"] }
+      filler_values = sessions.filter_map { |s| s.analysis_data["filler_rate"] }
+      clarity_values = sessions.filter_map { |s| s.analysis_data["clarity_score"] }
 
       avg_wpm = wpm_values.any? ? wpm_values.sum / wpm_values.count.to_f : 0
       avg_filler_rate = filler_values.any? ? filler_values.sum / filler_values.count.to_f : 0
@@ -654,11 +654,11 @@ class SessionsController < ApplicationController
     return [] unless @user_weaknesses.any?
 
     focus_recommendations = {
-      'filler_words' => 'Reduce filler words below 3% using pause drills',
-      'pace_issues' => 'Target 140-170 WPM in 60s sessions',
-      'clarity_issues' => 'Practice concise answers (30s prompts)',
-      'confidence_issues' => 'Build confidence with storytelling prompts',
-      'engagement_issues' => 'Add energy and vary vocal tone'
+      "filler_words" => "Reduce filler words below 3% using pause drills",
+      "pace_issues" => "Target 140-170 WPM in 60s sessions",
+      "clarity_issues" => "Practice concise answers (30s prompts)",
+      "confidence_issues" => "Build confidence with storytelling prompts",
+      "engagement_issues" => "Add energy and vary vocal tone"
     }
 
     @user_weaknesses.map { |weakness| focus_recommendations[weakness] }.compact
@@ -666,7 +666,7 @@ class SessionsController < ApplicationController
 
   def calculate_current_streak
     # Cache streak calculation since it's expensive and doesn't change often
-    cache_key = "user_#{current_user.id}_current_streak_#{Date.current.to_s}"
+    cache_key = "user_#{current_user.id}_current_streak_#{Date.current}"
 
     Rails.cache.fetch(cache_key, expires_in: 1.hour) do
       sessions = current_user.sessions
@@ -699,7 +699,7 @@ class SessionsController < ApplicationController
     # Get recent enforced sessions for analytics
     enforced_sessions = current_user.sessions
                                     .where(minimum_duration_enforced: true)
-                                    .where('sessions.created_at > ?', 30.days.ago)
+                                    .where("sessions.created_at > ?", 30.days.ago)
 
     return {} if enforced_sessions.empty?
 
@@ -719,7 +719,7 @@ class SessionsController < ApplicationController
   end
 
   def calculate_completion_trend(sessions)
-    return 'stable' if sessions.count < 6
+    return "stable" if sessions.count < 6
 
     # Compare recent vs earlier completion rates
     half_point = sessions.count / 2
@@ -730,11 +730,11 @@ class SessionsController < ApplicationController
     earlier_rate = earlier_sessions.where(completed: true).count.to_f / earlier_sessions.count
 
     if recent_rate > earlier_rate + 0.1
-      'improving'
+      "improving"
     elsif recent_rate < earlier_rate - 0.1
-      'declining'
+      "declining"
     else
-      'stable'
+      "stable"
     end
   end
 
@@ -751,10 +751,10 @@ class SessionsController < ApplicationController
         first_prompt = prompts.first
         if first_prompt.is_a?(Hash)
           return {
-            prompt: first_prompt['prompt'],
-            target_seconds: first_prompt['target_seconds'] || 60,
-            title: first_prompt['title'],
-            description: first_prompt['description']
+            prompt: first_prompt["prompt"],
+            target_seconds: first_prompt["target_seconds"] || 60,
+            title: first_prompt["title"],
+            description: first_prompt["description"]
           }
         else
           return { prompt: first_prompt, target_seconds: 60 }
@@ -769,10 +769,10 @@ class SessionsController < ApplicationController
         first_prompt = prompts.first
         if first_prompt.is_a?(Hash)
           return {
-            prompt: first_prompt['prompt'],
-            target_seconds: first_prompt['target_seconds'] || 60,
-            title: first_prompt['title'],
-            description: first_prompt['description']
+            prompt: first_prompt["prompt"],
+            target_seconds: first_prompt["target_seconds"] || 60,
+            title: first_prompt["title"],
+            description: first_prompt["description"]
           }
         else
           return { prompt: first_prompt, target_seconds: 60 }
@@ -798,10 +798,10 @@ class SessionsController < ApplicationController
     selected_prompt = prompts[index]
     if selected_prompt.is_a?(Hash)
       {
-        prompt: selected_prompt['prompt'],
-        target_seconds: selected_prompt['target_seconds'] || 60,
-        title: selected_prompt['title'],
-        description: selected_prompt['description']
+        prompt: selected_prompt["prompt"],
+        target_seconds: selected_prompt["target_seconds"] || 60,
+        title: selected_prompt["title"],
+        description: selected_prompt["description"]
       }
     else
       {
@@ -815,10 +815,10 @@ class SessionsController < ApplicationController
 
   def get_prompt_by_id(prompt_id)
     # Parse prompt_id like "category_index"
-    parts = prompt_id.split('_')
+    parts = prompt_id.split("_")
     return get_default_prompt_data unless parts.length >= 2
 
-    category = parts[0..-2].join('_')  # Handle category names with underscores
+    category = parts[0..-2].join("_")  # Handle category names with underscores
     index = parts[-1].to_i
 
     return get_default_prompt_data unless @prompts[category]
@@ -829,10 +829,10 @@ class SessionsController < ApplicationController
     selected_prompt = prompts[index]
     if selected_prompt.is_a?(Hash)
       {
-        prompt: selected_prompt['prompt'],
-        target_seconds: selected_prompt['target_seconds'] || 60,
-        title: selected_prompt['title'],
-        description: selected_prompt['description']
+        prompt: selected_prompt["prompt"],
+        target_seconds: selected_prompt["target_seconds"] || 60,
+        title: selected_prompt["title"],
+        description: selected_prompt["description"]
       }
     else
       {
@@ -846,7 +846,7 @@ class SessionsController < ApplicationController
 
   # Subdomain detection
   def on_app_subdomain?
-    request.subdomain.present? && request.subdomain == 'app'
+    request.subdomain.present? && request.subdomain == "app"
   end
 
   # Trial mode helpers
@@ -857,12 +857,12 @@ class SessionsController < ApplicationController
 
       unless logged_in?
         store_location
-        redirect_to app_subdomain_url(login_path), allow_other_host: true, alert: 'Please login to continue'
+        redirect_to app_subdomain_url(login_path), allow_other_host: true, alert: "Please login to continue"
         return
       end
 
       # Logged in but no subscription
-      redirect_to pricing_url, alert: 'Please subscribe to access the app.', allow_other_host: true
+      redirect_to pricing_url, alert: "Please subscribe to access the app.", allow_other_host: true
       return
     end
 
@@ -870,13 +870,13 @@ class SessionsController < ApplicationController
     return if logged_in?
 
     # Allow trial access if trial parameter is present or trial is already active
-    if params[:trial] == 'true' || trial_mode?
+    if params[:trial] == "true" || trial_mode?
       return
     end
 
     # Redirect to marketing site with trial option
     store_location
-    redirect_to marketing_subdomain_url('/?trial=true'), allow_other_host: true, alert: 'Please login or try our demo'
+    redirect_to marketing_subdomain_url("/?trial=true"), allow_other_host: true, alert: "Please login or try our demo"
   end
 
   def handle_trial_session
@@ -895,7 +895,7 @@ class SessionsController < ApplicationController
       Rails.logger.error "Trial session: No uploaded file found in params"
       Rails.logger.error "Full params structure: #{params.to_unsafe_h}"
 
-      error_message = 'Please record audio before submitting'
+      error_message = "Please record audio before submitting"
       if request.xhr?
         render json: {
           success: false,
@@ -912,7 +912,7 @@ class SessionsController < ApplicationController
     if uploaded_file.respond_to?(:tempfile) && uploaded_file.tempfile.size == 0
       Rails.logger.error "Trial session: Uploaded file is empty (0 bytes)"
 
-      error_message = 'Recording file is empty. Please record again.'
+      error_message = "Recording file is empty. Please record again."
       if request.xhr?
         render json: {
           success: false,
@@ -931,10 +931,10 @@ class SessionsController < ApplicationController
     # Create trial session with background processing
     @trial_session = TrialSession.create!(
       title: params.dig(:session, :title) || "Trial Recording",
-      language: params.dig(:session, :language) || 'en',
-      media_kind: params.dig(:session, :media_kind) || 'audio',
+      language: params.dig(:session, :language) || "en",
+      media_kind: params.dig(:session, :media_kind) || "audio",
       target_seconds: (params.dig(:session, :target_seconds) || 30).to_i,
-      processing_state: 'pending'
+      processing_state: "pending"
     )
 
     # Attach the media file
@@ -956,19 +956,19 @@ class SessionsController < ApplicationController
         success: true,
         trial_token: @trial_session.token,
         redirect_url: trial_session_path(@trial_session.token),
-        message: 'Recording uploaded! Your analysis will be ready shortly.'
+        message: "Recording uploaded! Your analysis will be ready shortly."
       }, status: :created
     else
       # Redirect to trial analysis page
       redirect_to trial_session_path(@trial_session.token),
-                  notice: 'Recording uploaded! Your analysis will be ready shortly.'
+                  notice: "Recording uploaded! Your analysis will be ready shortly."
     end
   end
 
   def process_trial_audio(uploaded_file)
     begin
       # Check if Deepgram API key is available
-      if ENV['DEEPGRAM_API_KEY'].blank?
+      if ENV["DEEPGRAM_API_KEY"].blank?
         Rails.logger.error "Trial processing failed: Deepgram API key not configured"
         # For demo purposes, return basic mock results
         return {
@@ -1038,16 +1038,16 @@ class SessionsController < ApplicationController
     transcript.scan(filler_pattern).length
   end
 
-  def prepare_progress_chart_data(sessions, time_range = '7')
+  def prepare_progress_chart_data(sessions, time_range = "7")
     return {} if sessions.empty?
 
     # Filter sessions based on time range
     chart_sessions = case time_range
-    when '7'
+    when "7"
       sessions.last(7)
-    when '30'
+    when "30"
       sessions.last(30)
-    when 'lifetime'
+    when "lifetime"
       sessions
     else
       sessions.last(7)
@@ -1065,13 +1065,13 @@ class SessionsController < ApplicationController
     {
       labels: labels,
       # Primary metrics
-      filler_data: chart_sessions.map { |s| (s.analysis_data['filler_rate'].to_f * 100).round(1) },
-      pace_data: chart_sessions.map { |s| s.analysis_data['wpm'].to_f.round },
-      clarity_data: chart_sessions.map { |s| (s.analysis_data['clarity_score'].to_f * 100).round },
+      filler_data: chart_sessions.map { |s| (s.analysis_data["filler_rate"].to_f * 100).round(1) },
+      pace_data: chart_sessions.map { |s| s.analysis_data["wpm"].to_f.round },
+      clarity_data: chart_sessions.map { |s| (s.analysis_data["clarity_score"].to_f * 100).round },
       # Secondary metrics
-      pace_consistency_data: chart_sessions.map { |s| (s.analysis_data['pace_consistency'].to_f * 100).round },
-      fluency_data: chart_sessions.map { |s| (s.analysis_data['fluency_score'].to_f * 100).round },
-      engagement_data: chart_sessions.map { |s| (s.analysis_data['engagement_score'].to_f * 100).round },
+      pace_consistency_data: chart_sessions.map { |s| (s.analysis_data["pace_consistency"].to_f * 100).round },
+      fluency_data: chart_sessions.map { |s| (s.analysis_data["fluency_score"].to_f * 100).round },
+      engagement_data: chart_sessions.map { |s| (s.analysis_data["engagement_score"].to_f * 100).round },
       time_range: time_range,
       session_count: chart_sessions.count
     }
@@ -1088,21 +1088,21 @@ class SessionsController < ApplicationController
     # Delta shows improvement trend (green=improved, red=declined)
 
     # Recent performance: last 5 sessions (or all if < 5)
-    recent_count = [5, sessions.count].min
+    recent_count = [ 5, sessions.count ].min
     recent_sessions = sessions.last(recent_count)
 
     # Baseline: all sessions (already filtered to 30 days in controller)
     baseline_sessions = sessions
 
     # Calculate recent averages
-    recent_clarity = calculate_session_average(recent_sessions, 'clarity_score')
-    recent_filler = calculate_session_average(recent_sessions, 'filler_rate')
-    recent_pace = calculate_session_average(recent_sessions, 'wpm')
+    recent_clarity = calculate_session_average(recent_sessions, "clarity_score")
+    recent_filler = calculate_session_average(recent_sessions, "filler_rate")
+    recent_pace = calculate_session_average(recent_sessions, "wpm")
 
     # Calculate baseline averages (30-day)
-    baseline_clarity = calculate_session_average(baseline_sessions, 'clarity_score')
-    baseline_filler = calculate_session_average(baseline_sessions, 'filler_rate')
-    baseline_pace = calculate_session_average(baseline_sessions, 'wpm')
+    baseline_clarity = calculate_session_average(baseline_sessions, "clarity_score")
+    baseline_filler = calculate_session_average(baseline_sessions, "filler_rate")
+    baseline_pace = calculate_session_average(baseline_sessions, "wpm")
 
     # Convert to display format and calculate deltas
     {
@@ -1155,14 +1155,14 @@ class SessionsController < ApplicationController
     sessions_today = current_user.sessions
                                   .where(weekly_focus_id: weekly_focus.id)
                                   .where(completed: true)
-                                  .where('DATE(created_at) = ?', today)
+                                  .where("DATE(created_at) = ?", today)
                                   .count
 
     # Sessions completed this week for this weekly focus
     sessions_this_week = current_user.sessions
                                      .where(weekly_focus_id: weekly_focus.id)
                                      .where(completed: true)
-                                     .where('created_at >= ?', weekly_focus.week_start)
+                                     .where("created_at >= ?", weekly_focus.week_start)
                                      .count
 
     # Calculate streak (consecutive days with completed sessions for this focus)
@@ -1186,7 +1186,7 @@ class SessionsController < ApplicationController
     sessions = current_user.sessions
                            .where(weekly_focus_id: weekly_focus.id)
                            .where(completed: true)
-                           .where('created_at >= ?', weekly_focus.week_start)
+                           .where("created_at >= ?", weekly_focus.week_start)
                            .order(created_at: :desc)
 
     return 0 if sessions.empty?
@@ -1211,9 +1211,8 @@ class SessionsController < ApplicationController
   end
 
   def activate_trial_if_requested
-    if params[:trial] == 'true' && !logged_in?
+    if params[:trial] == "true" && !logged_in?
       activate_trial
     end
   end
-
 end

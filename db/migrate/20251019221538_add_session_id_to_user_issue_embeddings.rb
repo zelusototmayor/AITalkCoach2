@@ -8,7 +8,7 @@ class AddSessionIdToUserIssueEmbeddings < ActiveRecord::Migration[8.0]
     add_column :user_issue_embeddings, :dimensions, :integer
     add_column :user_issue_embeddings, :metadata_json, :text
 
-    add_index :user_issue_embeddings, [:session_id, :embedding_type, :reference_id],
+    add_index :user_issue_embeddings, [ :session_id, :embedding_type, :reference_id ],
               name: 'index_embeddings_on_session_type_ref'
   end
 end

@@ -19,7 +19,7 @@ RSpec.describe 'Sessions', type: :request do
       new_session = create(:session, user: guest_user, title: 'New Session', created_at: 1.day.ago)
 
       get sessions_path
-      
+
       expect(response.body).to include('New Session')
       expect(response.body).to include('Old Session')
     end
@@ -58,7 +58,7 @@ RSpec.describe 'Sessions', type: :request do
           language: 'en',
           media_kind: 'audio',
           target_seconds: 60,
-          media_files: [fixture_file_upload('test_audio.webm', 'audio/webm')]
+          media_files: [ fixture_file_upload('test_audio.webm', 'audio/webm') ]
         }
       }
     end
@@ -81,7 +81,7 @@ RSpec.describe 'Sessions', type: :request do
 
     it 'sets proper session attributes' do
       post sessions_path, params: valid_params
-      
+
       session = Session.last
       expect(session.title).to eq('Test Recording Session')
       expect(session.language).to eq('en')
@@ -121,7 +121,7 @@ RSpec.describe 'Sessions', type: :request do
 
     it 'displays session information' do
       get session_path(session_record)
-      
+
       expect(response.body).to include('Test Session')
       expect(response.body).to include('First issue')
       expect(response.body).to include('Second issue')
@@ -129,7 +129,7 @@ RSpec.describe 'Sessions', type: :request do
 
     it 'displays issues in chronological order' do
       get session_path(session_record)
-      
+
       # The first issue (start_ms: 1000) should appear before the second (start_ms: 2000)
       first_pos = response.body.index('First issue')
       second_pos = response.body.index('Second issue')
@@ -200,7 +200,7 @@ RSpec.describe 'Sessions', type: :request do
 
     it 'displays calculated metrics' do
       get session_path(session_with_analysis)
-      
+
       # Should display some form of metrics information
       expect(response.body).to match(/clarity|pace|engagement/i)
     end
@@ -208,9 +208,9 @@ RSpec.describe 'Sessions', type: :request do
     it 'includes session data for insights' do
       # Create additional sessions for insights
       create(:session, user: guest_user, completed: true, created_at: 1.week.ago)
-      
+
       get session_path(session_with_analysis)
-      
+
       expect(response).to have_http_status(:success)
     end
   end

@@ -44,14 +44,14 @@ Rails.application.configure do
 
   # SMTP settings for development (optional - configure via .env if testing email)
   config.action_mailer.smtp_settings = {
-    address: ENV.fetch('SMTP_ADDRESS', 'smtp.gmail.com'),
-    port: ENV.fetch('SMTP_PORT', 587).to_i,
-    domain: ENV.fetch('SMTP_DOMAIN', 'localhost'),
-    user_name: ENV['SMTP_USERNAME'],
-    password: ENV['SMTP_PASSWORD'],
-    authentication: ENV.fetch('SMTP_AUTHENTICATION', 'plain').to_sym,
+    address: ENV.fetch("SMTP_ADDRESS", "smtp.gmail.com"),
+    port: ENV.fetch("SMTP_PORT", 587).to_i,
+    domain: ENV.fetch("SMTP_DOMAIN", "localhost"),
+    user_name: ENV["SMTP_USERNAME"],
+    password: ENV["SMTP_PASSWORD"],
+    authentication: ENV.fetch("SMTP_AUTHENTICATION", "plain").to_sym,
     enable_starttls_auto: true
-  } if ENV['SMTP_USERNAME'].present?
+  } if ENV["SMTP_USERNAME"].present?
 
   # Print deprecation notices to the Rails logger.
   config.active_support.deprecation = :log
@@ -101,7 +101,7 @@ Rails.application.configure do
 
   # Session configuration for cross-subdomain support in development
   config.session_store :cookie_store,
-    key: '_ai_talk_coach_session',
+    key: "_ai_talk_coach_session",
     domain: :all,  # This will use .aitalkcoach.local allowing cookies across subdomains
     tld_length: 2  # For .aitalkcoach.local
 end

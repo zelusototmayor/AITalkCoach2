@@ -2,7 +2,7 @@ class User < ApplicationRecord
   has_secure_password
 
   has_many :sessions, dependent: :destroy
-  has_many :weekly_focuses, dependent: :destroy, class_name: 'WeeklyFocus'
+  has_many :weekly_focuses, dependent: :destroy, class_name: "WeeklyFocus"
   has_many :user_issue_embeddings, dependent: :destroy
   has_many :issues, through: :sessions
 
@@ -14,13 +14,13 @@ class User < ApplicationRecord
   serialize :speaking_goal, coder: JSON
 
   # Subscription status enum - declare attribute type for Rails 8
-  attribute :subscription_status, :string, default: 'free_trial'
+  attribute :subscription_status, :string, default: "free_trial"
   enum :subscription_status, {
-    free_trial: 'free_trial',
-    active: 'active',
-    canceled: 'canceled',
-    past_due: 'past_due',
-    lifetime: 'lifetime'
+    free_trial: "free_trial",
+    active: "active",
+    canceled: "canceled",
+    past_due: "past_due",
+    lifetime: "lifetime"
   }, prefix: :subscription
 
 
@@ -79,17 +79,17 @@ class User < ApplicationRecord
 
   # Check if user has an active paid subscription
   def subscription_active?
-    subscription_status.in?(['active']) && current_period_end&.future?
+    subscription_status.in?([ "active" ]) && current_period_end&.future?
   end
 
   # Check if user's free trial is still valid
   def trial_active?
-    subscription_status == 'free_trial' && trial_expires_at&.future?
+    subscription_status == "free_trial" && trial_expires_at&.future?
   end
 
   # Check if trial has expired
   def trial_expired?
-    subscription_status == 'free_trial' && trial_expires_at&.past?
+    subscription_status == "free_trial" && trial_expires_at&.past?
   end
 
   # Extend trial based on daily practice (calendar day logic)
@@ -99,7 +99,7 @@ class User < ApplicationRecord
     return false unless subscription_free_trial?
 
     # Only extend if session is at least 1 minute
-    duration_seconds = session.analysis_data&.dig('duration_seconds')&.to_f || 0
+    duration_seconds = session.analysis_data&.dig("duration_seconds")&.to_f || 0
     return false unless duration_seconds >= 60
 
     # Session completed on calendar day = free access through end of next day
@@ -120,7 +120,7 @@ class User < ApplicationRecord
   # Check if user has completed a practice session today
   def practiced_today?
     sessions.where(completed: true)
-            .where('DATE(created_at) = ?', Date.current)
+            .where("DATE(created_at) = ?", Date.current)
             .where("json_extract(analysis_data, '$.duration_seconds') >= ?", 60)
             .exists?
   end
@@ -128,24 +128,24 @@ class User < ApplicationRecord
   # Legacy method - keeping for compatibility
   def extend_trial!
     Rails.logger.info "Legacy extend_trial! called for user #{id} - use extend_trial_for_practice! instead"
-    return false
+    false
   end
 
   # Get human-readable subscription status
   def subscription_display_status
     case subscription_status
-    when 'free_trial'
-      trial_active? ? 'Free Trial (Active)' : 'Trial Expired'
-    when 'lifetime'
-      'Lifetime Access'
-    when 'active'
+    when "free_trial"
+      trial_active? ? "Free Trial (Active)" : "Trial Expired"
+    when "lifetime"
+      "Lifetime Access"
+    when "active"
       "#{subscription_plan&.titleize} Plan"
-    when 'canceled'
-      'Canceled'
-    when 'past_due'
-      'Payment Failed'
+    when "canceled"
+      "Canceled"
+    when "past_due"
+      "Payment Failed"
     else
-      'Unknown'
+      "Unknown"
     end
   end
 
@@ -157,12 +157,12 @@ class User < ApplicationRecord
 
   # Check if user is on monthly plan
   def monthly_plan?
-    subscription_plan == 'monthly'
+    subscription_plan == "monthly"
   end
 
   # Check if user is on yearly plan
   def yearly_plan?
-    subscription_plan == 'yearly'
+    subscription_plan == "yearly"
   end
 
   # Get Stripe customer (creates if doesn't exist)
@@ -189,5 +189,4 @@ class User < ApplicationRecord
     update!(stripe_customer_id: customer.id)
     customer
   end
-
 end

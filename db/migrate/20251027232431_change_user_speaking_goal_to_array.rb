@@ -2,7 +2,7 @@ class ChangeUserSpeakingGoalToArray < ActiveRecord::Migration[8.0]
   def up
     # Convert existing data to array format
     User.where.not(speaking_goal: nil).find_each do |user|
-      user.update_column(:speaking_goal, [user.speaking_goal].to_json)
+      user.update_column(:speaking_goal, [ user.speaking_goal ].to_json)
     end
 
     # Change column type to text to store JSON array

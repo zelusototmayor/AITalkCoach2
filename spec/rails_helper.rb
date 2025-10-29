@@ -94,7 +94,7 @@ VCR.configure do |config|
   config.cassette_library_dir = "spec/vcr_cassettes"
   config.hook_into :webmock
   config.default_cassette_options = { record: :once }
-  
+
   # Filter sensitive data
   config.filter_sensitive_data('<OPENAI_API_KEY>') { ENV['OPENAI_API_KEY'] }
   config.filter_sensitive_data('<DEEPGRAM_API_KEY>') { ENV['DEEPGRAM_API_KEY'] }

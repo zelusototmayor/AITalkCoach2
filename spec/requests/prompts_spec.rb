@@ -16,7 +16,7 @@ RSpec.describe 'Prompts', type: :request do
 
     it 'displays prompt categories' do
       get prompts_path
-      
+
       expect(response.body).to include('presentation')
       expect(response.body).to include('conversation')
       expect(response.body).to include('storytelling')
@@ -24,7 +24,7 @@ RSpec.describe 'Prompts', type: :request do
 
     it 'displays base prompts' do
       get prompts_path
-      
+
       # Should include some prompts from the YAML config
       expect(response.body).to include('Elevator Pitch')
       expect(response.body).to include('Meeting Introduction')
@@ -37,14 +37,14 @@ RSpec.describe 'Prompts', type: :request do
 
       it 'displays adaptive prompts based on user patterns' do
         get prompts_path
-        
+
         # Should show adaptive prompts for detected patterns
         expect(response.body).to match(/recommended|adaptive/i)
       end
 
       it 'includes recommended category' do
         get prompts_path
-        
+
         expect(response.body).to include('recommended')
       end
     end
@@ -58,7 +58,7 @@ RSpec.describe 'Prompts', type: :request do
 
       it 'does not show adaptive prompts' do
         get prompts_path
-        
+
         # Should still work but without adaptive prompts
         expect(response).to have_http_status(:success)
       end
@@ -76,7 +76,7 @@ RSpec.describe 'Prompts', type: :request do
 
       it 'shows base prompts without user-specific content' do
         get prompts_path
-        
+
         expect(response.body).to include('Elevator Pitch')
         expect(response.body).to include('Meeting Introduction')
       end
@@ -95,12 +95,12 @@ RSpec.describe 'Prompts', type: :request do
     it 'maintains consistent categories across requests' do
       get prompts_path
       first_response = response.body
-      
+
       get prompts_path
       second_response = response.body
-      
+
       # Categories should be consistent
-      ['presentation', 'conversation', 'storytelling'].each do |category|
+      [ 'presentation', 'conversation', 'storytelling' ].each do |category|
         expect(first_response).to include(category)
         expect(second_response).to include(category)
       end
@@ -110,7 +110,7 @@ RSpec.describe 'Prompts', type: :request do
   describe 'prompt content and structure' do
     it 'displays prompt details correctly' do
       get prompts_path
-      
+
       # Should include prompt descriptions and timing information
       expect(response.body).to match(/seconds?/i)
       expect(response.body).to match(/description/i)
@@ -118,7 +118,7 @@ RSpec.describe 'Prompts', type: :request do
 
     it 'handles focus areas for prompts' do
       get prompts_path
-      
+
       # Should display focus areas like clarity, pacing, etc.
       expect(response.body).to match(/clarity|pacing|engagement/i)
     end
@@ -132,7 +132,7 @@ RSpec.describe 'Prompts', type: :request do
 
       it 'suggests filler word focused prompts' do
         get prompts_path
-        
+
         # Should include prompts focused on reducing fillers
         expect(response.body).to match(/filler|fluency/i)
       end
@@ -145,7 +145,7 @@ RSpec.describe 'Prompts', type: :request do
 
       it 'suggests pacing focused prompts' do
         get prompts_path
-        
+
         # Should include prompts focused on pacing
         expect(response.body).to match(/pace|tempo/i)
       end
@@ -158,7 +158,7 @@ RSpec.describe 'Prompts', type: :request do
 
       it 'suggests clarity focused prompts' do
         get prompts_path
-        
+
         # Should include prompts focused on clarity
         expect(response.body).to match(/clarity|articulation/i)
       end
@@ -170,9 +170,9 @@ RSpec.describe 'Prompts', type: :request do
   def create_user_sessions_with_patterns
     # Create enough sessions (4) with various patterns to trigger adaptive prompts
     4.times do |i|
-      session = create(:session, 
-        user: guest_user, 
-        completed: true, 
+      session = create(:session,
+        user: guest_user,
+        completed: true,
         created_at: (20 - i).days.ago,
         analysis_data: {
           'clarity_score' => 0.6, # Below threshold
@@ -180,7 +180,7 @@ RSpec.describe 'Prompts', type: :request do
           'filler_rate' => 0.08 # High filler rate
         }
       )
-      
+
       # Add some issues to trigger pattern detection
       create(:issue, session: session, category: 'filler_words')
     end
@@ -189,12 +189,12 @@ RSpec.describe 'Prompts', type: :request do
   def create_sessions_with_filler_patterns
     # Create 4 sessions where 3+ have filler issues (above 40% threshold)
     4.times do |i|
-      session = create(:session, 
-        user: guest_user, 
-        completed: true, 
+      session = create(:session,
+        user: guest_user,
+        completed: true,
         created_at: (20 - i).days.ago
       )
-      
+
       # Add filler issues to 3 out of 4 sessions
       if i < 3
         create(:issue, session: session, category: 'filler_words')
@@ -205,9 +205,9 @@ RSpec.describe 'Prompts', type: :request do
   def create_sessions_with_pace_patterns
     # Create sessions with pacing issues
     4.times do |i|
-      create(:session, 
-        user: guest_user, 
-        completed: true, 
+      create(:session,
+        user: guest_user,
+        completed: true,
         created_at: (20 - i).days.ago,
         analysis_data: {
           'wpm' => i < 3 ? 80 : 150  # 3 out of 4 sessions too slow
@@ -219,9 +219,9 @@ RSpec.describe 'Prompts', type: :request do
   def create_sessions_with_clarity_patterns
     # Create sessions with clarity issues
     4.times do |i|
-      create(:session, 
-        user: guest_user, 
-        completed: true, 
+      create(:session,
+        user: guest_user,
+        completed: true,
         created_at: (20 - i).days.ago,
         analysis_data: {
           'clarity_score' => i < 3 ? 0.5 : 0.8  # 3 out of 4 sessions below threshold

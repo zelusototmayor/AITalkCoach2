@@ -25,7 +25,7 @@ class LandingController < ApplicationController
 
     total_seconds = sessions.sum do |session|
       analysis_data = JSON.parse(session.analysis_json) rescue {}
-      (analysis_data['duration_seconds'] || 0).to_f
+      (analysis_data["duration_seconds"] || 0).to_f
     end
 
     # Convert to minutes and format nicely
@@ -38,8 +38,8 @@ class LandingController < ApplicationController
     users_with_progress = User.joins(:sessions)
                              .where(sessions: { completed: true })
                              .where.not(sessions: { analysis_json: nil })
-                             .group('users.id')
-                             .having('count(sessions.id) >= 3')
+                             .group("users.id")
+                             .having("count(sessions.id) >= 3")
 
     total_improvement = 0
     users_count = 0
@@ -57,11 +57,11 @@ class LandingController < ApplicationController
         # Calculate averages in Ruby to avoid Rails 8 security restrictions
         early_filler_values = early_sessions.filter_map do |session|
           analysis_data = JSON.parse(session.analysis_json) rescue {}
-          analysis_data['filler_rate']&.to_f
+          analysis_data["filler_rate"]&.to_f
         end
         recent_filler_values = recent_sessions.filter_map do |session|
           analysis_data = JSON.parse(session.analysis_json) rescue {}
-          analysis_data['filler_rate']&.to_f
+          analysis_data["filler_rate"]&.to_f
         end
 
         early_filler = early_filler_values.any? ? early_filler_values.sum / early_filler_values.count : 0
@@ -69,7 +69,7 @@ class LandingController < ApplicationController
 
         if early_filler > 0
           improvement = ((early_filler - recent_filler) / early_filler) * 100
-          total_improvement += [improvement, 0].max # Only count positive improvements
+          total_improvement += [ improvement, 0 ].max # Only count positive improvements
           users_count += 1
         end
       end
@@ -86,7 +86,7 @@ class LandingController < ApplicationController
 
     clarity_scores = sessions.filter_map do |session|
       analysis_data = JSON.parse(session.analysis_json) rescue {}
-      analysis_data['clarity_score']&.to_f
+      analysis_data["clarity_score"]&.to_f
     end
 
     if clarity_scores.any?
@@ -132,8 +132,8 @@ class LandingController < ApplicationController
     # Filter in Ruby to avoid SQL security restrictions
     good_sessions = sessions.select do |session|
       analysis_data = JSON.parse(session.analysis_json) rescue {}
-      wpm = analysis_data['wpm']&.to_f || 0
-      clarity = analysis_data['clarity_score']&.to_f || 0
+      wpm = analysis_data["wpm"]&.to_f || 0
+      clarity = analysis_data["clarity_score"]&.to_f || 0
       wpm.between?(120, 180) && clarity > 0.7
     end
 
@@ -142,9 +142,9 @@ class LandingController < ApplicationController
     if sample
       analysis_data = JSON.parse(sample.analysis_json) rescue {}
       {
-        wpm: analysis_data['wpm']&.round || 145,
-        filler_rate: ((analysis_data['filler_rate'] || 0.03) * 100).round(1),
-        clarity_score: ((analysis_data['clarity_score'] || 0.85) * 100).round
+        wpm: analysis_data["wpm"]&.round || 145,
+        filler_rate: ((analysis_data["filler_rate"] || 0.03) * 100).round(1),
+        clarity_score: ((analysis_data["clarity_score"] || 0.85) * 100).round
       }
     else
       # Fallback demo data
@@ -169,7 +169,7 @@ class LandingController < ApplicationController
   private
 
   def activate_trial_if_requested
-    if params[:trial] == 'true' && !logged_in?
+    if params[:trial] == "true" && !logged_in?
       activate_trial
     end
   end

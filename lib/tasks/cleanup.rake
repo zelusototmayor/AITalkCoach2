@@ -42,14 +42,14 @@ namespace :aitalkcoach do
 
           if should_kill
             puts "Killing long-running FFmpeg process #{pid} (running for #{etime})"
-            Process.kill('TERM', pid)
+            Process.kill("TERM", pid)
             sleep(2)  # Give it time to terminate gracefully
 
             # Force kill if still running
             begin
               Process.kill(0, pid)  # Check if process still exists
               puts "Force killing FFmpeg process #{pid}"
-              Process.kill('KILL', pid)
+              Process.kill("KILL", pid)
             rescue Errno::ESRCH
               # Process already terminated
             end
@@ -126,15 +126,15 @@ namespace :aitalkcoach do
     puts "Starting full system cleanup..."
 
     # Clean up FFmpeg processes
-    Rake::Task['aitalkcoach:cleanup_ffmpeg'].invoke
+    Rake::Task["aitalkcoach:cleanup_ffmpeg"].invoke
 
     # Clean up temporary files
     puts "\nCleaning up temporary audio files..."
-    temp_dir = Rails.root.join('tmp')
+    temp_dir = Rails.root.join("tmp")
 
     begin
       # Find and remove old temporary audio files
-      old_files = Dir.glob(temp_dir.join('**', '*.{wav,mp3,mp4,m4a,webm}')).select do |file|
+      old_files = Dir.glob(temp_dir.join("**", "*.{wav,mp3,mp4,m4a,webm}")).select do |file|
         File.mtime(file) < 1.hour.ago
       end
 
@@ -156,9 +156,9 @@ namespace :aitalkcoach do
     # Clean up old log files (keep last 7 days)
     puts "\nCleaning up old log files..."
     begin
-      log_dir = Rails.root.join('log')
+      log_dir = Rails.root.join("log")
       if log_dir.exist?
-        old_logs = Dir.glob(log_dir.join('*.log.*')).select do |file|
+        old_logs = Dir.glob(log_dir.join("*.log.*")).select do |file|
           File.mtime(file) < 7.days.ago
         end
 

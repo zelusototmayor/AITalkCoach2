@@ -9,7 +9,7 @@ class SettingsController < ApplicationController
     @user = current_user
 
     if @user.update(user_params)
-      redirect_to settings_path, notice: 'Settings updated successfully.'
+      redirect_to settings_path, notice: "Settings updated successfully."
     else
       render :show, status: :unprocessable_entity
     end

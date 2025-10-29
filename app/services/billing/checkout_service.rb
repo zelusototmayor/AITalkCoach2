@@ -1,8 +1,8 @@
 module Billing
   class CheckoutService
     PRICE_IDS = {
-      monthly: ENV.fetch('STRIPE_MONTHLY_PRICE_ID', 'price_monthly_placeholder'),
-      yearly: ENV.fetch('STRIPE_YEARLY_PRICE_ID', 'price_yearly_placeholder')
+      monthly: ENV.fetch("STRIPE_MONTHLY_PRICE_ID", "price_monthly_placeholder"),
+      yearly: ENV.fetch("STRIPE_YEARLY_PRICE_ID", "price_yearly_placeholder")
     }.freeze
 
     attr_reader :user, :plan
@@ -19,15 +19,15 @@ module Billing
 
       ::Stripe::Checkout::Session.create(
         customer: customer.id,
-        mode: 'subscription',
-        line_items: [{
+        mode: "subscription",
+        line_items: [ {
           price: price_id,
           quantity: 1
-        }],
+        } ],
         success_url: success_url,
         cancel_url: cancel_url,
         allow_promotion_codes: true,
-        billing_address_collection: 'auto',
+        billing_address_collection: "auto",
         metadata: {
           user_id: user.id,
           plan: plan

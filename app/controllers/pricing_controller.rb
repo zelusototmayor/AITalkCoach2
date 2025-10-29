@@ -2,10 +2,10 @@ class PricingController < ApplicationController
   # Pricing page is public (no authentication required)
 
   def index
-    @monthly_price = '9.99'
-    @yearly_price = '60'
-    @yearly_monthly_equivalent = '5'
-    @savings_percentage = '50'
+    @monthly_price = "9.99"
+    @yearly_price = "60"
+    @yearly_monthly_equivalent = "5"
+    @savings_percentage = "50"
 
     # If user is logged in, show their current plan
     if logged_in?

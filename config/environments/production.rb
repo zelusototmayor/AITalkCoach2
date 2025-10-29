@@ -48,20 +48,20 @@ Rails.application.configure do
 
   # Don't log any deprecations.
   config.active_support.report_deprecations = false
-  
+
   # Performance optimizations
   config.active_record.automatic_scope_inversing = true
   config.active_record.query_log_tags_enabled = true
   config.active_record.strict_loading_by_default = false # Enable in development first
-  
+
   # Connection pool optimization for production workload
   config.database_configuration[Rails.env]["pool"] = ENV.fetch("DB_POOL_SIZE", 25).to_i
   config.database_configuration[Rails.env]["checkout_timeout"] = ENV.fetch("DB_CHECKOUT_TIMEOUT", 10).to_i
-  
+
   # Active Storage optimizations
   config.active_storage.variant_processor = :mini_magick
   config.active_storage.precompile_assets = true
-  
+
 
   # Replace the default in-process memory cache store with a durable alternative.
   config.cache_store = :solid_cache_store
@@ -77,19 +77,19 @@ Rails.application.configure do
 
   # Set host to be used by links generated in mailer templates.
   # Use app subdomain for application-related emails
-  config.action_mailer.default_url_options = { host: "app.aitalkcoach.com", protocol: 'https' }
+  config.action_mailer.default_url_options = { host: "app.aitalkcoach.com", protocol: "https" }
 
   # SMTP settings - Configure via environment variables
   # For Gmail: Use App Password (https://support.google.com/accounts/answer/185833)
   # For SendGrid: API key as password with 'apikey' as username
   # For Postmark: Server API token as password
   config.action_mailer.smtp_settings = {
-    address: ENV.fetch('SMTP_ADDRESS', 'smtp.gmail.com'),
-    port: ENV.fetch('SMTP_PORT', 587).to_i,
-    domain: ENV.fetch('SMTP_DOMAIN', 'aitalkcoach.com'),
-    user_name: ENV.fetch('SMTP_USERNAME', nil),
-    password: ENV.fetch('SMTP_PASSWORD', nil),
-    authentication: ENV.fetch('SMTP_AUTHENTICATION', 'plain').to_sym,
+    address: ENV.fetch("SMTP_ADDRESS", "smtp.gmail.com"),
+    port: ENV.fetch("SMTP_PORT", 587).to_i,
+    domain: ENV.fetch("SMTP_DOMAIN", "aitalkcoach.com"),
+    user_name: ENV.fetch("SMTP_USERNAME", nil),
+    password: ENV.fetch("SMTP_PASSWORD", nil),
+    authentication: ENV.fetch("SMTP_AUTHENTICATION", "plain").to_sym,
     enable_starttls_auto: true
   }
 
@@ -117,7 +117,7 @@ Rails.application.configure do
   # Session configuration for cross-subdomain support
   # Set session cookie domain to allow sharing between aitalkcoach.com and app.aitalkcoach.com
   config.session_store :cookie_store,
-    key: '_ai_talk_coach_session',
+    key: "_ai_talk_coach_session",
     domain: :all,  # This will use .aitalkcoach.com allowing cookies across subdomains
     tld_length: 2  # For .aitalkcoach.com
 end

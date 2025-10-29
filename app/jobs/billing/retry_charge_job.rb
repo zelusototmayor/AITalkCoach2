@@ -9,7 +9,7 @@ module Billing
       user = User.find(user_id)
 
       # Only retry if subscription is still past_due
-      unless user.subscription_status == 'past_due'
+      unless user.subscription_status == "past_due"
         Rails.logger.info "Skipping retry for user #{user_id}: subscription status is #{user.subscription_status}"
         return
       end
