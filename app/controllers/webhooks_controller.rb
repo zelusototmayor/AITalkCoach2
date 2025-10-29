@@ -1,7 +1,6 @@
 class WebhooksController < ApplicationController
   # Skip CSRF protection for webhook endpoint
   skip_before_action :verify_authenticity_token, only: [ :stripe ]
-  skip_before_action :require_login, if: :defined_require_login?
 
   def stripe
     payload = request.body.read
@@ -28,11 +27,5 @@ class WebhooksController < ApplicationController
     else
       head :unprocessable_entity
     end
-  end
-
-  private
-
-  def defined_require_login?
-    respond_to?(:require_login)
   end
 end
