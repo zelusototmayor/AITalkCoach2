@@ -70,4 +70,11 @@ ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 
 # Start server via Thruster by default, this can be overwritten at runtime
 EXPOSE 80
+
+# Configure health check with increased timeout for db:prepare + Rails boot
+# Checks every 10s, waits 90s before first check, times out after 5s per check
+# Allows up to 3 failures before marking unhealthy
+HEALTHCHECK --interval=10s --timeout=5s --start-period=90s --retries=3 \
+  CMD curl -f http://localhost/up || exit 1
+
 CMD ["./bin/thrust", "./bin/rails", "server"]
