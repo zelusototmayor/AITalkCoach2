@@ -1,5 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import Svg, { Circle } from 'react-native-svg';
 import { COLORS, SPACING } from '../constants/colors';
 
 export default function RecordButton({
@@ -8,14 +10,49 @@ export default function RecordButton({
   progress = 0, // 0 to 1
   disabled = false
 }) {
-  // Calculate the progress ring circumference
-  const radius = 96; // Button radius minus border
-  const strokeWidth = 6;
+  // Calculate the progress ring - larger than button so it's visible around it
+  const svgSize = 220;
+  const buttonSize = 200;
+  const strokeWidth = 8;
+  const radius = (svgSize - strokeWidth) / 2 - 5; // 5px padding from edge
   const circumference = 2 * Math.PI * radius;
-  const progressOffset = circumference - (progress * circumference);
+  const strokeDashoffset = circumference - (progress * circumference);
 
   return (
     <View style={styles.container}>
+      {/* Progress ring overlay - shown around button when recording */}
+      {isRecording && (
+        <Svg
+          width={svgSize}
+          height={svgSize}
+          style={styles.progressSvg}
+        >
+          {/* Background circle */}
+          <Circle
+            cx={svgSize / 2}
+            cy={svgSize / 2}
+            r={radius}
+            stroke={COLORS.border}
+            strokeWidth={strokeWidth}
+            fill="none"
+          />
+          {/* Progress circle */}
+          <Circle
+            cx={svgSize / 2}
+            cy={svgSize / 2}
+            r={radius}
+            stroke="#FF6B35"
+            strokeWidth={strokeWidth}
+            fill="none"
+            strokeDasharray={circumference}
+            strokeDashoffset={strokeDashoffset}
+            strokeLinecap="round"
+            rotation="-90"
+            origin={`${svgSize / 2}, ${svgSize / 2}`}
+          />
+        </Svg>
+      )}
+
       <TouchableOpacity
         style={[styles.button, disabled && styles.buttonDisabled]}
         onPress={onPress}
@@ -24,7 +61,11 @@ export default function RecordButton({
       >
         {/* Microphone icon */}
         <View style={[styles.iconContainer, isRecording && styles.iconContainerRecording]}>
-          <Text style={styles.icon}>🎤</Text>
+          <Ionicons
+            name={isRecording ? "mic" : "mic-outline"}
+            size={64}
+            color={isRecording ? COLORS.primary : COLORS.text}
+          />
         </View>
 
         {/* Text */}
@@ -32,36 +73,6 @@ export default function RecordButton({
           <Text style={styles.text}>Tap to Start</Text>
         )}
       </TouchableOpacity>
-
-      {/* Progress ring overlay - only shown when recording */}
-      {isRecording && progress > 0 && (
-        <View style={styles.progressOverlay}>
-          <View
-            style={[
-              styles.progressRing,
-              {
-                borderColor: COLORS.primary,
-                borderWidth: strokeWidth,
-                transform: [{ rotate: '-90deg' }],
-              },
-            ]}
-          >
-            <View
-              style={[
-                styles.progressRingFill,
-                {
-                  borderColor: COLORS.selectedBackground,
-                  borderWidth: strokeWidth,
-                  borderTopColor: 'transparent',
-                  borderRightColor: progress < 0.25 ? 'transparent' : COLORS.primary,
-                  borderBottomColor: progress < 0.5 ? 'transparent' : COLORS.primary,
-                  borderLeftColor: progress < 0.75 ? 'transparent' : COLORS.primary,
-                },
-              ]}
-            />
-          </View>
-        </View>
-      )}
     </View>
   );
 }
@@ -71,6 +82,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
+    width: 220,
+    height: 220,
+  },
+  progressSvg: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
   },
   button: {
     width: 200,
@@ -93,33 +111,12 @@ const styles = StyleSheet.create({
   buttonDisabled: {
     opacity: 0.5,
   },
-  progressOverlay: {
-    position: 'absolute',
-    width: 200,
-    height: 200,
-    alignItems: 'center',
-    justifyContent: 'center',
-    pointerEvents: 'none',
-  },
-  progressRing: {
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-  },
-  progressRingFill: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 100,
-  },
   iconContainer: {
     alignItems: 'center',
     justifyContent: 'center',
   },
   iconContainerRecording: {
     transform: [{ scale: 1.1 }],
-  },
-  icon: {
-    fontSize: 60,
   },
   text: {
     fontSize: 16,

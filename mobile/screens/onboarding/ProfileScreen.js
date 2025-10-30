@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import Button from '../../components/Button';
+import OnboardingNavigation from '../../components/OnboardingNavigation';
 import SelectionButton from '../../components/SelectionButton';
 import PillButton from '../../components/PillButton';
 import { COLORS, SPACING } from '../../constants/colors';
@@ -117,30 +117,14 @@ export default function ProfileScreen({ navigation }) {
             </View>
           )}
         </View>
-
-        {/* Pagination dots */}
-        <View style={styles.paginationContainer}>
-          {[...Array(9)].map((_, index) => (
-            <View
-              key={index}
-              style={[
-                styles.dot,
-                index === 4 && styles.activeDot, // Screen 5 is active (index 4)
-              ]}
-            />
-          ))}
-        </View>
       </ScrollView>
 
-      <View style={styles.buttonContainer}>
-        <Button
-          title="Continue →"
-          onPress={handleContinue}
-          variant="primary"
-          disabled={!isFormValid}
-          style={styles.button}
-        />
-      </View>
+      <OnboardingNavigation
+        currentStep={3}
+        totalSteps={8}
+        onContinue={handleContinue}
+        continueDisabled={!isFormValid}
+      />
     </View>
   );
 }
@@ -231,37 +215,5 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: COLORS.primary,
-  },
-  paginationContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: SPACING.xxl,
-    gap: SPACING.xs,
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: COLORS.border,
-  },
-  activeDot: {
-    backgroundColor: COLORS.primary,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-  buttonContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: SPACING.lg,
-    backgroundColor: COLORS.background,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-  },
-  button: {
-    width: '100%',
   },
 });

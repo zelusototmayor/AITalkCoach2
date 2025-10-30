@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import Button from '../../components/Button';
+import OnboardingNavigation from '../../components/OnboardingNavigation';
 import { COLORS, SPACING, TYPOGRAPHY } from '../../constants/colors';
 import { VALUE_PROPS } from '../../constants/onboardingData';
 
@@ -15,24 +15,27 @@ export default function ValuePropScreen({ navigation }) {
           Master the #1 skill that opens every door
         </Text>
 
+        <Text style={styles.subheader}>
+          According to LinkedIn, communication is the most in-demand skill across industries.
+        </Text>
+
         <View style={styles.cardsContainer}>
           {VALUE_PROPS.map((prop) => (
             <View key={prop.id} style={styles.card}>
               <Text style={styles.cardIcon}>{prop.icon}</Text>
               <Text style={styles.cardTitle}>{prop.title}</Text>
+              <Text style={styles.cardDescription}>{prop.description}</Text>
+              <Text style={styles.cardSource}>{prop.source}</Text>
             </View>
           ))}
         </View>
       </ScrollView>
 
-      <View style={styles.buttonContainer}>
-        <Button
-          title="Continue →"
-          onPress={() => navigation.navigate('Goals')}
-          variant="primary"
-          style={styles.button}
-        />
-      </View>
+      <OnboardingNavigation
+        currentStep={0}
+        totalSteps={8}
+        onContinue={() => navigation.navigate('Goals')}
+      />
     </View>
   );
 }
@@ -53,14 +56,21 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: COLORS.text,
     textAlign: 'center',
-    marginBottom: SPACING.xxl,
+    marginBottom: SPACING.md,
     lineHeight: 36,
+  },
+  subheader: {
+    fontSize: 15,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    marginBottom: SPACING.xl,
+    paddingHorizontal: SPACING.md,
+    lineHeight: 22,
   },
   cardsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    gap: SPACING.sm,
   },
   card: {
     width: '48%',
@@ -70,8 +80,9 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
     padding: SPACING.lg,
     alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 140,
+    justifyContent: 'flex-start',
+    minHeight: 180,
+    marginBottom: SPACING.md,
     shadowColor: COLORS.text,
     shadowOffset: {
       width: 0,
@@ -82,27 +93,31 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   cardIcon: {
-    fontSize: 40,
+    fontSize: 36,
     marginBottom: SPACING.sm,
   },
   cardTitle: {
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: 17,
+    fontWeight: '700',
     color: COLORS.text,
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 22,
+    marginBottom: SPACING.xs,
   },
-  buttonContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: SPACING.lg,
-    backgroundColor: COLORS.background,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+  cardDescription: {
+    fontSize: 13,
+    fontWeight: '400',
+    color: COLORS.text,
+    textAlign: 'center',
+    lineHeight: 18,
+    marginBottom: SPACING.sm,
   },
-  button: {
-    width: '100%',
+  cardSource: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    fontStyle: 'italic',
+    marginTop: 'auto',
   },
 });

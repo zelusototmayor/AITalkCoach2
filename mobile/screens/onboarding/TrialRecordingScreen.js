@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'rea
 import { Audio } from 'expo-av';
 import RecordButton from '../../components/RecordButton';
 import { COLORS, SPACING } from '../../constants/colors';
-import { TRIAL_PROMPT } from '../../constants/onboardingData';
+import { TRIAL_PROMPT, MOCK_TRIAL_RESULTS } from '../../constants/onboardingData';
 import { useOnboarding } from '../../context/OnboardingContext';
 
 const RECORDING_DURATION = 30; // 30 seconds
@@ -107,31 +107,49 @@ export default function TrialRecordingScreen({ navigation }) {
         // For now, just store that we recorded
         console.log('Recording saved at:', uri);
 
+        // TODO: Upload to backend and get real results
+        // For now, use mock data
         updateOnboardingData({
           trialSessionToken: 'mock-token', // Would be from API
-          // trialResults would be fetched from API
+          trialResults: {
+            // Would be fetched from API after processing
+            isMockData: false, // Set to false since user actually recorded
+            clarity: 75,
+            fillerWordsPerMinute: 7.2,
+            wordsPerMinute: 152,
+            transcript: 'Your actual transcript would appear here after processing...',
+          },
         });
 
         setHasRecorded(true);
 
-        // Navigate to next screen (Results - not yet implemented)
-        // For now, show alert
-        Alert.alert(
-          'Recording Complete!',
-          'Your recording has been saved. (Results screen coming soon)',
-          [
-            {
-              text: 'Continue',
-              onPress: () => {
-                // TODO: Navigate to Results screen when implemented
-                console.log('Would navigate to Results screen');
-              },
-            },
-          ]
-        );
+        // Navigate to Results screen
+        navigation.navigate('Results');
       }
     } catch (error) {
       console.error('Failed to stop recording:', error);
+    }
+  };
+
+  const handleRestart = async () => {
+    try {
+      // Stop and clean up current recording
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+
+      if (recordingRef.current) {
+        await recordingRef.current.stopAndUnloadAsync();
+        recordingRef.current = null;
+      }
+
+      // Reset all state
+      setIsRecording(false);
+      setRecordingTime(0);
+      setProgress(0);
+      setHasRecorded(false);
+    } catch (error) {
+      console.error('Failed to restart recording:', error);
     }
   };
 
@@ -156,12 +174,10 @@ export default function TrialRecordingScreen({ navigation }) {
           text: 'Skip',
           onPress: () => {
             updateOnboardingData({
-              trialResults: {
-                isMockData: true,
-              },
+              trialResults: MOCK_TRIAL_RESULTS,
             });
-            // TODO: Navigate to Results screen with mock data
-            console.log('Would navigate to Results screen with mock data');
+            // Navigate to Results screen with mock data
+            navigation.navigate('Results');
           },
         },
       ]
@@ -175,11 +191,6 @@ export default function TrialRecordingScreen({ navigation }) {
         showsVerticalScrollIndicator={false}
       >
         <Text style={styles.header}>Let's do a 30s trail</Text>
-
-        {/* Skip button */}
-        <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
-          <Text style={styles.skipText}>Skip</Text>
-        </TouchableOpacity>
 
         {/* Prompt card */}
         <View style={styles.promptCard}>
@@ -203,27 +214,35 @@ export default function TrialRecordingScreen({ navigation }) {
             {recordingTime}s / {RECORDING_DURATION}s
           </Text>
 
-          {/* Cancel button (shown during recording) */}
+          {/* Restart button (shown during recording) */}
           {isRecording && (
-            <TouchableOpacity style={styles.cancelButton} onPress={stopRecording}>
-              <Text style={styles.cancelText}>Cancel</Text>
+            <TouchableOpacity style={styles.restartButton} onPress={handleRestart}>
+              <Text style={styles.restartText}>Restart</Text>
             </TouchableOpacity>
           )}
         </View>
 
-        {/* Pagination dots */}
-        <View style={styles.paginationContainer}>
-          {[...Array(9)].map((_, index) => (
+      </ScrollView>
+
+      {/* Pagination dots - fixed at bottom */}
+      <View style={styles.paginationContainer}>
+        <View style={styles.dotsWrapper}>
+          {[...Array(8)].map((_, index) => (
             <View
               key={index}
               style={[
                 styles.dot,
-                index === 5 && styles.activeDot, // Screen 6 is active (index 5)
+                index === 4 && styles.activeDot,
               ]}
             />
           ))}
         </View>
-      </ScrollView>
+      </View>
+
+      {/* Skip button - bottom right */}
+      <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
+        <Text style={styles.skipText}>Skip</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -249,10 +268,12 @@ const styles = StyleSheet.create({
   },
   skipButton: {
     position: 'absolute',
-    top: 20,
+    bottom: 80,
     right: SPACING.lg,
-    padding: SPACING.sm,
+    padding: SPACING.md,
     zIndex: 10,
+    backgroundColor: COLORS.background,
+    borderRadius: 8,
   },
   skipText: {
     fontSize: 16,
@@ -313,22 +334,32 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     marginTop: SPACING.lg,
   },
-  cancelButton: {
+  restartButton: {
     marginTop: SPACING.lg,
     paddingHorizontal: SPACING.xl,
     paddingVertical: SPACING.sm,
   },
-  cancelText: {
+  restartText: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.danger,
+    color: COLORS.primary,
   },
   paginationContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: COLORS.background,
+    paddingHorizontal: SPACING.lg,
+    paddingBottom: SPACING.xl,
+    paddingTop: SPACING.md,
+  },
+  dotsWrapper: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: SPACING.xxl,
     gap: SPACING.xs,
+    paddingVertical: SPACING.sm,
   },
   dot: {
     width: 8,
@@ -338,8 +369,8 @@ const styles = StyleSheet.create({
   },
   activeDot: {
     backgroundColor: COLORS.primary,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: 24,
+    height: 8,
+    borderRadius: 4,
   },
 });

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import Button from '../../components/Button';
+import OnboardingNavigation from '../../components/OnboardingNavigation';
 import GoalCard from '../../components/GoalCard';
 import { COLORS, SPACING } from '../../constants/colors';
 import { SPEAKING_GOALS } from '../../constants/onboardingData';
@@ -36,6 +36,7 @@ export default function GoalsScreen({ navigation }) {
         showsVerticalScrollIndicator={false}
       >
         <Text style={styles.header}>What are your speaking goals?</Text>
+        <Text style={styles.subheader}>Select all that apply</Text>
 
         <View style={styles.cardsContainer}>
           {SPEAKING_GOALS.map((goal) => (
@@ -47,30 +48,14 @@ export default function GoalsScreen({ navigation }) {
             />
           ))}
         </View>
-
-        {/* Pagination dots */}
-        <View style={styles.paginationContainer}>
-          {[...Array(9)].map((_, index) => (
-            <View
-              key={index}
-              style={[
-                styles.dot,
-                index === 2 && styles.activeDot, // Screen 3 is active (index 2)
-              ]}
-            />
-          ))}
-        </View>
       </ScrollView>
 
-      <View style={styles.buttonContainer}>
-        <Button
-          title="Continue →"
-          onPress={handleContinue}
-          variant="primary"
-          disabled={selectedGoals.length === 0}
-          style={styles.button}
-        />
-      </View>
+      <OnboardingNavigation
+        currentStep={1}
+        totalSteps={8}
+        onContinue={handleContinue}
+        continueDisabled={selectedGoals.length === 0}
+      />
     </View>
   );
 }
@@ -91,44 +76,18 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: COLORS.text,
     textAlign: 'center',
-    marginBottom: SPACING.xxl,
+    marginBottom: SPACING.sm,
     lineHeight: 36,
+  },
+  subheader: {
+    fontSize: 15,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    marginBottom: SPACING.xl,
   },
   cardsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-  },
-  paginationContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: SPACING.xxl,
-    gap: SPACING.xs,
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: COLORS.border,
-  },
-  activeDot: {
-    backgroundColor: COLORS.primary,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-  buttonContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: SPACING.lg,
-    backgroundColor: COLORS.background,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-  },
-  button: {
-    width: '100%',
   },
 });
