@@ -50,6 +50,57 @@ namespace :users do
     puts "\n#{users.count} user(s) successfully upgraded to lifetime access!"
   end
 
+  desc "Send lifetime access email to all lifetime users"
+  task send_lifetime_emails: :environment do
+    # Find all lifetime users
+    users = User.where(subscription_status: "lifetime")
+
+    # Exclude specific emails if needed (e.g., test accounts, your own email)
+    excluded_emails = ENV["EXCLUDE"]&.split(",")&.map(&:strip) || []
+    users = users.where.not(email: excluded_emails) if excluded_emails.any?
+
+    if users.none?
+      puts "No lifetime users found."
+      exit
+    end
+
+    puts "Found #{users.count} lifetime user(s) to email:"
+    users.each { |u| puts "  - #{u.email} (#{u.name})" }
+
+    # Check for auto-confirm flag or prompt for confirmation
+    if ENV["CONFIRM"] == "yes"
+      puts "\nAuto-confirming due to CONFIRM=yes environment variable"
+    else
+      print "\nAre you sure you want to send emails to these users? (yes/no): "
+      confirmation = STDIN.gets.chomp.downcase
+
+      unless confirmation == "yes"
+        puts "Cancelled."
+        exit
+      end
+    end
+
+    sent_count = 0
+    failed_count = 0
+
+    users.each do |user|
+      begin
+        UserMailer.lifetime_access_granted(user).deliver_now
+        puts "✓ Sent email to #{user.email}"
+        sent_count += 1
+      rescue StandardError => e
+        puts "✗ Failed to send to #{user.email}: #{e.message}"
+        failed_count += 1
+      end
+    end
+
+    puts "\n" + "=" * 80
+    puts "Email sending complete!"
+    puts "Successfully sent: #{sent_count}"
+    puts "Failed: #{failed_count}"
+    puts "=" * 80
+  end
+
   desc "Show current subscription status for all users"
   task subscription_status: :environment do
     users = User.all.order(:email)
