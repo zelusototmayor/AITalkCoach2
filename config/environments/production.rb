@@ -90,7 +90,9 @@ Rails.application.configure do
     user_name: ENV.fetch("SMTP_USERNAME", nil),
     password: ENV.fetch("SMTP_PASSWORD", nil),
     authentication: ENV.fetch("SMTP_AUTHENTICATION", "plain").to_sym,
-    enable_starttls_auto: true
+    enable_starttls_auto: true,
+    open_timeout: 30,
+    read_timeout: 30
   }
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
