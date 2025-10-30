@@ -1,0 +1,182 @@
+# AI Talk Coach - Adaptive Prompts Configuration
+
+# Base prompts organized by category
+base_prompts:
+  presentation:
+    - title: "Elevator Pitch"
+      description: "Present your idea in 30 seconds"
+      target_seconds: 30
+      prompt: "Imagine you are in an elevator with someone who could fund your project. You have 30 seconds to explain what you are working on and why it matters."
+      focus_areas: ["clarity", "pacing", "conciseness"]
+      
+    - title: "Product Demo"
+      description: "Demonstrate your product features"
+      target_seconds: 60
+      prompt: "Walk through the key features of your product as if you are showing it to a potential customer for the first time."
+      focus_areas: ["clarity", "engagement", "structure"]
+      
+    - title: "Conference Talk Introduction"
+      description: "Open a technical presentation"
+      target_seconds: 45
+      prompt: "You are opening a 30-minute technical presentation at a conference. Introduce your topic, why it matters, and what the audience will learn."
+      focus_areas: ["clarity", "engagement", "pacing"]
+
+  conversation:
+    - title: "Meeting Introduction"
+      description: "Introduce yourself in a professional setting"
+      target_seconds: 45
+      prompt: "You are joining a new team meeting. Introduce yourself, your role, and what you hope to contribute to the project."
+      focus_areas: ["clarity", "confidence", "structure"]
+      
+    - title: "Difficult Conversation"
+      description: "Practice addressing challenging topics"
+      target_seconds: 90
+      prompt: "You need to give constructive feedback to a colleague about missed deadlines. Practice having this conversation professionally."
+      focus_areas: ["clarity", "pacing", "diplomacy"]
+      
+    - title: "Client Check-in"
+      description: "Update a client on project progress"
+      target_seconds: 75
+      prompt: "You are calling a client to update them on a project that has encountered some delays. Explain the situation and your plan to get back on track."
+      focus_areas: ["clarity", "confidence", "structure"]
+
+  storytelling:
+    - title: "Personal Achievement"
+      description: "Share a story about overcoming challenges"
+      target_seconds: 120
+      prompt: "Tell the story of a time when you overcame a significant challenge or achieved something you are proud of."
+      focus_areas: ["engagement", "structure", "pacing"]
+      
+    - title: "Company Culture"
+      description: "Explain your organization's values"
+      target_seconds: 60
+      prompt: "Describe what makes your workplace culture unique and why someone would want to join your team."
+      focus_areas: ["engagement", "clarity", "passion"]
+      
+    - title: "Learning Experience"
+      description: "Describe a pivotal learning moment"
+      target_seconds: 90
+      prompt: "Share a story about a mistake you made that taught you an important lesson. Focus on what you learned and how it changed your approach."
+      focus_areas: ["vulnerability", "structure", "reflection"]
+
+  practice_drills:
+    - title: "Tongue Twisters"
+      description: "Practice articulation and clarity"
+      target_seconds: 30
+      prompt: "Practice these tongue twisters clearly and at a comfortable pace: 'Red leather, yellow leather', 'She sells seashells by the seashore', 'Unique New York'."
+      focus_areas: ["articulation", "clarity", "pacing"]
+      
+    - title: "Impromptu Topics"
+      description: "Think and speak on the spot"
+      target_seconds: 60
+      prompt: "You have 1 minute to speak about: 'The most important technology innovation of the past decade'. Organize your thoughts quickly and present them clearly."
+      focus_areas: ["spontaneity", "structure", "confidence"]
+
+# Adaptive prompts based on common speech issues
+adaptive_prompts:
+  filler_words:
+    - title: "Filler-Free Explanation"
+      description: "Practice speaking without um, uh, like"
+      target_seconds: 60
+      prompt: "Explain how to make your favorite dish without using any filler words (um, uh, like, you know). Focus on clear, deliberate speech."
+      focus_areas: ["fluency", "clarity", "precision"]
+      
+    - title: "Structured Response"
+      description: "Use clear transitions and organization"
+      target_seconds: 90
+      prompt: "Answer this question in three clear parts: 'What are the benefits and challenges of remote work?' Use transitions like 'First...', 'Second...', 'Finally...' to structure your response."
+      focus_areas: ["structure", "fluency", "organization"]
+
+  pace_issues:
+    - title: "Paced Explanation"
+      description: "Practice maintaining steady tempo"
+      target_seconds: 75
+      prompt: "Explain a complex concept from your field to someone with no background knowledge. Focus on speaking at a steady, comfortable pace that allows for understanding."
+      focus_areas: ["pacing", "clarity", "education"]
+      
+    - title: "Story with Pauses"
+      description: "Use strategic pauses for emphasis"
+      target_seconds: 90
+      prompt: "Tell a story about a project that didn't go as planned. Practice using pauses for emphasis and to give your audience time to process information."
+      focus_areas: ["pacing", "emphasis", "storytelling"]
+
+  clarity_issues:
+    - title: "Articulation Focus"
+      description: "Practice clear pronunciation"
+      target_seconds: 45
+      prompt: "Describe your daily morning routine, focusing on pronouncing every word clearly and distinctly. Avoid rushing through any parts."
+      focus_areas: ["articulation", "clarity", "precision"]
+      
+    - title: "Technical Explanation"
+      description: "Make complex topics clear"
+      target_seconds: 60
+      prompt: "Explain a technical process or tool you use at work to someone completely unfamiliar with it. Focus on clear, simple language and logical flow."
+      focus_areas: ["clarity", "simplification", "structure"]
+
+  confidence_issues:
+    - title: "Achievement Presentation"
+      description: "Practice confident delivery"
+      target_seconds: 60
+      prompt: "Present a professional achievement you're proud of. Focus on confident delivery, strong voice projection, and owning your success."
+      focus_areas: ["confidence", "projection", "ownership"]
+      
+    - title: "Opinion Defense"
+      description: "State and support your views"
+      target_seconds: 75
+      prompt: "Present your opinion on a current industry trend and defend your position with three clear reasons. Speak with conviction and authority."
+      focus_areas: ["confidence", "persuasion", "authority"]
+
+  engagement_issues:
+    - title: "Energetic Pitch"
+      description: "Practice dynamic delivery"
+      target_seconds: 45
+      prompt: "You have 45 seconds to convince a friend to try a new hobby or activity. Use enthusiasm, varied tone, and energy to make it compelling."
+      focus_areas: ["energy", "engagement", "persuasion"]
+      
+    - title: "Interactive Explanation"
+      description: "Engage an imaginary audience"
+      target_seconds: 90
+      prompt: "Teach something you're passionate about to an audience. Ask rhetorical questions, use examples, and vary your delivery to keep them engaged."
+      focus_areas: ["engagement", "interaction", "passion"]
+
+# Configuration for prompt recommendation algorithm
+recommendation_settings:
+  # Minimum number of sessions needed before adaptive prompts are suggested
+  min_sessions_for_adaptation: 3
+
+  # Issue frequency thresholds (% of sessions) to trigger adaptive prompts
+  issue_thresholds:
+    filler_words: 0.4      # 40% of sessions have filler word issues
+    pace_issues: 0.3       # 30% of sessions have pacing problems
+    clarity_issues: 0.3    # 30% of sessions have clarity problems
+    confidence_issues: 0.2 # 20% of sessions show confidence issues
+    engagement_issues: 0.25 # 25% of sessions lack engagement
+
+  # Mix ratio: percentage of adaptive prompts vs base prompts
+  adaptive_prompt_ratio: 0.4  # 40% adaptive, 60% base prompts
+
+  # Number of adaptive prompts to show when issues are detected
+  adaptive_prompts_count: 2
+
+# Filler word audit configuration
+filler_word_audit:
+  # Enable AI-powered filler word auditing
+  enabled: true
+
+  # Minimum confidence threshold for including filler words (0.0-1.0)
+  # Lower values = more permissive (include borderline cases)
+  # Higher values = more strict (only clear filler words)
+  min_confidence_threshold: 0.5
+
+  # Context window size for analysis (words before/after the filler)
+  context_window_words: 10
+
+  # Cache duration for audit results (in seconds)
+  cache_ttl: 21600  # 6 hours
+
+  # Enable detection of additional filler words not in rules
+  detect_missed_fillers: true
+
+  # Temperature setting for AI analysis (0.0-1.0)
+  # Lower = more consistent, Higher = more creative
+  ai_temperature: 0.1

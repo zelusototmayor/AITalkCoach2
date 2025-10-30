@@ -109,64 +109,48 @@
   <div class="sidebar-footer">
     <!-- Subscription Status Badge -->
     <% if current_user.subscription_lifetime? %>
-      <div class="sidebar-subscription-badge" style="padding: 12px; background: linear-gradient(135deg, #F0F9FF, #E0F2FE); border-radius: 8px; margin-bottom: 12px; text-align: center; border: 1px solid #BAE6FD;">
-        <div style="font-size: 11px; font-weight: 600; color: #0369A1; margin-bottom: 2px;">
-          ✨ LIFETIME ACCESS
-        </div>
-        <div style="font-size: 9px; color: #64748B;">
-          Unlimited forever
-        </div>
+      <div class="sidebar-badge sidebar-badge-lifetime">
+        <div class="sidebar-badge-title">✨ Lifetime Access</div>
+        <div class="sidebar-badge-subtitle">Unlimited forever</div>
       </div>
     <% elsif current_user.subscription_active? %>
-      <div class="sidebar-subscription-badge" style="padding: 12px; background: linear-gradient(135deg, #F0FDF4, #DCFCE7); border-radius: 8px; margin-bottom: 12px; text-align: center; border: 1px solid #BBF7D0;">
-        <div style="font-size: 11px; font-weight: 600; color: #15803D; margin-bottom: 2px;">
-          <%= current_user.subscription_plan&.upcase %> PLAN
-        </div>
+      <div class="sidebar-badge sidebar-badge-active">
+        <div class="sidebar-badge-title"><%= current_user.subscription_plan&.capitalize %> Plan</div>
         <% if current_user.current_period_end %>
-          <div style="font-size: 9px; color: #64748B;">
+          <div class="sidebar-badge-subtitle">
             Renews <%= current_user.current_period_end.strftime('%b %d, %Y') %>
           </div>
         <% end %>
-        <%= link_to 'Manage', subscription_path, style: 'display: block; margin-top: 6px; padding: 4px 8px; background: white; color: #15803D; text-decoration: none; border-radius: 4px; font-size: 10px; font-weight: 600; border: 1px solid #BBF7D0;' %>
+        <%= link_to 'Manage', subscription_path, class: 'sidebar-badge-link' %>
       </div>
     <% elsif current_user.subscription_past_due? %>
-      <div class="sidebar-subscription-badge" style="padding: 12px; background: linear-gradient(135deg, #FEF2F2, #FEE2E2); border-radius: 8px; margin-bottom: 12px; text-align: center; border: 1px solid #FECACA;">
-        <div style="font-size: 11px; font-weight: 600; color: #DC2626; margin-bottom: 2px;">
-          ⚠️ PAYMENT FAILED
-        </div>
-        <div style="font-size: 9px; color: #64748B;">
-          Update payment method
-        </div>
-        <%= link_to 'Update', subscription_path, style: 'display: block; margin-top: 6px; padding: 4px 8px; background: white; color: #DC2626; text-decoration: none; border-radius: 4px; font-size: 10px; font-weight: 600; border: 1px solid #FECACA;' %>
+      <div class="sidebar-badge sidebar-badge-past-due">
+        <div class="sidebar-badge-title">⚠️ Payment Failed</div>
+        <div class="sidebar-badge-subtitle">Update payment method</div>
+        <%= link_to 'Update', subscription_path, class: 'sidebar-badge-link' %>
       </div>
     <% elsif current_user.trial_active? %>
-      <div class="sidebar-trial-banner" style="padding: 12px; background: linear-gradient(135deg, #FFF5F0, #FFEFE6); border-radius: 8px; margin-bottom: 12px; text-align: center;">
+      <div class="sidebar-badge sidebar-badge-trial <%= 'practiced' if current_user.practiced_today? %>">
         <% if current_user.practiced_today? %>
-          <div style="font-size: 11px; font-weight: 600; color: #10b981; margin-bottom: 4px;">
-            ✅ TODAY'S PRACTICE DONE!
-          </div>
-          <div style="font-size: 9px; color: var(--muted); line-height: 1.4;">
-            Free access until <%= Date.tomorrow.end_of_day.strftime('%b %d, %I:%M %p') %>
+          <div class="sidebar-badge-title">✅ Today's Practice Done!</div>
+          <div class="sidebar-badge-subtitle">
+            Free until <%= Date.tomorrow.end_of_day.strftime('%b %d, %I:%M %p') %>
           </div>
         <% else %>
-          <div style="font-size: 11px; font-weight: 600; color: var(--brand-500); margin-bottom: 4px;">
-            🎯 PRACTICE = FREE FOREVER
+          <div class="sidebar-badge-title">🎯 Practice = Free Forever</div>
+          <div class="sidebar-badge-subtitle">
+            Complete 1+ min session today → Free tomorrow!
           </div>
-          <div style="font-size: 9px; color: var(--muted); line-height: 1.4; margin-bottom: 6px;">
-            Complete 1+ min session today → Free tomorrow too!
-          </div>
-          <div style="font-size: 10px; color: var(--muted);">
+          <div class="sidebar-badge-expiry">
             Trial expires in <%= current_user.trial_hours_remaining %>h
           </div>
         <% end %>
-        <%= link_to 'View Plans', pricing_url, style: 'display: block; margin-top: 8px; padding: 6px 12px; background: white; color: var(--brand-500); text-decoration: none; border-radius: 6px; font-size: 11px; font-weight: 600; border: 1px solid var(--brand-500);' %>
+        <%= link_to 'View Plans', pricing_url, class: 'sidebar-badge-link' %>
       </div>
     <% else %>
-      <div class="sidebar-subscription-badge" style="padding: 12px; background: linear-gradient(135deg, #FEF2F2, #FEE2E2); border-radius: 8px; margin-bottom: 12px; text-align: center; border: 1px solid #FECACA;">
-        <div style="font-size: 11px; font-weight: 600; color: #DC2626; margin-bottom: 2px;">
-          NO SUBSCRIPTION
-        </div>
-        <%= link_to 'Subscribe', pricing_url, style: 'display: block; margin-top: 6px; padding: 6px 12px; background: var(--gradient-primary); color: white; text-decoration: none; border-radius: 6px; font-size: 11px; font-weight: 600;' %>
+      <div class="sidebar-badge sidebar-badge-none">
+        <div class="sidebar-badge-title">No Subscription</div>
+        <%= link_to 'Subscribe', pricing_url, class: 'sidebar-badge-link' %>
       </div>
     <% end %>
 

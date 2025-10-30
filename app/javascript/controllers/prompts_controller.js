@@ -6,7 +6,9 @@ export default class extends Controller {
     "favorite", "difficulty", "tags", "timer", "practiceMode", "selectedId",
     "display", "content", "library", "targetTime", "card", "grid",
     "searchInput", "filterBtn", "noResults", "noFavorites", "modalOverlay",
-    "modalBody", "modalTitle", "modalPracticeBtn", "showMoreBtn"
+    "modalBody", "modalTitle", "modalPracticeBtn", "showMoreBtn", "durationTab",
+    "durationPromptsContainer", "difficultyFilter", "durationFilter", "categoryFilter",
+    "focusFilter"
   ]
   static values = { 
     selectedPrompt: Object,
@@ -934,12 +936,128 @@ export default class extends Controller {
       this.searchInputTarget.value = ''
     }
 
-    this.filterPrompts()
+    // Clear all filter dropdowns
+    if (this.hasDifficultyFilterTarget) {
+      this.difficultyFilterTarget.selectedIndex = -1
+    }
+    if (this.hasDurationFilterTarget) {
+      this.durationFilterTarget.selectedIndex = -1
+    }
+    if (this.hasCategoryFilterTarget) {
+      this.categoryFilterTarget.selectedIndex = -1
+    }
+    if (this.hasFocusFilterTarget) {
+      this.focusFilterTarget.selectedIndex = -1
+    }
+
+    this.applyFilters()
+  }
+
+  applyFilters() {
+    // Get selected values from each filter
+    const selectedDifficulties = this.hasDifficultyFilterTarget
+      ? Array.from(this.difficultyFilterTarget.selectedOptions).map(opt => opt.value)
+      : []
+
+    const selectedDurations = this.hasDurationFilterTarget
+      ? Array.from(this.durationFilterTarget.selectedOptions).map(opt => opt.value)
+      : []
+
+    const selectedCategories = this.hasCategoryFilterTarget
+      ? Array.from(this.categoryFilterTarget.selectedOptions).map(opt => opt.value)
+      : []
+
+    const selectedFocusAreas = this.hasFocusFilterTarget
+      ? Array.from(this.focusFilterTarget.selectedOptions).map(opt => opt.value)
+      : []
+
+    // Get search term
+    const searchTerm = this.hasSearchInputTarget
+      ? this.searchInputTarget.value.toLowerCase().trim()
+      : ''
+
+    // Filter cards
+    const allCards = this.cardTargets
+    let visibleCount = 0
+
+    allCards.forEach(card => {
+      let shouldShow = true
+
+      // Check difficulty filter
+      if (selectedDifficulties.length > 0) {
+        const cardDifficulty = card.dataset.difficulty
+        if (!selectedDifficulties.includes(cardDifficulty)) {
+          shouldShow = false
+        }
+      }
+
+      // Check duration filter
+      if (selectedDurations.length > 0) {
+        const cardDuration = card.dataset.duration
+        if (!selectedDurations.includes(cardDuration)) {
+          shouldShow = false
+        }
+      }
+
+      // Check category filter
+      if (selectedCategories.length > 0) {
+        const cardCategory = card.dataset.category
+        if (!selectedCategories.includes(cardCategory)) {
+          shouldShow = false
+        }
+      }
+
+      // Check focus areas filter
+      if (selectedFocusAreas.length > 0) {
+        const cardFocusAreas = (card.dataset.focusAreas || '').split(',').map(f => f.trim().toLowerCase())
+        const hasMatchingFocus = selectedFocusAreas.some(focus =>
+          cardFocusAreas.some(cardFocus => cardFocus.includes(focus.toLowerCase()))
+        )
+        if (!hasMatchingFocus) {
+          shouldShow = false
+        }
+      }
+
+      // Check search term
+      if (searchTerm) {
+        const cardText = card.textContent.toLowerCase()
+        if (!cardText.includes(searchTerm)) {
+          shouldShow = false
+        }
+      }
+
+      // Check favorites filter
+      if (this.showFavoritesOnly) {
+        const promptId = card.dataset.promptId
+        if (!this.favorites.includes(promptId)) {
+          shouldShow = false
+        }
+      }
+
+      // Show/hide card
+      if (shouldShow) {
+        card.style.display = ''
+        visibleCount++
+      } else {
+        card.style.display = 'none'
+      }
+    })
+
+    // Show/hide "no results" message
+    if (this.hasNoResultsTarget) {
+      this.noResultsTarget.style.display = visibleCount === 0 ? 'block' : 'none'
+    }
+
+    // Hide category sections that have no visible cards
+    document.querySelectorAll('.category-section').forEach(section => {
+      const visibleCards = section.querySelectorAll('.prompt-card[style=""], .prompt-card:not([style*="display: none"])')
+      section.style.display = visibleCards.length > 0 ? '' : 'none'
+    })
   }
 
   toggleFavorites() {
     this.showFavoritesOnly = !this.showFavoritesOnly
-    this.filterPrompts()
+    this.applyFilters()
   }
 
   closeModal() {
@@ -979,5 +1097,181 @@ export default class extends Controller {
 
   shuffleRandom() {
     this.shufflePrompt()
+  }
+
+  // New methods for enhanced UI
+  filterByDuration(event) {
+    const duration = event.target.dataset.duration
+
+    // Update active tab
+    if (this.hasDurationTabTarget) {
+      this.durationTabTargets.forEach(tab => tab.classList.remove('active'))
+      event.target.classList.add('active')
+    }
+
+    // Show/hide duration groups
+    const groups = document.querySelectorAll('[data-duration-group]')
+    groups.forEach(group => {
+      if (group.dataset.durationGroup === duration) {
+        group.style.display = ''
+      } else {
+        group.style.display = 'none'
+      }
+    })
+
+    // Save preference to localStorage
+    try {
+      localStorage.setItem('preferred-duration', duration)
+    } catch (error) {
+      console.warn('Could not save duration preference:', error)
+    }
+  }
+
+  toggleCategoryExpansion(event) {
+    const category = event.target.dataset.category
+    const categorySection = event.target.closest('.category-section')
+    const hiddenCards = categorySection.querySelectorAll('[data-prompt-index]:not([style*="display: none"])')
+    const allCards = categorySection.querySelectorAll('[data-category-item]')
+    const toggleText = event.target.querySelector('.toggle-text')
+    const toggleIcon = event.target.querySelector('.toggle-icon')
+
+    // Check if currently expanded
+    const isExpanded = allCards.length === hiddenCards.length
+
+    if (isExpanded) {
+      // Collapse - hide cards after index 5
+      allCards.forEach((card, index) => {
+        if (parseInt(card.dataset.promptIndex) >= 6) {
+          card.style.display = 'none'
+        }
+      })
+      toggleText.textContent = 'Show all'
+      toggleIcon.textContent = '▼'
+    } else {
+      // Expand - show all cards
+      allCards.forEach(card => {
+        card.style.display = ''
+      })
+      toggleText.textContent = 'Show less'
+      toggleIcon.textContent = '▲'
+    }
+
+    // Track expansion state
+    try {
+      const expandedCategories = JSON.parse(localStorage.getItem('expanded-categories') || '[]')
+      if (isExpanded) {
+        const index = expandedCategories.indexOf(category)
+        if (index > -1) expandedCategories.splice(index, 1)
+      } else {
+        if (!expandedCategories.includes(category)) expandedCategories.push(category)
+      }
+      localStorage.setItem('expanded-categories', JSON.stringify(expandedCategories))
+    } catch (error) {
+      console.warn('Could not save category expansion state:', error)
+    }
+  }
+
+  showAllDuration(event) {
+    const duration = event.target.dataset.duration
+    const durationGroup = document.querySelector(`[data-duration-group="${duration}"]`)
+
+    if (durationGroup) {
+      const allCards = durationGroup.querySelectorAll('.prompt-card')
+      allCards.forEach(card => {
+        card.style.display = ''
+      })
+
+      // Hide the "Show all" button
+      event.target.closest('.show-all-duration').style.display = 'none'
+    }
+  }
+
+  markPromptCompleted(promptId) {
+    try {
+      const completed = this.getCompletedPrompts()
+      if (!completed.includes(promptId)) {
+        completed.push(promptId)
+        localStorage.setItem('completed-prompts', JSON.stringify(completed))
+
+        // Update UI to show completion
+        this.updateCompletionIndicators()
+      }
+    } catch (error) {
+      console.warn('Could not mark prompt as completed:', error)
+    }
+  }
+
+  getCompletedPrompts() {
+    try {
+      const saved = localStorage.getItem('completed-prompts')
+      return saved ? JSON.parse(saved) : []
+    } catch (error) {
+      console.warn('Could not load completed prompts:', error)
+      return []
+    }
+  }
+
+  updateCompletionIndicators() {
+    const completed = this.getCompletedPrompts()
+
+    // Add checkmarks or styles to completed prompts
+    this.cardTargets.forEach(card => {
+      const promptId = card.dataset.promptId
+      if (completed.includes(promptId)) {
+        card.classList.add('completed')
+
+        // Add visual indicator if not present
+        if (!card.querySelector('.completion-badge')) {
+          const badge = document.createElement('span')
+          badge.className = 'completion-badge'
+          badge.textContent = '✓'
+          badge.title = 'Completed'
+          card.querySelector('.prompt-header')?.appendChild(badge)
+        }
+      }
+    })
+  }
+
+  restoreExpandedCategories() {
+    try {
+      const expanded = JSON.parse(localStorage.getItem('expanded-categories') || '[]')
+      expanded.forEach(category => {
+        const categorySection = document.querySelector(`[data-category="${category}"]`)
+        if (categorySection) {
+          const toggleBtn = categorySection.querySelector('.btn-category-toggle')
+          if (toggleBtn) {
+            // Simulate click to expand
+            toggleBtn.click()
+          }
+        }
+      })
+    } catch (error) {
+      console.warn('Could not restore expanded categories:', error)
+    }
+  }
+
+  restorePreferredDuration() {
+    try {
+      const preferredDuration = localStorage.getItem('preferred-duration')
+      if (preferredDuration) {
+        const durationTab = document.querySelector(`[data-duration="${preferredDuration}"]`)
+        if (durationTab) {
+          durationTab.click()
+        }
+      }
+    } catch (error) {
+      console.warn('Could not restore preferred duration:', error)
+    }
+  }
+
+  initialize() {
+    super.initialize && super.initialize()
+
+    // Restore UI state
+    setTimeout(() => {
+      this.updateCompletionIndicators()
+      this.restoreExpandedCategories()
+      this.restorePreferredDuration()
+    }, 100)
   }
 }

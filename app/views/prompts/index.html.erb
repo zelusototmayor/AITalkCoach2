@@ -74,57 +74,128 @@
     </div>
   <% end %>
 
+
   <div class="prompts-controls">
     <div class="search-filter">
-      <input type="search" 
-             placeholder="Search prompts..." 
+      <input type="search"
+             placeholder="Search prompts..."
              class="search-input"
              data-prompts-target="searchInput"
              data-action="input->prompts#filterPrompts">
     </div>
 
-    <div class="category-filters">
-      <button type="button" 
-              class="filter-btn active" 
-              data-action="click->prompts#filterCategory"
-              data-category="all"
-              data-prompts-target="filterBtn">
-        All Categories
-      </button>
-      <% @categories.each do |category| %>
-        <button type="button" 
-                class="filter-btn"
-                data-action="click->prompts#filterCategory"
-                data-category="<%= category %>"
-                data-prompts-target="filterBtn">
-          <%= category.humanize %>
-        </button>
-      <% end %>
+    <div class="filter-dropdowns">
+      <div class="filter-dropdown-group">
+        <label for="difficulty-filter">Difficulty</label>
+        <select multiple
+                id="difficulty-filter"
+                class="filter-select"
+                data-prompts-target="difficultyFilter"
+                data-action="change->prompts#applyFilters">
+          <option value="beginner">Beginner</option>
+          <option value="intermediate">Intermediate</option>
+          <option value="advanced">Advanced</option>
+        </select>
+      </div>
+
+      <div class="filter-dropdown-group">
+        <label for="duration-filter">Duration</label>
+        <select multiple
+                id="duration-filter"
+                class="filter-select"
+                data-prompts-target="durationFilter"
+                data-action="change->prompts#applyFilters">
+          <option value="quick">Quick (≤45s)</option>
+          <option value="standard">Standard (46-75s)</option>
+          <option value="deep">Deep Dive (>75s)</option>
+        </select>
+      </div>
+
+      <div class="filter-dropdown-group">
+        <label for="category-filter">Category</label>
+        <select multiple
+                id="category-filter"
+                class="filter-select"
+                data-prompts-target="categoryFilter"
+                data-action="change->prompts#applyFilters">
+          <% @categories.reject { |c| c == "recommended" }.each do |category| %>
+            <option value="<%= category %>"><%= category.humanize %></option>
+          <% end %>
+        </select>
+      </div>
+
+      <div class="filter-dropdown-group">
+        <label for="focus-filter">Focus Areas</label>
+        <select multiple
+                id="focus-filter"
+                class="filter-select"
+                data-prompts-target="focusFilter"
+                data-action="change->prompts#applyFilters">
+          <option value="clarity">Clarity</option>
+          <option value="engagement">Engagement</option>
+          <option value="pacing">Pacing</option>
+          <option value="confidence">Confidence</option>
+          <option value="tone">Tone</option>
+          <option value="control">Control</option>
+          <option value="energy">Energy</option>
+          <option value="structure">Structure</option>
+          <option value="articulation">Articulation</option>
+          <option value="persuasion">Persuasion</option>
+        </select>
+      </div>
     </div>
 
     <div class="view-options">
-      <button type="button" 
+      <button type="button"
               class="btn btn-secondary"
-              data-action="click->prompts#shuffleRandom">
-        🎲 Random Prompt
+              data-action="click->prompts#toggleFavorites">
+        ⭐ Favorites
       </button>
       <button type="button"
-              class="btn btn-secondary" 
-              data-action="click->prompts#toggleFavorites">
-        ⭐ Favorites Only
+              class="btn btn-secondary"
+              data-action="click->prompts#clearFilters">
+        Clear Filters
       </button>
     </div>
   </div>
 
+  <div class="prompts-library-section">
+    <h2 class="library-title">Browse All Prompts</h2>
+  </div>
+
   <div class="prompts-grid" data-prompts-target="grid">
     <% @prompts.each_with_index do |(category, category_prompts), cat_index| %>
-      <% category_prompts.each_with_index do |prompt, index| %>
-        <div class="prompt-card"
-             data-category="<%= category %>"
-             data-prompts-target="card"
-             data-prompt-id="<%= "#{category}_#{index}" %>"
-             data-prompt-index="<%= index %>"
-             style="<%= 'display: none;' if index >= 6 %>">
+      <% next if %w[filler_words pace_issues clarity_issues confidence_issues engagement_issues].include?(category) %>
+
+      <div class="category-section" data-category="<%= category %>">
+        <div class="category-header">
+          <h3 class="category-title">
+            <%= category.humanize %>
+            <span class="category-count">(<%= category_prompts.size %>)</span>
+          </h3>
+          <% if category_prompts.size > 6 %>
+            <button type="button"
+                    class="btn-category-toggle"
+                    data-action="click->prompts#toggleCategoryExpansion"
+                    data-category="<%= category %>">
+              <span class="toggle-text">Show all</span>
+              <span class="toggle-icon">▼</span>
+            </button>
+          <% end %>
+        </div>
+
+        <div class="category-prompts-grid">
+          <% category_prompts.each_with_index do |prompt, index| %>
+            <div class="prompt-card"
+                 data-category="<%= category %>"
+                 data-prompts-target="card"
+                 data-prompt-id="<%= "#{category}_#{index}" %>"
+                 data-prompt-index="<%= index %>"
+                 data-category-item="<%= category %>"
+                 data-difficulty="<%= prompt['difficulty'] %>"
+                 data-duration="<%= prompt['target_seconds'].to_i <= 45 ? 'quick' : (prompt['target_seconds'].to_i.between?(46, 75) ? 'standard' : 'deep') %>"
+                 data-focus-areas="<%= (prompt['focus_areas'] || prompt['skills'] || []).join(',') %>"
+                 style="<%= 'display: none;' if index >= 6 %>">
 
           <div class="prompt-header">
             <div class="prompt-header-top">
@@ -165,18 +236,9 @@
             </div>
           </div>
         </div>
-      <% end %>
-
-      <% if category_prompts.length > 6 %>
-        <div class="show-more-container" data-category="<%= category %>" data-prompts-target="showMoreBtn">
-          <button type="button"
-                  class="btn btn-secondary"
-                  data-action="click->prompts#showMore"
-                  data-category="<%= category %>">
-            Show More (<%= category_prompts.length - 6 %> more)
-          </button>
+          <% end %>
         </div>
-      <% end %>
+      </div>
     <% end %>
   </div>
 

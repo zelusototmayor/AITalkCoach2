@@ -59,7 +59,9 @@ class User < ApplicationRecord
   end
 
   # Check if user needs to complete onboarding
+  # Lifetime users are grandfathered and don't need onboarding
   def needs_onboarding?
+    return false if subscription_lifetime?
     !onboarding_completed?
   end
 

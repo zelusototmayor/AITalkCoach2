@@ -5,7 +5,7 @@ class SubscriptionController < ApplicationController
     plan = params[:plan]&.to_sym
 
     unless [ :monthly, :yearly ].include?(plan)
-      flash[:error] = "Invalid subscription plan selected"
+      flash[:alert] = "Invalid subscription plan selected"
       redirect_to pricing_url and return
     end
 
@@ -20,7 +20,7 @@ class SubscriptionController < ApplicationController
     rescue ::Stripe::StripeError => e
       Rails.logger.error "Stripe checkout error: #{e.message}"
       Sentry.capture_exception(e) if defined?(Sentry)
-      flash[:error] = "Unable to start checkout. Please try again."
+      flash[:alert] = "Unable to start checkout. Please try again."
       redirect_to pricing_url
     end
   end
@@ -83,7 +83,7 @@ class SubscriptionController < ApplicationController
       redirect_to portal_session.url, allow_other_host: true
     rescue ::Stripe::StripeError => e
       Rails.logger.error "Stripe portal error: #{e.message}"
-      flash[:error] = "Unable to access billing portal. Please try again."
+      flash[:alert] = "Unable to access billing portal. Please try again."
       redirect_to subscription_path
     end
   end

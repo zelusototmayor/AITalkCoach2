@@ -1,0 +1,32 @@
+<% flash_types = [:success, :error, :warning, :info, :notice, :alert] %>
+
+<% flash_types.each do |type| %>
+  <% if flash[type].present? %>
+    <%
+      # Map legacy types to new ones for CSS classes
+      css_type = case type
+                 when :notice then 'notice'
+                 when :alert then 'alert'
+                 else type.to_s
+                 end
+
+      # Choose appropriate icon
+      icon = case type
+             when :success, :notice then :check
+             when :error, :alert then :alert
+             when :warning then :alert
+             when :info then :info
+             else :info
+             end
+    %>
+
+    <div class="flash <%= css_type %>"
+         role="alert"
+         aria-live="<%= type.in?([:error, :alert]) ? 'assertive' : 'polite' %>"
+         data-controller="flash"
+         data-action="click->flash#close">
+      <span aria-hidden="true"><%= icon_svg(icon, css_class: 'icon-inline') %></span>
+      <span><%= flash[type] %></span>
+    </div>
+  <% end %>
+<% end %>

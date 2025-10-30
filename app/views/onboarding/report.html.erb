@@ -2,6 +2,13 @@
 
 <div class="onboarding-container">
   <div class="onboarding-content">
+    <!-- Quit Button -->
+    <div style="text-align: right; margin-bottom: 1rem;">
+      <%= link_to logout_path, class: 'quit-onboarding-btn', data: { turbo_method: :delete, turbo_confirm: "Are you sure you want to quit? You'll need to start over." } do %>
+        <span class="quit-icon">×</span> Quit
+      <% end %>
+    </div>
+
     <!-- Progress Indicator -->
     <%= render 'onboarding/progress', current_step: 3 %>
 

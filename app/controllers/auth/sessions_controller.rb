@@ -11,6 +11,14 @@ class Auth::SessionsController < ApplicationController
 
     if user && user.authenticate(params[:session][:password])
       session[:user_id] = user.id
+
+      # For lifetime users who haven't completed onboarding, mark it as completed
+      # since they're grandfathered and don't need to go through it
+      if user.subscription_lifetime? && !user.onboarding_completed?
+        user.update_column(:onboarding_completed_at, Time.current)
+        Rails.logger.info "Auto-completed onboarding for grandfathered user: #{user.email}"
+      end
+
       redirect_back_or(practice_path)
       flash[:notice] = "Welcome back!"
     else

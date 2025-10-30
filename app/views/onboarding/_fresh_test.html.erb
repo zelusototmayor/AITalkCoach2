@@ -103,7 +103,7 @@
   <!-- Skip Option -->
   <div class="test-skip-section">
     <p class="skip-text">Not ready to record?</p>
-    <%= form_with url: onboarding_test_path, method: :post do |f| %>
+    <%= form_with url: onboarding_test_path, method: :post, data: { turbo: false } do |f| %>
       <%= hidden_field_tag 'skipped', 'true' %>
       <%= button_tag type: 'submit', class: 'text-btn' do %>
         Skip for now and continue

@@ -7,6 +7,8 @@ class PromptsController < ApplicationController
     @adaptive_prompts = get_adaptive_prompts
     @categories = (@prompts.keys + [ "recommended" ]).uniq.sort
     @user_weaknesses = analyze_user_weaknesses
+    @duration_groups = group_prompts_by_duration
+    @all_prompts_flat = flatten_all_prompts
   end
 
   private
@@ -102,5 +104,74 @@ class PromptsController < ApplicationController
     end
 
     weaknesses.uniq
+  end
+
+  def group_prompts_by_duration
+    all_prompts = flatten_all_prompts
+
+    {
+      quick: all_prompts.select { |p| p[:target_seconds].to_i <= 45 },
+      standard: all_prompts.select { |p| p[:target_seconds].to_i.between?(46, 75) },
+      deep: all_prompts.select { |p| p[:target_seconds].to_i > 75 }
+    }
+  end
+
+  def flatten_all_prompts
+    prompts = []
+    config = YAML.load_file(Rails.root.join("config", "prompts.yml"))
+
+    # Include base prompts (excluding adaptive categories)
+    base_categories = %w[presentation conversation storytelling practice_drills]
+    base_categories.each do |category|
+      next unless config["base_prompts"][category]
+
+      config["base_prompts"][category].each_with_index do |prompt, index|
+        prompts << prompt.merge(
+          category: category,
+          prompt_id: "#{category}_#{index}",
+          is_adaptive: false
+        )
+      end
+    end
+
+    # Include adaptive prompts if user has weaknesses
+    weaknesses = analyze_user_weaknesses
+    weaknesses.each do |weakness|
+      next unless config["adaptive_prompts"][weakness]
+
+      config["adaptive_prompts"][weakness].each_with_index do |prompt, index|
+        prompts << prompt.merge(
+          category: weakness,
+          prompt_id: "adaptive_#{weakness}_#{index}",
+          is_adaptive: true
+        )
+      end
+    end
+
+    prompts
+  end
+
+  def filter_prompts_by_difficulty(prompts, difficulty)
+    return prompts if difficulty.blank?
+    prompts.select { |p| p[:difficulty] == difficulty }
+  end
+
+  def filter_prompts_by_tags(prompts, tags)
+    return prompts if tags.blank?
+    tag_array = tags.is_a?(String) ? tags.split(',') : tags
+    prompts.select { |p| (p[:tags] & tag_array).any? }
+  end
+
+  def get_all_adaptive_prompts_for_weakness(weakness)
+    config = YAML.load_file(Rails.root.join("config", "prompts.yml"))
+    return [] unless config["adaptive_prompts"][weakness]
+
+    config["adaptive_prompts"][weakness].map.with_index do |prompt, index|
+      prompt.merge(
+        category: weakness,
+        prompt_id: "adaptive_#{weakness}_#{index}",
+        is_adaptive: true
+      )
+    end
   end
 end

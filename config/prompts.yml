@@ -1,182 +1,1762 @@
 # AI Talk Coach - Adaptive Prompts Configuration
+# Enhanced with 90 prompts including difficulty levels and tags
 
-# Base prompts organized by category
 base_prompts:
   presentation:
-    - title: "Elevator Pitch"
-      description: "Present your idea in 30 seconds"
-      target_seconds: 30
-      prompt: "Imagine you are in an elevator with someone who could fund your project. You have 30 seconds to explain what you are working on and why it matters."
-      focus_areas: ["clarity", "pacing", "conciseness"]
-      
-    - title: "Product Demo"
-      description: "Demonstrate your product features"
-      target_seconds: 60
-      prompt: "Walk through the key features of your product as if you are showing it to a potential customer for the first time."
-      focus_areas: ["clarity", "engagement", "structure"]
-      
-    - title: "Conference Talk Introduction"
-      description: "Open a technical presentation"
-      target_seconds: 45
-      prompt: "You are opening a 30-minute technical presentation at a conference. Introduce your topic, why it matters, and what the audience will learn."
-      focus_areas: ["clarity", "engagement", "pacing"]
-
+  - title: The 2-Minute Pitch
+    description: Summarize your startup or idea as if pitching to an investor.
+    target_seconds: 120
+    prompt: >-
+      Imagine you’re at a startup event and have 2 minutes to pitch your product. Explain what it is, who it’s for, and why
+      it matters.
+    focus_areas:
+    - clarity
+    - engagement
+    - pacing
+    difficulty: advanced
+    tags:
+    - educational
+    - persuasion
+    - public_speaking
+    - professional
+  - title: Vision Speech
+    description: Practice describing a bold vision that inspires others.
+    target_seconds: 90
+    prompt: >-
+      You’re the CEO of a new company changing the world. Deliver a short vision statement that motivates your team.
+    focus_areas:
+    - confidence
+    - storytelling
+    - tone
+    difficulty: advanced
+    tags:
+    - concise
+    - public_speaking
+    - professional
+    - inspirational
+  - title: Data with a Point
+    description: Learn to make data sound meaningful.
+    target_seconds: 60
+    prompt: >-
+      Present a short set of key stats (you can invent them) and connect each to a larger insight or call to action.
+    focus_areas:
+    - structure
+    - emphasis
+    - engagement
+    difficulty: intermediate
+    tags:
+    - demonstration
+    - public_speaking
+    - professional
+    - concise
+  - title: The Persuasive Pitch
+    description: Practice convincing your audience.
+    target_seconds: 90
+    prompt: >-
+      Persuade your listeners to support a new initiative or product. Focus on benefits and urgency.
+    focus_areas:
+    - persuasion
+    - tone control
+    - pacing
+    difficulty: advanced
+    tags:
+    - persuasion
+    - public_speaking
+    - professional
+  - title: Explain the Why
+    description: Train clarity and reasoning.
+    target_seconds: 60
+    prompt: >-
+      Choose something you believe in (a routine, habit, or idea) and explain why it’s important.
+    focus_areas:
+    - clarity
+    - articulation
+    - logical flow
+    difficulty: intermediate
+    tags:
+    - educational
+    - public_speaking
+    - professional
+  - title: Problem & Solution
+    description: Practice business or project framing.
+    target_seconds: 90
+    prompt: >-
+      Describe a problem people face and your proposed solution, as if addressing a small audience.
+    focus_areas:
+    - structure
+    - pacing
+    - clarity
+    difficulty: advanced
+    tags:
+    - public_speaking
+    - professional
+    - business
+  - title: Demo on Stage
+    description: Simulate live demo energy.
+    target_seconds: 60
+    prompt: >-
+      You’re demoing your app on stage. Describe what it does, why it’s special, and show enthusiasm.
+    focus_areas:
+    - energy
+    - pacing
+    - confidence
+    difficulty: intermediate
+    tags:
+    - demonstration
+    - public_speaking
+    - professional
+  - title: Conference Keynote
+    description: Practice commanding presence.
+    target_seconds: 90
+    prompt: >-
+      Deliver the opening minute of a tech conference keynote about innovation and human creativity.
+    focus_areas:
+    - confidence
+    - projection
+    - pacing
+    difficulty: advanced
+    tags:
+    - public_speaking
+    - professional
+  - title: Stakeholder Update
+    description: Train concise reporting.
+    target_seconds: 120
+    prompt: >-
+      Summarize your team’s quarterly progress in under 2 minutes, highlighting impact and next steps.
+    focus_areas:
+    - structure
+    - clarity
+    - pacing
+    difficulty: advanced
+    tags:
+    - public_speaking
+    - professional
+  - title: Call to Action
+    description: Finish with power.
+    target_seconds: 30
+    prompt: >-
+      You’ve just finished a presentation—end with a strong 30-second call to action to your audience.
+    focus_areas:
+    - engagement
+    - tone
+    - confidence
+    difficulty: beginner
+    tags:
+    - demonstration
+    - public_speaking
+    - professional
   conversation:
-    - title: "Meeting Introduction"
-      description: "Introduce yourself in a professional setting"
-      target_seconds: 45
-      prompt: "You are joining a new team meeting. Introduce yourself, your role, and what you hope to contribute to the project."
-      focus_areas: ["clarity", "confidence", "structure"]
-      
-    - title: "Difficult Conversation"
-      description: "Practice addressing challenging topics"
-      target_seconds: 90
-      prompt: "You need to give constructive feedback to a colleague about missed deadlines. Practice having this conversation professionally."
-      focus_areas: ["clarity", "pacing", "diplomacy"]
-      
-    - title: "Client Check-in"
-      description: "Update a client on project progress"
-      target_seconds: 75
-      prompt: "You are calling a client to update them on a project that has encountered some delays. Explain the situation and your plan to get back on track."
-      focus_areas: ["clarity", "confidence", "structure"]
-
+  - title: First Impressions
+    description: Practice small talk that feels natural.
+    target_seconds: 60
+    prompt: >-
+      You’ve just met someone at a networking event. Introduce yourself and start a friendly, engaging conversation.
+    focus_areas:
+    - pacing
+    - warmth
+    - engagement
+    difficulty: intermediate
+    tags:
+    - business
+    - networking
+    - interpersonal
+    - communication
+  - title: Handling Awkward Silence
+    description: Practice recovering flow naturally.
+    target_seconds: 45
+    prompt: >-
+      Imagine a 5-second pause occurs mid-conversation. How do you bring the discussion back smoothly?
+    focus_areas:
+    - pacing
+    - tone
+    - improvisation
+    difficulty: beginner
+    tags:
+    - interpersonal
+    - communication
+  - title: Empathetic Listener
+    description: Train emotional connection.
+    target_seconds: 60
+    prompt: >-
+      Respond to a friend sharing a personal struggle, showing empathy and presence through your tone.
+    focus_areas:
+    - tone
+    - empathy
+    - pacing
+    difficulty: intermediate
+    tags:
+    - demonstration
+    - interpersonal
+    - communication
+  - title: Curious Mind
+    description: Build active listening and curiosity.
+    target_seconds: 90
+    prompt: Ask thoughtful follow-up questions to someone describing their job or passion.
+    focus_areas:
+    - questioning
+    - flow
+    - engagement
+    difficulty: advanced
+    tags:
+    - interview
+    - interpersonal
+    - communication
+  - title: Handling Disagreement
+    description: Learn calm confidence.
+    target_seconds: 60
+    prompt: Respond respectfully to someone who strongly disagrees with your opinion.
+    focus_areas:
+    - confidence
+    - composure
+    - tone
+    difficulty: intermediate
+    tags:
+    - interpersonal
+    - communication
+  - title: The Compliment
+    description: Practice sincerity and balance.
+    target_seconds: 30
+    prompt: Give someone a genuine compliment that doesn’t sound forced or exaggerated.
+    focus_areas:
+    - authenticity
+    - tone
+    - clarity
+    difficulty: beginner
+    tags:
+    - interpersonal
+    - communication
+  - title: Talking to a Mentor
+    description: Build concise articulation.
+    target_seconds: 60
+    prompt: You have 1 minute to explain your goals and ask for advice from a senior mentor.
+    focus_areas:
+    - clarity
+    - confidence
+    - tone
+    difficulty: intermediate
+    tags:
+    - educational
+    - feedback
+    - interpersonal
+    - communication
+  - title: Expressing Gratitude
+    description: Train sincerity and warmth.
+    target_seconds: 45
+    prompt: Thank a colleague for their support in a recent project.
+    focus_areas:
+    - tone
+    - emotional resonance
+    - authenticity
+    difficulty: beginner
+    tags:
+    - interpersonal
+    - communication
+  - title: Giving Feedback
+    description: Practice tactful communication.
+    target_seconds: 60
+    prompt: Deliver constructive feedback to a teammate whose work needs improvement.
+    focus_areas:
+    - clarity
+    - empathy
+    - tone
+    difficulty: intermediate
+    tags:
+    - business
+    - feedback
+    - interpersonal
+    - communication
+  - title: Ending Conversations
+    description: Learn graceful closure.
+    target_seconds: 30
+    prompt: Politely end a conversation while leaving a positive impression.
+    focus_areas:
+    - pacing
+    - tone
+    - confidence
+    difficulty: beginner
+    tags:
+    - interpersonal
+    - communication
   storytelling:
-    - title: "Personal Achievement"
-      description: "Share a story about overcoming challenges"
-      target_seconds: 120
-      prompt: "Tell the story of a time when you overcame a significant challenge or achieved something you are proud of."
-      focus_areas: ["engagement", "structure", "pacing"]
-      
-    - title: "Company Culture"
-      description: "Explain your organization's values"
-      target_seconds: 60
-      prompt: "Describe what makes your workplace culture unique and why someone would want to join your team."
-      focus_areas: ["engagement", "clarity", "passion"]
-      
-    - title: "Learning Experience"
-      description: "Describe a pivotal learning moment"
-      target_seconds: 90
-      prompt: "Share a story about a mistake you made that taught you an important lesson. Focus on what you learned and how it changed your approach."
-      focus_areas: ["vulnerability", "structure", "reflection"]
-
+  - title: The Turning Point
+    description: Master tension and resolution.
+    target_seconds: 90
+    prompt: Tell a story about a challenge that changed how you see the world.
+    focus_areas:
+    - pacing
+    - emotion
+    - engagement
+    difficulty: advanced
+    tags:
+    - personal
+    - narrative
+    - storytelling
+  - title: The Funny Story
+    description: Build timing and tone.
+    target_seconds: 60
+    prompt: >-
+      Share a light, funny story from your personal life—something relatable and natural.
+    focus_areas:
+    - pacing
+    - timing
+    - authenticity
+    difficulty: intermediate
+    tags:
+    - personal
+    - narrative
+    - storytelling
+  - title: The Lesson Learned
+    description: Make meaning visible.
+    target_seconds: 90
+    prompt: Describe a past mistake and what it taught you.
+    focus_areas:
+    - reflection
+    - tone
+    - clarity
+    difficulty: advanced
+    tags:
+    - personal
+    - narrative
+  - title: The Unexpected Outcome
+    description: Practice suspense.
+    target_seconds: 60
+    prompt: >-
+      Tell a short story where things didn’t go as planned, but ended better than expected.
+    focus_areas:
+    - engagement
+    - pacing
+    - tone
+    difficulty: intermediate
+    tags:
+    - personal
+    - concise
+    - narrative
+    - storytelling
+  - title: The Hero Moment
+    description: Build narrative strength.
+    target_seconds: 90
+    prompt: Describe a time you stepped up when others hesitated.
+    focus_areas:
+    - confidence
+    - clarity
+    - storytelling
+    difficulty: advanced
+    tags:
+    - personal
+    - narrative
+    - storytelling
+  - title: The Mentor
+    description: Craft depth in storytelling.
+    target_seconds: 90
+    prompt: Tell a story about someone who taught you an important life lesson.
+    focus_areas:
+    - pacing
+    - warmth
+    - emotion
+    difficulty: advanced
+    tags:
+    - personal
+    - narrative
+    - storytelling
+  - title: The Risk
+    description: Show courage through words.
+    target_seconds: 90
+    prompt: Describe a time you took a big risk and what you learned from it.
+    focus_areas:
+    - pacing
+    - tone
+    - emotional flow
+    difficulty: advanced
+    tags:
+    - personal
+    - narrative
+    - demonstration
+  - title: The Journey
+    description: Train coherence.
+    target_seconds: 120
+    prompt: >-
+      Tell the story of a personal or professional journey, from start to where you are now.
+    focus_areas:
+    - structure
+    - pacing
+    - clarity
+    difficulty: advanced
+    tags:
+    - personal
+    - narrative
+    - storytelling
+    - business
+  - title: Defining Moment
+    description: Practice emotional authenticity.
+    target_seconds: 60
+    prompt: Share a defining moment that shaped your values.
+    focus_areas:
+    - emotion
+    - tone
+    - clarity
+    difficulty: intermediate
+    tags:
+    - personal
+    - narrative
+  - title: The Pitch Story
+    description: Blend story + persuasion.
+    target_seconds: 90
+    prompt: Tell the story behind why you started your current project or career.
+    focus_areas:
+    - clarity
+    - engagement
+    - authenticity
+    difficulty: advanced
+    tags:
+    - narrative
+    - storytelling
+    - personal
+    - persuasion
+    - business
   practice_drills:
-    - title: "Tongue Twisters"
-      description: "Practice articulation and clarity"
-      target_seconds: 30
-      prompt: "Practice these tongue twisters clearly and at a comfortable pace: 'Red leather, yellow leather', 'She sells seashells by the seashore', 'Unique New York'."
-      focus_areas: ["articulation", "clarity", "pacing"]
-      
-    - title: "Impromptu Topics"
-      description: "Think and speak on the spot"
-      target_seconds: 60
-      prompt: "You have 1 minute to speak about: 'The most important technology innovation of the past decade'. Organize your thoughts quickly and present them clearly."
-      focus_areas: ["spontaneity", "structure", "confidence"]
-
-# Adaptive prompts based on common speech issues
+  - title: 30-Second Summary
+    description: Train conciseness.
+    target_seconds: 30
+    prompt: Explain your job or studies in under 30 seconds, as if to a child.
+    focus_areas:
+    - clarity
+    - pacing
+    difficulty: beginner
+    tags:
+    - exercises
+    - educational
+    - fundamentals
+  - title: Slow Down
+    description: Build rhythm awareness.
+    target_seconds: 60
+    prompt: Pick any topic you like, but speak intentionally slower than usual.
+    focus_areas:
+    - pacing
+    - tone control
+    difficulty: intermediate
+    tags:
+    - exercises
+    - fundamentals
+  - title: Energy Check
+    description: Train vocal energy.
+    target_seconds: 45
+    prompt: Describe your favorite hobby with excitement and energy.
+    focus_areas:
+    - projection
+    - enthusiasm
+    difficulty: beginner
+    tags:
+    - exercises
+    - fundamentals
+  - title: No Fillers
+    description: Eliminate filler words.
+    target_seconds: 60
+    prompt: Talk about your favorite food for one minute—no ‘um,’ ‘like,’ or ‘you know.’
+    focus_areas:
+    - clarity
+    - control
+    difficulty: intermediate
+    tags:
+    - exercises
+    - fundamentals
+  - title: Eye Contact Simulation
+    description: Build confidence under pressure.
+    target_seconds: 90
+    prompt: Imagine speaking to 100 people—keep your tone steady and natural.
+    focus_areas:
+    - confidence
+    - pacing
+    difficulty: advanced
+    tags:
+    - exercises
+    - fundamentals
+  - title: Rephrase on the Fly
+    description: Practice flexibility.
+    target_seconds: 90
+    prompt: 'Explain a complex concept twice: once technically, once simply.'
+    focus_areas:
+    - adaptability
+    - clarity
+    difficulty: advanced
+    tags:
+    - exercises
+    - educational
+    - fundamentals
+  - title: Start Strong
+    description: Improve openings.
+    target_seconds: 30
+    prompt: Say the first 15 seconds of a speech that grabs attention immediately.
+    focus_areas:
+    - engagement
+    - tone
+    difficulty: beginner
+    tags:
+    - exercises
+    - fundamentals
+  - title: Pause Practice
+    description: Train rhythm and control.
+    target_seconds: 60
+    prompt: Deliver a short talk where you deliberately pause after each key idea.
+    focus_areas:
+    - pacing
+    - emphasis
+    difficulty: intermediate
+    tags:
+    - exercises
+    - concise
+    - fundamentals
+  - title: Volume Range
+    description: Practice vocal variation.
+    target_seconds: 60
+    prompt: Retell a simple story while varying your volume between calm and energetic.
+    focus_areas:
+    - tone
+    - modulation
+    difficulty: intermediate
+    tags:
+    - exercises
+    - storytelling
+    - fundamentals
+  - title: End Powerfully
+    description: Train closings.
+    target_seconds: 45
+    prompt: Finish a short message with a strong final line that feels memorable.
+    focus_areas:
+    - impact
+    - pacing
+    - tone
+    difficulty: beginner
+    tags:
+    - exercises
+    - concise
+    - fundamentals
+  filler_words:
+  - title: Story with No Fillers
+    description: Tell a story avoiding filler words.
+    target_seconds: 60
+    prompt: >-
+      “Share a quick story from your week, staying smooth and natural—no ‘uh,’ ‘like,’ or ‘you know.’”
+    focus_areas:
+    - clarity
+    - control
+    difficulty: intermediate
+    tags:
+    - concise
+    - storytelling
+    - speech_habits
+    - fluency
+  - title: Explain the News
+    description: Summarize a news story clearly.
+    target_seconds: 60
+    prompt: “Pick a recent event and explain it confidently without fillers.”
+    focus_areas:
+    - precision
+    - pacing
+    difficulty: intermediate
+    tags:
+    - educational
+    - storytelling
+    - speech_habits
+    - fluency
+  - title: Teach Something Simple
+    description: Practice controlled explanations.
+    target_seconds: 45
+    prompt: “Teach how to make a cup of coffee—no fillers, steady tone.”
+    focus_areas:
+    - control
+    - pacing
+    difficulty: beginner
+    tags:
+    - educational
+    - speech_habits
+    - fluency
+  - title: Passion Speech
+    description: Speak excitedly but cleanly.
+    target_seconds: 60
+    prompt: “Talk about something you love with enthusiasm—keep it filler-free.”
+    focus_areas:
+    - clarity
+    - energy
+    difficulty: intermediate
+    tags:
+    - speech_habits
+    - fluency
+  - title: Answer on the Spot
+    description: Train spontaneous speaking.
+    target_seconds: 60
+    prompt: >-
+      “You’ve been asked a random question in an interview—respond clearly and directly.”
+    focus_areas:
+    - clarity
+    - pacing
+    difficulty: intermediate
+    tags:
+    - interview
+    - speech_habits
+    - fluency
+  - title: Elevator Pitch
+    description: Practice brevity with focus.
+    target_seconds: 60
+    prompt: >-
+      “Sell your idea to a stranger in one minute without losing composure or adding fillers.”
+    focus_areas:
+    - clarity
+    - tone
+    difficulty: intermediate
+    tags:
+    - persuasion
+    - speech_habits
+    - fluency
+  - title: Quick Reflection
+    description: Train slow, deliberate phrasing.
+    target_seconds: 45
+    prompt: “Reflect on your day calmly and consciously avoiding fillers.”
+    focus_areas:
+    - pacing
+    - control
+    difficulty: beginner
+    tags:
+    - concise
+    - speech_habits
+    - fluency
+  - title: Topic Switch
+    description: Build smooth transitions.
+    target_seconds: 60
+    prompt: “Move naturally between two topics without using filler bridges.”
+    focus_areas:
+    - clarity
+    - structure
+    difficulty: intermediate
+    tags:
+    - speech_habits
+    - fluency
+  - title: Explain a Joke
+    description: Maintain control even under humor.
+    target_seconds: 60
+    prompt: “Tell a funny story clearly without slipping into filler speech.”
+    focus_areas:
+    - pacing
+    - tone
+    difficulty: intermediate
+    tags:
+    - educational
+    - storytelling
+    - speech_habits
+    - fluency
+  - title: Thank-You Speech
+    description: Close gracefully.
+    target_seconds: 45
+    prompt: “Give a short thank-you speech keeping your delivery tight and filler-free.”
+    focus_areas:
+    - clarity
+    - tone
+    difficulty: beginner
+    tags:
+    - concise
+    - speech_habits
+    - fluency
+  pace_issues:
+  - title: One Thought at a Time
+    description: Control tempo between ideas.
+    target_seconds: 60
+    prompt: “Describe your morning routine, pausing slightly after each step.”
+    focus_areas:
+    - pacing
+    - rhythm
+    difficulty: intermediate
+    tags:
+    - tempo
+    - rhythm
+  - title: The Calm Pitch
+    description: Practice slowing down intentionally.
+    target_seconds: 90
+    prompt: “Explain your startup idea clearly, emphasizing calm and control.”
+    focus_areas:
+    - pacing
+    - tone
+    difficulty: advanced
+    tags:
+    - educational
+    - persuasion
+    - tempo
+    - rhythm
+  - title: Breath Control
+    description: Learn steady pacing.
+    target_seconds: 60
+    prompt: “Speak for one minute, pausing naturally every few seconds to breathe.”
+    focus_areas:
+    - breathing
+    - control
+    difficulty: intermediate
+    tags:
+    - tempo
+    - rhythm
+  - title: Read the Room
+    description: Adapt tempo to tone.
+    target_seconds: 60
+    prompt: “Deliver a message to an upset colleague—stay slow, measured, and calm.”
+    focus_areas:
+    - pacing
+    - empathy
+    difficulty: intermediate
+    tags:
+    - tempo
+    - rhythm
+  - title: Energize!
+    description: Speed variation training.
+    target_seconds: 60
+    prompt: “Tell a story alternating between calm and energetic moments.”
+    focus_areas:
+    - pacing
+    - tone variation
+    difficulty: intermediate
+    tags:
+    - storytelling
+    - tempo
+    - rhythm
+  - title: Time-Boxed Talk
+    description: Learn time awareness.
+    target_seconds: 30
+    prompt: “You have 30 seconds to convince someone to try your idea.”
+    focus_areas:
+    - pacing
+    - clarity
+    difficulty: beginner
+    tags:
+    - persuasion
+    - tempo
+    - rhythm
+  - title: Emotional Story
+    description: Pace through emotion.
+    target_seconds: 90
+    prompt: “Tell a heartfelt story with pauses that let emotion land.”
+    focus_areas:
+    - rhythm
+    - emotion
+    difficulty: advanced
+    tags:
+    - storytelling
+    - tempo
+    - rhythm
+  - title: Walkthrough
+    description: Controlled explanation.
+    target_seconds: 60
+    prompt: “Explain how to use a new app at an even pace.”
+    focus_areas:
+    - pacing
+    - clarity
+    difficulty: intermediate
+    tags:
+    - educational
+    - tempo
+    - rhythm
+  - title: Debate Style
+    description: Practice deliberate pauses.
+    target_seconds: 90
+    prompt: “Argue for or against a topic, keeping your speech steady and intentional.”
+    focus_areas:
+    - pacing
+    - confidence
+    difficulty: advanced
+    tags:
+    - tempo
+    - rhythm
+  - title: News Anchor Mode
+    description: Train rhythmic flow.
+    target_seconds: 60
+    prompt: “Read a 1-minute news update with a professional, even pace.”
+    focus_areas:
+    - pacing
+    - control
+    difficulty: intermediate
+    tags:
+    - tempo
+    - rhythm
+    - business
+  clarity_issues:
+  - title: Define a Concept
+    description: Simplify complexity.
+    target_seconds: 60
+    prompt: “Explain what ‘AI ethics’ means in your own words.”
+    focus_areas:
+    - clarity
+    - articulation
+    difficulty: intermediate
+    tags:
+    - educational
+    - pronunciation
+    - articulation
+  - title: Teach a Skill
+    description: Practice structured speech.
+    target_seconds: 45
+    prompt: “Teach how to tie a shoe clearly and logically.”
+    focus_areas:
+    - structure
+    - diction
+    difficulty: beginner
+    tags:
+    - educational
+    - pronunciation
+    - articulation
+  - title: Describe a Photo
+    description: Sharpen descriptive clarity.
+    target_seconds: 60
+    prompt: “Describe an image in detail so someone can visualize it.”
+    focus_areas:
+    - clarity
+    - visualization
+    difficulty: intermediate
+    tags:
+    - pronunciation
+    - articulation
+  - title: Step-by-Step
+    description: Train sequential logic.
+    target_seconds: 60
+    prompt: “Explain how to make your favorite meal in clear steps.”
+    focus_areas:
+    - clarity
+    - structure
+    difficulty: intermediate
+    tags:
+    - educational
+    - pronunciation
+    - articulation
+  - title: Define Jargon
+    description: Avoid confusing language.
+    target_seconds: 45
+    prompt: “Explain a technical term to someone outside your field.”
+    focus_areas:
+    - clarity
+    - simplicity
+    difficulty: beginner
+    tags:
+    - educational
+    - pronunciation
+    - articulation
+  - title: Contrast Ideas
+    description: Build precision.
+    target_seconds: 60
+    prompt: “Compare and contrast two products or approaches.”
+    focus_areas:
+    - structure
+    - clarity
+    difficulty: intermediate
+    tags:
+    - pronunciation
+    - articulation
+  - title: Teach a Child
+    description: Simplify with empathy.
+    target_seconds: 60
+    prompt: “Explain climate change to a 10-year-old.”
+    focus_areas:
+    - clarity
+    - empathy
+    difficulty: intermediate
+    tags:
+    - educational
+    - pronunciation
+    - articulation
+  - title: Rephrase the Complex
+    description: Train paraphrasing.
+    target_seconds: 45
+    prompt: “Take a complicated sentence and restate it simply.”
+    focus_areas:
+    - clarity
+    - language control
+    difficulty: beginner
+    tags:
+    - pronunciation
+    - articulation
+  - title: Daily Routine
+    description: Clear, simple narration.
+    target_seconds: 45
+    prompt: “Walk through your morning routine as if teaching it.”
+    focus_areas:
+    - articulation
+    - pacing
+    difficulty: beginner
+    tags:
+    - educational
+    - pronunciation
+    - articulation
+  - title: Instructional Clarity
+    description: Practice precision.
+    target_seconds: 60
+    prompt: “Give directions to your house using clear, simple language.”
+    focus_areas:
+    - clarity
+    - articulation
+    difficulty: intermediate
+    tags:
+    - pronunciation
+    - articulation
+  confidence_issues:
+  - title: Speak to the Crowd
+    description: Build projection.
+    target_seconds: 45
+    prompt: “Imagine addressing 100 people—start with a confident greeting.”
+    focus_areas:
+    - confidence
+    - tone
+    difficulty: beginner
+    tags:
+    - presence
+    - assertiveness
+  - title: Own Your Idea
+    description: Practice conviction.
+    target_seconds: 60
+    prompt: “Present your idea as if it’s already successful.”
+    focus_areas:
+    - tone
+    - energy
+    - confidence
+    difficulty: intermediate
+    tags:
+    - presence
+    - assertiveness
+    - demonstration
+  - title: The Assertive Ask
+    description: Train assertiveness.
+    target_seconds: 60
+    prompt: “Ask for a raise or promotion confidently and respectfully.”
+    focus_areas:
+    - confidence
+    - clarity
+    difficulty: intermediate
+    tags:
+    - presence
+    - assertiveness
+  - title: I Believe
+    description: Strengthen conviction.
+    target_seconds: 60
+    prompt: “Talk for one minute about something you truly believe in.”
+    focus_areas:
+    - emotion
+    - tone
+    - control
+    difficulty: intermediate
+    tags:
+    - presence
+    - assertiveness
+  - title: Mirror Motivation
+    description: Energize yourself.
+    target_seconds: 45
+    prompt: “Motivate your future self to stay focused and driven.”
+    focus_areas:
+    - energy
+    - tone
+    - projection
+    difficulty: beginner
+    tags:
+    - presence
+    - assertiveness
+    - inspirational
+  - title: Confident Intro
+    description: Build composure early.
+    target_seconds: 30
+    prompt: “Introduce yourself to a large audience with calm authority.”
+    focus_areas:
+    - tone
+    - posture
+    - confidence
+    difficulty: beginner
+    tags:
+    - presence
+    - networking
+    - assertiveness
+  - title: Calm Under Pressure
+    description: Handle stress vocally.
+    target_seconds: 60
+    prompt: “Respond confidently to a tough interview question.”
+    focus_areas:
+    - composure
+    - tone
+    - clarity
+    difficulty: intermediate
+    tags:
+    - presence
+    - assertiveness
+    - interview
+  - title: Speak Like a Leader
+    description: Command attention.
+    target_seconds: 60
+    prompt: “Deliver a short announcement to your team with assurance.”
+    focus_areas:
+    - tone
+    - pacing
+    - control
+    difficulty: intermediate
+    tags:
+    - presence
+    - assertiveness
+    - concise
+  - title: Reframing Fear
+    description: Transform nerves into power.
+    target_seconds: 90
+    prompt: “Talk about what scares you—and how you’ll overcome it.”
+    focus_areas:
+    - confidence
+    - authenticity
+    difficulty: advanced
+    tags:
+    - presence
+    - assertiveness
+  - title: The Affirmation
+    description: Reinforce self-belief.
+    target_seconds: 45
+    prompt: “Speak a 45-second affirmation starting with ‘I am capable of…’.”
+    focus_areas:
+    - tone
+    - presence
+    - energy
+    difficulty: beginner
+    tags:
+    - presence
+    - assertiveness
+  engagement_issues:
+  - title: Hook Them Early
+    description: Craft attention-grabbing starts.
+    target_seconds: 30
+    prompt: “Deliver an opening line that instantly pulls your audience in.”
+    focus_areas:
+    - engagement
+    - tone
+    difficulty: beginner
+    tags:
+    - energy
+    - connection
+  - title: Vary Your Voice
+    description: Train vocal dynamics.
+    target_seconds: 60
+    prompt: “Retell a simple story, shifting your tone and speed for emotion.”
+    focus_areas:
+    - tone
+    - pacing
+    - energy
+    difficulty: intermediate
+    tags:
+    - storytelling
+    - energy
+    - connection
+  - title: Ask a Question
+    description: Use curiosity to connect.
+    target_seconds: 45
+    prompt: “Start your talk with a rhetorical question that hooks listeners.”
+    focus_areas:
+    - engagement
+    - tone
+    difficulty: beginner
+    tags:
+    - energy
+    - interview
+    - connection
+  - title: Paint the Scene
+    description: Train vivid speech.
+    target_seconds: 60
+    prompt: “Describe a place so vividly your audience can picture it.”
+    focus_areas:
+    - imagery
+    - tone
+    difficulty: intermediate
+    tags:
+    - energy
+    - connection
+  - title: Call to Emotion
+    description: Evoke feeling.
+    target_seconds: 60
+    prompt: “Talk about a cause you care about in a way that stirs empathy.”
+    focus_areas:
+    - emotion
+    - tone
+    difficulty: intermediate
+    tags:
+    - energy
+    - connection
+  - title: Humor Moment
+    description: Use light humor effectively.
+    target_seconds: 45
+    prompt: “Tell a short, clean, funny story naturally.”
+    focus_areas:
+    - timing
+    - tone
+    - pacing
+    difficulty: beginner
+    tags:
+    - storytelling
+    - energy
+    - concise
+    - connection
+  - title: Conversational Energy
+    description: Build presence.
+    target_seconds: 60
+    prompt: “Pretend you’re chatting with a friend while explaining a complex topic.”
+    focus_areas:
+    - tone
+    - flow
+    - pacing
+    difficulty: intermediate
+    tags:
+    - educational
+    - energy
+    - connection
+  - title: Story with Contrast
+    description: Maintain interest.
+    target_seconds: 90
+    prompt: “Tell a story that moves between calm and excitement.”
+    focus_areas:
+    - pacing
+    - engagement
+    difficulty: advanced
+    tags:
+    - storytelling
+    - energy
+    - connection
+  - title: Emotional Peaks
+    description: Practice modulation.
+    target_seconds: 90
+    prompt: “Deliver a story with at least one emotional high and one low.”
+    focus_areas:
+    - tone
+    - rhythm
+    - energy
+    difficulty: advanced
+    tags:
+    - storytelling
+    - energy
+    - connection
+  - title: End with Impact
+    description: Train memorable conclusions.
+    target_seconds: 60
+    prompt: “Finish a 1-minute talk with a strong, punchy final line.”
+    focus_areas:
+    - engagement
+    - emphasis
+    - tone
+    difficulty: intermediate
+    tags:
+    - energy
+    - connection
 adaptive_prompts:
   filler_words:
-    - title: "Filler-Free Explanation"
-      description: "Practice speaking without um, uh, like"
-      target_seconds: 60
-      prompt: "Explain how to make your favorite dish without using any filler words (um, uh, like, you know). Focus on clear, deliberate speech."
-      focus_areas: ["fluency", "clarity", "precision"]
-      
-    - title: "Structured Response"
-      description: "Use clear transitions and organization"
-      target_seconds: 90
-      prompt: "Answer this question in three clear parts: 'What are the benefits and challenges of remote work?' Use transitions like 'First...', 'Second...', 'Finally...' to structure your response."
-      focus_areas: ["structure", "fluency", "organization"]
-
+  - title: Story with No Fillers
+    description: Tell a story avoiding filler words.
+    target_seconds: 60
+    prompt: >-
+      Share a quick story from your week, staying smooth and natural—no ‘uh,’ ‘like,’ or ‘you know.’
+    focus_areas:
+    - clarity
+    - control
+    difficulty: intermediate
+    tags:
+    - concise
+    - storytelling
+    - speech_habits
+    - fluency
+  - title: Explain the News
+    description: Summarize a news story clearly.
+    target_seconds: 60
+    prompt: Pick a recent event and explain it confidently without fillers.
+    focus_areas:
+    - precision
+    - pacing
+    difficulty: intermediate
+    tags:
+    - educational
+    - storytelling
+    - speech_habits
+    - fluency
+  - title: Teach Something Simple
+    description: Practice controlled explanations.
+    target_seconds: 45
+    prompt: Teach how to make a cup of coffee—no fillers, steady tone.
+    focus_areas:
+    - control
+    - pacing
+    difficulty: beginner
+    tags:
+    - educational
+    - speech_habits
+    - fluency
+  - title: Passion Speech
+    description: Speak excitedly but cleanly.
+    target_seconds: 60
+    prompt: Talk about something you love with enthusiasm—keep it filler-free.
+    focus_areas:
+    - clarity
+    - energy
+    difficulty: intermediate
+    tags:
+    - speech_habits
+    - fluency
+  - title: Answer on the Spot
+    description: Train spontaneous speaking.
+    target_seconds: 60
+    prompt: >-
+      You’ve been asked a random question in an interview—respond clearly and directly.
+    focus_areas:
+    - clarity
+    - pacing
+    difficulty: intermediate
+    tags:
+    - interview
+    - speech_habits
+    - fluency
+  - title: Elevator Pitch
+    description: Practice brevity with focus.
+    target_seconds: 60
+    prompt: >-
+      Sell your idea to a stranger in one minute without losing composure or adding fillers.
+    focus_areas:
+    - clarity
+    - tone
+    difficulty: intermediate
+    tags:
+    - persuasion
+    - speech_habits
+    - fluency
+  - title: Quick Reflection
+    description: Train slow, deliberate phrasing.
+    target_seconds: 45
+    prompt: Reflect on your day calmly and consciously avoiding fillers.
+    focus_areas:
+    - pacing
+    - control
+    difficulty: beginner
+    tags:
+    - concise
+    - speech_habits
+    - fluency
+  - title: Topic Switch
+    description: Build smooth transitions.
+    target_seconds: 60
+    prompt: Move naturally between two topics without using filler bridges.
+    focus_areas:
+    - clarity
+    - structure
+    difficulty: intermediate
+    tags:
+    - speech_habits
+    - fluency
+  - title: Explain a Joke
+    description: Maintain control even under humor.
+    target_seconds: 60
+    prompt: Tell a funny story clearly without slipping into filler speech.
+    focus_areas:
+    - pacing
+    - tone
+    difficulty: intermediate
+    tags:
+    - educational
+    - storytelling
+    - speech_habits
+    - fluency
+  - title: Thank-You Speech
+    description: Close gracefully.
+    target_seconds: 45
+    prompt: Give a short thank-you speech keeping your delivery tight and filler-free.
+    focus_areas:
+    - clarity
+    - tone
+    difficulty: beginner
+    tags:
+    - concise
+    - speech_habits
+    - fluency
   pace_issues:
-    - title: "Paced Explanation"
-      description: "Practice maintaining steady tempo"
-      target_seconds: 75
-      prompt: "Explain a complex concept from your field to someone with no background knowledge. Focus on speaking at a steady, comfortable pace that allows for understanding."
-      focus_areas: ["pacing", "clarity", "education"]
-      
-    - title: "Story with Pauses"
-      description: "Use strategic pauses for emphasis"
-      target_seconds: 90
-      prompt: "Tell a story about a project that didn't go as planned. Practice using pauses for emphasis and to give your audience time to process information."
-      focus_areas: ["pacing", "emphasis", "storytelling"]
-
+  - title: One Thought at a Time
+    description: Control tempo between ideas.
+    target_seconds: 60
+    prompt: Describe your morning routine, pausing slightly after each step.
+    focus_areas:
+    - pacing
+    - rhythm
+    difficulty: intermediate
+    tags:
+    - tempo
+    - rhythm
+  - title: The Calm Pitch
+    description: Practice slowing down intentionally.
+    target_seconds: 90
+    prompt: Explain your startup idea clearly, emphasizing calm and control.
+    focus_areas:
+    - pacing
+    - tone
+    difficulty: advanced
+    tags:
+    - educational
+    - persuasion
+    - tempo
+    - rhythm
+  - title: Breath Control
+    description: Learn steady pacing.
+    target_seconds: 60
+    prompt: Speak for one minute, pausing naturally every few seconds to breathe.
+    focus_areas:
+    - breathing
+    - control
+    difficulty: intermediate
+    tags:
+    - tempo
+    - rhythm
+  - title: Read the Room
+    description: Adapt tempo to tone.
+    target_seconds: 60
+    prompt: Deliver a message to an upset colleague—stay slow, measured, and calm.
+    focus_areas:
+    - pacing
+    - empathy
+    difficulty: intermediate
+    tags:
+    - tempo
+    - rhythm
+  - title: Energize!
+    description: Speed variation training.
+    target_seconds: 60
+    prompt: Tell a story alternating between calm and energetic moments.
+    focus_areas:
+    - pacing
+    - tone variation
+    difficulty: intermediate
+    tags:
+    - storytelling
+    - tempo
+    - rhythm
+  - title: Time-Boxed Talk
+    description: Learn time awareness.
+    target_seconds: 30
+    prompt: You have 30 seconds to convince someone to try your idea.
+    focus_areas:
+    - pacing
+    - clarity
+    difficulty: beginner
+    tags:
+    - persuasion
+    - tempo
+    - rhythm
+  - title: Emotional Story
+    description: Pace through emotion.
+    target_seconds: 90
+    prompt: Tell a heartfelt story with pauses that let emotion land.
+    focus_areas:
+    - rhythm
+    - emotion
+    difficulty: advanced
+    tags:
+    - storytelling
+    - tempo
+    - rhythm
+  - title: Walkthrough
+    description: Controlled explanation.
+    target_seconds: 60
+    prompt: Explain how to use a new app at an even pace.
+    focus_areas:
+    - pacing
+    - clarity
+    difficulty: intermediate
+    tags:
+    - educational
+    - tempo
+    - rhythm
+  - title: Debate Style
+    description: Practice deliberate pauses.
+    target_seconds: 90
+    prompt: Argue for or against a topic, keeping your speech steady and intentional.
+    focus_areas:
+    - pacing
+    - confidence
+    difficulty: advanced
+    tags:
+    - tempo
+    - rhythm
+  - title: News Anchor Mode
+    description: Train rhythmic flow.
+    target_seconds: 60
+    prompt: Read a 1-minute news update with a professional, even pace.
+    focus_areas:
+    - pacing
+    - control
+    difficulty: intermediate
+    tags:
+    - tempo
+    - rhythm
+    - business
   clarity_issues:
-    - title: "Articulation Focus"
-      description: "Practice clear pronunciation"
-      target_seconds: 45
-      prompt: "Describe your daily morning routine, focusing on pronouncing every word clearly and distinctly. Avoid rushing through any parts."
-      focus_areas: ["articulation", "clarity", "precision"]
-      
-    - title: "Technical Explanation"
-      description: "Make complex topics clear"
-      target_seconds: 60
-      prompt: "Explain a technical process or tool you use at work to someone completely unfamiliar with it. Focus on clear, simple language and logical flow."
-      focus_areas: ["clarity", "simplification", "structure"]
-
+  - title: Define a Concept
+    description: Simplify complexity.
+    target_seconds: 60
+    prompt: Explain what ‘AI ethics’ means in your own words.
+    focus_areas:
+    - clarity
+    - articulation
+    difficulty: intermediate
+    tags:
+    - educational
+    - pronunciation
+    - articulation
+  - title: Teach a Skill
+    description: Practice structured speech.
+    target_seconds: 45
+    prompt: Teach how to tie a shoe clearly and logically.
+    focus_areas:
+    - structure
+    - diction
+    difficulty: beginner
+    tags:
+    - educational
+    - pronunciation
+    - articulation
+  - title: Describe a Photo
+    description: Sharpen descriptive clarity.
+    target_seconds: 60
+    prompt: Describe an image in detail so someone can visualize it.
+    focus_areas:
+    - clarity
+    - visualization
+    difficulty: intermediate
+    tags:
+    - pronunciation
+    - articulation
+  - title: Step-by-Step
+    description: Train sequential logic.
+    target_seconds: 60
+    prompt: Explain how to make your favorite meal in clear steps.
+    focus_areas:
+    - clarity
+    - structure
+    difficulty: intermediate
+    tags:
+    - educational
+    - pronunciation
+    - articulation
+  - title: Define Jargon
+    description: Avoid confusing language.
+    target_seconds: 45
+    prompt: Explain a technical term to someone outside your field.
+    focus_areas:
+    - clarity
+    - simplicity
+    difficulty: beginner
+    tags:
+    - educational
+    - pronunciation
+    - articulation
+  - title: Contrast Ideas
+    description: Build precision.
+    target_seconds: 60
+    prompt: Compare and contrast two products or approaches.
+    focus_areas:
+    - structure
+    - clarity
+    difficulty: intermediate
+    tags:
+    - pronunciation
+    - articulation
+  - title: Teach a Child
+    description: Simplify with empathy.
+    target_seconds: 60
+    prompt: Explain climate change to a 10-year-old.
+    focus_areas:
+    - clarity
+    - empathy
+    difficulty: intermediate
+    tags:
+    - educational
+    - pronunciation
+    - articulation
+  - title: Rephrase the Complex
+    description: Train paraphrasing.
+    target_seconds: 45
+    prompt: Take a complicated sentence and restate it simply.
+    focus_areas:
+    - clarity
+    - language control
+    difficulty: beginner
+    tags:
+    - pronunciation
+    - articulation
+  - title: Daily Routine
+    description: Clear, simple narration.
+    target_seconds: 45
+    prompt: Walk through your morning routine as if teaching it.
+    focus_areas:
+    - articulation
+    - pacing
+    difficulty: beginner
+    tags:
+    - educational
+    - pronunciation
+    - articulation
+  - title: Instructional Clarity
+    description: Practice precision.
+    target_seconds: 60
+    prompt: Give directions to your house using clear, simple language.
+    focus_areas:
+    - clarity
+    - articulation
+    difficulty: intermediate
+    tags:
+    - pronunciation
+    - articulation
   confidence_issues:
-    - title: "Achievement Presentation"
-      description: "Practice confident delivery"
-      target_seconds: 60
-      prompt: "Present a professional achievement you're proud of. Focus on confident delivery, strong voice projection, and owning your success."
-      focus_areas: ["confidence", "projection", "ownership"]
-      
-    - title: "Opinion Defense"
-      description: "State and support your views"
-      target_seconds: 75
-      prompt: "Present your opinion on a current industry trend and defend your position with three clear reasons. Speak with conviction and authority."
-      focus_areas: ["confidence", "persuasion", "authority"]
-
+  - title: Speak to the Crowd
+    description: Build projection.
+    target_seconds: 45
+    prompt: Imagine addressing 100 people—start with a confident greeting.
+    focus_areas:
+    - confidence
+    - tone
+    difficulty: beginner
+    tags:
+    - presence
+    - assertiveness
+  - title: Own Your Idea
+    description: Practice conviction.
+    target_seconds: 60
+    prompt: Present your idea as if it’s already successful.
+    focus_areas:
+    - tone
+    - energy
+    - confidence
+    difficulty: intermediate
+    tags:
+    - presence
+    - assertiveness
+    - demonstration
+  - title: The Assertive Ask
+    description: Train assertiveness.
+    target_seconds: 60
+    prompt: Ask for a raise or promotion confidently and respectfully.
+    focus_areas:
+    - confidence
+    - clarity
+    difficulty: intermediate
+    tags:
+    - presence
+    - assertiveness
+  - title: I Believe
+    description: Strengthen conviction.
+    target_seconds: 60
+    prompt: Talk for one minute about something you truly believe in.
+    focus_areas:
+    - emotion
+    - tone
+    - control
+    difficulty: intermediate
+    tags:
+    - presence
+    - assertiveness
+  - title: Mirror Motivation
+    description: Energize yourself.
+    target_seconds: 45
+    prompt: Motivate your future self to stay focused and driven.
+    focus_areas:
+    - energy
+    - tone
+    - projection
+    difficulty: beginner
+    tags:
+    - presence
+    - assertiveness
+    - inspirational
+  - title: Confident Intro
+    description: Build composure early.
+    target_seconds: 30
+    prompt: Introduce yourself to a large audience with calm authority.
+    focus_areas:
+    - tone
+    - posture
+    - confidence
+    difficulty: beginner
+    tags:
+    - presence
+    - networking
+    - assertiveness
+  - title: Calm Under Pressure
+    description: Handle stress vocally.
+    target_seconds: 60
+    prompt: Respond confidently to a tough interview question.
+    focus_areas:
+    - composure
+    - tone
+    - clarity
+    difficulty: intermediate
+    tags:
+    - presence
+    - assertiveness
+    - interview
+  - title: Speak Like a Leader
+    description: Command attention.
+    target_seconds: 60
+    prompt: Deliver a short announcement to your team with assurance.
+    focus_areas:
+    - tone
+    - pacing
+    - control
+    difficulty: intermediate
+    tags:
+    - presence
+    - assertiveness
+    - concise
+  - title: Reframing Fear
+    description: Transform nerves into power.
+    target_seconds: 90
+    prompt: Talk about what scares you—and how you’ll overcome it.
+    focus_areas:
+    - confidence
+    - authenticity
+    difficulty: advanced
+    tags:
+    - presence
+    - assertiveness
+  - title: The Affirmation
+    description: Reinforce self-belief.
+    target_seconds: 45
+    prompt: Speak a 45-second affirmation starting with ‘I am capable of…’.
+    focus_areas:
+    - tone
+    - presence
+    - energy
+    difficulty: beginner
+    tags:
+    - presence
+    - assertiveness
   engagement_issues:
-    - title: "Energetic Pitch"
-      description: "Practice dynamic delivery"
-      target_seconds: 45
-      prompt: "You have 45 seconds to convince a friend to try a new hobby or activity. Use enthusiasm, varied tone, and energy to make it compelling."
-      focus_areas: ["energy", "engagement", "persuasion"]
-      
-    - title: "Interactive Explanation"
-      description: "Engage an imaginary audience"
-      target_seconds: 90
-      prompt: "Teach something you're passionate about to an audience. Ask rhetorical questions, use examples, and vary your delivery to keep them engaged."
-      focus_areas: ["engagement", "interaction", "passion"]
-
-# Configuration for prompt recommendation algorithm
+  - title: Hook Them Early
+    description: Craft attention-grabbing starts.
+    target_seconds: 30
+    prompt: Deliver an opening line that instantly pulls your audience in.
+    focus_areas:
+    - engagement
+    - tone
+    difficulty: beginner
+    tags:
+    - energy
+    - connection
+  - title: Vary Your Voice
+    description: Train vocal dynamics.
+    target_seconds: 60
+    prompt: Retell a simple story, shifting your tone and speed for emotion.
+    focus_areas:
+    - tone
+    - pacing
+    - energy
+    difficulty: intermediate
+    tags:
+    - storytelling
+    - energy
+    - connection
+  - title: Ask a Question
+    description: Use curiosity to connect.
+    target_seconds: 45
+    prompt: Start your talk with a rhetorical question that hooks listeners.
+    focus_areas:
+    - engagement
+    - tone
+    difficulty: beginner
+    tags:
+    - energy
+    - interview
+    - connection
+  - title: Paint the Scene
+    description: Train vivid speech.
+    target_seconds: 60
+    prompt: Describe a place so vividly your audience can picture it.
+    focus_areas:
+    - imagery
+    - tone
+    difficulty: intermediate
+    tags:
+    - energy
+    - connection
+  - title: Call to Emotion
+    description: Evoke feeling.
+    target_seconds: 60
+    prompt: Talk about a cause you care about in a way that stirs empathy.
+    focus_areas:
+    - emotion
+    - tone
+    difficulty: intermediate
+    tags:
+    - energy
+    - connection
+  - title: Humor Moment
+    description: Use light humor effectively.
+    target_seconds: 45
+    prompt: Tell a short, clean, funny story naturally.
+    focus_areas:
+    - timing
+    - tone
+    - pacing
+    difficulty: beginner
+    tags:
+    - storytelling
+    - energy
+    - concise
+    - connection
+  - title: Conversational Energy
+    description: Build presence.
+    target_seconds: 60
+    prompt: Pretend you’re chatting with a friend while explaining a complex topic.
+    focus_areas:
+    - tone
+    - flow
+    - pacing
+    difficulty: intermediate
+    tags:
+    - educational
+    - energy
+    - connection
+  - title: Story with Contrast
+    description: Maintain interest.
+    target_seconds: 90
+    prompt: Tell a story that moves between calm and excitement.
+    focus_areas:
+    - pacing
+    - engagement
+    difficulty: advanced
+    tags:
+    - storytelling
+    - energy
+    - connection
+  - title: Emotional Peaks
+    description: Practice modulation.
+    target_seconds: 90
+    prompt: Deliver a story with at least one emotional high and one low.
+    focus_areas:
+    - tone
+    - rhythm
+    - energy
+    difficulty: advanced
+    tags:
+    - storytelling
+    - energy
+    - connection
+  - title: End with Impact
+    description: Train memorable conclusions.
+    target_seconds: 60
+    prompt: Finish a 1-minute talk with a strong, punchy final line.
+    focus_areas:
+    - engagement
+    - emphasis
+    - tone
+    difficulty: intermediate
+    tags:
+    - energy
+    - connection
 recommendation_settings:
-  # Minimum number of sessions needed before adaptive prompts are suggested
   min_sessions_for_adaptation: 3
-
-  # Issue frequency thresholds (% of sessions) to trigger adaptive prompts
   issue_thresholds:
-    filler_words: 0.4      # 40% of sessions have filler word issues
-    pace_issues: 0.3       # 30% of sessions have pacing problems
-    clarity_issues: 0.3    # 30% of sessions have clarity problems
-    confidence_issues: 0.2 # 20% of sessions show confidence issues
-    engagement_issues: 0.25 # 25% of sessions lack engagement
-
-  # Mix ratio: percentage of adaptive prompts vs base prompts
-  adaptive_prompt_ratio: 0.4  # 40% adaptive, 60% base prompts
-
-  # Number of adaptive prompts to show when issues are detected
+    filler_words: 0.4
+    pace_issues: 0.3
+    clarity_issues: 0.3
+    confidence_issues: 0.2
+    engagement_issues: 0.25
+  adaptive_prompt_ratio: 0.4
   adaptive_prompts_count: 2
-
-# Filler word audit configuration
 filler_word_audit:
-  # Enable AI-powered filler word auditing
   enabled: true
-
-  # Minimum confidence threshold for including filler words (0.0-1.0)
-  # Lower values = more permissive (include borderline cases)
-  # Higher values = more strict (only clear filler words)
   min_confidence_threshold: 0.5
-
-  # Context window size for analysis (words before/after the filler)
   context_window_words: 10
-
-  # Cache duration for audit results (in seconds)
-  cache_ttl: 21600  # 6 hours
-
-  # Enable detection of additional filler words not in rules
+  cache_ttl: 21600
   detect_missed_fillers: true
-
-  # Temperature setting for AI analysis (0.0-1.0)
-  # Lower = more consistent, Higher = more creative
   ai_temperature: 0.1
