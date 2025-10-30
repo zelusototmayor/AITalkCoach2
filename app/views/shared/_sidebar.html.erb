@@ -160,7 +160,7 @@
       </div>
       <div class="sidebar-user-info">
         <div class="sidebar-user-name"><%= current_user.name %></div>
-        <%= button_to app_subdomain_url('/logout'), method: :delete, class: "sidebar-logout-link", form: { style: "display: inline;" } do %>
+        <%= button_to logout_path, method: :delete, class: "sidebar-logout-link", form: { style: "display: inline;" } do %>
           <span class="sidebar-logout-icon">↗</span>
           <span>Logout</span>
         <% end %>
