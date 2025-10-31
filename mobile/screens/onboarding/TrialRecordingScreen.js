@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { Audio } from 'expo-av';
 import RecordButton from '../../components/RecordButton';
+import AnimatedBackground from '../../components/AnimatedBackground';
 import { COLORS, SPACING } from '../../constants/colors';
 import { TRIAL_PROMPT, MOCK_TRIAL_RESULTS } from '../../constants/onboardingData';
 import { useOnboarding } from '../../context/OnboardingContext';
@@ -186,6 +187,7 @@ export default function TrialRecordingScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
+      <AnimatedBackground />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -256,7 +258,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: SPACING.lg,
     paddingTop: 60,
-    paddingBottom: SPACING.xxl,
+    paddingBottom: 140,
   },
   header: {
     fontSize: 28,
@@ -349,10 +351,10 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: COLORS.background,
     paddingHorizontal: SPACING.lg,
     paddingBottom: SPACING.xl,
     paddingTop: SPACING.md,
+    pointerEvents: 'box-none',
   },
   dotsWrapper: {
     flexDirection: 'row',

@@ -10,6 +10,7 @@ import {
   Platform,
   Alert,
 } from 'react-native';
+import AnimatedBackground from '../../components/AnimatedBackground';
 import { COLORS, SPACING } from '../../constants/colors';
 import { useOnboarding } from '../../context/OnboardingContext';
 
@@ -75,6 +76,7 @@ export default function SignUpScreen({ navigation }) {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
+      <AnimatedBackground />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}

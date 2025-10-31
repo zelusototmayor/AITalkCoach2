@@ -77,8 +77,6 @@ Rails.application.routes.draw do
     get "/login", to: "auth/sessions#new"
     post "/login", to: "auth/sessions#create"
     delete "/logout", to: "auth/sessions#destroy", as: :logout
-    get "/logout", to: "auth/sessions#destroy"  # Fallback for direct GET requests
-    get "/simple_logout", to: "auth/sessions#destroy"  # Debug route
     get "/signup", to: "auth/registrations#new"
     post "/signup", to: "auth/registrations#create"
 

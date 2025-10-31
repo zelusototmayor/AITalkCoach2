@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import WaveAnimation from '../../components/WaveAnimation';
+import AnimatedBackground from '../../components/AnimatedBackground';
 import { COLORS, SPACING, TYPOGRAPHY } from '../../constants/colors';
 
 export default function WelcomeScreen({ navigation }) {
@@ -18,6 +19,7 @@ export default function WelcomeScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
+      <AnimatedBackground />
       <View style={styles.content}>
         <Text style={styles.welcomeText}>welcome</Text>
         <View style={styles.animationContainer}>

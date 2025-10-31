@@ -43,10 +43,10 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: COLORS.background,
     paddingHorizontal: SPACING.lg,
     paddingBottom: SPACING.xl,
     paddingTop: SPACING.md,
+    pointerEvents: 'box-none',
   },
   continueButton: {
     width: '100%',

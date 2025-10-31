@@ -1,12 +1,14 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import OnboardingNavigation from '../../components/OnboardingNavigation';
+import AnimatedBackground from '../../components/AnimatedBackground';
 import { COLORS, SPACING, TYPOGRAPHY } from '../../constants/colors';
 import { VALUE_PROPS } from '../../constants/onboardingData';
 
 export default function ValuePropScreen({ navigation }) {
   return (
     <View style={styles.container}>
+      <AnimatedBackground />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -49,7 +51,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: SPACING.lg,
     paddingTop: 60,
-    paddingBottom: 100,
+    paddingBottom: 180,
   },
   header: {
     fontSize: 28,

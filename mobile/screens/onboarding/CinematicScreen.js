@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, TouchableOpacity } from 'react-native';
+import AnimatedBackground from '../../components/AnimatedBackground';
 import { COLORS, SPACING } from '../../constants/colors';
 import { CINEMATIC_MESSAGES } from '../../constants/onboardingData';
 
@@ -211,6 +212,7 @@ export default function CinematicScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
+      <AnimatedBackground />
       {/* Skip button */}
       <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
         <Text style={styles.skipText}>Skip</Text>

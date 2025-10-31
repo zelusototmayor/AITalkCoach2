@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import OnboardingNavigation from '../../components/OnboardingNavigation';
+import AnimatedBackground from '../../components/AnimatedBackground';
 import { COLORS, SPACING } from '../../constants/colors';
 import { MOTIVATION_TIPS, MOTIVATION_STATS } from '../../constants/onboardingData';
 import { useOnboarding } from '../../context/OnboardingContext';
@@ -14,6 +15,7 @@ export default function MotivationScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
+      <AnimatedBackground />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -55,7 +57,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: SPACING.lg,
     paddingTop: 60,
-    paddingBottom: 120,
+    paddingBottom: 180,
   },
   header: {
     fontSize: 28,

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import Button from '../../components/Button';
 import MetricCard from '../../components/MetricCard';
+import AnimatedBackground from '../../components/AnimatedBackground';
 import { COLORS, SPACING } from '../../constants/colors';
 import { UNLOCK_FEATURES } from '../../constants/onboardingData';
 import { useOnboarding } from '../../context/OnboardingContext';
@@ -81,6 +82,7 @@ export default function ResultsScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
+      <AnimatedBackground />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -184,6 +186,15 @@ export default function ResultsScreen({ navigation }) {
             </View>
           ))}
         </View>
+      </ScrollView>
+
+      <View style={styles.buttonContainer}>
+        <Button
+          title="Get Full Access →"
+          onPress={handleContinue}
+          variant="primary"
+          style={styles.button}
+        />
 
         {/* Pagination dots */}
         <View style={styles.paginationContainer}>
@@ -197,15 +208,6 @@ export default function ResultsScreen({ navigation }) {
             />
           ))}
         </View>
-      </ScrollView>
-
-      <View style={styles.buttonContainer}>
-        <Button
-          title="Get Full Access →"
-          onPress={handleContinue}
-          variant="primary"
-          style={styles.button}
-        />
       </View>
     </View>
   );
@@ -220,7 +222,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: SPACING.lg,
     paddingTop: 60,
-    paddingBottom: 120,
+    paddingBottom: 200,
   },
   header: {
     fontSize: 28,
@@ -338,7 +340,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: SPACING.xxl,
+    marginTop: SPACING.lg,
+    marginBottom: SPACING.sm,
     gap: SPACING.xs,
   },
   dot: {
@@ -359,9 +362,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     padding: SPACING.lg,
-    backgroundColor: COLORS.background,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+    pointerEvents: 'box-none',
   },
   button: {
     width: '100%',

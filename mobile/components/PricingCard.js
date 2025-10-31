@@ -65,6 +65,7 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 2,
     position: 'relative',
+    minHeight: 140, // Ensure both cards are same height
   },
   selectedCard: {
     borderColor: COLORS.primary,

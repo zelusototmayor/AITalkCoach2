@@ -5,7 +5,7 @@ import { COLORS, SPACING } from '../constants/colors';
 export default function MetricCard({ icon, label, value, subtitle, style }) {
   return (
     <View style={[styles.card, style]}>
-      <Text style={styles.icon}>{icon}</Text>
+      {icon && <Text style={styles.icon}>{icon}</Text>}
       <Text style={styles.value}>{value}</Text>
       <Text style={styles.label}>{label}</Text>
       {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
@@ -16,10 +16,10 @@ export default function MetricCard({ icon, label, value, subtitle, style }) {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: COLORS.cardBackground,
-    borderRadius: 16,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: COLORS.border,
-    padding: SPACING.lg,
+    padding: SPACING.sm,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: COLORS.text,
@@ -31,29 +31,29 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 2,
     flex: 1,
-    minHeight: 120,
+    minHeight: 80,
   },
   icon: {
-    fontSize: 32,
+    fontSize: 24,
     marginBottom: SPACING.xs,
   },
   value: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
     color: COLORS.primary,
-    marginBottom: SPACING.xs,
+    marginBottom: 4,
   },
   label: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
     color: COLORS.text,
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: '500',
     color: COLORS.textSecondary,
     textAlign: 'center',
-    marginTop: 4,
+    marginTop: 2,
   },
 });

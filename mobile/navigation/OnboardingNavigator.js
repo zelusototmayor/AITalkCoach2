@@ -11,6 +11,7 @@ import TrialRecordingScreen from '../screens/onboarding/TrialRecordingScreen';
 import ResultsScreen from '../screens/onboarding/ResultsScreen';
 import CinematicScreen from '../screens/onboarding/CinematicScreen';
 import PaywallScreen from '../screens/onboarding/PaywallScreen';
+import PracticeScreen from '../screens/practice/PracticeScreen';
 
 const Stack = createStackNavigator();
 
@@ -33,6 +34,7 @@ export default function OnboardingNavigator() {
       <Stack.Screen name="Results" component={ResultsScreen} />
       <Stack.Screen name="Cinematic" component={CinematicScreen} />
       <Stack.Screen name="Paywall" component={PaywallScreen} />
+      <Stack.Screen name="Practice" component={PracticeScreen} />
     </Stack.Navigator>
   );
 }

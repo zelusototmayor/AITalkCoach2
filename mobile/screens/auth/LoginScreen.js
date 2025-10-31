@@ -10,6 +10,7 @@ import {
   Platform,
   Alert,
 } from 'react-native';
+import AnimatedBackground from '../../components/AnimatedBackground';
 import { COLORS, SPACING } from '../../constants/colors';
 import { useOnboarding } from '../../context/OnboardingContext';
 
@@ -43,23 +44,8 @@ export default function LoginScreen({ navigation }) {
       // TODO: Implement actual login API call
       updateOnboardingData({ user: { email: formData.email } });
 
-      // Navigate to the practice page (main app) instead of onboarding
-      // TODO: When main app screens are implemented, navigate there
-      // For now, we'll navigate to the practice page placeholder
-      Alert.alert(
-        'Login Successful',
-        'You would be redirected to the practice page. (To be implemented)',
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              // Temporary: Navigate to onboarding for demo purposes
-              // Replace with: navigation.navigate('Practice') when available
-              navigation.navigate('ValueProp');
-            },
-          },
-        ]
-      );
+      // Navigate directly to the Practice screen
+      navigation.navigate('Practice');
     }
   };
 
@@ -84,6 +70,7 @@ export default function LoginScreen({ navigation }) {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
+      <AnimatedBackground />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}

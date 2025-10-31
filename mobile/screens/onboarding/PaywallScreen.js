@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, Alert } from 'react-native';
 import Button from '../../components/Button';
 import PricingCard from '../../components/PricingCard';
+import AnimatedBackground from '../../components/AnimatedBackground';
 import { COLORS, SPACING } from '../../constants/colors';
 import { PRICING_PLANS, HOW_IT_WORKS } from '../../constants/onboardingData';
 import { useOnboarding } from '../../context/OnboardingContext';
@@ -22,15 +23,28 @@ export default function PaywallScreen({ navigation }) {
       selectedPlan,
     });
 
+    if (!paymentMethod || paymentMethod.length < 4) {
+      Alert.alert(
+        'Add Card Details',
+        'Please enter your card number above to continue.',
+        [
+          {
+            text: 'OK',
+          },
+        ]
+      );
+      return;
+    }
+
     Alert.alert(
-      'Payment Setup',
-      'Payment integration coming soon! For now, you can skip to explore the app.',
+      'Payment Integration Coming Soon',
+      'Payment processing will be integrated soon. For now, you can skip to explore the app.',
       [
         {
           text: 'OK',
           onPress: () => {
-            // TODO: Navigate to main app when ready
-            console.log('Would navigate to main app');
+            // Navigate to the Practice screen
+            navigation.navigate('Practice');
           },
         },
       ]
@@ -49,8 +63,8 @@ export default function PaywallScreen({ navigation }) {
         {
           text: 'Skip',
           onPress: () => {
-            // TODO: Navigate to main app when ready
-            console.log('Would navigate to main app (skipped payment)');
+            // Navigate to the Practice screen
+            navigation.navigate('Practice');
           },
         },
       ]
@@ -59,15 +73,18 @@ export default function PaywallScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
+      <AnimatedBackground />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.header}>Practice daily, use free forever</Text>
+        <Text style={styles.header}>Choose Your Plan</Text>
+        <Text style={styles.subheader}>
+          Practice daily and stay 100% free forever
+        </Text>
 
         {/* How It Works Card */}
         <View style={styles.howItWorksCard}>
-          <Text style={styles.howItWorksIcon}>{HOW_IT_WORKS.icon}</Text>
           <Text style={styles.howItWorksTitle}>{HOW_IT_WORKS.title}</Text>
           {HOW_IT_WORKS.steps.map((step, index) => (
             <View key={index} style={styles.stepRow}>
@@ -78,23 +95,50 @@ export default function PaywallScreen({ navigation }) {
         </View>
 
         {/* Pricing Plans */}
-        <Text style={styles.sectionTitle}>Choose Your Plan</Text>
         <Text style={styles.sectionSubtitle}>
           Only charged if you miss a day
         </Text>
 
-        {PRICING_PLANS.map((plan) => (
-          <PricingCard
-            key={plan.id}
-            title={plan.title}
-            price={plan.price}
-            period={plan.period}
-            badge={plan.badge}
-            savings={plan.savings}
-            isSelected={selectedPlan === plan.id}
-            onPress={() => handlePlanSelect(plan.id)}
-          />
-        ))}
+        {/* Side-by-side plan cards */}
+        <View style={styles.plansContainer}>
+          {PRICING_PLANS.map((plan) => (
+            <View key={plan.id} style={styles.planWrapper}>
+              <PricingCard
+                title={plan.title}
+                price={plan.price}
+                period={plan.period}
+                badge={plan.badge}
+                savings={plan.savings}
+                isSelected={selectedPlan === plan.id}
+                onPress={() => handlePlanSelect(plan.id)}
+                style={styles.planCard}
+              />
+            </View>
+          ))}
+        </View>
+
+        {/* Benefits Section */}
+        <View style={styles.benefitsSection}>
+          <Text style={styles.benefitsTitle}>What's Included</Text>
+          <View style={styles.benefitsList}>
+            <View style={styles.benefitRow}>
+              <Text style={styles.benefitIcon}>✓</Text>
+              <Text style={styles.benefitText}>Unlimited speech analysis sessions</Text>
+            </View>
+            <View style={styles.benefitRow}>
+              <Text style={styles.benefitIcon}>✓</Text>
+              <Text style={styles.benefitText}>Advanced coaching insights</Text>
+            </View>
+            <View style={styles.benefitRow}>
+              <Text style={styles.benefitIcon}>✓</Text>
+              <Text style={styles.benefitText}>Progress tracking and analytics</Text>
+            </View>
+            <View style={styles.benefitRow}>
+              <Text style={styles.benefitIcon}>✓</Text>
+              <Text style={styles.benefitText}>Dedicated support</Text>
+            </View>
+          </View>
+        </View>
 
         {/* Payment Method Input (Placeholder) */}
         <View style={styles.paymentSection}>
@@ -109,7 +153,7 @@ export default function PaywallScreen({ navigation }) {
             maxLength={19}
           />
           <Text style={styles.paymentNote}>
-            💳 Secure payment processing
+            Secure payment processing
           </Text>
         </View>
 
@@ -117,19 +161,6 @@ export default function PaywallScreen({ navigation }) {
         <Text style={styles.finePrint}>
           Cancel anytime. No charges if you practice daily.
         </Text>
-
-        {/* Pagination dots */}
-        <View style={styles.paginationContainer}>
-          {[...Array(9)].map((_, index) => (
-            <View
-              key={index}
-              style={[
-                styles.dot,
-                index === 8 && styles.activeDot, // Screen 9 is active (index 8)
-              ]}
-            />
-          ))}
-        </View>
       </ScrollView>
 
       <View style={styles.buttonContainer}>
@@ -159,15 +190,22 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: SPACING.lg,
     paddingTop: 60,
-    paddingBottom: 200, // Extra space for two buttons
+    paddingBottom: 240, // Extra space for two buttons and gradient
   },
   header: {
     fontSize: 28,
     fontWeight: 'bold',
     color: COLORS.text,
     textAlign: 'center',
-    marginBottom: SPACING.xxl,
+    marginBottom: SPACING.sm,
     lineHeight: 36,
+  },
+  subheader: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    marginBottom: SPACING.xl,
   },
   howItWorksCard: {
     backgroundColor: COLORS.cardBackground,
@@ -184,11 +222,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
-  },
-  howItWorksIcon: {
-    fontSize: 40,
-    textAlign: 'center',
-    marginBottom: SPACING.sm,
   },
   howItWorksTitle: {
     fontSize: 18,
@@ -215,19 +248,67 @@ const styles = StyleSheet.create({
     flex: 1,
     lineHeight: 22,
   },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: COLORS.text,
-    marginBottom: SPACING.xs,
-    textAlign: 'center',
-  },
   sectionSubtitle: {
     fontSize: 14,
     fontWeight: '600',
     color: COLORS.textSecondary,
-    marginBottom: SPACING.lg,
+    marginBottom: SPACING.md,
     textAlign: 'center',
+  },
+  plansContainer: {
+    flexDirection: 'row',
+    gap: SPACING.md,
+    marginBottom: SPACING.xl,
+  },
+  planWrapper: {
+    flex: 1,
+  },
+  planCard: {
+    marginBottom: 0,
+  },
+  benefitsSection: {
+    backgroundColor: COLORS.cardBackground,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    padding: SPACING.lg,
+    marginBottom: SPACING.lg,
+    shadowColor: COLORS.text,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  benefitsTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: COLORS.text,
+    marginBottom: SPACING.md,
+    textAlign: 'center',
+  },
+  benefitsList: {
+    gap: SPACING.sm,
+  },
+  benefitRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  benefitIcon: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: COLORS.primary,
+    marginRight: SPACING.sm,
+    width: 24,
+  },
+  benefitText: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: COLORS.text,
+    flex: 1,
+    lineHeight: 22,
   },
   paymentSection: {
     marginTop: SPACING.lg,
@@ -264,34 +345,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: SPACING.lg,
   },
-  paginationContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: SPACING.xxl,
-    gap: SPACING.xs,
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: COLORS.border,
-  },
-  activeDot: {
-    backgroundColor: COLORS.primary,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
   buttonContainer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
     padding: SPACING.lg,
-    backgroundColor: COLORS.background,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+    pointerEvents: 'box-none',
   },
   button: {
     width: '100%',
