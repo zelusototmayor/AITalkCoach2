@@ -2,76 +2,35 @@
 
 <div class="onboarding-container">
   <div class="onboarding-content">
-    <!-- Quit Button -->
-    <div style="text-align: right; margin-bottom: 1rem;">
-      <%= link_to logout_path, class: 'quit-onboarding-btn', data: { turbo_method: :delete, turbo_confirm: "Are you sure you want to quit? You'll need to start over." } do %>
-        <span class="quit-icon">×</span> Quit
-      <% end %>
-    </div>
+    <!-- Quit Button - Top Right -->
+    <%= link_to logout_path, class: 'quit-btn-top-right', data: { turbo_method: :delete, turbo_confirm: "Are you sure you want to quit? You'll need to start over." } do %>
+      <span class="quit-icon">×</span>
+    <% end %>
 
-    <!-- Progress Indicator -->
-    <%= render 'onboarding/progress', current_step: 3 %>
-
-    <!-- Report Section with Trial Session Report Styling -->
-    <div class="onboarding-report-section">
-      <div class="success-badge">
-        <span class="success-icon" aria-hidden="true"><%= icon_svg(:check, css_class: 'icon-inline') %></span>
-        <span>Analysis Complete</span>
-      </div>
-
-      <h1 class="session-title-main">Your Demo Results</h1>
-      <p class="report-subtitle">Here's a preview of what you'll get with every practice session</p>
-
-      <!-- Media Player Section -->
-      <% if @trial_session.media_files.attached? %>
-        <div class="media-player-section-top">
-          <div class="player-container">
-            <% media_file = @trial_session.media_files.first %>
-            <% if @trial_session.media_kind == 'video' %>
-              <video controls preload="metadata" class="media-player">
-                <source src="<%= url_for(media_file) %>" type="<%= media_file.content_type %>">
-                Your browser doesn't support video playback.
-              </video>
-            <% else %>
-              <audio controls preload="metadata" class="media-player">
-                <source src="<%= url_for(media_file) %>" type="<%= media_file.content_type %>">
-                Your browser doesn't support audio playback.
-              </audio>
-            <% end %>
+    <!-- Report Section -->
+    <div class="report-section">
+      <% if @trial_session&.title&.include?("Mock Data") %>
+        <!-- Mock Data Notice -->
+        <div class="mock-data-notice">
+          <div class="notice-icon">ℹ️</div>
+          <div class="notice-content">
+            <strong>Sample Preview</strong> — This is mock data to show you what your reports will look like. Record a real session to see your actual results!
           </div>
         </div>
       <% end %>
 
-      <!-- Metrics Cards -->
-      <div class="metrics-row-compact">
+      <h1 class="report-title">Here's What We Found</h1>
+      <p class="report-subtitle">Your speaking snapshot in 30 seconds</p>
+
+      <!-- Metrics Cards - 3 Column -->
+      <div class="metrics-grid">
         <!-- Clarity Score -->
-        <% if @trial_session.clarity_score.present? %>
-          <div class="metric-card-compact">
-            <div class="circular-progress-small"
-                 data-controller="circular-progress"
-                 data-circular-progress-percentage-value="<%= @trial_session.clarity_score.round %>">
-              <svg class="progress-ring" width="80" height="80">
-                <circle class="progress-ring__circle"
-                        stroke="#e6f3ff"
-                        stroke-width="6"
-                        fill="transparent"
-                        r="34"
-                        cx="40"
-                        cy="40"/>
-                <circle class="progress-ring__circle progress-ring__circle--active"
-                        stroke="#4F46E5"
-                        stroke-width="6"
-                        fill="transparent"
-                        r="34"
-                        cx="40"
-                        cy="40"/>
-              </svg>
-              <div class="progress-percentage-small">
-                <%= @trial_session.clarity_score.round %>%
-              </div>
-            </div>
-            <div class="metric-label-compact">Clarity</div>
-            <div class="metric-status-compact">
+        <% if @trial_session&.clarity_score.present? %>
+          <div class="metric-card">
+            <div class="metric-icon clarity-icon">✨</div>
+            <div class="metric-value"><%= @trial_session.clarity_score.round %>%</div>
+            <div class="metric-label">Clarity Score</div>
+            <div class="metric-description">
               <% clarity = @trial_session.clarity_score %>
               <% if clarity > 85 %>
                 Very clear
@@ -84,227 +43,299 @@
           </div>
         <% end %>
 
-        <!-- Filler % -->
-        <% if @trial_session.filler_rate.present? %>
-          <div class="metric-card-compact">
-            <div class="metric-value-compact-large">
-              <%= @trial_session.filler_rate.round(1) %>%
-            </div>
-            <div class="metric-label-compact">Filler %</div>
-            <div class="metric-status-compact">
+        <!-- Filler Rate -->
+        <% if @trial_session&.filler_rate.present? %>
+          <div class="metric-card">
+            <div class="metric-icon filler-icon">🎯</div>
+            <div class="metric-value"><%= @trial_session.filler_rate.round(1) %>%</div>
+            <div class="metric-label">Filler Words</div>
+            <div class="metric-description">
               <% if @trial_session.filler_rate < 3 %>
-                <span style="color: #10b981;">&lt;3% target</span>
+                <span style="color: #10b981;">Great! Under 3%</span>
               <% else %>
-                &lt;3% target
+                Target: &lt;3%
               <% end %>
             </div>
           </div>
         <% end %>
 
         <!-- Pace (WPM) -->
-        <% if @trial_session.wpm.present? %>
-          <div class="metric-card-compact">
-            <div class="metric-value-compact-large">
-              <%= @trial_session.wpm.to_i %> <span class="unit">wpm</span>
-            </div>
-            <div class="metric-label-compact">Pace</div>
-            <div class="metric-status-compact">
+        <% if @trial_session&.wpm.present? %>
+          <div class="metric-card">
+            <div class="metric-icon pace-icon">⚡</div>
+            <div class="metric-value"><%= @trial_session.wpm.to_i %> <span class="unit">wpm</span></div>
+            <div class="metric-label">Speaking Pace</div>
+            <div class="metric-description">
               <% wpm = @trial_session.wpm.to_i %>
               <% if wpm >= 140 && wpm <= 180 %>
                 <span style="color: #10b981;">Natural range</span>
               <% elsif wpm < 140 %>
-                <span style="color: #f59e0b;">Too slow</span>
+                Too slow
               <% else %>
-                <span style="color: #f59e0b;">Too fast</span>
+                Too fast
               <% end %>
             </div>
           </div>
         <% end %>
       </div>
 
-      <!-- Transcript Section -->
-      <% if @trial_session.transcript.present? %>
-        <div class="transcript-section-preview">
-          <div class="section-label-small">TRANSCRIPT</div>
-          <h2 class="section-heading">What You Said</h2>
-          <p class="section-description">This is a preview. With full access, you'll get detailed issue detection and tips.</p>
+      <!-- AI Recommendation -->
+      <% if @trial_session.present? %>
+        <div class="recommendation-section">
+          <div class="recommendation-header-row">
+            <div class="recommendation-label">Coach Recommendation:</div>
+            <%
+              # Determine top priority based on metrics
+              filler_rate = @trial_session.filler_rate || 0
+              wpm = @trial_session.wpm || 0
+              clarity = @trial_session.clarity_score || 0
 
-          <div class="transcript-content-preview">
+              if filler_rate > 5
+                recommendation_title = "Reduce Filler Words"
+                recommendation_text = "Try pausing for 0.5-1 seconds when you don't know what to say next. Silence is better than 'um' or 'uh'. This will make you sound more confident and help listeners focus on your message instead of distracting filler words."
+              elsif wpm < 130
+                recommendation_title = "Speed Up Your Pace"
+                recommendation_text = "Aim for 140-180 words per minute for a more engaging delivery. Practice reading aloud daily and gradually increase your speed while maintaining clarity. A natural pace keeps your audience engaged."
+              elsif wpm > 190
+                recommendation_title = "Slow Down Your Pace"
+                recommendation_text = "Aim for 140-180 words per minute so listeners can follow along better. Take deliberate pauses between sentences and key points. Speaking too fast can overwhelm your audience and reduce comprehension."
+              elsif clarity < 75
+                recommendation_title = "Improve Clarity"
+                recommendation_text = "Focus on articulating each word clearly and reducing filler words. Practice recording yourself and listening back for unclear moments. Clear speech builds credibility and ensures your message lands effectively."
+              else
+                recommendation_title = "Keep Practicing Daily"
+                recommendation_text = "You're doing well! Continue practicing daily to maintain and improve your speaking skills. Consistency is key—even 1-2 minutes daily makes a significant difference in building lasting confidence."
+              end
+            %>
+            <div class="recommendation-title"><%= recommendation_title %></div>
+          </div>
+          <div class="recommendation-card">
+            <p class="recommendation-text"><%= recommendation_text %></p>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Transcript Preview -->
+      <% if @trial_session&.transcript.present? %>
+        <div class="transcript-preview">
+          <div class="transcript-header">What You Said</div>
+          <div class="transcript-text">
             <%= simple_format(@trial_session.transcript) %>
           </div>
         </div>
       <% end %>
 
       <!-- What You'll Unlock Section -->
-      <div class="unlock-features-section">
-        <div class="section-label-small">WHAT YOU'LL UNLOCK</div>
-        <h2 class="section-heading">Get Full Access to Unlock These Features</h2>
+      <div class="unlock-section">
+        <h2 class="unlock-title">What You'll Unlock with Full Access</h2>
 
-        <div class="features-grid">
-          <div class="feature-card">
-            <div class="feature-icon"><%= icon_svg(:target, css_class: 'icon') %></div>
-            <h3 class="feature-title">Detailed Issue Detection</h3>
-            <p class="feature-description">Get timestamped feedback on every filler word, pause, and unclear moment with actionable tips.</p>
+        <div class="unlock-grid">
+          <div class="unlock-item">
+            <div class="unlock-icon">🎯</div>
+            <div class="unlock-text">
+              <div class="unlock-feature">Detailed Feedback</div>
+              <div class="unlock-description">Timestamped issues with actionable tips</div>
+            </div>
           </div>
 
-          <div class="feature-card">
-            <div class="feature-icon"><%= icon_svg(:lightbulb, css_class: 'icon') %></div>
-            <h3 class="feature-title">AI Coach Recommendations</h3>
-            <p class="feature-description">Personalized weekly focus areas and practice plans based on your performance patterns.</p>
+          <div class="unlock-item">
+            <div class="unlock-icon">📊</div>
+            <div class="unlock-text">
+              <div class="unlock-feature">Progress Tracking</div>
+              <div class="unlock-description">See your improvement over time</div>
+            </div>
           </div>
 
-          <div class="feature-card">
-            <div class="feature-icon"><%= icon_svg(:chart_bar, css_class: 'icon') %></div>
-            <h3 class="feature-title">Progress Tracking</h3>
-            <p class="feature-description">Track your improvement over time with detailed charts and session-to-session comparisons.</p>
+          <div class="unlock-item">
+            <div class="unlock-icon">🧠</div>
+            <div class="unlock-text">
+              <div class="unlock-feature">AI Coach</div>
+              <div class="unlock-description">Personalized weekly focus areas</div>
+            </div>
           </div>
 
-          <div class="feature-card">
-            <div class="feature-icon"><%= icon_svg(:file_text, css_class: 'icon') %></div>
-            <h3 class="feature-title">Full Transcript Analysis</h3>
-            <p class="feature-description">Highlighted filler words, clickable timestamps, and color-coded issue markers in your transcript.</p>
+          <div class="unlock-item">
+            <div class="unlock-icon">📝</div>
+            <div class="unlock-text">
+              <div class="unlock-feature">Full Transcript</div>
+              <div class="unlock-description">Highlighted fillers & clickable timestamps</div>
+            </div>
           </div>
 
-          <div class="feature-card">
-            <div class="feature-icon"><%= icon_svg(:calendar, css_class: 'icon') %></div>
-            <h3 class="feature-title">Weekly Focus Areas</h3>
-            <p class="feature-description">Set and track weekly goals with daily practice plans tailored to your improvement areas.</p>
+          <div class="unlock-item">
+            <div class="unlock-icon">📈</div>
+            <div class="unlock-text">
+              <div class="unlock-feature">Advanced Metrics</div>
+              <div class="unlock-description">Fluency, engagement, pace consistency</div>
+            </div>
           </div>
 
-          <div class="feature-card">
-            <div class="feature-icon"><%= icon_svg(:activity, css_class: 'icon') %></div>
-            <h3 class="feature-title">Advanced Metrics</h3>
-            <p class="feature-description">Fluency, engagement, pace consistency, and more metrics to help you speak like a pro.</p>
+          <div class="unlock-item">
+            <div class="unlock-icon">🎤</div>
+            <div class="unlock-text">
+              <div class="unlock-feature">Unlimited Sessions</div>
+              <div class="unlock-description">Practice as much as you want, daily</div>
+            </div>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Navigation Actions -->
-      <div class="onboarding-actions">
-        <%= link_to onboarding_pricing_path, class: 'primary-btn btn-large btn-cta' do %>
-          Get Full Access
-          <span aria-hidden="true"><%= icon_svg(:arrow_right, css_class: 'icon-inline') %></span>
-        <% end %>
+    <!-- Floating Continue Button -->
+    <div class="floating-button-container">
+      <%= link_to onboarding_cinematic_path, class: 'primary-btn btn-large' do %>
+        Continue
+        <span aria-hidden="true">→</span>
+      <% end %>
 
-        <%= link_to onboarding_test_path(new_recording: true), class: 'secondary-btn btn-large' do %>
-          <%= icon_svg(:microphone, css_class: 'icon-inline') %>
-          Record Again
-        <% end %>
-      </div>
-
-      <div class="onboarding-back-action">
-        <%= link_to onboarding_demographics_path, class: 'text-btn' do %>
-          <%= icon_svg(:arrow_right, css_class: 'icon-inline', style: 'transform: rotate(180deg)') %>
-          Back to profile
-        <% end %>
+      <!-- Progress Dots -->
+      <div class="progress-dots">
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot active"></div>
+        <div class="progress-dot"></div>
       </div>
     </div>
   </div>
 </div>
 
 <style>
-  /* Session Report Styling - Adapted for Onboarding */
-  .onboarding-report-section {
-    max-width: 900px;
-    margin: 2rem auto;
+  /* Container */
+  .onboarding-container {
+    min-height: 100vh;
+    position: relative;
+    background-color: #F8FAFC;
   }
 
-  .session-title-main {
-    font-size: 2rem;
+  .onboarding-content {
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* Quit Button */
+  .quit-btn-top-right {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f1f5f9;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    z-index: 100;
+  }
+
+  .quit-btn-top-right:hover {
+    background-color: #e2e8f0;
+  }
+
+  .quit-btn-top-right .quit-icon {
+    font-size: 20px;
+    color: #64748b;
+    line-height: 1;
+  }
+
+  /* Report Section */
+  .report-section {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 7rem 1.5rem;
+  }
+
+  .report-title {
+    font-size: 1.75rem;
     font-weight: 700;
     color: #1e293b;
-    margin: 1.5rem 0 0.5rem 0;
-    line-height: 1.2;
+    text-align: center;
+    margin-bottom: 0.35rem;
   }
 
   .report-subtitle {
-    font-size: 1.0625rem;
+    font-size: 0.875rem;
     color: #64748b;
-    margin: 0 0 2rem 0;
+    text-align: center;
+    margin-bottom: 2rem;
   }
 
-  /* Media Player Section */
-  .media-player-section-top {
-    margin: 2rem 0;
-  }
-
-  .player-container {
-    background: #f8fafc;
-    border: 2px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 1.5rem;
-  }
-
-  .media-player {
-    width: 100%;
-    border-radius: 8px;
-    outline: none;
-  }
-
-  /* Metrics Cards */
-  .metrics-row-compact {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.25rem;
-    margin: 2rem 0;
-  }
-
-  .metric-card-compact {
-    background: #ffffff;
-    border: 2px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 1.5rem;
+  /* Mock Data Notice */
+  .mock-data-notice {
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
+    gap: 0.75rem;
+    background: linear-gradient(135deg, #FFF9F5 0%, #FFF4ED 100%);
+    border: 2px solid #FFE8D9;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(255, 140, 66, 0.08);
+  }
+
+  .notice-icon {
+    font-size: 1.25rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .notice-content {
+    font-size: 0.9375rem;
+    color: #1e293b;
+    line-height: 1.5;
+  }
+
+  .notice-content strong {
+    color: #FF8C42;
+    font-weight: 600;
+  }
+
+  /* Metrics Grid - 3 Columns */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .metric-card {
+    background: #ffffff;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.5rem;
     text-align: center;
     transition: all 0.2s ease;
   }
 
-  .metric-card-compact:hover {
-    border-color: #cbd5e1;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  .metric-card:hover {
+    border-color: #FF8C42;
+    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.15);
+    transform: translateY(-2px);
   }
 
-  .circular-progress-small {
-    position: relative;
-    width: 80px;
-    height: 80px;
-    margin-bottom: 1rem;
+  .metric-icon {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
   }
 
-  .progress-ring {
-    transform: rotate(-90deg);
-  }
-
-  .progress-ring__circle--active {
-    transition: stroke-dashoffset 1s ease-in-out;
-  }
-
-  .progress-percentage-small {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #1e293b;
-  }
-
-  .metric-value-compact-large {
-    font-size: 2.25rem;
+  .metric-value {
+    font-size: 2.5rem;
     font-weight: 700;
     color: #1e293b;
     margin-bottom: 0.5rem;
+    line-height: 1;
   }
 
-  .metric-value-compact-large .unit {
+  .metric-value .unit {
     font-size: 1rem;
     font-weight: 600;
     color: #64748b;
   }
 
-  .metric-label-compact {
+  .metric-label {
     font-size: 0.875rem;
     font-weight: 600;
     color: #64748b;
@@ -313,161 +344,221 @@
     margin-bottom: 0.5rem;
   }
 
-  .metric-status-compact {
+  .metric-description {
     font-size: 0.8125rem;
     color: #64748b;
   }
 
-  /* Transcript Section */
-  .transcript-section-preview {
-    margin: 3rem 0;
+  /* AI Recommendation */
+  .recommendation-section {
+    margin-bottom: 1.5rem;
   }
 
-  .section-label-small {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin-bottom: 0.5rem;
-  }
-
-  .section-heading {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #1e293b;
-    margin: 0.5rem 0 0.25rem 0;
-  }
-
-  .section-description {
-    font-size: 0.9375rem;
-    color: #64748b;
-    margin: 0 0 1.5rem 0;
-  }
-
-  .transcript-content-preview {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 1.5rem;
-    font-size: 1rem;
-    line-height: 1.7;
-    color: #1e293b;
-    max-height: 300px;
-    overflow-y: auto;
-  }
-
-  /* What You'll Unlock Section */
-  .unlock-features-section {
-    margin: 3rem 0;
-    padding: 2rem;
-    background: linear-gradient(135deg, #f8faff 0%, #ffffff 100%);
-    border: 2px solid #e2e8f0;
-    border-radius: 16px;
-  }
-
-  .features-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.5rem;
-    margin-top: 1.5rem;
-  }
-
-  .feature-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 1.5rem;
-    transition: all 0.2s ease;
-  }
-
-  .feature-card:hover {
-    border-color: #4F46E5;
-    box-shadow: 0 4px 16px rgba(79, 70, 229, 0.1);
-    transform: translateY(-2px);
-  }
-
-  .feature-icon {
-    width: 48px;
-    height: 48px;
-    background: linear-gradient(135deg, #4F46E5 0%, #6366F1 100%);
-    border-radius: 10px;
+  .recommendation-header-row {
     display: flex;
     align-items: center;
-    justify-content: center;
-    margin-bottom: 1rem;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
   }
 
-  .feature-icon svg {
-    width: 24px;
-    height: 24px;
-    color: white;
-  }
-
-  .feature-title {
-    font-size: 1.125rem;
+  .recommendation-label {
+    font-size: 0.875rem;
     font-weight: 600;
-    color: #1e293b;
-    margin: 0 0 0.5rem 0;
+    color: #64748b;
   }
 
-  .feature-description {
+  .recommendation-title {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #FF8C42;
+  }
+
+  .recommendation-card {
+    background: linear-gradient(135deg, #FFF9F5 0%, #FFF4ED 100%);
+    border: 2px solid #FFE8D9;
+    border-radius: 12px;
+    padding: 1.25rem;
+  }
+
+  .recommendation-text {
     font-size: 0.9375rem;
-    color: #64748b;
+    color: #1e293b;
     line-height: 1.6;
     margin: 0;
   }
 
-  /* CTA Button Enhancement */
-  .btn-cta {
-    background: linear-gradient(135deg, #4F46E5 0%, #6366F1 100%);
-    font-size: 1.125rem;
+  /* Transcript Preview */
+  .transcript-preview {
+    background: #ffffff;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .transcript-header {
+    font-size: 0.75rem;
     font-weight: 600;
-    box-shadow: 0 4px 16px rgba(79, 70, 229, 0.25);
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.75rem;
   }
 
-  .btn-cta:hover {
-    background: linear-gradient(135deg, #4338CA 0%, #4F46E5 100%);
+  .transcript-text {
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    color: #1e293b;
+    max-height: 150px;
+    overflow-y: auto;
+  }
+
+  /* What You'll Unlock Section */
+  .unlock-section {
+    margin-top: 2.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .unlock-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .unlock-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .unlock-item {
+    background: #ffffff;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    transition: all 0.2s ease;
+  }
+
+  .unlock-item:hover {
+    border-color: #FF8C42;
+    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.15);
     transform: translateY(-2px);
-    box-shadow: 0 6px 24px rgba(79, 70, 229, 0.35);
   }
 
-  /* Responsive Design */
+  .unlock-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+
+  .unlock-text {
+    flex: 1;
+  }
+
+  .unlock-feature {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 0.25rem;
+  }
+
+  .unlock-description {
+    font-size: 0.8125rem;
+    color: #64748b;
+    line-height: 1.4;
+  }
+
+  /* Floating Button Container */
+  .floating-button-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1.25rem 1.5rem;
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    z-index: 50;
+    pointer-events: none;
+  }
+
+  .primary-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, #FF8C42 0%, #FF7028 100%);
+    color: white;
+    padding: 0.875rem 2rem;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.3);
+    pointer-events: auto;
+  }
+
+  .primary-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255, 140, 66, 0.4);
+  }
+
+  /* Progress Dots */
+  .progress-dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .progress-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 4px;
+    background-color: #cbd5e1;
+    transition: all 0.3s ease;
+  }
+
+  .progress-dot.active {
+    width: 24px;
+    background-color: #FF8C42;
+  }
+
+  /* Responsive */
   @media (max-width: 768px) {
-    .session-title-main {
+    .metrics-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .unlock-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .report-title {
       font-size: 1.5rem;
     }
 
-    .metrics-row-compact {
-      grid-template-columns: 1fr;
+    .metric-value {
+      font-size: 2rem;
     }
 
-    .features-grid {
-      grid-template-columns: 1fr;
+    .unlock-title {
+      font-size: 1.125rem;
     }
 
-    .unlock-features-section {
-      padding: 1.5rem;
+    .floating-button-container {
+      padding: 1rem;
     }
   }
 </style>
-
-<script>
-  // Circular progress animation
-  document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('[data-controller="circular-progress"]').forEach(function(element) {
-      const percentage = parseFloat(element.dataset.circularProgressPercentageValue);
-      const circle = element.querySelector('.progress-ring__circle--active');
-      const radius = circle.r.baseVal.value;
-      const circumference = radius * 2 * Math.PI;
-
-      circle.style.strokeDasharray = `${circumference} ${circumference}`;
-      circle.style.strokeDashoffset = circumference;
-
-      setTimeout(() => {
-        const offset = circumference - (percentage / 100) * circumference;
-        circle.style.strokeDashoffset = offset;
-      }, 100);
-    });
-  });
-</script>

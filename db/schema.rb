@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_28_195610) do
+ActiveRecord::Schema[8.0].define(version: 2025_11_01_212022) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -138,6 +138,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_28_195610) do
     t.datetime "updated_at", null: false
     t.string "incomplete_reason"
     t.text "error_text"
+    t.boolean "is_mock", default: false, null: false
     t.index ["created_at"], name: "index_trial_sessions_on_created_at"
     t.index ["expires_at"], name: "index_trial_sessions_on_expires_at"
     t.index ["processing_state"], name: "index_trial_sessions_on_processing_state"

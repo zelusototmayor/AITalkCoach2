@@ -23,6 +23,19 @@
       </li>
 
       <li class="sidebar-nav-item">
+        <%= link_to coach_path,
+              class: "sidebar-nav-link #{'active' if current_page?(coach_path)}",
+              aria: { current: (current_page?(coach_path) ? "page" : nil) } do %>
+          <svg class="sidebar-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="8.5" cy="7" r="4"/>
+            <polyline points="17 11 19 13 23 9"/>
+          </svg>
+          <span class="sidebar-nav-text">Coach</span>
+        <% end %>
+      </li>
+
+      <li class="sidebar-nav-item">
         <%= link_to progress_path,
               class: "sidebar-nav-link #{'active' if current_page?(progress_path)}",
               aria: { current: (current_page?(progress_path) ? "page" : nil) } do %>

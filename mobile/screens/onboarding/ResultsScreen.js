@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import Button from '../../components/Button';
 import MetricCard from '../../components/MetricCard';
 import AnimatedBackground from '../../components/AnimatedBackground';
+import QuitOnboardingButton from '../../components/QuitOnboardingButton';
 import { COLORS, SPACING } from '../../constants/colors';
 import { UNLOCK_FEATURES } from '../../constants/onboardingData';
 import { useOnboarding } from '../../context/OnboardingContext';
+import { getTrialSessionResults } from '../../services/api';
 
 // Helper function to calculate metrics and generate recommendations
 function calculateMetrics(results) {
@@ -66,8 +68,46 @@ function calculateMetrics(results) {
 }
 
 export default function ResultsScreen({ navigation }) {
-  const { onboardingData } = useOnboarding();
+  const { onboardingData, updateOnboardingData } = useOnboarding();
   const [showTranscript, setShowTranscript] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Fetch trial results if not already in context
+  useEffect(() => {
+    const fetchTrialResults = async () => {
+      // If we already have results, don't fetch again
+      if (onboardingData.trialResults) {
+        return;
+      }
+
+      // If we have a trial token, fetch the results
+      if (onboardingData.trialSessionToken) {
+        try {
+          setIsLoading(true);
+          const trialSession = await getTrialSessionResults(onboardingData.trialSessionToken);
+
+          // Store results in context
+          updateOnboardingData({
+            trialResults: {
+              clarity: trialSession.metrics.clarity,
+              wordsPerMinute: trialSession.metrics.wpm,
+              fillerWordsPerMinute: trialSession.metrics.filler_words_per_minute,
+              fillerRate: trialSession.metrics.filler_rate,
+              transcript: trialSession.transcript,
+              isMockData: trialSession.is_mock || false,
+            },
+          });
+        } catch (error) {
+          console.error('Error fetching trial results:', error);
+          // Fall back to showing without data - the UI handles empty results
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchTrialResults();
+  }, [onboardingData.trialSessionToken, onboardingData.trialResults]);
 
   // Get results from context (either real or mock data)
   const results = onboardingData.trialResults || {};
@@ -80,9 +120,24 @@ export default function ResultsScreen({ navigation }) {
     navigation.navigate('Cinematic');
   };
 
+  // Show loading indicator while fetching data
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <AnimatedBackground />
+        <QuitOnboardingButton />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={COLORS.primary} />
+          <Text style={styles.loadingText}>Loading your results...</Text>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <AnimatedBackground />
+      <QuitOnboardingButton />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -430,5 +485,18 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     color: COLORS.text,
     lineHeight: 20,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.lg,
+  },
+  loadingText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: COLORS.text,
+    marginTop: SPACING.md,
+    textAlign: 'center',
   },
 });

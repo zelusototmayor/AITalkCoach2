@@ -6,7 +6,7 @@ import { COLORS, SPACING } from '../constants/colors';
 export default function BottomNavigation({ activeScreen, onNavigate }) {
   const navItems = [
     { id: 'progress', icon: 'trending-up', label: 'Progress' },
-    { id: 'history', icon: 'time-outline', label: 'History' },
+    { id: 'coach', icon: 'school-outline', label: 'Coach' },
     { id: 'practice', icon: 'mic', label: 'Practice' },
     { id: 'prompts', icon: 'bulb-outline', label: 'Prompts' },
     { id: 'profile', icon: 'person-outline', label: 'Profile' },

@@ -2,86 +2,82 @@
 
 <div class="onboarding-container">
   <div class="onboarding-content">
-    <!-- Quit Button -->
-    <div style="text-align: right; margin-bottom: 1rem;">
-      <%= link_to logout_path, class: 'quit-onboarding-btn', data: { turbo_method: :delete, turbo_confirm: "Are you sure you want to quit? You'll need to start over." } do %>
-        <span class="quit-icon">×</span> Quit
-      <% end %>
-    </div>
-
-    <!-- Progress Indicator -->
-    <%= render 'onboarding/progress', current_step: 1 %>
+    <!-- Quit Button - Top Right -->
+    <%= link_to logout_path, class: 'quit-btn-top-right', data: { turbo_method: :delete, turbo_confirm: "Are you sure you want to quit? You'll need to start over." } do %>
+      <span class="quit-icon">×</span>
+    <% end %>
 
     <!-- Form Section -->
     <div class="onboarding-form-section">
       <h1 class="onboarding-title">What are your speaking goals?</h1>
-      <p class="onboarding-subtitle">Select all that apply - we'll personalize your coaching experience.</p>
+      <p class="onboarding-subtitle">Select all that apply</p>
 
-      <%= form_with url: onboarding_profile_path, method: :post, class: "onboarding-form", aria: { label: "Speaking goals selection" } do |f| %>
+      <%= form_with url: onboarding_profile_path, method: :post, class: "onboarding-form", id: "goals-form", aria: { label: "Speaking goals selection" } do |f| %>
         <div class="goal-cards" role="group" aria-label="Select your speaking goals (you can choose multiple)" aria-required="true">
           <% user_goals = current_user&.speaking_goal || [] %>
           <% user_goals = [user_goals] unless user_goals.is_a?(Array) %>
 
           <label class="goal-card" tabindex="0">
-            <%= check_box_tag 'speaking_goals[]', 'Better public speaking', user_goals.include?('Better public speaking'), class: 'goal-checkbox', id: 'goal_public_speaking' %>
+            <%= check_box_tag 'speaking_goals[]', 'Public Speaking', user_goals.include?('Public Speaking'), class: 'goal-checkbox', id: 'goal_public_speaking' %>
             <div class="goal-card-content">
-              <div class="goal-icon" aria-hidden="true"><%= icon_svg(:mic, css_class: 'icon') %></div>
-              <div class="goal-title">Better public speaking</div>
-              <div class="goal-description">Speak confidently to large audiences</div>
+              <div class="goal-icon" aria-hidden="true">🎤</div>
+              <div class="goal-title">Public Speaking</div>
             </div>
           </label>
 
           <label class="goal-card" tabindex="0">
-            <%= check_box_tag 'speaking_goals[]', 'Nail presentations at work', user_goals.include?('Nail presentations at work'), class: 'goal-checkbox', id: 'goal_presentations' %>
+            <%= check_box_tag 'speaking_goals[]', 'Acing Interviews', user_goals.include?('Acing Interviews'), class: 'goal-checkbox', id: 'goal_interviews' %>
             <div class="goal-card-content">
-              <div class="goal-icon" aria-hidden="true"><%= icon_svg(:briefcase, css_class: 'icon') %></div>
-              <div class="goal-title">Nail presentations at work</div>
-              <div class="goal-description">Deliver impactful professional presentations</div>
+              <div class="goal-icon" aria-hidden="true">💼</div>
+              <div class="goal-title">Acing Interviews</div>
             </div>
           </label>
 
           <label class="goal-card" tabindex="0">
-            <%= check_box_tag 'speaking_goals[]', 'Improve social conversations', user_goals.include?('Improve social conversations'), class: 'goal-checkbox', id: 'goal_social' %>
+            <%= check_box_tag 'speaking_goals[]', 'Sales & Pitching', user_goals.include?('Sales & Pitching'), class: 'goal-checkbox', id: 'goal_sales' %>
             <div class="goal-card-content">
-              <div class="goal-icon" aria-hidden="true"><%= icon_svg(:message, css_class: 'icon') %></div>
-              <div class="goal-title">Improve social conversations</div>
-              <div class="goal-description">Feel more confident in everyday interactions</div>
+              <div class="goal-icon" aria-hidden="true">💰</div>
+              <div class="goal-title">Sales & Pitching</div>
             </div>
           </label>
 
           <label class="goal-card" tabindex="0">
-            <%= check_box_tag 'speaking_goals[]', 'Podcasting/content creation', user_goals.include?('Podcasting/content creation'), class: 'goal-checkbox', id: 'goal_podcasting' %>
+            <%= check_box_tag 'speaking_goals[]', 'Podcasting/Content', user_goals.include?('Podcasting/Content'), class: 'goal-checkbox', id: 'goal_podcasting' %>
             <div class="goal-card-content">
-              <div class="goal-icon" aria-hidden="true"><%= icon_svg(:music, css_class: 'icon') %></div>
-              <div class="goal-title">Podcasting/content creation</div>
-              <div class="goal-description">Create engaging audio/video content</div>
+              <div class="goal-icon" aria-hidden="true">🎙️</div>
+              <div class="goal-title">Podcasting/Content</div>
             </div>
           </label>
 
           <label class="goal-card" tabindex="0">
-            <%= check_box_tag 'speaking_goals[]', 'Sales & persuasion', user_goals.include?('Sales & persuasion'), class: 'goal-checkbox', id: 'goal_sales' %>
+            <%= check_box_tag 'speaking_goals[]', 'Social Skills', user_goals.include?('Social Skills'), class: 'goal-checkbox', id: 'goal_social' %>
             <div class="goal-card-content">
-              <div class="goal-icon" aria-hidden="true"><%= icon_svg(:lightbulb, css_class: 'icon') %></div>
-              <div class="goal-title">Sales & persuasion</div>
-              <div class="goal-description">Influence and persuade effectively</div>
+              <div class="goal-icon" aria-hidden="true">🤝</div>
+              <div class="goal-title">Social Skills</div>
             </div>
           </label>
 
           <label class="goal-card" tabindex="0">
-            <%= check_box_tag 'speaking_goals[]', 'Job interviews', user_goals.include?('Job interviews'), class: 'goal-checkbox', id: 'goal_interviews' %>
+            <%= check_box_tag 'speaking_goals[]', 'Acting/Performance', user_goals.include?('Acting/Performance'), class: 'goal-checkbox', id: 'goal_acting' %>
             <div class="goal-card-content">
-              <div class="goal-icon" aria-hidden="true"><%= icon_svg(:briefcase, css_class: 'icon') %></div>
-              <div class="goal-title">Job interviews</div>
-              <div class="goal-description">Make a great impression in interviews</div>
+              <div class="goal-icon" aria-hidden="true">🎭</div>
+              <div class="goal-title">Acting/Performance</div>
+            </div>
+          </label>
+
+          <label class="goal-card" tabindex="0">
+            <%= check_box_tag 'speaking_goals[]', 'Leadership', user_goals.include?('Leadership'), class: 'goal-checkbox', id: 'goal_leadership' %>
+            <div class="goal-card-content">
+              <div class="goal-icon" aria-hidden="true">👔</div>
+              <div class="goal-title">Leadership</div>
             </div>
           </label>
 
           <label class="goal-card" tabindex="0">
             <%= check_box_tag 'speaking_goals[]', 'Other', user_goals.include?('Other'), class: 'goal-checkbox', id: 'goal_other' %>
             <div class="goal-card-content">
-              <div class="goal-icon" aria-hidden="true"><%= icon_svg(:sparkles, css_class: 'icon') %></div>
+              <div class="goal-icon" aria-hidden="true">📝</div>
               <div class="goal-title">Other</div>
-              <div class="goal-description">I have a different goal in mind</div>
             </div>
           </label>
         </div>
@@ -91,22 +87,243 @@
             <%= flash[:alert] %>
           </div>
         <% end %>
+      <% end %>
+    </div>
 
-        <div class="onboarding-actions">
-          <%= button_tag type: 'submit', class: 'primary-btn btn-large' do %>
-            Next Step
-            <span aria-hidden="true"><%= icon_svg(:arrow_right, css_class: 'icon-inline') %></span>
-          <% end %>
-        </div>
+    <!-- Floating Button and Progress Dots Container -->
+    <div class="floating-button-container">
+      <%= button_tag type: 'submit', form: 'goals-form', class: 'primary-btn btn-large', id: 'continue-btn' do %>
+        Continue
+        <span aria-hidden="true">→</span>
       <% end %>
 
-      <!-- Back Navigation -->
-      <div class="onboarding-back-action">
-        <%= link_to onboarding_welcome_path, class: 'text-btn' do %>
-          <%= icon_svg(:arrow_right, css_class: 'icon-inline', style: 'transform: rotate(180deg)') %>
-          Back to welcome
-        <% end %>
+      <!-- Progress Dots - Below Button -->
+      <div class="progress-dots">
+        <div class="progress-dot active"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
       </div>
     </div>
   </div>
 </div>
+
+<style>
+  /* Remove default container padding */
+  .onboarding-container {
+    min-height: 100vh;
+    position: relative;
+    background-color: #F8FAFC;
+  }
+
+  .onboarding-content {
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* Quit Button - Top Right Corner */
+  .quit-btn-top-right {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f1f5f9;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    z-index: 100;
+  }
+
+  .quit-btn-top-right:hover {
+    background-color: #e2e8f0;
+  }
+
+  .quit-btn-top-right .quit-icon {
+    font-size: 20px;
+    color: #64748b;
+    line-height: 1;
+  }
+
+  /* Form Section */
+  .onboarding-form-section {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 7rem 1.5rem;
+  }
+
+  .onboarding-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1e293b;
+    text-align: center;
+    margin-bottom: 0.35rem;
+  }
+
+  .onboarding-subtitle {
+    font-size: 0.875rem;
+    color: #64748b;
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+
+  /* Goal Cards - Compact 4x2 Grid */
+  .goal-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .goal-card {
+    position: relative;
+    background: #ffffff;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+  }
+
+  .goal-card:hover {
+    border-color: #FF8C42;
+    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.15);
+    transform: translateY(-2px);
+  }
+
+  .goal-checkbox {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .goal-checkbox:checked + .goal-card-content {
+    color: #FF8C42;
+  }
+
+  .goal-card:has(.goal-checkbox:checked) {
+    border-color: #FF8C42;
+    background-color: #FFF4ED;
+  }
+
+  .goal-card-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .goal-icon {
+    font-size: 2rem;
+  }
+
+  .goal-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #1e293b;
+    line-height: 1.2;
+  }
+
+  /* Floating Button Container with Progress Dots */
+  .floating-button-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1.25rem 1.5rem;
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    z-index: 50;
+    pointer-events: none;
+  }
+
+  /* Progress Dots - Below Button */
+  .progress-dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .progress-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 4px;
+    background-color: #cbd5e1;
+    transition: all 0.3s ease;
+  }
+
+  .progress-dot.active {
+    width: 24px;
+    background-color: #FF8C42;
+  }
+
+  .primary-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, #FF8C42 0%, #FF7028 100%);
+    color: white;
+    padding: 0.875rem 2rem;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.3);
+    pointer-events: auto;
+  }
+
+  .primary-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255, 140, 66, 0.4);
+  }
+
+  .primary-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .form-error {
+    background-color: #fee;
+    border: 1px solid #fcc;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    color: #c33;
+    text-align: center;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .goal-cards {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .goal-cards {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .onboarding-title {
+      font-size: 1.5rem;
+    }
+
+    .floating-button-container {
+      padding: 1rem;
+    }
+  }
+</style>

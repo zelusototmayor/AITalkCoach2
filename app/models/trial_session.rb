@@ -22,6 +22,8 @@ class TrialSession < ApplicationRecord
   enum :processing_state, {
     pending: "pending",
     processing: "processing",
+    preview_ready: "preview_ready",
+    ai_analyzing: "ai_analyzing",
     completed: "completed",
     failed: "failed"
   }, suffix: true
@@ -36,6 +38,10 @@ class TrialSession < ApplicationRecord
 
   def processing?
     processing_state.in?([ "pending", "processing" ])
+  end
+
+  def ready_for_display?
+    processing_state.in?([ "preview_ready", "ai_analyzing", "completed" ])
   end
 
   def duration_seconds
@@ -64,11 +70,39 @@ class TrialSession < ApplicationRecord
   end
 
   def clarity_score
-    # Simple calculation for trial users
+    # Use comprehensive metrics if available, otherwise fallback to simple calculation
+    comprehensive_score = analysis_data&.dig("comprehensive_metrics", "clarity_metrics", "clarity_score")
+    return (comprehensive_score * 100).round(1) if comprehensive_score
+
+    # Fallback for older sessions or error cases
     return 85 unless filler_rate
     base_score = 95
     penalty = filler_rate * 2
     [ base_score - penalty, 0 ].max
+  end
+
+  def fluency_score
+    score = analysis_data&.dig("comprehensive_metrics", "fluency_metrics", "fluency_score")
+    return (score * 100).round(1) if score
+    nil
+  end
+
+  def engagement_score
+    score = analysis_data&.dig("comprehensive_metrics", "engagement_metrics", "engagement_score")
+    return (score * 100).round(1) if score
+    nil
+  end
+
+  def pace_consistency
+    score = analysis_data&.dig("comprehensive_metrics", "speaking_metrics", "pace_consistency")
+    return (score * 100).round(1) if score
+    nil
+  end
+
+  def overall_score
+    score = analysis_data&.dig("comprehensive_metrics", "overall_scores", "overall_score")
+    return (score * 100).round(1) if score
+    overall_benchmark_score # Fallback to old calculation
   end
 
   def filler_words_per_minute

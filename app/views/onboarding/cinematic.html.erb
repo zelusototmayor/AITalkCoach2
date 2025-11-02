@@ -1,0 +1,273 @@
+<% content_for :title, "Free Forever - AI Talk Coach" %>
+
+<div class="cinematic-container">
+  <!-- Skip Button -->
+  <%= link_to onboarding_pricing_path, class: 'skip-btn' do %>
+    Skip
+  <% end %>
+
+  <!-- Animated Messages -->
+  <div class="messages-container">
+    <!-- Message 1 -->
+    <div class="message message-1">
+      <h1 class="message-text">We want you to improve as much as you do!</h1>
+    </div>
+
+    <!-- Message 2 -->
+    <div class="message message-2">
+      <h1 class="message-text">So we reward consistency</h1>
+    </div>
+
+    <!-- Message 3 (Final with highlight) -->
+    <div class="message message-3">
+      <p class="regular-text">Practice every day, and the app is</p>
+      <div class="free-forever-highlight">
+        <h1 class="free-forever-text">FREE FOREVER</h1>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confetti Container -->
+  <div class="confetti-container">
+    <% 60.times do |i| %>
+      <%= content_tag :div, '', class: "confetti confetti-#{i % 8}", style: "animation-delay: #{(i * 0.01).round(2)}s; left: #{i.even? ? 30 : 70}%;" %>
+    <% end %>
+  </div>
+</div>
+
+<style>
+  .cinematic-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    z-index: 9999;
+  }
+
+  /* Skip Button */
+  .skip-btn {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #FF8C42;
+    text-decoration: none;
+    z-index: 10;
+    transition: all 0.2s ease;
+  }
+
+  .skip-btn:hover {
+    color: #FF7028;
+    transform: scale(1.05);
+  }
+
+  /* Messages Container */
+  .messages-container {
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    padding: 0 2rem;
+    text-align: center;
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .message {
+    position: absolute;
+    width: 100%;
+    opacity: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .message-text {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    line-height: 1.3;
+    margin: 0;
+  }
+
+  /* Message 1: Fade in immediately, fade out at 1.5s */
+  .message-1 {
+    animation: fadeInOut1 2.1s ease-in-out forwards;
+    top: -40px;
+  }
+
+  @keyframes fadeInOut1 {
+    0% { opacity: 0; transform: scale(0.95); }
+    10% { opacity: 1; transform: scale(1); }
+    71% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(0.95); }
+  }
+
+  /* Message 2: Fade in at 1s, fade out at 3s */
+  .message-2 {
+    animation: fadeInOut2 2.6s ease-in-out 1s forwards;
+  }
+
+  .message-2 .message-text {
+    font-size: 2.25rem;
+    color: #64748b;
+  }
+
+  @keyframes fadeInOut2 {
+    0% { opacity: 0; transform: scale(0.95); }
+    11.5% { opacity: 1; transform: scale(1); }
+    77% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(0.95); }
+  }
+
+  /* Message 3: Fade in at 3s, stay visible */
+  .message-3 {
+    animation: fadeIn3 0.3s ease-in-out 3s forwards, subtlePulse 2.4s ease-in-out 3.3s infinite;
+  }
+
+  @keyframes fadeIn3 {
+    0% { opacity: 0; transform: scale(0.95); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes subtlePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+  }
+
+  .regular-text {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0 0 1rem 0;
+  }
+
+  .free-forever-highlight {
+    background: linear-gradient(135deg, #FF8C42 0%, #FF7028 100%);
+    border-radius: 16px;
+    padding: 1.5rem 3rem;
+    margin: 1rem 0;
+    box-shadow: 0 12px 32px rgba(255, 140, 66, 0.5);
+    animation: glowPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes glowPulse {
+    0%, 100% {
+      box-shadow: 0 12px 32px rgba(255, 140, 66, 0.5);
+      transform: scale(1);
+    }
+    50% {
+      box-shadow: 0 16px 48px rgba(255, 140, 66, 0.7);
+      transform: scale(1.02);
+    }
+  }
+
+  .free-forever-text {
+    font-size: 3.5rem;
+    font-weight: 900;
+    color: #FFFFFF;
+    letter-spacing: 0.15em;
+    margin: 0;
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Confetti Animation */
+  .confetti-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    overflow: hidden;
+    opacity: 0;
+    animation: showConfetti 0.1s linear 3.5s forwards;
+  }
+
+  @keyframes showConfetti {
+    to { opacity: 1; }
+  }
+
+  .confetti {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    top: 40%;
+    animation: confettiFall 2.3s ease-out forwards;
+  }
+
+  /* Confetti Colors */
+  .confetti-0 { background-color: #FF6B35; }
+  .confetti-1 { background-color: #F7931E; }
+  .confetti-2 { background-color: #4ECDC4; }
+  .confetti-3 { background-color: #95E1D3; }
+  .confetti-4 { background-color: #FFD93D; }
+  .confetti-5 { background-color: #6BCF7F; }
+  .confetti-6 { background-color: #E84855; }
+  .confetti-7 { background-color: #9B59B6; }
+
+  @keyframes confettiFall {
+    0% {
+      transform: translateY(-200px) translateX(0) rotate(0deg);
+      opacity: 0;
+    }
+    10% {
+      opacity: 1;
+    }
+    35% {
+      transform: translateY(-180px) translateX(var(--spray-x, 100px)) rotate(180deg);
+    }
+    82% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(600px) translateX(var(--spray-x, 100px)) rotate(1080deg);
+      opacity: 0;
+    }
+  }
+
+  /* Spray pattern variations */
+  .confetti:nth-child(odd) { --spray-x: 150px; }
+  .confetti:nth-child(even) { --spray-x: -150px; }
+  .confetti:nth-child(3n) { --spray-x: 200px; animation-duration: 2.5s; }
+  .confetti:nth-child(4n) { --spray-x: -200px; animation-duration: 2.1s; }
+  .confetti:nth-child(5n) { --spray-x: 120px; animation-duration: 2.4s; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .message-text {
+      font-size: 1.875rem;
+    }
+
+    .regular-text {
+      font-size: 1.125rem;
+    }
+
+    .free-forever-text {
+      font-size: 2.5rem;
+      letter-spacing: 0.1em;
+    }
+
+    .free-forever-highlight {
+      padding: 1.25rem 2rem;
+    }
+  }
+</style>
+
+<script>
+  // Auto-advance to pricing page after 4.5 seconds
+  setTimeout(function() {
+    window.location.href = '<%= onboarding_pricing_path %>';
+  }, 4500);
+</script>

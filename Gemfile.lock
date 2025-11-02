@@ -167,6 +167,8 @@ GEM
       actionview (>= 7.0.0)
       activesupport (>= 7.0.0)
     json (2.13.2)
+    jwt (3.1.2)
+      base64
     kamal (2.7.0)
       activesupport (>= 7.0)
       base64 (~> 0.2)
@@ -263,6 +265,9 @@ GEM
     rack (3.2.1)
     rack-attack (6.7.0)
       rack (>= 1.0, < 4)
+    rack-cors (3.0.0)
+      logger
+      rack (>= 3.0.14)
     rack-session (2.1.1)
       base64 (>= 0.1.0)
       rack (>= 3.0.0)
@@ -477,12 +482,14 @@ DEPENDENCIES
   image_processing (~> 1.2)
   importmap-rails
   jbuilder
+  jwt (~> 3.1)
   kamal
   lograge
   oj
   propshaft
   puma (>= 5.0)
   rack-attack
+  rack-cors
   rails (~> 8.0.2, >= 8.0.2.1)
   rails-controller-testing
   rspec-rails

@@ -1,0 +1,255 @@
+<% content_for :title, "You're Not Alone - AI Talk Coach" %>
+
+<div class="onboarding-container">
+  <div class="onboarding-content">
+    <!-- Quit Button - Top Right -->
+    <%= link_to logout_path, class: 'quit-btn-top-right', data: { turbo_method: :delete, turbo_confirm: "Are you sure you want to quit? You'll need to start over." } do %>
+      <span class="quit-icon">×</span>
+    <% end %>
+
+    <!-- Motivation Section -->
+    <div class="motivation-section">
+      <h1 class="motivation-title">You're Not Alone</h1>
+
+      <!-- Motivation Cards Grid -->
+      <div class="motivation-cards-grid">
+        <!-- Primary Motivation Card -->
+        <div class="motivation-card primary-card">
+          <div class="card-icon">💪</div>
+          <div class="card-title">78% of people</div>
+          <div class="card-description">fear public speaking more than death. You're not alone in this journey.</div>
+        </div>
+
+        <!-- Additional Motivation Cards -->
+        <div class="motivation-card">
+          <div class="card-icon">📈</div>
+          <div class="card-title">1% daily improvement</div>
+          <div class="card-description">compounds to 37x better in a year. Small steps lead to massive growth.</div>
+        </div>
+
+        <div class="motivation-card">
+          <div class="card-icon">🧠</div>
+          <div class="card-title">Practice makes permanent</div>
+          <div class="card-description">Your brain rewires itself with each practice session. Consistency is key.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating Continue Button -->
+    <div class="floating-button-container">
+      <%= link_to onboarding_demographics_path, class: 'primary-btn btn-large' do %>
+        Continue
+        <span aria-hidden="true">→</span>
+      <% end %>
+
+      <!-- Progress Dots -->
+      <div class="progress-dots">
+        <div class="progress-dot"></div>
+        <div class="progress-dot active"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Remove default container padding */
+  .onboarding-container {
+    min-height: 100vh;
+    position: relative;
+    background-color: #F8FAFC;
+  }
+
+  .onboarding-content {
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* Quit Button - Top Right Corner */
+  .quit-btn-top-right {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f1f5f9;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    z-index: 100;
+  }
+
+  .quit-btn-top-right:hover {
+    background-color: #e2e8f0;
+  }
+
+  .quit-btn-top-right .quit-icon {
+    font-size: 20px;
+    color: #64748b;
+    line-height: 1;
+  }
+
+  /* Motivation Section */
+  .motivation-section {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 7rem 1.5rem;
+  }
+
+  .motivation-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1e293b;
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  /* Motivation Cards Grid - Side by Side */
+  .motivation-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  /* Motivation Cards */
+  .motivation-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .motivation-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transform: translateY(-2px);
+  }
+
+  .primary-card {
+    border-color: #FF8C42;
+    background: linear-gradient(135deg, #FFF4ED 0%, #ffffff 100%);
+  }
+
+  .card-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+    white-space: normal;
+    word-wrap: break-word;
+  }
+
+  .card-description {
+    font-size: 0.9rem;
+    color: #64748b;
+    line-height: 1.5;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* Floating Button Container with Progress Dots */
+  .floating-button-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1.25rem 1.5rem;
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    z-index: 50;
+    pointer-events: none;
+  }
+
+  /* Progress Dots */
+  .progress-dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .progress-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 4px;
+    background-color: #cbd5e1;
+    transition: all 0.3s ease;
+  }
+
+  .progress-dot.active {
+    width: 24px;
+    background-color: #FF8C42;
+  }
+
+  .primary-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, #FF8C42 0%, #FF7028 100%);
+    color: white;
+    padding: 0.875rem 2rem;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.3);
+    pointer-events: auto;
+  }
+
+  .primary-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255, 140, 66, 0.4);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .motivation-cards-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .motivation-title {
+      font-size: 1.75rem;
+    }
+
+    .motivation-card {
+      padding: 1.5rem;
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+    }
+
+    .floating-button-container {
+      padding: 1rem;
+    }
+
+    .motivation-cards-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

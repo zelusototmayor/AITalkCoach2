@@ -12,15 +12,16 @@ import {
 } from 'react-native';
 import AnimatedBackground from '../../components/AnimatedBackground';
 import { COLORS, SPACING } from '../../constants/colors';
-import { useOnboarding } from '../../context/OnboardingContext';
+import { useAuth } from '../../context/AuthContext';
 
 export default function LoginScreen({ navigation }) {
-  const { updateOnboardingData } = useOnboarding();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
   const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
 
   const validateForm = () => {
     const newErrors = {};
@@ -39,13 +40,28 @@ export default function LoginScreen({ navigation }) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleLogin = () => {
-    if (validateForm()) {
-      // TODO: Implement actual login API call
-      updateOnboardingData({ user: { email: formData.email } });
+  const handleLogin = async () => {
+    if (!validateForm()) {
+      return;
+    }
 
-      // Navigate directly to the Practice screen
-      navigation.navigate('Practice');
+    setIsLoading(true);
+    setErrors({});
+
+    try {
+      const result = await login(formData.email, formData.password);
+
+      if (result.success) {
+        // Navigation will be handled automatically by MainNavigator
+        // based on authentication state change
+      } else {
+        setErrors({ general: result.error || 'Login failed. Please try again.' });
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setErrors({ general: 'Network error. Please check your connection and try again.' });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -81,6 +97,11 @@ export default function LoginScreen({ navigation }) {
           <Text style={styles.subtitle}>
             Login to continue improving your speaking skills
           </Text>
+          {errors.general && (
+            <View style={styles.errorContainer}>
+              <Text style={styles.generalError}>{errors.general}</Text>
+            </View>
+          )}
         </View>
 
         <View style={styles.form}>
@@ -119,8 +140,14 @@ export default function LoginScreen({ navigation }) {
           </View>
         </View>
 
-        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-          <Text style={styles.loginButtonText}>Login</Text>
+        <TouchableOpacity
+          style={[styles.loginButton, isLoading && styles.loginButtonDisabled]}
+          onPress={handleLogin}
+          disabled={isLoading}
+        >
+          <Text style={styles.loginButtonText}>
+            {isLoading ? 'Logging in...' : 'Login'}
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -254,5 +281,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.primary,
     fontWeight: '500',
+  },
+  errorContainer: {
+    backgroundColor: '#fee',
+    borderRadius: 8,
+    padding: SPACING.sm,
+    marginTop: SPACING.md,
+    width: '100%',
+  },
+  generalError: {
+    color: '#c00',
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  loginButtonDisabled: {
+    opacity: 0.6,
   },
 });

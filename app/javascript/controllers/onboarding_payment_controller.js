@@ -232,8 +232,9 @@ export default class extends Controller {
       })
 
       if (response.ok || response.redirected) {
-        // Server will redirect to app root
-        window.location.href = response.url || '/practice'
+        // In development mode, server redirects to /onboarding/complete
+        // Follow the redirect by navigating to the complete path
+        window.location.href = '/onboarding/complete'
       } else {
         const data = await response.text()
         this.showError('Payment setup failed. Please try again.')

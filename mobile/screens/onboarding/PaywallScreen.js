@@ -3,12 +3,15 @@ import { View, Text, StyleSheet, ScrollView, TextInput, Alert } from 'react-nati
 import Button from '../../components/Button';
 import PricingCard from '../../components/PricingCard';
 import AnimatedBackground from '../../components/AnimatedBackground';
+import QuitOnboardingButton from '../../components/QuitOnboardingButton';
 import { COLORS, SPACING } from '../../constants/colors';
 import { PRICING_PLANS, HOW_IT_WORKS } from '../../constants/onboardingData';
 import { useOnboarding } from '../../context/OnboardingContext';
+import { useAuth } from '../../context/AuthContext';
 
 export default function PaywallScreen({ navigation }) {
   const { updateOnboardingData } = useOnboarding();
+  const { completeOnboarding } = useAuth();
   const [selectedPlan, setSelectedPlan] = useState('yearly'); // Default to yearly
   const [paymentMethod, setPaymentMethod] = useState('');
 
@@ -42,9 +45,15 @@ export default function PaywallScreen({ navigation }) {
       [
         {
           text: 'OK',
-          onPress: () => {
-            // Navigate to the Practice screen
-            navigation.navigate('Practice');
+          onPress: async () => {
+            // Mark onboarding as complete
+            const result = await completeOnboarding();
+            if (result.success) {
+              // MainNavigator will automatically switch to AppStack
+              // No need to manually navigate
+            } else {
+              Alert.alert('Error', 'Failed to complete onboarding. Please try again.');
+            }
           },
         },
       ]
@@ -74,6 +83,7 @@ export default function PaywallScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <AnimatedBackground />
+      <QuitOnboardingButton />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}

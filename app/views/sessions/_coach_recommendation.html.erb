@@ -47,8 +47,8 @@
                   data-session-duration-param="60">
             <%= icon_svg(:mic, css_class: 'icon-inline') %> Continue Practice (60s)
           </button>
-          <%= link_to progress_path, class: "coach-btn-secondary" do %>
-            <%= icon_svg(:chart_bar, css_class: 'icon-inline') %> View Full Plan
+          <%= link_to coach_path, class: "coach-btn-secondary" do %>
+            <%= icon_svg(:calendar, css_class: 'icon-inline') %> View Your Plan
           <% end %>
         </div>
       </div>
@@ -115,11 +115,9 @@
                   data-session-duration-param="30">
             <%= icon_svg(:mic, css_class: 'icon-inline') %> Try This Drill (30s)
           </button>
-          <button class="coach-btn-secondary"
-                  data-action="click->session#setAsWeeklyFocus"
-                  data-session-recommendation-param="<%= top_recommendation[:type] %>">
-            <%= icon_svg(:calendar, css_class: 'icon-inline') %> Set as Weekly Focus
-          </button>
+          <%= link_to coach_path, class: "coach-btn-secondary" do %>
+            <%= icon_svg(:calendar, css_class: 'icon-inline') %> View Your Plan
+          <% end %>
         </div>
       </div>
     <% end %>

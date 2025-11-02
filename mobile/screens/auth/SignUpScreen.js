@@ -12,10 +12,10 @@ import {
 } from 'react-native';
 import AnimatedBackground from '../../components/AnimatedBackground';
 import { COLORS, SPACING } from '../../constants/colors';
-import { useOnboarding } from '../../context/OnboardingContext';
+import { useAuth } from '../../context/AuthContext';
 
 export default function SignUpScreen({ navigation }) {
-  const { updateOnboardingData } = useOnboarding();
+  const { signup } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -23,6 +23,7 @@ export default function SignUpScreen({ navigation }) {
     confirmPassword: '',
   });
   const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
 
   const validateForm = () => {
     const newErrors = {};
@@ -53,13 +54,50 @@ export default function SignUpScreen({ navigation }) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSignUp = () => {
-    if (validateForm()) {
-      // TODO: Implement actual signup API call
-      updateOnboardingData({ user: { name: formData.name, email: formData.email } });
+  const handleSignUp = async () => {
+    if (!validateForm()) {
+      return;
+    }
 
-      // Navigate to the next onboarding screen
-      navigation.navigate('ValueProp');
+    setIsLoading(true);
+    setErrors({});
+
+    try {
+      const result = await signup(
+        formData.name,
+        formData.email,
+        formData.password,
+        formData.confirmPassword
+      );
+
+      if (result.success) {
+        // Navigation will be handled automatically by MainNavigator
+        // based on authentication state change
+      } else {
+        // Handle signup errors
+        if (result.errors && Array.isArray(result.errors)) {
+          const errorObj = {};
+          result.errors.forEach(error => {
+            if (error.toLowerCase().includes('email')) {
+              errorObj.email = error;
+            } else if (error.toLowerCase().includes('password')) {
+              errorObj.password = error;
+            } else if (error.toLowerCase().includes('name')) {
+              errorObj.name = error;
+            } else {
+              errorObj.general = error;
+            }
+          });
+          setErrors(errorObj);
+        } else {
+          setErrors({ general: 'Signup failed. Please try again.' });
+        }
+      }
+    } catch (error) {
+      console.error('Signup error:', error);
+      setErrors({ general: 'Network error. Please check your connection and try again.' });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -87,6 +125,11 @@ export default function SignUpScreen({ navigation }) {
           <Text style={styles.subtitle}>
             Congrats on taking the first step to becoming a master communicator.
           </Text>
+          {errors.general && (
+            <View style={styles.errorContainer}>
+              <Text style={styles.generalError}>{errors.general}</Text>
+            </View>
+          )}
         </View>
 
         <View style={styles.form}>
@@ -150,8 +193,14 @@ export default function SignUpScreen({ navigation }) {
           </View>
         </View>
 
-        <TouchableOpacity style={styles.continueButton} onPress={handleSignUp}>
-          <Text style={styles.continueButtonText}>Continue</Text>
+        <TouchableOpacity
+          style={[styles.continueButton, isLoading && styles.continueButtonDisabled]}
+          onPress={handleSignUp}
+          disabled={isLoading}
+        >
+          <Text style={styles.continueButtonText}>
+            {isLoading ? 'Creating account...' : 'Continue'}
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -259,5 +308,20 @@ const styles = StyleSheet.create({
   loginLinkBold: {
     fontWeight: '600',
     color: COLORS.primary,
+  },
+  errorContainer: {
+    backgroundColor: '#fee',
+    borderRadius: 8,
+    padding: SPACING.sm,
+    marginTop: SPACING.md,
+    width: '100%',
+  },
+  generalError: {
+    color: '#c00',
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  continueButtonDisabled: {
+    opacity: 0.6,
   },
 });

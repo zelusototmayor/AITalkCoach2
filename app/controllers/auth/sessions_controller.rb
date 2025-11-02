@@ -18,8 +18,14 @@ class Auth::SessionsController < ApplicationController
         Rails.logger.info "Auto-completed onboarding for grandfathered user: #{user.email}"
       end
 
-      redirect_back_or(practice_path)
-      flash[:notice] = "Welcome back!"
+      # Check if user needs to complete onboarding
+      if user.needs_onboarding?
+        redirect_to onboarding_splash_path
+        flash[:notice] = "Welcome! Let's get you started."
+      else
+        redirect_back_or(practice_path)
+        flash[:notice] = "Welcome back!"
+      end
     else
       flash.now[:alert] = "Invalid email or password"
       render :new, status: :unprocessable_content
@@ -35,6 +41,9 @@ class Auth::SessionsController < ApplicationController
 
     # Clear any cached user data
     @current_user = nil
+
+    # Clear Turbo cache to prevent stale data from being shown
+    response.headers["Turbo-Cache-Control"] = "no-cache"
 
     # Redirect to marketing landing page (root)
     # Note: Flash won't persist across subdomain redirects, which is expected

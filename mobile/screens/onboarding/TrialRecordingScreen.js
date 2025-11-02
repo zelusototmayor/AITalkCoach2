@@ -3,19 +3,24 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'rea
 import { Audio } from 'expo-av';
 import RecordButton from '../../components/RecordButton';
 import AnimatedBackground from '../../components/AnimatedBackground';
+import QuitOnboardingButton from '../../components/QuitOnboardingButton';
 import { COLORS, SPACING } from '../../constants/colors';
 import { TRIAL_PROMPT, MOCK_TRIAL_RESULTS } from '../../constants/onboardingData';
 import { useOnboarding } from '../../context/OnboardingContext';
+import { createTrialSession } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 
 const RECORDING_DURATION = 30; // 30 seconds
 
 export default function TrialRecordingScreen({ navigation }) {
   const { updateOnboardingData } = useOnboarding();
+  const { getAccessToken } = useAuth();
 
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [progress, setProgress] = useState(0);
   const [hasRecorded, setHasRecorded] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   const recordingRef = useRef(null);
   const intervalRef = useRef(null);
@@ -101,34 +106,68 @@ export default function TrialRecordingScreen({ navigation }) {
 
       if (recordingRef.current) {
         setIsRecording(false);
+        setIsUploading(true);
+
         await recordingRef.current.stopAndUnloadAsync();
         const uri = recordingRef.current.getURI();
 
-        // Here you would normally upload to backend
-        // For now, just store that we recorded
         console.log('Recording saved at:', uri);
 
-        // TODO: Upload to backend and get real results
-        // For now, use mock data
-        updateOnboardingData({
-          trialSessionToken: 'mock-token', // Would be from API
-          trialResults: {
-            // Would be fetched from API after processing
-            isMockData: false, // Set to false since user actually recorded
-            clarity: 75,
-            fillerWordsPerMinute: 7.2,
-            wordsPerMinute: 152,
-            transcript: 'Your actual transcript would appear here after processing...',
+        // Upload to backend and get trial token
+        const response = await createTrialSession(
+          {
+            uri: uri,
+            name: 'trial-recording.m4a',
+            type: 'audio/m4a',
           },
+          {
+            language: 'en',
+            target_seconds: RECORDING_DURATION,
+          }
+        );
+
+        console.log('Trial session created:', response.trial_token);
+
+        // Store trial token in context
+        updateOnboardingData({
+          trialSessionToken: response.trial_token,
         });
 
         setHasRecorded(true);
+        setIsUploading(false);
 
-        // Navigate to Results screen
-        navigation.navigate('Results');
+        // Navigate to processing screen
+        navigation.navigate('TrialProcessing');
       }
     } catch (error) {
-      console.error('Failed to stop recording:', error);
+      console.error('Failed to upload recording:', error);
+      setIsUploading(false);
+
+      Alert.alert(
+        'Upload Failed',
+        'Failed to upload your recording. Would you like to try again?',
+        [
+          {
+            text: 'Try Again',
+            onPress: () => {
+              setHasRecorded(false);
+              setRecordingTime(0);
+              setProgress(0);
+            },
+          },
+          {
+            text: 'Skip',
+            style: 'cancel',
+            onPress: () => {
+              // Use mock data
+              updateOnboardingData({
+                trialResults: MOCK_TRIAL_RESULTS,
+              });
+              navigation.navigate('Results');
+            },
+          },
+        ]
+      );
     }
   };
 
@@ -188,6 +227,7 @@ export default function TrialRecordingScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <AnimatedBackground />
+      <QuitOnboardingButton />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}

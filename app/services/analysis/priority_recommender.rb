@@ -393,64 +393,88 @@ module Analysis
     end
 
     def generate_actionable_steps(area)
+      # Generate personalized steps with specific data points
       case area[:type]
       when "reduce_fillers"
+        current_percent = (area[:current_value] * 100).round(1)
+        target_percent = (area[:target_value] * 100).round(1)
+
+        # Get most common filler words from specific issues
+        common_fillers = area[:specific_issues]&.map { |issue| issue[0] }&.take(2) || ["um", "uh"]
+        filler_examples = common_fillers.join(" and ")
+
         [
-          "Record yourself speaking for 2 minutes daily",
-          "Count and track filler words in each recording",
-          "Practice pausing for 1-2 seconds instead of saying 'um'",
-          "Have a conversation partner signal when you use fillers"
+          "In your recent sessions, you averaged #{current_percent}% filler words—let's reduce that to #{target_percent}%.",
+          "Your most common fillers are '#{filler_examples}'. Practice pausing for 1-2 seconds instead.",
+          "Record yourself for 2 minutes daily focusing on eliminating these specific words.",
+          "Try the 'pause drill': speak on a topic and pause deliberately where you'd normally say #{filler_examples}."
         ]
       when "improve_pace"
-        if area[:current_value] < 140
+        current_wpm = area[:current_value].round
+        target_wpm = area[:target_value].round
+
+        if current_wpm < 140
           [
-            "Practice with a metronome set to match target pace",
-            "Read aloud for 5 minutes daily at faster pace",
-            "Record yourself and gradually increase speed",
-            "Focus on maintaining clarity while speeding up"
+            "Your current pace is #{current_wpm} WPM. Let's increase it to #{target_wpm} WPM gradually.",
+            "Practice with a metronome set to #{target_wpm} beats per minute (1 word per beat).",
+            "Read aloud for 5 minutes daily, gradually increasing speed while maintaining clarity.",
+            "Record yourself and check your WPM after each session to track improvement."
           ]
         else
           [
-            "Practice deliberate pausing between sentences",
-            "Emphasize key words by slowing down slightly",
-            "Record yourself speaking more slowly",
-            "Practice breathing techniques for pace control"
+            "Your pace is #{current_wpm} WPM—a bit fast. Let's bring it down to #{target_wpm} WPM for better comprehension.",
+            "Practice deliberate pausing for 2-3 seconds between key points.",
+            "Focus on emphasizing important words by slowing down slightly on them.",
+            "Practice breathing techniques: inhale for 4 counts, exhale slowly while speaking."
           ]
         end
       when "enhance_clarity"
+        current_percent = (area[:current_value] * 100).round
+        target_percent = (area[:target_value] * 100).round
+
         [
-          "Practice tongue twisters for 5 minutes daily",
-          "Record yourself reading complex passages",
-          "Focus on enunciating consonants clearly",
-          "Practice speaking with a pen in your mouth (advanced)"
+          "Your clarity score is #{current_percent}%—let's boost it to #{target_percent}% with articulation practice.",
+          "Practice tongue twisters for 5 minutes daily: 'She sells seashells' and 'Red leather, yellow leather'.",
+          "Record yourself reading complex passages and listen for mumbled words.",
+          "Focus on enunciating consonants clearly, especially at the ends of words."
         ]
       when "boost_engagement"
+        current_percent = (area[:current_value] * 100).round
+        target_percent = (area[:target_value] * 100).round
+
         [
-          "Practice varying your vocal tone and energy",
-          "Record yourself telling an exciting story",
-          "Add strategic pauses for emphasis",
-          "Practice gestures and body language (if video)"
+          "Your engagement level is #{current_percent}%—aim for #{target_percent}% by adding vocal variety.",
+          "Practice varying your pitch: go higher for questions, lower for important points.",
+          "Record yourself telling an exciting story, exaggerating your energy level.",
+          "Add strategic pauses (2-3 seconds) before key points to build anticipation."
         ]
       when "increase_fluency"
+        current_percent = (area[:current_value] * 100).round
+        target_percent = (area[:target_value] * 100).round
+
         [
-          "Practice impromptu speaking for 1 minute daily",
-          "Record yourself explaining familiar topics",
-          "Work on smooth transitions between ideas",
-          "Practice speaking without self-corrections"
+          "Your fluency is at #{current_percent}%—let's improve it to #{target_percent}% with consistent practice.",
+          "Practice impromptu speaking: set a timer for 1 minute and speak on a random topic.",
+          "Work on smooth transitions between ideas using phrases like 'building on that' or 'similarly'.",
+          "Record yourself explaining familiar topics without notes—focus on continuous flow."
         ]
       when "fix_long_pauses"
+        pause_count = area[:current_value].to_i
+
         [
-          "Prepare key talking points before recording",
-          "Practice bridging phrases to fill natural gaps",
-          "Record yourself with outline notes nearby",
-          "Focus on connecting ideas smoothly"
+          "You had #{pause_count} long pauses in your last session—let's reduce that to 1-2 max.",
+          "Prepare 3-5 key talking points before recording to avoid searching for ideas.",
+          "Practice bridging phrases: 'What I mean by that is...', 'In other words...'",
+          "Keep brief notes nearby during practice to glance at without losing momentum."
         ]
       when "professional_language"
+        issue_count = area[:current_value].to_i
+
         [
-          "Replace casual words with professional alternatives",
-          "Practice formal speech patterns daily",
-          "Record yourself giving a business presentation",
-          "Review and correct informal language patterns"
+          "You used #{issue_count} casual phrases that could be more professional.",
+          "Replace casual words: 'stuff' → 'matters', 'things' → 'items', 'like' → 'such as'.",
+          "Practice formal speech patterns: avoid contractions, use complete sentences.",
+          "Record yourself giving a mock business presentation and review for informal language."
         ]
       else
         [ "Practice specific exercises for this area", "Track progress daily", "Record and review regularly" ]

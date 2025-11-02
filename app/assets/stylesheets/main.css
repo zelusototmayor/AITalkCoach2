@@ -8400,10 +8400,8 @@ textarea:focus {
 }
 
 .progress-dashboard {
-  display: grid;
-  grid-template-columns: 1.1fr 1.1fr;
-  gap: 1.5rem;
-  max-width: 1400px;
+  display: block;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
@@ -8947,12 +8945,6 @@ textarea:focus {
 }
 
 /* Responsive Design */
-@media (max-width: 1024px) {
-  .progress-dashboard {
-    grid-template-columns: 1fr;
-  }
-}
-
 @media (max-width: 768px) {
   .skill-grid {
     grid-template-columns: 1fr;

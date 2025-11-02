@@ -1,11 +1,22 @@
 class SessionsController < ApplicationController
+  # Skip CSRF verification for JSON API requests (mobile app)
+  skip_before_action :verify_authenticity_token, if: -> { request.format.json? }
+
   before_action :activate_trial_if_requested
-  before_action :require_login, except: [ :index, :create ]
-  before_action :require_login_or_trial, only: [ :index, :create ]
-  before_action :require_subscription, except: [ :index, :create ]
+  before_action :require_login, except: [ :index, :create ], unless: -> { request.format.json? && Rails.env.development? }
+  # Skip authentication for mobile API requests in development
+  # TODO: Implement proper mobile authentication (JWT/API keys) before production
+  before_action :require_login_or_trial, only: [ :index, :create ], unless: -> { request.format.json? && Rails.env.development? }
+  before_action :require_subscription, except: [ :index, :create ], unless: -> { request.format.json? && Rails.env.development? }
   before_action :set_session, only: [ :show, :destroy ]
 
   def index
+    # Safeguard: Redirect to onboarding if user is logged in but hasn't completed onboarding
+    if logged_in? && current_user.needs_onboarding?
+      redirect_to onboarding_splash_path, alert: "Please complete your profile setup first"
+      return
+    end
+
     # Trial mode is only available on marketing site (not app subdomain)
     # On app subdomain, users must be logged in with paid subscription
     if on_app_subdomain?
@@ -76,6 +87,9 @@ class SessionsController < ApplicationController
       @current_streak = calculate_current_streak
       @enforcement_analytics = calculate_enforcement_analytics
 
+      # Check if user has any sessions at all (for empty state)
+      @has_any_sessions = current_user.sessions.exists?
+
       # Handle prompt parameters from recommended/selected prompts
       if params[:adaptive_prompt] && params[:category] && params[:index]
         # User clicked on an adaptive/recommended prompt
@@ -110,23 +124,34 @@ class SessionsController < ApplicationController
     Rails.cache.delete("user_#{current_user.id}_recent_sessions")
   end
 
-  def progress
-    # Get all completed sessions for progress tracking
-    # Note: We load all sessions (not just last 30 days) to ensure users with historical data
-    # can see their progress dashboard and get recommendations even after practice gaps
-    @recent_sessions = current_user.sessions
+  def coach
+    # For mobile API in development, get user from params
+    if request.format.json? && Rails.env.development?
+      # Handle both numeric IDs and string identifiers
+      if params[:user_id].to_i > 0
+        user = User.find(params[:user_id])
+      else
+        # For string identifiers like "test-user", look up by email pattern
+        user = User.find_by!(email: "mobile_#{params[:user_id]}@dev.local")
+      end
+    else
+      user = current_user
+    end
+
+    # Get all completed sessions for context
+    @recent_sessions = user.sessions
                                    .where(completed: true)
-                                   .order("sessions.created_at ASC")  # ASC for chronological charts
+                                   .order("sessions.created_at ASC")
                                    .includes(:issues)
 
-    # Get the most recent completed session for recommendations
-    @latest_session = @recent_sessions.last  # Changed from first since we're sorting ASC
+    # Get the most recent completed session for last session insight
+    @latest_session = @recent_sessions.last
 
     # Generate priority recommendations if we have a recent session
     if @latest_session
       begin
-        # Get total session count (not filtered by date) for accurate first-session detection
-        total_sessions_count = current_user.sessions.where(completed: true).count
+        # Get total session count for accurate first-session detection
+        total_sessions_count = user.sessions.where(completed: true).count
 
         user_context = {
           speech_context: @latest_session.speech_context || "general",
@@ -137,7 +162,7 @@ class SessionsController < ApplicationController
         @priority_recommendations = recommender.generate_priority_recommendations
 
         # Get or create weekly focus
-        @weekly_focus = recommender.create_or_update_weekly_focus(current_user)
+        @weekly_focus = recommender.create_or_update_weekly_focus(user)
       rescue => e
         Rails.logger.error "Priority recommendations error: #{e.message}"
         @priority_recommendations = nil
@@ -149,7 +174,7 @@ class SessionsController < ApplicationController
 
     # Generate daily plan based on weekly focus
     if @weekly_focus
-      plan_generator = Planning::DailyPlanGenerator.new(@weekly_focus, current_user)
+      plan_generator = Planning::DailyPlanGenerator.new(@weekly_focus, user)
       @daily_plan = plan_generator.generate_plan
 
       # Calculate weekly focus tracking metrics
@@ -159,21 +184,98 @@ class SessionsController < ApplicationController
       @weekly_focus_tracking = nil
     end
 
+    # Prepare calendar data (full year for habit tracking)
+    @calendar_data = prepare_calendar_data(@recent_sessions)
+
+    # Prepare last session insight data
+    @last_session_insight = prepare_last_session_insight(@latest_session, @priority_recommendations) if @latest_session
+
+    # Return JSON for mobile API
+    if request.format.json?
+      render json: {
+        priority_recommendations: @priority_recommendations,
+        weekly_focus: @weekly_focus,
+        daily_plan: @daily_plan,
+        weekly_focus_tracking: @weekly_focus_tracking,
+        latest_session: @latest_session ? {
+          id: @latest_session.id,
+          created_at: @latest_session.created_at,
+          analysis_data: @latest_session.analysis_data
+        } : nil,
+        last_session_insight: @last_session_insight
+      }
+    end
+  end
+
+  def progress
+    # For mobile API in development, use user_id param instead of current_user
+    user = if request.format.json? && Rails.env.development? && params[:user_id]
+             User.find_by(id: params[:user_id]) || User.first # Fallback to first user if not found
+           else
+             current_user
+           end
+
+    # Get all completed sessions for progress tracking
+    # Note: We load all sessions (not just last 30 days) to ensure users with historical data
+    # can see their progress dashboard and get recommendations even after practice gaps
+    @recent_sessions = user.sessions
+                                   .where(completed: true)
+                                   .order("sessions.created_at ASC")  # ASC for chronological charts
+                                   .includes(:issues)
+
+    # Get the most recent completed session for context
+    @latest_session = @recent_sessions.last
+
+    # Get weekly focus to highlight the focused metric
+    @weekly_focus = WeeklyFocus.current_for_user(user)
+
     # Prepare chart data for frontend with time range
-    @time_range = params[:time_range] || "7"
+    @time_range = params[:range] || params[:time_range] || "7"
     @chart_data = prepare_progress_chart_data(@recent_sessions, @time_range)
 
     # Prepare skill snapshot data (current vs previous session)
     @skill_snapshot = prepare_skill_snapshot_data(@recent_sessions)
 
-    # Prepare calendar data (last 30 days)
+    # Prepare calendar data (full year)
     @calendar_data = prepare_calendar_data(@recent_sessions)
+
+    # Detect achievements and milestones
+    begin
+      achievement_detector = Analysis::AchievementDetector.new(user)
+      @achievements = achievement_detector.detect_achievements
+      @recent_milestones = achievement_detector.detect_recent_milestones
+    rescue => e
+      Rails.logger.error "Achievement detection error: #{e.message}"
+      @achievements = []
+      @recent_milestones = []
+    end
+
+    respond_to do |format|
+      format.html # renders progress.html.erb
+      format.json {
+        render json: {
+          chart_data: @chart_data,
+          current_values: extract_current_values(@recent_sessions),
+          best_values: extract_best_values(@recent_sessions),
+          trends: extract_trends(@recent_sessions),
+          deltas: extract_deltas(@recent_sessions),
+          skill_snapshot: @skill_snapshot,
+          calendar_data: @calendar_data,
+          achievements: @achievements,
+          recent_milestones: @recent_milestones,
+          weekly_focus: @weekly_focus
+        }
+      }
+    end
   end
 
 
   def create
+    # Mobile API requests in development (temporary - implement proper auth before production)
+    if request.format.json? && Rails.env.development?
+      handle_mobile_session
     # Trial sessions only allowed on marketing site, not app subdomain
-    if trial_mode? && !on_app_subdomain?
+    elsif trial_mode? && !on_app_subdomain?
       # Handle trial session - no DB persistence
       handle_trial_session
     elsif logged_in? && current_user.can_access_app?
@@ -256,13 +358,21 @@ class SessionsController < ApplicationController
   end
 
   def show
+    # For mobile API in development, find session without user authentication
+    if request.format.json? && Rails.env.development?
+      @session = Session.find(params[:id])
+      user = @session.user
+    else
+      user = current_user
+    end
+
     @issues = @session.issues.order(:start_ms)
 
     # Generate priority-based recommendations for completed sessions
     if @session.completed? && @session.analysis_data.present?
       begin
         # Get last 5 sessions for historical context
-        recent_sessions = current_user.sessions
+        recent_sessions = user.sessions
           .where(completed: true)
           .where("id <= ?", @session.id) # Include current + previous
           .order(created_at: :desc)
@@ -270,7 +380,7 @@ class SessionsController < ApplicationController
           .includes(:issues)
 
         # Get total session count for accurate first-session detection
-        total_sessions_count = current_user.sessions
+        total_sessions_count = user.sessions
           .where(completed: true)
           .where("id <= ?", @session.id)
           .count
@@ -288,7 +398,7 @@ class SessionsController < ApplicationController
       end
 
       # Check if user has active weekly focus and match with recommendations
-      @weekly_focus = WeeklyFocus.current_for_user(current_user)
+      @weekly_focus = WeeklyFocus.current_for_user(user)
 
       if @weekly_focus && @priority_recommendations&.dig(:focus_this_week)&.any?
         top_rec = @priority_recommendations[:focus_this_week].first
@@ -360,7 +470,7 @@ class SessionsController < ApplicationController
 
     # Prepare sessions data for insights controller
     begin
-      @user_sessions = current_user.sessions
+      @user_sessions = user.sessions
                                     .where(completed: true)
                                     .where("sessions.created_at > ?", 90.days.ago)
                                     .order("sessions.created_at DESC")
@@ -388,11 +498,61 @@ class SessionsController < ApplicationController
       Rails.logger.error "Error preparing sessions data for insights: #{e.message}"
       @user_sessions = []
     end
+
+    # Return JSON for mobile API
+    if request.format.json?
+      render json: {
+        id: @session.id,
+        user_id: @session.user_id,
+        title: @session.title,
+        created_at: @session.created_at,
+        completed: @session.completed,
+        processing_state: @session.processing_state,
+        analysis_data: @session.analysis_data,
+        analysis_json: @session.analysis_data,  # Alias for mobile app compatibility
+        issues: @issues.map { |issue|
+          {
+            id: issue.id,
+            kind: issue.kind,
+            category: issue.category,
+            start_ms: issue.start_ms,
+            end_ms: issue.end_ms,
+            severity: issue.severity,
+            text: issue.text,
+            tip: issue.tip,
+            rationale: issue.rationale
+          }
+        },
+        priority_recommendations: @priority_recommendations,
+        weekly_focus: @weekly_focus,
+        weekly_progress: @weekly_progress,
+        micro_tips: @micro_tips
+      }
+    end
   end
 
   def destroy
     @session.destroy
     redirect_to practice_path, notice: "Session deleted successfully."
+  end
+
+  def status
+    # For mobile API in development, find session without user authentication
+    if request.format.json? && Rails.env.development?
+      @session = Session.find(params[:id])
+    else
+      @session = current_user.sessions.find(params[:id])
+    end
+
+    render json: {
+      id: @session.id,
+      processing_state: @session.processing_state,
+      completed: @session.completed,
+      incomplete_reason: @session.incomplete_reason,
+      updated_at: @session.updated_at,
+      progress_percent: @session.analysis_data&.dig("processing_progress") || calculate_progress_percent(@session),
+      processing_stage: @session.analysis_data&.dig("processing_stage") || infer_processing_stage(@session)
+    }
   end
 
   # Make the helper methods available to views
@@ -401,7 +561,12 @@ class SessionsController < ApplicationController
   private
 
   def set_session
-    @session = current_user.sessions.find(params[:id])
+    # For mobile API in development, find session without user authentication
+    if request.format.json? && Rails.env.development?
+      @session = Session.find(params[:id])
+    else
+      @session = current_user.sessions.find(params[:id])
+    end
   end
 
   # Helper method to convert decimal metrics to percentage for display
@@ -460,7 +625,7 @@ class SessionsController < ApplicationController
 
 
   def session_params
-    params.require(:session).permit(:title, :language, :media_kind, :target_seconds, :minimum_duration_enforced, :speech_context, :weekly_focus_id, :is_planned_session, :planned_for_date, media_files: [])
+    params.require(:session).permit(:title, :language, :media_kind, :target_seconds, :minimum_duration_enforced, :speech_context, :weekly_focus_id, :is_planned_session, :planned_for_date, :media_file, media_files: [])
   end
 
   def extract_session_metrics(session)
@@ -879,6 +1044,90 @@ class SessionsController < ApplicationController
     redirect_to marketing_subdomain_url("/?trial=true"), allow_other_host: true, alert: "Please login or try our demo"
   end
 
+  def handle_mobile_session
+    # Mobile API session creation (development only - no authentication required)
+    # TODO: Implement proper authentication (JWT/API keys) before production
+
+    Rails.logger.info "Mobile API session params: #{params.inspect}"
+
+    # Get or create user based on user_id from params
+    user_id = params.dig(:session, :user_id)
+
+    if user_id.blank?
+      render json: {
+        success: false,
+        error: "user_id is required"
+      }, status: :unprocessable_entity
+      return
+    end
+
+    # For development, find or create a user with this ID
+    # In production, this should validate a JWT token instead
+    user = User.find_or_create_by!(email: "mobile_#{user_id}@dev.local") do |u|
+      u.password = SecureRandom.hex(32)
+      u.name = "Mobile User #{user_id}"
+    end
+
+    # Create session for this user
+    @session = user.sessions.new
+    @session.processing_state = "pending"
+    @session.completed = false
+
+    # Set basic attributes from params
+    @session.title = params.dig(:session, :title) if params.dig(:session, :title)
+    @session.language = params.dig(:session, :language) || "en"
+    @session.media_kind = params.dig(:session, :media_kind) || "audio"
+    @session.target_seconds = params.dig(:session, :target_seconds)&.to_i || 30
+    @session.speech_context = params.dig(:session, :speech_context)
+    @session.weekly_focus_id = params.dig(:session, :weekly_focus_id)
+
+    # Attach media file (handle both singular and plural)
+    if params.dig(:session, :media_file).present?
+      @session.media_files.attach(params.dig(:session, :media_file))
+    elsif params.dig(:session, :media_files).present?
+      @session.media_files.attach(params.dig(:session, :media_files))
+    end
+
+    # Set enforcement flag
+    if @session.minimum_duration_enforced.nil?
+      @session.minimum_duration_enforced = true
+    end
+
+    # Set planned_for_date if needed
+    if @session.is_planned_session && @session.planned_for_date.nil?
+      @session.planned_for_date = Date.current
+    end
+
+    if @session.save
+      # Clear cache
+      Rails.cache.delete("user_#{user.id}_sessions_count")
+      Rails.cache.delete("user_#{user.id}_recent_sessions")
+
+      # Enqueue background job for processing
+      Sessions::ProcessJob.perform_later(@session.id)
+
+      # Return JSON response
+      render json: {
+        success: true,
+        id: @session.id,
+        session_id: @session.id,
+        message: "Recording session created successfully. Analysis will be available shortly."
+      }, status: :created
+    else
+      # Handle validation errors
+      error_messages = @session.errors.full_messages
+      primary_message = error_messages.any? ? error_messages.first : "Please record audio before submitting"
+
+      Rails.logger.error "Mobile session validation failed: #{error_messages.join(', ')}"
+
+      render json: {
+        success: false,
+        errors: error_messages,
+        error: primary_message
+      }, status: :unprocessable_entity
+    end
+  end
+
   def handle_trial_session
     # Mark trial as used
     mark_trial_used
@@ -1064,6 +1313,8 @@ class SessionsController < ApplicationController
 
     {
       labels: labels,
+      # Overall score (primary metric)
+      overall_score_data: chart_sessions.map { |s| (s.analysis_data["overall_score"].to_f * 100).round },
       # Primary metrics
       filler_data: chart_sessions.map { |s| (s.analysis_data["filler_rate"].to_f * 100).round(1) },
       pace_data: chart_sessions.map { |s| s.analysis_data["wpm"].to_f.round },
@@ -1095,17 +1346,29 @@ class SessionsController < ApplicationController
     baseline_sessions = sessions
 
     # Calculate recent averages
+    recent_overall = calculate_session_average(recent_sessions, "overall_score")
     recent_clarity = calculate_session_average(recent_sessions, "clarity_score")
     recent_filler = calculate_session_average(recent_sessions, "filler_rate")
     recent_pace = calculate_session_average(recent_sessions, "wpm")
+    recent_pace_consistency = calculate_session_average(recent_sessions, "pace_consistency")
+    recent_fluency = calculate_session_average(recent_sessions, "fluency_score")
+    recent_engagement = calculate_session_average(recent_sessions, "engagement_score")
 
     # Calculate baseline averages (30-day)
+    baseline_overall = calculate_session_average(baseline_sessions, "overall_score")
     baseline_clarity = calculate_session_average(baseline_sessions, "clarity_score")
     baseline_filler = calculate_session_average(baseline_sessions, "filler_rate")
     baseline_pace = calculate_session_average(baseline_sessions, "wpm")
+    baseline_pace_consistency = calculate_session_average(baseline_sessions, "pace_consistency")
+    baseline_fluency = calculate_session_average(baseline_sessions, "fluency_score")
+    baseline_engagement = calculate_session_average(baseline_sessions, "engagement_score")
 
     # Convert to display format and calculate deltas
     {
+      overall_score: {
+        score: (recent_overall * 100).round,
+        delta: ((recent_overall - baseline_overall) * 100).round
+      },
       clarity: {
         score: (recent_clarity * 100).round,
         delta: ((recent_clarity - baseline_clarity) * 100).round
@@ -1117,6 +1380,18 @@ class SessionsController < ApplicationController
       pace: {
         score: recent_pace.round,
         delta: (recent_pace - baseline_pace).round
+      },
+      pace_consistency: {
+        score: (recent_pace_consistency * 100).round,
+        delta: ((recent_pace_consistency - baseline_pace_consistency) * 100).round
+      },
+      fluency: {
+        score: (recent_fluency * 100).round,
+        delta: ((recent_fluency - baseline_fluency) * 100).round
+      },
+      engagement: {
+        score: (recent_engagement * 100).round,
+        delta: ((recent_engagement - baseline_engagement) * 100).round
       }
     }
   end
@@ -1150,16 +1425,17 @@ class SessionsController < ApplicationController
     return nil unless weekly_focus.present?
 
     today = Date.current
+    user = weekly_focus.user
 
     # Sessions completed today for this weekly focus
-    sessions_today = current_user.sessions
+    sessions_today = user.sessions
                                   .where(weekly_focus_id: weekly_focus.id)
                                   .where(completed: true)
                                   .where("DATE(created_at) = ?", today)
                                   .count
 
     # Sessions completed this week for this weekly focus
-    sessions_this_week = current_user.sessions
+    sessions_this_week = user.sessions
                                      .where(weekly_focus_id: weekly_focus.id)
                                      .where(completed: true)
                                      .where("created_at >= ?", weekly_focus.week_start)
@@ -1183,7 +1459,7 @@ class SessionsController < ApplicationController
 
   def calculate_focus_streak(weekly_focus)
     # Get all completed sessions for this weekly focus, ordered by date
-    sessions = current_user.sessions
+    sessions = weekly_focus.user.sessions
                            .where(weekly_focus_id: weekly_focus.id)
                            .where(completed: true)
                            .where("created_at >= ?", weekly_focus.week_start)
@@ -1210,9 +1486,226 @@ class SessionsController < ApplicationController
     streak
   end
 
+  def prepare_last_session_insight(session, priority_recommendations = nil)
+    return nil unless session.present? && session.analysis_data.present?
+
+    # Extract all metrics from the current session
+    current_metrics = {
+      overall_score: session.analysis_data["overall_score"],
+      filler_rate: session.analysis_data["filler_rate"],
+      clarity_score: session.analysis_data["clarity_score"],
+      wpm: session.analysis_data["wpm"],
+      pace_consistency: session.analysis_data["pace_consistency"],
+      fluency_score: session.analysis_data["fluency_score"],
+      engagement_score: session.analysis_data["engagement_score"]
+    }
+
+    # Get previous session for delta calculation
+    previous_session = session.user.sessions
+                               .where(completed: true)
+                               .where("id < ?", session.id)
+                               .order(created_at: :desc)
+                               .first
+
+    # Calculate deltas
+    metrics_with_deltas = {}
+    current_metrics.each do |key, value|
+      prev_value = previous_session&.analysis_data&.dig(key.to_s)
+      delta = if prev_value && value
+        value - prev_value
+      else
+        nil
+      end
+
+      metrics_with_deltas[key] = {
+        value: value,
+        delta: delta
+      }
+    end
+
+    # Identify what went well and what needs work (for narrative)
+    strengths = []
+    weaknesses = []
+
+    filler_rate = current_metrics[:filler_rate]
+    clarity_score = current_metrics[:clarity_score]
+    wpm = current_metrics[:wpm]
+
+    if filler_rate && filler_rate < 0.03
+      strengths << "filler word control (#{(filler_rate * 100).round(1)}%)"
+    elsif filler_rate && filler_rate > 0.05
+      weaknesses << "filler word usage (#{(filler_rate * 100).round(1)}%)"
+    end
+
+    if clarity_score && clarity_score > 0.85
+      strengths << "speech clarity (#{(clarity_score * 100).round}%)"
+    elsif clarity_score && clarity_score < 0.70
+      weaknesses << "speech clarity (#{(clarity_score * 100).round}%)"
+    end
+
+    if wpm && wpm >= 140 && wpm <= 180
+      strengths << "natural pace (#{wpm.round} WPM)"
+    elsif wpm && (wpm < 120 || wpm > 200)
+      weaknesses << "speaking pace (#{wpm.round} WPM)"
+    end
+
+    # Generate narrative
+    narrative = if strengths.any? && weaknesses.any?
+      "You excelled at #{strengths.join(', ')}, but let's work on #{weaknesses.join(', ')}."
+    elsif strengths.any?
+      "Great session! You showed strong #{strengths.join(', ')}. Keep it up!"
+    elsif weaknesses.any?
+      "Let's focus on improving #{weaknesses.join(', ')} in your next sessions."
+    else
+      "Solid session. Keep practicing to see continued improvement."
+    end
+
+    # Extract secondary observations from priority recommendations
+    secondary_observations = if priority_recommendations && priority_recommendations[:secondary_focus]
+      priority_recommendations[:secondary_focus].take(2) # Limit to 2 observations
+    else
+      []
+    end
+
+    {
+      session: session,
+      narrative: narrative,
+      date: session.created_at,
+      key_metrics: metrics_with_deltas,
+      secondary_observations: secondary_observations
+    }
+  end
+
+  def calculate_progress_percent(session)
+    case session.processing_state
+    when "pending" then 5
+    when "processing"
+      # Estimate based on time elapsed
+      processing_duration = Time.current - session.updated_at
+      if processing_duration < 10
+        15
+      elsif processing_duration < 30
+        35
+      elsif processing_duration < 60
+        60
+      elsif processing_duration < 90
+        80
+      else
+        90
+      end
+    when "completed" then 100
+    when "failed" then 0
+    else 0
+    end
+  end
+
+  def infer_processing_stage(session)
+    case session.processing_state
+    when "pending" then "pending"
+    when "processing"
+      processing_duration = Time.current - session.updated_at
+      if processing_duration < 10
+        "extraction"
+      elsif processing_duration < 30
+        "transcription"
+      elsif processing_duration < 60
+        "analysis"
+      elsif processing_duration < 90
+        "refinement"
+      else
+        "refinement"
+      end
+    when "completed" then "completed"
+    when "failed" then "failed"
+    else "unknown"
+    end
+  end
+
   def activate_trial_if_requested
     if params[:trial] == "true" && !logged_in?
       activate_trial
     end
+  end
+
+  # Helper methods for mobile API progress endpoint
+  def extract_current_values(sessions)
+    return {} if sessions.empty?
+
+    latest = sessions.last
+    return {} unless latest&.analysis_data
+
+    {
+      overall_score: latest.analysis_data["overall_score"],
+      filler_rate: latest.analysis_data["filler_rate"],
+      pace_wpm: latest.analysis_data["pace_wpm"],
+      clarity_score: latest.analysis_data["clarity_score"],
+      fluency_score: latest.analysis_data["fluency_score"],
+      engagement_score: latest.analysis_data["engagement_score"],
+      pace_consistency: latest.analysis_data["pace_consistency"]
+    }
+  end
+
+  def extract_best_values(sessions)
+    return {} if sessions.empty?
+
+    {
+      overall_score: sessions.maximum("(analysis_json->>'overall_score')::float"),
+      filler_rate: sessions.minimum("(analysis_json->>'filler_rate')::float"),
+      pace_wpm: sessions.maximum("(analysis_json->>'pace_wpm')::float"),
+      clarity_score: sessions.maximum("(analysis_json->>'clarity_score')::float"),
+      fluency_score: sessions.maximum("(analysis_json->>'fluency_score')::float"),
+      engagement_score: sessions.maximum("(analysis_json->>'engagement_score')::float"),
+      pace_consistency: sessions.maximum("(analysis_json->>'pace_consistency')::float")
+    }
+  rescue => e
+    Rails.logger.error "Error extracting best values: #{e.message}"
+    {}
+  end
+
+  def extract_trends(sessions)
+    return {} if sessions.length < 2
+
+    recent_5 = sessions.last(5)
+    previous_5 = sessions.length > 5 ? sessions[-10..-6] || [] : []
+
+    return {} if recent_5.empty?
+
+    metrics = [:overall_score, :filler_rate, :pace_wpm, :clarity_score, :fluency_score, :engagement_score, :pace_consistency]
+    trends = {}
+
+    metrics.each do |metric|
+      recent_avg = recent_5.map { |s| s.analysis_data[metric.to_s].to_f }.compact.sum / recent_5.length
+
+      if previous_5.any?
+        prev_avg = previous_5.map { |s| s.analysis_data[metric.to_s].to_f }.compact.sum / previous_5.length
+        trends[metric] = recent_avg > prev_avg ? 'up' : (recent_avg < prev_avg ? 'down' : 'neutral')
+      else
+        trends[metric] = 'neutral'
+      end
+    end
+
+    trends
+  rescue => e
+    Rails.logger.error "Error extracting trends: #{e.message}"
+    {}
+  end
+
+  def extract_deltas(sessions)
+    return {} if sessions.length < 2
+
+    latest = sessions.last
+    previous = sessions[-2]
+
+    return {} unless latest&.analysis_data && previous&.analysis_data
+
+    {
+      overall_score: (latest.analysis_data["overall_score"].to_f - previous.analysis_data["overall_score"].to_f).round(1),
+      filler_rate: (latest.analysis_data["filler_rate"].to_f - previous.analysis_data["filler_rate"].to_f).round(1),
+      pace_wpm: (latest.analysis_data["pace_wpm"].to_f - previous.analysis_data["pace_wpm"].to_f).round(1),
+      clarity_score: (latest.analysis_data["clarity_score"].to_f - previous.analysis_data["clarity_score"].to_f).round(1)
+    }
+  rescue => e
+    Rails.logger.error "Error extracting deltas: #{e.message}"
+    {}
   end
 end

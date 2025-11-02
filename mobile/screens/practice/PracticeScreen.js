@@ -16,6 +16,7 @@ import {
   MOCK_SEVEN_DAY_METRICS,
   MOCK_WEEKLY_FOCUS,
 } from '../../constants/practiceData';
+import { createSession } from '../../services/api';
 
 export default function PracticeScreen({ navigation }) {
   // Prompt state
@@ -29,9 +30,11 @@ export default function PracticeScreen({ navigation }) {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [shouldAutoStop, setShouldAutoStop] = useState(false); // Flag to trigger auto-stop
 
   const recordingRef = useRef(null);
   const intervalRef = useRef(null);
+  const recordingTimeRef = useRef(0); // Track current recording time to avoid stale closure
 
   useEffect(() => {
     // Request audio permissions on mount
@@ -60,6 +63,15 @@ export default function PracticeScreen({ navigation }) {
       }
     };
   }, []);
+
+  // Auto-stop recording when timer completes
+  useEffect(() => {
+    if (shouldAutoStop && isRecording) {
+      console.log('Auto-stopping recording at', recordingTimeRef.current, 'seconds');
+      setShouldAutoStop(false); // Reset flag
+      stopRecording();
+    }
+  }, [shouldAutoStop, isRecording]);
 
   const handleShuffle = () => {
     const nextIndex = (currentPromptIndex + 1) % PRACTICE_PROMPTS.length;
@@ -90,16 +102,22 @@ export default function PracticeScreen({ navigation }) {
       setIsRecording(true);
       setRecordingTime(0);
       setProgress(0);
+      recordingTimeRef.current = 0; // Reset ref
 
       // Start timer
       intervalRef.current = setInterval(() => {
         setRecordingTime((prevTime) => {
           const newTime = prevTime + 1;
+          recordingTimeRef.current = newTime; // Update ref to avoid stale closure
           setProgress(newTime / selectedTime);
 
           // Auto-stop when time is reached
           if (newTime >= selectedTime) {
-            stopRecording();
+            if (intervalRef.current) {
+              clearInterval(intervalRef.current);
+              intervalRef.current = null;
+            }
+            setShouldAutoStop(true); // Trigger auto-stop via useEffect
           }
 
           return newTime;
@@ -113,31 +131,106 @@ export default function PracticeScreen({ navigation }) {
 
   const stopRecording = async () => {
     try {
+      // Reset auto-stop flag if it's set
+      setShouldAutoStop(false);
+
+      // Clear interval first
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
 
-      if (recordingRef.current) {
-        setIsRecording(false);
-        await recordingRef.current.stopAndUnloadAsync();
-        const uri = recordingRef.current.getURI();
+      if (!recordingRef.current) {
+        console.error('No recording reference found');
+        return;
+      }
 
-        console.log('Recording saved at:', uri);
+      // Get actual duration from recording object BEFORE stopping
+      let actualDurationSec = 0;
+      try {
+        const status = await recordingRef.current.getStatusAsync();
+        if (status && status.durationMillis) {
+          actualDurationSec = Math.floor(status.durationMillis / 1000);
+          console.log('Duration from recording status:', actualDurationSec, 'seconds');
+        }
+      } catch (statusError) {
+        console.warn('Could not get recording status, using ref value:', statusError);
+        actualDurationSec = recordingTimeRef.current;
+      }
 
-        // TODO: Upload to backend and get real results
-        // For now, show success message
+      // Fallback to ref if status duration is 0
+      if (actualDurationSec === 0) {
+        actualDurationSec = recordingTimeRef.current;
+        console.log('Using ref duration as fallback:', actualDurationSec, 'seconds');
+      }
+
+      // Stop and get URI
+      setIsRecording(false);
+      await recordingRef.current.stopAndUnloadAsync();
+      const uri = recordingRef.current.getURI();
+
+      console.log('Recording saved at:', uri);
+      console.log('Final recording duration:', actualDurationSec, 'seconds');
+
+      // Validate duration
+      if (actualDurationSec === 0 || !actualDurationSec) {
+        console.error('Invalid recording duration:', actualDurationSec);
         Alert.alert(
-          'Recording Complete!',
-          `Great job! You recorded for ${recordingTime} seconds.`,
+          'Recording Error',
+          'Recording duration is invalid. Please try recording again.',
           [{ text: 'OK' }]
         );
-
-        // Reset recording state
+        // Reset state
         setRecordingTime(0);
         setProgress(0);
+        recordingTimeRef.current = 0;
+        return;
+      }
+
+      // Reset recording state
+      setRecordingTime(0);
+      setProgress(0);
+      recordingTimeRef.current = 0;
+
+      // Upload to backend and navigate to processing screen
+      try {
+        // TODO: Get actual user ID from auth context
+        const userId = 'test-user';
+
+        // Create session title
+        const sessionTitle = `Practice Session - ${new Date().toLocaleDateString()}`;
+
+        // Prepare audio file object
+        const audioFile = {
+          uri,
+          name: `recording_${Date.now()}.m4a`,
+          type: 'audio/m4a',
+        };
+
+        console.log('Uploading session with duration:', actualDurationSec, 'seconds');
+
+        // Upload session with actual duration
+        const session = await createSession(audioFile, userId, {
+          title: sessionTitle,
+          target_seconds: actualDurationSec, // Use actual duration from recording
+          language: 'en',
+        });
+
+        console.log('Session created successfully:', session.id);
+
+        // Navigate to processing screen
+        navigation.navigate('SessionProcessing', { sessionId: session.id });
+      } catch (error) {
+        console.error('Failed to upload session:', error);
+        Alert.alert(
+          'Upload Failed',
+          'Could not upload your recording. Please try again.',
+          [{ text: 'OK' }]
+        );
       }
     } catch (error) {
       console.error('Failed to stop recording:', error);
+      Alert.alert('Error', 'Failed to stop recording. Please try again.');
     }
   };
 
@@ -150,8 +243,19 @@ export default function PracticeScreen({ navigation }) {
   };
 
   const handleNavigation = (screen) => {
-    // TODO: Implement navigation to other screens
-    Alert.alert('Coming Soon', `${screen} screen is under development`);
+    // Navigate to different screens based on screen name
+    if (screen === 'practice') {
+      // Already on practice screen
+      return;
+    }
+    // Map screen names to route names
+    const screenMap = {
+      progress: 'Progress',
+      coach: 'Coach',
+      prompts: 'Prompts',
+      profile: 'ProfileMain',
+    };
+    navigation.navigate(screenMap[screen] || screen);
   };
 
   return (
@@ -260,12 +364,14 @@ const styles = StyleSheet.create({
     marginBottom: -SPACING.sm,
   },
   recordButtonWrapper: {
-    // RecordButton is 220x220, we'll scale it down
+    // RecordButton is 220x220, we'll scale it down and center it
     transform: [{ scale: 0.65 }],
+    alignSelf: 'center',
   },
   timerContainer: {
-    marginLeft: SPACING.sm,
-    alignItems: 'flex-start',
+    position: 'absolute',
+    right: SPACING.lg,
+    alignItems: 'flex-end',
     justifyContent: 'center',
   },
   timerText: {

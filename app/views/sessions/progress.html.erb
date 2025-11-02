@@ -1,503 +1,565 @@
 <% content_for :title, "Your Progress" %>
 
-<div class="progress-page" data-controller="progress-dashboard">
+<div class="progress-dashboard" data-controller="metric-explorer">
   <div class="page-header">
     <h1>Your Progress</h1>
-    <p class="page-subtitle">A focused plan you can complete today.</p>
+    <p class="page-subtitle">Track your improvement across all speaking metrics.</p>
   </div>
 
   <% if @recent_sessions.any? %>
-    <div class="progress-dashboard">
-      <!-- Left Column -->
-      <div class="progress-left-column">
-        <!-- Weekly Focus Section -->
-        <div class="weekly-focus-card">
-          <div class="card-header">
-            <h3>WEEKLY FOCUS</h3>
-            <span class="estimated-time">Est. time<br>6–8 min / day</span>
-          </div>
+    <!-- Main Chart Section (Large, Center) -->
+    <div class="chart-section">
+      <div class="chart-header">
+        <h2 class="chart-title" data-metric-explorer-target="chartTitle">Overall Score</h2>
 
-          <% if @priority_recommendations&.dig(:focus_this_week)&.first %>
-            <% focus_area = @priority_recommendations[:focus_this_week].first %>
-
-            <div class="focus-title">
-              <span class="focus-icon"><%= icon_svg(:fire, css_class: 'icon-inline') %></span>
-              <h2><%= humanize_improvement_type(focus_area[:type]) %></h2>
-            </div>
-
-            <div class="focus-target">
-              Target ≤ <%= format_metric_value(focus_area[:target_value], focus_area[:type]) %> by Sunday.
-              Average last 5 sessions: <%= format_metric_value(focus_area[:current_value], focus_area[:type]) %>.
-            </div>
-
-            <div class="focus-progress-grid">
-              <div class="progress-item">
-                <div class="progress-label">Today</div>
-                <div class="progress-value">
-                  <%= @weekly_focus_tracking ? "#{@weekly_focus_tracking[:sessions_today]} / #{@weekly_focus_tracking[:target_today]} drills" : "0 / 2 drills" %>
-                </div>
-              </div>
-              <div class="progress-item">
-                <div class="progress-label">Week</div>
-                <div class="progress-value">
-                  <%= @weekly_focus_tracking ? "#{@weekly_focus_tracking[:sessions_this_week]} / #{@weekly_focus_tracking[:target_this_week]} drills" : "0 / 10 drills" %>
-                </div>
-              </div>
-              <div class="progress-item">
-                <div class="progress-label">Streak</div>
-                <div class="progress-value">
-                  <%= @weekly_focus_tracking ? "#{@weekly_focus_tracking[:streak_days]} day#{'s' unless @weekly_focus_tracking[:streak_days] == 1}" : "0 days" %>
-                </div>
-              </div>
-            </div>
-
-            <div class="focus-actions">
-              <% if @daily_plan && @daily_plan[:drills].present? %>
-                <%= link_to icon_from_emoji(@daily_plan[:drills].first[:icon]) + " #{@daily_plan[:drills].first[:title]}",
-                    practice_path(
-                      weekly_focus_id: @weekly_focus&.id,
-                      is_planned_session: true,
-                      drill_title: @daily_plan[:drills].first[:title],
-                      target_seconds: @daily_plan[:drills].first[:duration_seconds]
-                    ),
-                    class: "btn btn-primary" %>
-                <% if @daily_plan[:drills].length > 1 %>
-                  <%= link_to icon_from_emoji(@daily_plan[:drills][1][:icon]) + " #{@daily_plan[:drills][1][:title]}",
-                      practice_path(
-                        weekly_focus_id: @weekly_focus&.id,
-                        is_planned_session: true,
-                        drill_title: @daily_plan[:drills][1][:title],
-                        target_seconds: @daily_plan[:drills][1][:duration_seconds]
-                      ),
-                      class: "btn btn-secondary" %>
-                <% end %>
-              <% else %>
-                <%= link_to icon_svg(:mic, css_class: 'icon-inline') + " Start Practice", practice_path, class: "btn btn-primary" %>
-              <% end %>
-            </div>
-
-            <div class="coach-tip">
-              <strong>Coach tip</strong>
-              <p><%= focus_area[:actionable_steps]&.first || "Practice daily for best results" %></p>
-            </div>
-          <% else %>
-            <div class="no-focus">
-              <p>Complete more sessions to get personalized weekly focus recommendations.</p>
-              <%= link_to "Start Practicing", practice_path, class: "btn btn-primary" %>
-            </div>
-          <% end %>
-        </div>
-
-        <!-- Today's 10-Minute Plan -->
-        <div class="daily-plan-card">
-          <div class="card-header">
-            <h3>TODAY'S <%= @daily_plan ? "#{@daily_plan[:total_duration_minutes]}-MINUTE" : "10-MINUTE" %> PLAN</h3>
-          </div>
-
-          <% if @daily_plan && @daily_plan[:drills].present? %>
-            <div class="plan-items">
-              <% @daily_plan[:drills].each do |drill| %>
-                <div class="plan-item">
-                  <div class="plan-number"><%= drill[:order] %></div>
-                  <div class="plan-content">
-                    <h4><%= icon_from_emoji(drill[:icon]) %> <%= drill[:title] %></h4>
-                    <p><%= drill[:description] %></p>
-                  </div>
-                  <%= link_to practice_path(
-                    weekly_focus_id: drill[:weekly_focus_id],
-                    is_planned_session: true,
-                    drill_title: drill[:title],
-                    target_seconds: drill[:duration_seconds]
-                  ), class: "btn-start", method: :get do %>
-                    ⭐ Start
-                  <% end %>
-                </div>
-              <% end %>
-            </div>
-
-            <div class="plan-actions">
-              <%= link_to icon_svg(:star, css_class: 'icon-inline') + " Start Plan", practice_path(
-                weekly_focus_id: @weekly_focus&.id,
-                is_planned_session: true,
-                drill_title: @daily_plan[:drills].first[:title],
-                target_seconds: @daily_plan[:drills].first[:duration_seconds]
-              ), class: "btn btn-primary" %>
-              <%= button_tag "Customize", class: "btn btn-link", disabled: true %>
-            </div>
-          <% else %>
-            <div class="plan-items">
-              <div class="plan-item">
-                <div class="plan-number">1</div>
-                <div class="plan-content">
-                  <h4>Complete More Sessions</h4>
-                  <p>Record a few more practice sessions to get personalized daily plans.</p>
-                </div>
-                <%= link_to practice_path, class: "btn-start" do %>
-                  <%= icon_svg(:star, css_class: 'icon-inline') %> Start
-                <% end %>
-              </div>
-            </div>
-          <% end %>
-        </div>
-
-        <!-- Practice Calendar -->
-        <div class="practice-calendar-card">
-          <div class="card-header">
-            <h3>PRACTICE CALENDAR</h3>
-          </div>
-
-          <% if @calendar_data.present? %>
-            <div class="calendar-grid">
-              <% @calendar_data.each do |day| %>
-                <div class="calendar-day <%= day[:has_session] ? 'trained' : 'missed' %>"
-                     title="<%= day[:date].strftime('%b %d, %Y') %>">
-                </div>
-              <% end %>
-            </div>
-
-            <div class="calendar-legend">
-              <div class="legend-item">
-                <div class="legend-dot missed"></div>
-                <span>Missed day</span>
-              </div>
-              <div class="legend-item">
-                <div class="legend-dot trained"></div>
-                <span>Trained</span>
-              </div>
-            </div>
-
-            <div class="calendar-note">
-              Each filled square = a completed practice day. Keep the streak alive.
-            </div>
-          <% end %>
-        </div>
-
-        <!-- Skill Snapshot -->
-        <div class="skill-snapshot-card">
-          <div class="card-header">
-            <h3>SKILL SNAPSHOT
-              <span class="info-btn" data-controller="tooltip" data-action="mouseenter->tooltip#show mouseleave->tooltip#hide" style="font-size: 12px; margin-left: 4px; cursor: help;">
-                <%= icon_svg(:info, css_class: 'icon-inline') %>
-                <span data-tooltip-target="content" class="tooltip-content hidden" style="width: 280px;">
-                  Shows your recent trend by comparing the average of your last 5 sessions to your overall 30-day average. Green arrows indicate improvement.
-                </span>
-              </span>
-            </h3>
-            <p class="card-subtitle" style="font-size: 11px; color: #9ca3af; margin: 4px 0 0 0; font-weight: normal; text-transform: none;">Last 5 sessions vs 30-day average</p>
-          </div>
-
-          <% if @skill_snapshot.present? %>
-            <div class="skill-grid">
-              <div class="skill-item">
-                <div class="skill-name">
-                  Clarity
-                  <span class="info-btn" data-controller="tooltip" data-action="mouseenter->tooltip#show mouseleave->tooltip#hide">
-                    <%= icon_svg(:info, css_class: 'icon-inline') %>
-                    <span data-tooltip-target="content" class="tooltip-content hidden">
-                      Clarity measures articulation, pace consistency, and pause quality
-                    </span>
-                  </span>
-                </div>
-                <div class="skill-score"><%= @skill_snapshot[:clarity][:score] %></div>
-                <div class="skill-delta <%= @skill_snapshot[:clarity][:delta] >= 0 ? 'positive' : 'negative' %>">
-                  <%= @skill_snapshot[:clarity][:delta] >= 0 ? '▲' : '▼' %>
-                  <%= @skill_snapshot[:clarity][:delta].abs %>
-                </div>
-              </div>
-
-              <div class="skill-item">
-                <div class="skill-name">
-                  Filler %
-                  <span class="info-btn" data-controller="tooltip" data-action="mouseenter->tooltip#show mouseleave->tooltip#hide">
-                    <%= icon_svg(:info, css_class: 'icon-inline') %>
-                    <span data-tooltip-target="content" class="tooltip-content hidden">
-                      Percentage of words that are fillers (um, uh, like). Lower is better.
-                    </span>
-                  </span>
-                </div>
-                <div class="skill-score"><%= @skill_snapshot[:filler_rate][:score] %>%</div>
-                <div class="skill-delta <%= @skill_snapshot[:filler_rate][:delta] <= 0 ? 'positive' : 'negative' %>">
-                  <%= @skill_snapshot[:filler_rate][:delta] <= 0 ? '▼' : '▲' %>
-                  <%= @skill_snapshot[:filler_rate][:delta].abs %>%
-                </div>
-              </div>
-
-              <div class="skill-item">
-                <div class="skill-name">
-                  Pace
-                  <span class="info-btn" data-controller="tooltip" data-action="mouseenter->tooltip#show mouseleave->tooltip#hide">
-                    <%= icon_svg(:info, css_class: 'icon-inline') %>
-                    <span data-tooltip-target="content" class="tooltip-content hidden">
-                      Your speaking rate in words per minute. Ideal range: 140-170 WPM
-                    </span>
-                  </span>
-                </div>
-                <div class="skill-score"><%= @skill_snapshot[:pace][:score] %></div>
-                <div class="skill-delta <%= @skill_snapshot[:pace][:delta] >= 0 ? 'positive' : 'negative' %>">
-                  <%= @skill_snapshot[:pace][:delta] >= 0 ? '▲' : '▼' %>
-                  <%= @skill_snapshot[:pace][:delta].abs %>
-                </div>
-              </div>
-            </div>
-          <% end %>
+        <!-- Time Range Options -->
+        <div class="time-range-options">
+          <button class="time-btn <%= @time_range == '7' ? 'active' : '' %>"
+                  data-range="7"
+                  data-action="click->metric-explorer#changeTimeRange"
+                  data-metric-explorer-target="timeRangeBtn">
+            Last 7 days
+          </button>
+          <button class="time-btn <%= @time_range == '10_sessions' ? 'active' : '' %>"
+                  data-range="10_sessions"
+                  data-action="click->metric-explorer#changeTimeRange"
+                  data-metric-explorer-target="timeRangeBtn">
+            Last 10 sessions
+          </button>
+          <button class="time-btn <%= @time_range == '10_days' ? 'active' : '' %>"
+                  data-range="10_days"
+                  data-action="click->metric-explorer#changeTimeRange"
+                  data-metric-explorer-target="timeRangeBtn">
+            Last 10 days
+          </button>
         </div>
       </div>
 
-      <!-- Right Column -->
-      <div class="progress-right-column">
-        <!-- Progress Toward Goals -->
-        <div class="progress-charts-card" data-controller="progress-dashboard">
-          <div class="card-header">
-            <h3>PROGRESS TOWARD GOALS</h3>
-          </div>
-
-          <div class="time-range-filters">
-            <button class="time-range-btn <%= @time_range == '7' ? 'active' : '' %>"
-                    data-range="7"
-                    data-action="click->progress-dashboard#changeTimeRange">
-              Last 7 Sessions
-            </button>
-            <button class="time-range-btn <%= @time_range == '30' ? 'active' : '' %>"
-                    data-range="30"
-                    data-action="click->progress-dashboard#changeTimeRange">
-              Last 30 Sessions
-            </button>
-            <button class="time-range-btn <%= @time_range == 'lifetime' ? 'active' : '' %>"
-                    data-range="lifetime"
-                    data-action="click->progress-dashboard#changeTimeRange">
-              Lifetime
-            </button>
-          </div>
-
-          <% if @chart_data.present? && @chart_data[:labels].any? %>
-            <!-- Filler % Chart -->
-            <div class="chart-container">
-              <div class="chart-header">
-                <span class="chart-title">
-                  Filler %
-                  <span class="info-btn" data-controller="tooltip" data-action="mouseenter->tooltip#show mouseleave->tooltip#hide">
-                    <%= icon_svg(:info, css_class: 'icon-inline') %>
-                    <span data-tooltip-target="content" class="tooltip-content hidden">
-                      Percentage of words that are fillers (um, uh, like)
-                    </span>
-                  </span>
-                </span>
-                <span class="chart-current-value">
-                  <%= @chart_data[:filler_data].last %>%
-                  <%= @chart_data[:filler_data][-2] && @chart_data[:filler_data].last < @chart_data[:filler_data][-2] ? '↗' : '' %>
-                </span>
-              </div>
-              <canvas data-progress-dashboard-target="fillerChart"
-                      data-labels="<%= @chart_data[:labels].to_json %>"
-                      data-values="<%= @chart_data[:filler_data].to_json %>"
-                      data-goal="2.0"></canvas>
-              <div class="chart-footer">
-                <span>Goal ≤ 2.0%</span>
-                <span>
-                  <% case @time_range
-                     when '7' %>
-                    Last 7 sessions
-                  <% when '30' %>
-                    Last 30 sessions
-                  <% when 'lifetime' %>
-                    All <%= @chart_data[:session_count] %> sessions
-                  <% end %>
-                </span>
-              </div>
-            </div>
-
-            <!-- Pace (WPM) Chart -->
-            <div class="chart-container">
-              <div class="chart-header">
-                <span class="chart-title">
-                  Pace (WPM)
-                  <span class="info-btn" data-controller="tooltip" data-action="mouseenter->tooltip#show mouseleave->tooltip#hide">
-                    <%= icon_svg(:info, css_class: 'icon-inline') %>
-                    <span data-tooltip-target="content" class="tooltip-content hidden">
-                      Words per minute - optimal range is 140-170 WPM
-                    </span>
-                  </span>
-                </span>
-                <span class="chart-current-value">
-                  <%= @chart_data[:pace_data].last %>
-                  <%= @chart_data[:pace_data][-2] && @chart_data[:pace_data].last > @chart_data[:pace_data][-2] ? '↗' : '' %>
-                </span>
-              </div>
-              <canvas data-progress-dashboard-target="paceChart"
-                      data-labels="<%= @chart_data[:labels].to_json %>"
-                      data-values="<%= @chart_data[:pace_data].to_json %>"
-                      data-goal="150"></canvas>
-              <div class="chart-footer">
-                <span>Goal 140–170 WPM</span>
-                <span>
-                  <% case @time_range
-                     when '7' %>
-                    Last 7 sessions
-                  <% when '30' %>
-                    Last 30 sessions
-                  <% when 'lifetime' %>
-                    All <%= @chart_data[:session_count] %> sessions
-                  <% end %>
-                </span>
-              </div>
-            </div>
-
-            <!-- Clarity Chart -->
-            <div class="chart-container">
-              <div class="chart-header">
-                <span class="chart-title">
-                  Clarity
-                  <span class="info-btn" data-controller="tooltip" data-action="mouseenter->tooltip#show mouseleave->tooltip#hide">
-                    <%= icon_svg(:info, css_class: 'icon-inline') %>
-                    <span data-tooltip-target="content" class="tooltip-content hidden">
-                      Overall speech clarity score based on articulation and fluency
-                    </span>
-                  </span>
-                </span>
-                <span class="chart-current-value">
-                  <%= @chart_data[:clarity_data].last %>
-                  <%= @chart_data[:clarity_data][-2] && @chart_data[:clarity_data].last > @chart_data[:clarity_data][-2] ? '↗' : '✓' %>
-                </span>
-              </div>
-              <canvas data-progress-dashboard-target="clarityChart"
-                      data-labels="<%= @chart_data[:labels].to_json %>"
-                      data-values="<%= @chart_data[:clarity_data].to_json %>"
-                      data-goal="90"></canvas>
-              <div class="chart-footer">
-                <span>Goal ≥ 90</span>
-                <span>
-                  <% case @time_range
-                     when '7' %>
-                    Last 7 sessions
-                  <% when '30' %>
-                    Last 30 sessions
-                  <% when 'lifetime' %>
-                    All <%= @chart_data[:session_count] %> sessions
-                  <% end %>
-                </span>
-              </div>
-            </div>
-
-            <!-- Pace Consistency Chart -->
-            <div class="chart-container">
-              <div class="chart-header">
-                <span class="chart-title">
-                  Pace Consistency
-                  <span class="info-btn" data-controller="tooltip" data-action="mouseenter->tooltip#show mouseleave->tooltip#hide">
-                    <%= icon_svg(:info, css_class: 'icon-inline') %>
-                    <span data-tooltip-target="content" class="tooltip-content hidden">
-                      Measures how steady your speaking pace is throughout the session
-                    </span>
-                  </span>
-                </span>
-                <span class="chart-current-value">
-                  <%= @chart_data[:pace_consistency_data].last %>%
-                  <%= @chart_data[:pace_consistency_data][-2] && @chart_data[:pace_consistency_data].last > @chart_data[:pace_consistency_data][-2] ? '↗' : '✓' %>
-                </span>
-              </div>
-              <canvas data-progress-dashboard-target="paceConsistencyChart"
-                      data-labels="<%= @chart_data[:labels].to_json %>"
-                      data-values="<%= @chart_data[:pace_consistency_data].to_json %>"
-                      data-goal="80"></canvas>
-              <div class="chart-footer">
-                <span>Goal ≥ 80%</span>
-                <span>
-                  <% case @time_range
-                     when '7' %>
-                    Last 7 sessions
-                  <% when '30' %>
-                    Last 30 sessions
-                  <% when 'lifetime' %>
-                    All <%= @chart_data[:session_count] %> sessions
-                  <% end %>
-                </span>
-              </div>
-            </div>
-
-            <!-- Fluency Chart -->
-            <div class="chart-container">
-              <div class="chart-header">
-                <span class="chart-title">
-                  Fluency
-                  <span class="info-btn" data-controller="tooltip" data-action="mouseenter->tooltip#show mouseleave->tooltip#hide">
-                    <%= icon_svg(:info, css_class: 'icon-inline') %>
-                    <span data-tooltip-target="content" class="tooltip-content hidden">
-                      Smoothness of delivery without interruptions or hesitations
-                    </span>
-                  </span>
-                </span>
-                <span class="chart-current-value">
-                  <%= @chart_data[:fluency_data].last %>%
-                  <%= @chart_data[:fluency_data][-2] && @chart_data[:fluency_data].last > @chart_data[:fluency_data][-2] ? '↗' : '✓' %>
-                </span>
-              </div>
-              <canvas data-progress-dashboard-target="fluencyChart"
-                      data-labels="<%= @chart_data[:labels].to_json %>"
-                      data-values="<%= @chart_data[:fluency_data].to_json %>"
-                      data-goal="85"></canvas>
-              <div class="chart-footer">
-                <span>Goal ≥ 85%</span>
-                <span>
-                  <% case @time_range
-                     when '7' %>
-                    Last 7 sessions
-                  <% when '30' %>
-                    Last 30 sessions
-                  <% when 'lifetime' %>
-                    All <%= @chart_data[:session_count] %> sessions
-                  <% end %>
-                </span>
-              </div>
-            </div>
-
-            <!-- Engagement Chart -->
-            <div class="chart-container">
-              <div class="chart-header">
-                <span class="chart-title">
-                  Engagement
-                  <span class="info-btn" data-controller="tooltip" data-action="mouseenter->tooltip#show mouseleave->tooltip#hide">
-                    <%= icon_svg(:info, css_class: 'icon-inline') %>
-                    <span data-tooltip-target="content" class="tooltip-content hidden">
-                      Energy level and vocal variety in your speech
-                    </span>
-                  </span>
-                </span>
-                <span class="chart-current-value">
-                  <%= @chart_data[:engagement_data].last %>%
-                  <%= @chart_data[:engagement_data][-2] && @chart_data[:engagement_data].last > @chart_data[:engagement_data][-2] ? '↗' : '✓' %>
-                </span>
-              </div>
-              <canvas data-progress-dashboard-target="engagementChart"
-                      data-labels="<%= @chart_data[:labels].to_json %>"
-                      data-values="<%= @chart_data[:engagement_data].to_json %>"
-                      data-goal="75"></canvas>
-              <div class="chart-footer">
-                <span>Goal ≥ 75%</span>
-                <span>
-                  <% case @time_range
-                     when '7' %>
-                    Last 7 sessions
-                  <% when '30' %>
-                    Last 30 sessions
-                  <% when 'lifetime' %>
-                    All <%= @chart_data[:session_count] %> sessions
-                  <% end %>
-                </span>
-              </div>
-            </div>
-
-            <div class="chart-note">
-              Each dot is a session. The dashed line shows your target.
-            </div>
-          <% end %>
+      <!-- Chart Stats -->
+      <div class="chart-stats-row">
+        <div class="stat-box">
+          <span class="stat-label">Current</span>
+          <span class="stat-value" data-metric-explorer-target="currentValue">--</span>
         </div>
+        <div class="stat-box">
+          <span class="stat-label">Best</span>
+          <span class="stat-value" data-metric-explorer-target="bestValue">--</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">Trend</span>
+          <span class="stat-value stat-trend" data-metric-explorer-target="trendValue">--</span>
+        </div>
+      </div>
+
+      <!-- Large Interactive Chart -->
+      <div class="chart-canvas-container">
+        <canvas data-metric-explorer-target="mainChart"
+                data-labels="<%= @chart_data[:labels].to_json %>"
+                data-overall-score-values="<%= @chart_data[:overall_score_data].to_json %>"
+                data-filler-values="<%= @chart_data[:filler_data].to_json %>"
+                data-pace-values="<%= @chart_data[:pace_data].to_json %>"
+                data-clarity-values="<%= @chart_data[:clarity_data].to_json %>"
+                data-pace-consistency-values="<%= @chart_data[:pace_consistency_data].to_json %>"
+                data-fluency-values="<%= @chart_data[:fluency_data].to_json %>"
+                data-engagement-values="<%= @chart_data[:engagement_data].to_json %>"></canvas>
       </div>
     </div>
+
+    <!-- Interactive Metric Cards (Click to explore) -->
+    <div class="interactive-metrics-grid">
+      <%
+        detail_metrics = [
+          {
+            key: 'overall_score',
+            label: 'Overall Score',
+            tooltip: 'Your comprehensive speaking performance across all metrics',
+            inverse: false,
+            goal: '≥ 80%'
+          },
+          {
+            key: 'filler_rate',
+            label: 'Filler %',
+            tooltip: 'Percentage of words that are fillers (um, uh, like). Lower is better.',
+            inverse: true,
+            goal: '< 3%'
+          },
+          {
+            key: 'clarity',
+            label: 'Clarity',
+            tooltip: 'Measures articulation, pace consistency, and pause quality',
+            inverse: false,
+            goal: '≥ 90%'
+          },
+          {
+            key: 'pace',
+            label: 'Pace',
+            tooltip: 'Your speaking rate in words per minute. Ideal: 140-170 WPM',
+            inverse: false,
+            goal: '140-170',
+            is_wpm: true
+          },
+          {
+            key: 'pace_consistency',
+            label: 'Consistency',
+            tooltip: 'How steady your speaking pace is throughout the session',
+            inverse: false,
+            goal: '≥ 80%'
+          },
+          {
+            key: 'fluency',
+            label: 'Fluency',
+            tooltip: 'Smoothness of delivery without interruptions or hesitations',
+            inverse: false,
+            goal: '≥ 85%'
+          },
+          {
+            key: 'engagement',
+            label: 'Engagement',
+            tooltip: 'Energy level and vocal variety in your speech',
+            inverse: false,
+            goal: '≥ 75%'
+          }
+        ]
+      %>
+
+      <% detail_metrics.each_with_index do |metric, index| %>
+        <%
+          snapshot_key = metric[:key].to_sym
+          snapshot_data = @skill_snapshot&.dig(snapshot_key)
+          score = snapshot_data&.dig(:score) || 0
+          delta = snapshot_data&.dig(:delta) || 0
+
+          is_positive = metric[:inverse] ? delta <= 0 : delta >= 0
+          delta_class = is_positive ? 'positive' : 'negative'
+          delta_arrow = is_positive ? '▲' : '▼'
+
+          is_focus = @weekly_focus && metric[:key] == get_metric_key_for_focus(@weekly_focus.focus_type)
+        %>
+
+        <button class="interactive-metric-card <%= 'active' if index == 0 %> <%= 'focused' if is_focus %>"
+                data-metric="<%= metric[:key] %>"
+                data-action="click->metric-explorer#selectMetric"
+                data-metric-explorer-target="metricCard">
+          <% if is_focus %>
+            <div class="focus-tag">Focus</div>
+          <% end %>
+
+          <div class="metric-name">
+            <%= metric[:label] %>
+            <span class="info-tip" title="<%= metric[:tooltip] %>">ⓘ</span>
+          </div>
+
+          <div class="metric-score">
+            <%= metric[:is_wpm] ? score : "#{score}%" %>
+          </div>
+
+          <div class="metric-change <%= delta_class %>">
+            <%= delta_arrow %> <%= delta.abs %><%= metric[:is_wpm] ? '' : '%' %>
+          </div>
+        </button>
+      <% end %>
+    </div>
+
+    <!-- Practice Calendar -->
+    <div class="calendar-section">
+      <h2 class="section-title">Practice Calendar</h2>
+      <p class="section-subtitle">Your practice consistency this year</p>
+
+      <% if @calendar_data.present? %>
+        <div class="calendar-grid">
+          <% @calendar_data.each do |day| %>
+            <div class="calendar-day <%= day[:has_session] ? 'trained' : 'missed' %>"
+                 title="<%= day[:date].strftime('%b %d, %Y') %>">
+            </div>
+          <% end %>
+        </div>
+
+        <div class="calendar-legend">
+          <div class="legend-item">
+            <div class="legend-dot missed"></div>
+            <span>No practice</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot trained"></div>
+            <span>Practice completed</span>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
   <% else %>
     <div class="no-sessions-message">
-      <h3><%= icon_svg(:mic, css_class: 'icon-inline') %> No Sessions Yet</h3>
-      <p>Complete a few practice sessions to see your progress dashboard!</p>
+      <h3>No Sessions Yet</h3>
+      <p>Complete practice sessions to see your progress dashboard!</p>
       <%= link_to "Start Practicing", practice_path, class: "btn btn-primary" %>
     </div>
   <% end %>
 </div>
+
+<style>
+  .progress-dashboard {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+
+  .page-header {
+    margin-bottom: 2rem;
+  }
+
+  .page-header h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .page-subtitle {
+    font-size: 1.125rem;
+    color: #64748b;
+    margin: 0;
+  }
+
+
+  /* Main Chart Section */
+  .chart-section {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .chart-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+  }
+
+  /* Time Range Options */
+  .time-range-options {
+    display: flex;
+    gap: 0.5rem;
+    background: #f8fafc;
+    padding: 0.375rem;
+    border-radius: 12px;
+  }
+
+  .time-btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    background: transparent;
+    color: #64748b;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .time-btn:hover {
+    background: white;
+    color: #1e293b;
+  }
+
+  .time-btn.active {
+    background: linear-gradient(135deg, #FF8C42, #FFAB73);
+    color: white;
+    box-shadow: 0 2px 4px rgba(255, 140, 66, 0.2);
+  }
+
+  /* Chart Stats Row */
+  .chart-stats-row {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .stat-box {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .stat-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+  }
+
+  .stat-trend {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+
+  /* Chart Canvas */
+  .chart-canvas-container {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+
+  /* Interactive Metric Cards (Clickable) */
+  .interactive-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.875rem;
+    margin-bottom: 2rem;
+  }
+
+  .interactive-metric-card {
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0.75rem;
+    transition: all 0.2s ease;
+    position: relative;
+    cursor: pointer;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .interactive-metric-card:hover {
+    border-color: #FF8C42;
+    box-shadow: 0 2px 8px rgba(255, 140, 66, 0.15);
+    transform: translateY(-2px);
+  }
+
+  .interactive-metric-card.active {
+    border-color: #FF8C42;
+    background: linear-gradient(135deg, #fff5ed 0%, #ffffff 100%);
+    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.25);
+    transform: translateY(-2px);
+  }
+
+  .interactive-metric-card.focused {
+    border-color: #FF8C42;
+  }
+
+  .interactive-metric-card.active.focused {
+    background: linear-gradient(135deg, #fff5ed 0%, #ffffff 100%);
+  }
+
+  .focus-tag {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: #FF8C42;
+    color: white;
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 0.25rem 0.5rem;
+    border-radius: 8px;
+    letter-spacing: 0.05em;
+  }
+
+  .metric-name {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .info-tip {
+    font-size: 0.625rem;
+    color: #94a3b8;
+    cursor: help;
+  }
+
+  .metric-score {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0.375rem;
+  }
+
+  .metric-change {
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .metric-change.positive {
+    color: #10b981;
+  }
+
+  .metric-change.negative {
+    color: #ef4444;
+  }
+
+  /* Calendar Section */
+  .calendar-section {
+    margin-bottom: 2rem;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .section-subtitle {
+    font-size: 1rem;
+    color: #64748b;
+    margin: 0 0 1.5rem 0;
+  }
+
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(12px, 1fr));
+    gap: 4px;
+    margin-bottom: 1.5rem;
+    max-width: 100%;
+  }
+
+  .calendar-day {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    transition: all 0.2s;
+  }
+
+  .calendar-day.missed {
+    background: #e2e8f0;
+  }
+
+  .calendar-day.trained {
+    background: #FF8C42;
+  }
+
+  .calendar-day:hover {
+    transform: scale(1.3);
+    cursor: pointer;
+  }
+
+  .calendar-legend {
+    display: flex;
+    gap: 1.5rem;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+  }
+
+  .legend-dot.missed {
+    background: #e2e8f0;
+  }
+
+  .legend-dot.trained {
+    background: #FF8C42;
+  }
+
+  .legend-item span {
+    font-size: 0.875rem;
+    color: #64748b;
+  }
+
+  /* No sessions state */
+  .no-sessions-message {
+    text-align: center;
+    padding: 4rem 2rem;
+  }
+
+  .no-sessions-message h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 1rem 0;
+  }
+
+  .no-sessions-message p {
+    font-size: 1.125rem;
+    color: #64748b;
+    margin: 0 0 2rem 0;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #FF8C42, #FFAB73);
+    color: white;
+    padding: 0.875rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 1rem;
+    text-decoration: none;
+    display: inline-block;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(255, 140, 66, 0.2);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 140, 66, 0.4);
+  }
+
+  /* Mobile responsive */
+  @media (max-width: 768px) {
+    .progress-dashboard {
+      padding: 1.5rem 1rem;
+    }
+
+    .page-header h1 {
+      font-size: 2rem;
+    }
+
+    .chart-header {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .time-range-options {
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    .time-btn {
+      flex: 1;
+      padding: 0.5rem 0.5rem;
+      font-size: 0.75rem;
+    }
+
+    .chart-stats-row {
+      justify-content: space-between;
+    }
+
+    .interactive-metrics-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>

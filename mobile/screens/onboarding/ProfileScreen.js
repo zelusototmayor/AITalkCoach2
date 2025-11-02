@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import OnboardingNavigation from '../../components/OnboardingNavigation';
 import AnimatedBackground from '../../components/AnimatedBackground';
+import QuitOnboardingButton from '../../components/QuitOnboardingButton';
 import SelectionButton from '../../components/SelectionButton';
 import PillButton from '../../components/PillButton';
 import { COLORS, SPACING } from '../../constants/colors';
@@ -47,6 +48,7 @@ export default function ProfileScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <AnimatedBackground />
+      <QuitOnboardingButton />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}

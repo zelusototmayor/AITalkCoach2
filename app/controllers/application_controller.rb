@@ -1,6 +1,7 @@
 class ApplicationController < ActionController::Base
   # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
-  allow_browser versions: :modern
+  # Skip browser check for JSON API requests (mobile app)
+  allow_browser versions: :modern, unless: -> { skip_browser_check? }
 
   # Error handling
   rescue_from ActiveRecord::RecordNotFound, with: :record_not_found
@@ -199,7 +200,7 @@ class ApplicationController < ActionController::Base
   def require_onboarding
     if logged_in? && current_user.needs_onboarding?
       unless request.path.starts_with?("/onboarding")
-        redirect_to onboarding_welcome_path, alert: "Please complete your profile setup"
+        redirect_to onboarding_splash_path, alert: "Please complete your profile setup"
       end
     end
   end
@@ -218,5 +219,10 @@ class ApplicationController < ActionController::Base
     controller_path.starts_with?("onboarding/") ||
     controller_name == "webhooks" ||
     controller_path.starts_with?("admin/health")
+  end
+
+  def skip_browser_check?
+    # Skip browser version check for JSON API requests (mobile app)
+    request.format.json?
   end
 end

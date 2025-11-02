@@ -2,182 +2,440 @@
 
 <div class="onboarding-container">
   <div class="onboarding-content">
-    <!-- Quit Button -->
-    <div style="text-align: right; margin-bottom: 1rem;">
-      <%= link_to logout_path, class: 'quit-onboarding-btn', data: { turbo_method: :delete, turbo_confirm: "Are you sure you want to quit? You'll need to start over." } do %>
-        <span class="quit-icon">×</span> Quit
-      <% end %>
-    </div>
-
-    <!-- Progress Indicator -->
-    <%= render 'onboarding/progress', current_step: 2 %>
+    <!-- Quit Button - Top Right -->
+    <%= link_to logout_path, class: 'quit-btn-top-right', data: { turbo_method: :delete, turbo_confirm: "Are you sure you want to quit? You'll need to start over." } do %>
+      <span class="quit-icon">×</span>
+    <% end %>
 
     <!-- Form Section -->
     <div class="onboarding-form-section">
-      <h1 class="onboarding-title">Tell us a bit about yourself</h1>
-      <p class="onboarding-subtitle">This helps us personalize your coaching experience.</p>
+      <h1 class="onboarding-title">Tell us about yourself</h1>
+      <p class="onboarding-subtitle">This helps us personalize your coaching</p>
 
-      <%= form_with url: onboarding_demographics_path, method: :post, class: "onboarding-form", aria: { label: "Demographics form" } do |f| %>
+      <%= form_with url: onboarding_demographics_path, method: :post, class: "onboarding-form", id: "demographics-form", aria: { label: "Demographics form" } do |f| %>
 
-        <!-- Section A: Communication Style -->
-        <div class="form-section" id="communication-style-section">
-          <h3 class="form-section-title" id="communication-style-label">How would you describe your communication style?</h3>
-          <div class="radio-options" role="radiogroup" aria-labelledby="communication-style-label" aria-required="true">
-            <label class="radio-option" tabindex="0">
-              <%= radio_button_tag 'speaking_style', 'Introvert', current_user&.speaking_style == 'Introvert', class: 'radio-input', id: 'style_introvert', required: true %>
-              <div class="radio-content">
-                <div class="radio-label">Introvert</div>
-                <div class="radio-description">I prefer one-on-one conversations and need time to recharge alone</div>
-              </div>
-            </label>
+        <!-- Communication Style - 2x2 Grid -->
+        <div class="section-label">How would you describe your communication style?</div>
+        <div class="style-cards" role="radiogroup" aria-label="Select your communication style" aria-required="true">
+          <% user_style = current_user&.speaking_style %>
 
-            <label class="radio-option" tabindex="0">
-              <%= radio_button_tag 'speaking_style', 'Extrovert', current_user&.speaking_style == 'Extrovert', class: 'radio-input', id: 'style_extrovert' %>
-              <div class="radio-content">
-                <div class="radio-label">Extrovert</div>
-                <div class="radio-description">I thrive in social settings and energize through interaction</div>
-              </div>
-            </label>
-
-            <label class="radio-option" tabindex="0">
-              <%= radio_button_tag 'speaking_style', 'Ambivert', current_user&.speaking_style == 'Ambivert', class: 'radio-input', id: 'style_ambivert' %>
-              <div class="radio-content">
-                <div class="radio-label">Ambivert</div>
-                <div class="radio-description">I'm comfortable both alone and in social settings</div>
-              </div>
-            </label>
-
-            <label class="radio-option" tabindex="0">
-              <%= radio_button_tag 'speaking_style', 'Not sure yet', current_user&.speaking_style == 'Not sure yet', class: 'radio-input', id: 'style_unsure' %>
-              <div class="radio-content">
-                <div class="radio-label">Not sure yet</div>
-                <div class="radio-description">I'm still figuring it out</div>
-              </div>
-            </label>
-          </div>
-        </div>
-
-        <!-- Section B: Demographics -->
-        <div class="form-section" id="demographics-section">
-          <h3 class="form-section-title" id="demographics-label">Demographics</h3>
-
-          <div class="form-section" id="age-range-section">
-            <h3 class="form-section-title" id="age-range-label">
-              Age Range <span class="required-indicator" aria-label="required">*</span>
-            </h3>
-            <div class="pill-buttons" role="radiogroup" aria-labelledby="age-range-label" aria-required="true">
-              <label class="pill-button" tabindex="0">
-                <%= radio_button_tag 'age_range', '-18', current_user&.age_range == '-18', class: 'pill-radio', id: 'age_under_18', required: true %>
-                <span class="pill-button-text">Under 18</span>
-              </label>
-
-              <label class="pill-button" tabindex="0">
-                <%= radio_button_tag 'age_range', '18-24', current_user&.age_range == '18-24', class: 'pill-radio', id: 'age_18_24' %>
-                <span class="pill-button-text">18-24</span>
-              </label>
-
-              <label class="pill-button" tabindex="0">
-                <%= radio_button_tag 'age_range', '25-34', current_user&.age_range == '25-34', class: 'pill-radio', id: 'age_25_34' %>
-                <span class="pill-button-text">25-34</span>
-              </label>
-
-              <label class="pill-button" tabindex="0">
-                <%= radio_button_tag 'age_range', '35-44', current_user&.age_range == '35-44', class: 'pill-radio', id: 'age_35_44' %>
-                <span class="pill-button-text">35-44</span>
-              </label>
-
-              <label class="pill-button" tabindex="0">
-                <%= radio_button_tag 'age_range', '45-54', current_user&.age_range == '45-54', class: 'pill-radio', id: 'age_45_54' %>
-                <span class="pill-button-text">45-54</span>
-              </label>
-
-              <label class="pill-button" tabindex="0">
-                <%= radio_button_tag 'age_range', '55+', current_user&.age_range == '55+', class: 'pill-radio', id: 'age_55_plus' %>
-                <span class="pill-button-text">55+</span>
-              </label>
+          <label class="style-card" tabindex="0">
+            <%= radio_button_tag 'speaking_style', 'Introvert', user_style == 'Introvert', class: 'style-radio', id: 'style_introvert', required: true %>
+            <div class="style-card-content">
+              <div class="style-icon">🤫</div>
+              <div class="style-title">Introvert</div>
             </div>
-          </div>
+          </label>
 
-          <div class="form-group">
-            <label for="profession" class="form-label">Profession <span class="optional-indicator">(Optional)</span></label>
-            <%= text_field_tag 'profession', current_user&.profession,
-                placeholder: 'e.g., Software Engineer, Teacher, Student',
-                class: 'form-input',
-                id: 'profession',
-                autocomplete: 'organization-title',
-                'aria-describedby': 'profession-hint',
-                maxlength: 100 %>
-            <span id="profession-hint" class="sr-only">Enter your current profession or leave blank</span>
-          </div>
+          <label class="style-card" tabindex="0">
+            <%= radio_button_tag 'speaking_style', 'Extrovert', user_style == 'Extrovert', class: 'style-radio', id: 'style_extrovert' %>
+            <div class="style-card-content">
+              <div class="style-icon">🗣️</div>
+              <div class="style-title">Extrovert</div>
+            </div>
+          </label>
+
+          <label class="style-card" tabindex="0">
+            <%= radio_button_tag 'speaking_style', 'Ambivert', user_style == 'Ambivert', class: 'style-radio', id: 'style_ambivert' %>
+            <div class="style-card-content">
+              <div class="style-icon">⚖️</div>
+              <div class="style-title">Ambivert</div>
+            </div>
+          </label>
+
+          <label class="style-card" tabindex="0">
+            <%= radio_button_tag 'speaking_style', 'Not sure', user_style == 'Not sure', class: 'style-radio', id: 'style_unsure' %>
+            <div class="style-card-content">
+              <div class="style-icon">🤔</div>
+              <div class="style-title">Not Sure</div>
+            </div>
+          </label>
         </div>
 
-        <!-- Section C: Pronouns (Optional) -->
-        <div class="form-section" id="pronouns-section">
-          <h3 class="form-section-title" id="pronouns-label">
-            How should we refer to you?
-            <span class="optional-badge" aria-label="This field is optional">Optional</span>
-          </h3>
-          <p class="form-section-description" id="pronouns-description">This helps us personalize your coaching experience.</p>
+        <!-- Age Range - Compact Pills -->
+        <div class="section-label">Age Range</div>
+        <div class="age-pills" role="radiogroup" aria-label="Select your age range" aria-required="true">
+          <% user_age = current_user&.age_range %>
 
-          <div class="radio-options" role="radiogroup" aria-labelledby="pronouns-label" aria-describedby="pronouns-description" aria-required="false">
-            <label class="radio-option" tabindex="0">
-              <%= radio_button_tag 'preferred_pronouns', 'He/Him', current_user&.preferred_pronouns == 'He/Him', class: 'radio-input', id: 'pronouns_he' %>
-              <div class="radio-content">
-                <div class="radio-label">He/Him</div>
-              </div>
-            </label>
+          <label class="age-pill">
+            <%= radio_button_tag 'age_range', '-18', user_age == '-18', class: 'age-radio', id: 'age_under_18', required: true %>
+            <span class="age-pill-text">Under 18</span>
+          </label>
 
-            <label class="radio-option" tabindex="0">
-              <%= radio_button_tag 'preferred_pronouns', 'She/Her', current_user&.preferred_pronouns == 'She/Her', class: 'radio-input', id: 'pronouns_she' %>
-              <div class="radio-content">
-                <div class="radio-label">She/Her</div>
-              </div>
-            </label>
+          <label class="age-pill">
+            <%= radio_button_tag 'age_range', '18-24', user_age == '18-24', class: 'age-radio', id: 'age_18_24' %>
+            <span class="age-pill-text">18-24</span>
+          </label>
 
-            <label class="radio-option" tabindex="0">
-              <%= radio_button_tag 'preferred_pronouns', 'They/Them', current_user&.preferred_pronouns == 'They/Them', class: 'radio-input', id: 'pronouns_they' %>
-              <div class="radio-content">
-                <div class="radio-label">They/Them</div>
-              </div>
-            </label>
+          <label class="age-pill">
+            <%= radio_button_tag 'age_range', '25-34', user_age == '25-34', class: 'age-radio', id: 'age_25_34' %>
+            <span class="age-pill-text">25-34</span>
+          </label>
 
-            <label class="radio-option" tabindex="0">
-              <%= radio_button_tag 'preferred_pronouns', 'Prefer not to say', current_user&.preferred_pronouns == 'Prefer not to say', class: 'radio-input', id: 'pronouns_none' %>
-              <div class="radio-content">
-                <div class="radio-label">Prefer not to say</div>
-              </div>
-            </label>
+          <label class="age-pill">
+            <%= radio_button_tag 'age_range', '35-44', user_age == '35-44', class: 'age-radio', id: 'age_35_44' %>
+            <span class="age-pill-text">35-44</span>
+          </label>
 
-            <label class="radio-option" tabindex="0">
-              <%= radio_button_tag 'preferred_pronouns', 'Other', current_user&.preferred_pronouns == 'Other', class: 'radio-input', id: 'pronouns_other' %>
-              <div class="radio-content">
-                <div class="radio-label">Other</div>
-              </div>
-            </label>
-          </div>
+          <label class="age-pill">
+            <%= radio_button_tag 'age_range', '45-54', user_age == '45-54', class: 'age-radio', id: 'age_45_54' %>
+            <span class="age-pill-text">45-54</span>
+          </label>
+
+          <label class="age-pill">
+            <%= radio_button_tag 'age_range', '55+', user_age == '55+', class: 'age-radio', id: 'age_55_plus' %>
+            <span class="age-pill-text">55+</span>
+          </label>
         </div>
+
+        <!-- Profession (Optional) -->
+        <div class="section-label">Profession <span class="optional-text">(Optional)</span></div>
+        <%= text_field_tag 'profession', current_user&.profession,
+            placeholder: 'e.g., Software Engineer, Teacher, Student',
+            class: 'text-input',
+            id: 'profession',
+            autocomplete: 'organization-title',
+            maxlength: 100 %>
 
         <% if flash[:alert] %>
           <div class="form-error" role="alert" aria-live="polite" aria-atomic="true">
             <%= flash[:alert] %>
           </div>
         <% end %>
+      <% end %>
+    </div>
 
-        <div class="onboarding-actions">
-          <%= button_tag type: 'submit', class: 'primary-btn btn-large' do %>
-            Next Step
-            <span aria-hidden="true"><%= icon_svg(:arrow_right, css_class: 'icon-inline') %></span>
-          <% end %>
-        </div>
+    <!-- Floating Continue Button -->
+    <div class="floating-button-container">
+      <%= button_tag type: 'submit', form: 'demographics-form', class: 'primary-btn btn-large' do %>
+        Continue
+        <span aria-hidden="true">→</span>
       <% end %>
 
-      <!-- Back Navigation -->
-      <div class="onboarding-back-action">
-        <%= link_to onboarding_profile_path, class: 'text-btn' do %>
-          <%= icon_svg(:arrow_right, css_class: 'icon-inline', style: 'transform: rotate(180deg)') %>
-          Back to goals
-        <% end %>
+      <!-- Progress Dots -->
+      <div class="progress-dots">
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot active"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
       </div>
     </div>
   </div>
 </div>
+
+<style>
+  /* Container */
+  .onboarding-container {
+    min-height: 100vh;
+    position: relative;
+    background-color: #F8FAFC;
+  }
+
+  .onboarding-content {
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* Quit Button */
+  .quit-btn-top-right {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f1f5f9;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    z-index: 100;
+  }
+
+  .quit-btn-top-right:hover {
+    background-color: #e2e8f0;
+  }
+
+  .quit-btn-top-right .quit-icon {
+    font-size: 20px;
+    color: #64748b;
+    line-height: 1;
+  }
+
+  /* Form Section */
+  .onboarding-form-section {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 7rem 1.5rem;
+  }
+
+  .onboarding-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1e293b;
+    text-align: center;
+    margin-bottom: 0.35rem;
+  }
+
+  .onboarding-subtitle {
+    font-size: 0.875rem;
+    color: #64748b;
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .section-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 0.75rem;
+    margin-top: 1.5rem;
+  }
+
+  .section-label:first-of-type {
+    margin-top: 0;
+  }
+
+  .optional-text {
+    font-weight: 400;
+    color: #64748b;
+    font-size: 0.875rem;
+  }
+
+  /* Communication Style Cards - 2x2 Grid */
+  .style-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .style-card {
+    position: relative;
+    background: #ffffff;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+  }
+
+  .style-card:hover {
+    border-color: #FF8C42;
+    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.15);
+    transform: translateY(-2px);
+  }
+
+  .style-radio {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .style-card:has(.style-radio:checked) {
+    border-color: #FF8C42;
+    background-color: #FFF4ED;
+  }
+
+  .style-card-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .style-icon {
+    font-size: 2rem;
+  }
+
+  .style-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1e293b;
+  }
+
+  /* Age Pills - Compact */
+  .age-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .age-pill {
+    position: relative;
+    background: #ffffff;
+    border: 2px solid #e5e7eb;
+    border-radius: 24px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .age-pill:hover {
+    border-color: #FF8C42;
+    box-shadow: 0 2px 8px rgba(255, 140, 66, 0.15);
+  }
+
+  .age-radio {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .age-pill:has(.age-radio:checked) {
+    border-color: #FF8C42;
+    background-color: #FFF4ED;
+  }
+
+  .age-pill-text {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #1e293b;
+  }
+
+  /* Text Input */
+  .text-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    color: #1e293b;
+    background: #ffffff;
+    transition: all 0.2s ease;
+    margin-bottom: 1rem;
+  }
+
+  .text-input:focus {
+    outline: none;
+    border-color: #FF8C42;
+    box-shadow: 0 0 0 3px rgba(255, 140, 66, 0.1);
+  }
+
+  .text-input::placeholder {
+    color: #9ca3af;
+  }
+
+  /* Select Input (Dropdown) */
+  .select-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    color: #1e293b;
+    background: #ffffff;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    padding-right: 2.5rem;
+  }
+
+  .select-input:focus {
+    outline: none;
+    border-color: #FF8C42;
+    box-shadow: 0 0 0 3px rgba(255, 140, 66, 0.1);
+  }
+
+  /* Form Error */
+  .form-error {
+    background-color: #fee;
+    border: 1px solid #fcc;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+    color: #c33;
+    text-align: center;
+    font-size: 0.875rem;
+  }
+
+  /* Floating Button Container */
+  .floating-button-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1.25rem 1.5rem;
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    z-index: 50;
+    pointer-events: none;
+  }
+
+  .primary-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, #FF8C42 0%, #FF7028 100%);
+    color: white;
+    padding: 0.875rem 2rem;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.3);
+    pointer-events: auto;
+  }
+
+  .primary-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255, 140, 66, 0.4);
+  }
+
+  /* Progress Dots */
+  .progress-dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .progress-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 4px;
+    background-color: #cbd5e1;
+    transition: all 0.3s ease;
+  }
+
+  .progress-dot.active {
+    width: 24px;
+    background-color: #FF8C42;
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .onboarding-title {
+      font-size: 1.5rem;
+    }
+
+    .style-cards {
+      grid-template-columns: 1fr;
+    }
+
+    .age-pills {
+      justify-content: center;
+    }
+
+    .floating-button-container {
+      padding: 1rem;
+    }
+  }
+</style>

@@ -24,12 +24,23 @@ module Sessions
         # Update duration for better time estimates
         @trial_session.update!(duration_ms: (media_data[:duration] * 1000).to_i)
 
-        # Process the trial audio with simplified pipeline
-        trial_results = process_trial_audio_pipeline(media_data)
+        # Phase 1: Quick analysis with rule-based metrics (15-20 seconds)
+        quick_results = process_phase_1_quick_analysis(media_data)
 
-        # Store results and mark complete
+        # Store quick results and mark as preview ready
         @trial_session.update!(
-          analysis_data: trial_results,
+          analysis_data: quick_results,
+          processing_state: "preview_ready"
+        )
+
+        Rails.logger.info "Phase 1 complete for session #{trial_session_token} - preview ready in #{processing_duration}s"
+
+        # Phase 2: Full AI analysis (continues in background)
+        enhanced_results = process_phase_2_ai_analysis(quick_results, media_data)
+
+        # Store enhanced results and mark complete
+        @trial_session.update!(
+          analysis_data: enhanced_results,
           processing_state: "completed",
           completed: true,
           processed_at: Time.current
@@ -62,40 +73,95 @@ module Sessions
       extraction_result
     end
 
-    def process_trial_audio_pipeline(media_data)
-      # Simplified processing pipeline for trial users
+    def process_phase_1_quick_analysis(media_data)
+      # Phase 1: Fast transcription + rule-based comprehensive metrics
       begin
-        # Step 1: Transcribe speech (same as full processing)
+        # Step 1: Transcribe speech
         transcript_data = transcribe_trial_speech(media_data)
 
-        # Step 2: Basic analysis (no complex AI processing)
-        basic_metrics = calculate_trial_metrics(transcript_data)
+        # Step 2: Calculate comprehensive metrics (without AI)
+        metrics_calculator = Analysis::Metrics.new(
+          transcript_data,
+          [], # No issues yet (AI will detect them)
+          {
+            language: @trial_session.language,
+            ai_detected_fillers: [] # Use regex fallback for now
+          }
+        )
 
-        Rails.logger.info "Trial processing complete: #{basic_metrics[:word_count]} words, #{basic_metrics[:wpm]} WPM"
+        comprehensive_metrics = metrics_calculator.calculate_all_metrics
 
+        Rails.logger.info "Phase 1 complete: #{transcript_data[:words].length} words, #{comprehensive_metrics.dig(:speaking_metrics, :words_per_minute)} WPM"
+
+        # Store both basic and comprehensive data
         {
           transcript: transcript_data[:transcript],
-          wpm: basic_metrics[:wpm],
-          filler_count: basic_metrics[:filler_count],
-          duration_seconds: basic_metrics[:duration_seconds],
-          word_count: basic_metrics[:word_count],
+          words: transcript_data[:words],
+          metadata: transcript_data[:metadata],
+          wpm: comprehensive_metrics.dig(:speaking_metrics, :words_per_minute),
+          filler_count: comprehensive_metrics.dig(:clarity_metrics, :filler_metrics, :total_filler_count),
+          duration_seconds: comprehensive_metrics.dig(:basic_metrics, :duration_seconds),
+          word_count: comprehensive_metrics.dig(:basic_metrics, :word_count),
+          comprehensive_metrics: comprehensive_metrics,
           processed_at: Time.current.iso8601,
-          trial_mode: true
+          trial_mode: true,
+          phase: "quick_preview"
         }
 
       rescue => e
-        Rails.logger.error "Trial analysis error: #{e.message}"
+        Rails.logger.error "Phase 1 analysis error: #{e.message}"
+        raise # Let error handler deal with it
+      end
+    end
 
-        # Return demo data on failure
-        {
-          transcript: "This is a demo transcription showing basic speech analysis results for trial users.",
-          wpm: 150,
-          filler_count: 2,
-          duration_seconds: 30,
-          word_count: 45,
-          demo_mode: true,
-          error: "Real analysis failed - this is demo data. Sign up for reliable processing!"
+    def process_phase_2_ai_analysis(quick_results, media_data)
+      # Phase 2: Enhance with AI analysis
+      begin
+        @trial_session.update!(processing_state: "ai_analyzing")
+
+        transcript_data = {
+          transcript: quick_results[:transcript],
+          words: quick_results[:words],
+          metadata: quick_results[:metadata]
         }
+
+        # Run AI-powered filler detection
+        ai_refiner = Analysis::AiRefiner.new(
+          transcript_data,
+          @trial_session.language
+        )
+
+        ai_results = ai_refiner.refine_analysis
+
+        # Recalculate metrics with AI-detected fillers
+        metrics_calculator = Analysis::Metrics.new(
+          transcript_data,
+          ai_results[:issues] || [],
+          {
+            language: @trial_session.language,
+            ai_detected_fillers: ai_results[:ai_detected_fillers] || []
+          }
+        )
+
+        enhanced_metrics = metrics_calculator.calculate_all_metrics
+
+        Rails.logger.info "Phase 2 complete: AI detected #{ai_results[:ai_detected_fillers]&.length || 0} fillers"
+
+        # Merge quick results with AI-enhanced metrics
+        quick_results.merge(
+          comprehensive_metrics: enhanced_metrics,
+          ai_insights: ai_results[:insights],
+          micro_tips: ai_results[:micro_tips],
+          filler_count: enhanced_metrics.dig(:clarity_metrics, :filler_metrics, :total_filler_count),
+          wpm: enhanced_metrics.dig(:speaking_metrics, :words_per_minute),
+          phase: "ai_enhanced"
+        )
+
+      rescue => e
+        Rails.logger.error "Phase 2 AI analysis error: #{e.message}"
+        # Return quick results without AI enhancement
+        Rails.logger.warn "Falling back to Phase 1 results without AI enhancement"
+        quick_results.merge(phase: "ai_failed", ai_error: e.message)
       end
     end
 
@@ -128,29 +194,6 @@ module Sessions
       result
     end
 
-    def calculate_trial_metrics(transcript_data)
-      words = transcript_data[:words] || []
-      transcript = transcript_data[:transcript] || ""
-
-      # Basic calculations
-      word_count = words.length
-      duration_seconds = transcript_data.dig(:metadata, :duration) || 30
-
-      # Calculate WPM
-      wpm = duration_seconds > 0 ? (word_count / (duration_seconds / 60.0)).round : 0
-
-      # Count filler words (simple pattern matching)
-      filler_words = %w[um uh er ah hmm like you-know so basically actually literally well]
-      filler_pattern = /\b(#{filler_words.join('|')})\b/i
-      filler_count = transcript.scan(filler_pattern).length
-
-      {
-        word_count: word_count,
-        duration_seconds: duration_seconds,
-        wpm: wpm,
-        filler_count: filler_count
-      }
-    end
 
     def handle_trial_error(error)
       error_message = case error.class.name

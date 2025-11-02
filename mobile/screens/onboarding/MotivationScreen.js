@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import OnboardingNavigation from '../../components/OnboardingNavigation';
 import AnimatedBackground from '../../components/AnimatedBackground';
+import QuitOnboardingButton from '../../components/QuitOnboardingButton';
 import { COLORS, SPACING } from '../../constants/colors';
 import { MOTIVATION_TIPS, MOTIVATION_STATS } from '../../constants/onboardingData';
 import { useOnboarding } from '../../context/OnboardingContext';
@@ -16,6 +17,7 @@ export default function MotivationScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <AnimatedBackground />
+      <QuitOnboardingButton />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}

@@ -45,6 +45,9 @@ gem "http"
 gem "oj"
 gem "streamio-ffmpeg"
 
+# CORS support for mobile API
+gem "rack-cors"
+
 # For vector similarity (SQLite doesn't have pgvector, we'll use JSON storage + Ruby calculations)
 
 # Error monitoring and performance tracking
@@ -86,3 +89,5 @@ group :test do
   gem "shoulda-matchers"
   gem "rails-controller-testing"
 end
+
+gem "jwt", "~> 3.1"

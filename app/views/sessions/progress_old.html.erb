@@ -1,0 +1,845 @@
+<% content_for :title, "Your Progress" %>
+
+<div class="progress-dashboard" data-controller="metric-explorer">
+  <div class="page-header">
+    <h1>Your Progress</h1>
+    <p class="page-subtitle">Track your improvement across all speaking metrics.</p>
+  </div>
+
+  <% if @recent_sessions.any? %>
+    <!-- Quick Link to Coach Page -->
+    <div class="coach-link-banner">
+      <%= link_to coach_path, class: "coach-link-btn" do %>
+        <div class="link-content">
+          <span class="link-icon">🎯</span>
+          <div class="link-text">
+            <h4>View Your Personalized Plan</h4>
+            <p>Get your daily focus and weekly coaching</p>
+          </div>
+        </div>
+        <span class="link-arrow">→</span>
+      <% end %>
+    </div>
+
+    <!-- Metric Cards Grid -->
+    <div class="metrics-overview-section">
+      <h2 class="section-title">All Metrics Overview</h2>
+      <p class="section-subtitle">Click any metric to see detailed progress</p>
+
+      <div class="metrics-grid">
+        <%
+          metrics_config = [
+            {
+              key: 'filler_rate',
+              label: 'Filler %',
+              tooltip: 'Percentage of words that are fillers (um, uh, like). Lower is better.',
+              inverse: true,  # Lower is better
+              goal: '< 3%'
+            },
+            {
+              key: 'clarity',
+              label: 'Clarity',
+              tooltip: 'Measures articulation, pace consistency, and pause quality',
+              inverse: false,
+              goal: '≥ 90%'
+            },
+            {
+              key: 'pace',
+              label: 'Pace',
+              tooltip: 'Your speaking rate in words per minute. Ideal: 140-170 WPM',
+              inverse: false,
+              goal: '140-170',
+              is_wpm: true
+            },
+            {
+              key: 'pace_consistency',
+              label: 'Consistency',
+              tooltip: 'How steady your speaking pace is throughout the session',
+              inverse: false,
+              goal: '≥ 80%'
+            },
+            {
+              key: 'fluency',
+              label: 'Fluency',
+              tooltip: 'Smoothness of delivery without interruptions or hesitations',
+              inverse: false,
+              goal: '≥ 85%'
+            },
+            {
+              key: 'engagement',
+              label: 'Engagement',
+              tooltip: 'Energy level and vocal variety in your speech',
+              inverse: false,
+              goal: '≥ 75%'
+            }
+          ]
+        %>
+
+        <% metrics_config.each do |metric| %>
+          <%
+            snapshot_key = case metric[:key]
+            when 'clarity' then :clarity
+            when 'filler_rate' then :filler_rate
+            when 'pace' then :pace
+            else metric[:key].to_sym
+            end
+
+            snapshot_data = @skill_snapshot&.dig(snapshot_key)
+            score = snapshot_data&.dig(:score) || 0
+            delta = snapshot_data&.dig(:delta) || 0
+
+            # Determine if change is positive based on metric type
+            is_positive = metric[:inverse] ? delta <= 0 : delta >= 0
+            delta_class = is_positive ? 'positive' : 'negative'
+            delta_arrow = is_positive ? '▲' : '▼'
+
+            # Highlight if this is the weekly focus metric
+            is_focus = @weekly_focus && metric[:key] == get_metric_key_for_focus(@weekly_focus.focus_type)
+          %>
+
+          <button class="metric-card <%= 'focused-metric' if is_focus %>"
+                  data-metric="<%= metric[:key] %>"
+                  data-action="click->metric-explorer#selectMetric"
+                  data-metric-explorer-target="metricCard">
+            <% if is_focus %>
+              <div class="focus-badge">Current Focus</div>
+            <% end %>
+
+            <div class="metric-header">
+              <span class="metric-label">
+                <%= metric[:label] %>
+                <span class="info-icon" title="<%= metric[:tooltip] %>">ⓘ</span>
+              </span>
+            </div>
+
+            <div class="metric-value-row">
+              <span class="metric-value">
+                <%= metric[:is_wpm] ? score : "#{score}%" %>
+              </span>
+              <span class="metric-delta <%= delta_class %>">
+                <%= delta_arrow %> <%= delta.abs %><%= metric[:is_wpm] ? '' : '%' %>
+              </span>
+            </div>
+
+            <div class="metric-goal">
+              Goal: <%= metric[:goal] %>
+            </div>
+
+            <!-- Mini Sparkline (placeholder for now, will be populated by JS) -->
+            <div class="metric-sparkline" data-metric-explorer-target="sparkline-<%= metric[:key] %>">
+              <canvas width="100" height="30"></canvas>
+            </div>
+          </button>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Interactive Metric Explorer -->
+    <div class="metric-explorer-section">
+      <div class="explorer-header">
+        <h2 class="section-title">Detailed Progress</h2>
+
+        <div class="explorer-controls">
+          <!-- Metric Selector -->
+          <div class="metric-selector-dropdown">
+            <label for="metric-select">Viewing:</label>
+            <select id="metric-select"
+                    data-metric-explorer-target="metricSelect"
+                    data-action="change->metric-explorer#selectMetricFromDropdown">
+              <option value="filler_rate" selected>Filler %</option>
+              <option value="clarity">Clarity</option>
+              <option value="pace">Pace (WPM)</option>
+              <option value="pace_consistency">Pace Consistency</option>
+              <option value="fluency">Fluency</option>
+              <option value="engagement">Engagement</option>
+            </select>
+          </div>
+
+          <!-- Time Range Filter -->
+          <div class="time-range-filters">
+            <button class="time-range-btn <%= @time_range == '7' ? 'active' : '' %>"
+                    data-range="7"
+                    data-action="click->metric-explorer#changeTimeRange"
+                    data-metric-explorer-target="timeRangeBtn">
+              Last 7
+            </button>
+            <button class="time-range-btn <%= @time_range == '30' ? 'active' : '' %>"
+                    data-range="30"
+                    data-action="click->metric-explorer#changeTimeRange"
+                    data-metric-explorer-target="timeRangeBtn">
+              Last 30
+            </button>
+            <button class="time-range-btn <%= @time_range == 'lifetime' ? 'active' : '' %>"
+                    data-range="lifetime"
+                    data-action="click->metric-explorer#changeTimeRange"
+                    data-metric-explorer-target="timeRangeBtn">
+              Lifetime
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Chart -->
+      <div class="chart-container-main">
+        <div class="chart-meta">
+          <h3 class="chart-title" data-metric-explorer-target="chartTitle">Filler Word Progress</h3>
+          <div class="chart-stats">
+            <span class="stat-item">
+              <span class="stat-label">Current:</span>
+              <span class="stat-value" data-metric-explorer-target="currentValue">--</span>
+            </span>
+            <span class="stat-item">
+              <span class="stat-label">Best:</span>
+              <span class="stat-value" data-metric-explorer-target="bestValue">--</span>
+            </span>
+            <span class="stat-item">
+              <span class="stat-label">Trend:</span>
+              <span class="stat-value stat-trend" data-metric-explorer-target="trendValue">--</span>
+            </span>
+          </div>
+        </div>
+
+        <canvas data-metric-explorer-target="mainChart"
+                data-labels="<%= @chart_data[:labels].to_json %>"
+                data-filler-values="<%= @chart_data[:filler_data].to_json %>"
+                data-pace-values="<%= @chart_data[:pace_data].to_json %>"
+                data-clarity-values="<%= @chart_data[:clarity_data].to_json %>"
+                data-pace-consistency-values="<%= @chart_data[:pace_consistency_data].to_json %>"
+                data-fluency-values="<%= @chart_data[:fluency_data].to_json %>"
+                data-engagement-values="<%= @chart_data[:engagement_data].to_json %>"></canvas>
+
+        <div class="chart-footer">
+          <span class="chart-note">Each point represents a session. The dashed line shows your target.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Achievements & Milestones -->
+    <% if @achievements&.any? %>
+      <div class="achievements-section">
+        <h2 class="section-title">Achievements & Milestones</h2>
+        <p class="section-subtitle">Celebrate your progress and accomplishments</p>
+
+        <div class="achievements-grid">
+          <% @achievements.each do |achievement| %>
+            <div class="achievement-card <%= 'recent' if @recent_milestones&.include?(achievement) %>">
+              <div class="achievement-icon"><%= achievement[:icon] %></div>
+              <div class="achievement-content">
+                <h3 class="achievement-title"><%= achievement[:title] %></h3>
+                <p class="achievement-description"><%= achievement[:description] %></p>
+                <% if @recent_milestones&.include?(achievement) %>
+                  <span class="achievement-badge">New!</span>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Practice Calendar -->
+    <div class="calendar-section">
+      <h2 class="section-title">Practice Calendar</h2>
+      <p class="section-subtitle">Your practice consistency over the year</p>
+
+      <% if @calendar_data.present? %>
+        <div class="calendar-grid">
+          <% @calendar_data.each do |day| %>
+            <div class="calendar-day <%= day[:has_session] ? 'trained' : 'missed' %>"
+                 title="<%= day[:date].strftime('%b %d, %Y') %>">
+            </div>
+          <% end %>
+        </div>
+
+        <div class="calendar-legend">
+          <div class="legend-item">
+            <div class="legend-dot missed"></div>
+            <span>No practice</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot trained"></div>
+            <span>Practice completed</span>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+  <% else %>
+    <div class="no-sessions-message">
+      <h3>No Sessions Yet</h3>
+      <p>Complete practice sessions to see your progress dashboard!</p>
+      <%= link_to "Start Practicing", practice_path, class: "btn btn-primary" %>
+    </div>
+  <% end %>
+</div>
+
+<style>
+  .progress-dashboard {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+
+  .page-header {
+    margin-bottom: 2rem;
+  }
+
+  .page-header h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .page-subtitle {
+    font-size: 1.125rem;
+    color: #64748b;
+    margin: 0;
+  }
+
+  /* Coach Link Banner */
+  .coach-link-banner {
+    margin-bottom: 2.5rem;
+  }
+
+  .coach-link-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    border-radius: 16px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+  }
+
+  .coach-link-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+    border-color: #047857;
+  }
+
+  .link-content {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+  }
+
+  .link-icon {
+    font-size: 2rem;
+  }
+
+  .link-text h4 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin: 0 0 0.25rem 0;
+  }
+
+  .link-text p {
+    font-size: 0.9375rem;
+    opacity: 0.9;
+    margin: 0;
+  }
+
+  .link-arrow {
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+
+  /* Metrics Overview */
+  .metrics-overview-section {
+    margin-bottom: 3rem;
+  }
+
+  .section-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .section-subtitle {
+    font-size: 1rem;
+    color: #64748b;
+    margin: 0 0 1.5rem 0;
+  }
+
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .metric-card {
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .metric-card:hover {
+    border-color: #4F46E5;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+    transform: translateY(-2px);
+  }
+
+  .metric-card.focused-metric {
+    border-color: #10b981;
+    background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
+  }
+
+  .focus-badge {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    background: #10b981;
+    color: white;
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 0.25rem 0.625rem;
+    border-radius: 12px;
+    letter-spacing: 0.05em;
+  }
+
+  .metric-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .metric-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .info-icon {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    cursor: help;
+  }
+
+  .metric-value-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.75rem;
+  }
+
+  .metric-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1e293b;
+  }
+
+  .metric-delta {
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .metric-delta.positive {
+    color: #10b981;
+  }
+
+  .metric-delta.negative {
+    color: #ef4444;
+  }
+
+  .metric-goal {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin-bottom: 1rem;
+  }
+
+  .metric-sparkline {
+    height: 30px;
+    opacity: 0.6;
+  }
+
+  .metric-sparkline canvas {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Metric Explorer */
+  .metric-explorer-section {
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 3rem;
+  }
+
+  .explorer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .explorer-controls {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .metric-selector-dropdown {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .metric-selector-dropdown label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #64748b;
+  }
+
+  .metric-selector-dropdown select {
+    padding: 0.625rem 2rem 0.625rem 1rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #1e293b;
+    background: white;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+  }
+
+  .time-range-filters {
+    display: flex;
+    gap: 0.5rem;
+    background: #f8fafc;
+    padding: 0.375rem;
+    border-radius: 10px;
+  }
+
+  .time-range-btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    background: transparent;
+    color: #64748b;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .time-range-btn:hover {
+    background: white;
+    color: #1e293b;
+  }
+
+  .time-range-btn.active {
+    background: #4F46E5;
+    color: white;
+  }
+
+  .chart-container-main {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+
+  .chart-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .chart-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+  }
+
+  .chart-stats {
+    display: flex;
+    gap: 1.5rem;
+  }
+
+  .stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .stat-value {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #1e293b;
+  }
+
+  .stat-trend {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+
+  .chart-footer {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e2e8f0;
+  }
+
+  .chart-note {
+    font-size: 0.875rem;
+    color: #64748b;
+  }
+
+  /* Achievements Section */
+  .achievements-section {
+    margin-bottom: 3rem;
+  }
+
+  .achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .achievement-card {
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .achievement-card:hover {
+    border-color: #4F46E5;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+    transform: translateY(-2px);
+  }
+
+  .achievement-card.recent {
+    border-color: #10b981;
+    background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
+  }
+
+  .achievement-card.recent::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, transparent 0%, rgba(16, 185, 129, 0.1) 100%);
+    border-radius: 0 16px 0 100%;
+  }
+
+  .achievement-icon {
+    font-size: 3rem;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+
+  .achievement-content {
+    flex: 1;
+  }
+
+  .achievement-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .achievement-description {
+    font-size: 0.9375rem;
+    color: #64748b;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  .achievement-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 0.25rem 0.625rem;
+    border-radius: 12px;
+    margin-top: 0.75rem;
+    letter-spacing: 0.05em;
+  }
+
+  /* Calendar Section */
+  .calendar-section {
+    margin-bottom: 2rem;
+  }
+
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(12px, 1fr));
+    gap: 4px;
+    margin-bottom: 1.5rem;
+    max-width: 100%;
+  }
+
+  .calendar-day {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    transition: all 0.2s;
+  }
+
+  .calendar-day.missed {
+    background: #e2e8f0;
+  }
+
+  .calendar-day.trained {
+    background: #10b981;
+  }
+
+  .calendar-day:hover {
+    transform: scale(1.3);
+    cursor: pointer;
+  }
+
+  .calendar-legend {
+    display: flex;
+    gap: 1.5rem;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+  }
+
+  .legend-dot.missed {
+    background: #e2e8f0;
+  }
+
+  .legend-dot.trained {
+    background: #10b981;
+  }
+
+  .legend-item span {
+    font-size: 0.875rem;
+    color: #64748b;
+  }
+
+  /* No sessions state */
+  .no-sessions-message {
+    text-align: center;
+    padding: 4rem 2rem;
+  }
+
+  .no-sessions-message h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 1rem 0;
+  }
+
+  .no-sessions-message p {
+    font-size: 1.125rem;
+    color: #64748b;
+    margin: 0 0 2rem 0;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #4F46E5 0%, #6366F1 100%);
+    color: white;
+    padding: 0.875rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 1rem;
+    text-decoration: none;
+    display: inline-block;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+  }
+
+  /* Mobile responsive */
+  @media (max-width: 768px) {
+    .progress-dashboard {
+      padding: 1.5rem 1rem;
+    }
+
+    .page-header h1 {
+      font-size: 2rem;
+    }
+
+    .metrics-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .explorer-header {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .explorer-controls {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .chart-meta {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .chart-stats {
+      justify-content: space-between;
+    }
+
+    .coach-link-btn {
+      padding: 1.25rem 1.5rem;
+    }
+  }
+</style>

@@ -1,0 +1,802 @@
+<% content_for :title, "Your Coach" %>
+
+<div class="coach-page" data-controller="progress-dashboard">
+  <div class="page-header">
+    <h1>Your Personal Coach</h1>
+    <p class="page-subtitle">Your personalized plan to improve your speaking skills.</p>
+  </div>
+
+  <% if @recent_sessions.any? %>
+    <div class="coach-content">
+
+      <!-- Last Session Insight (NEW) -->
+      <% if @last_session_insight %>
+        <div class="last-session-insight-card">
+          <div class="card-header">
+            <h3>LAST SESSION INSIGHT</h3>
+            <span class="session-date"><%= @last_session_insight[:date].strftime("%b %d, %Y") %></span>
+          </div>
+
+          <div class="insight-narrative">
+            <p><%= @last_session_insight[:narrative] %></p>
+          </div>
+
+          <div class="insight-metrics-grid">
+            <% if @last_session_insight[:key_metrics][:filler_rate] %>
+              <div class="insight-metric">
+                <span class="metric-label">Filler %</span>
+                <span class="metric-value"><%= (@last_session_insight[:key_metrics][:filler_rate] * 100).round(1) %>%</span>
+              </div>
+            <% end %>
+
+            <% if @last_session_insight[:key_metrics][:clarity_score] %>
+              <div class="insight-metric">
+                <span class="metric-label">Clarity</span>
+                <span class="metric-value"><%= (@last_session_insight[:key_metrics][:clarity_score] * 100).round %>%</span>
+              </div>
+            <% end %>
+
+            <% if @last_session_insight[:key_metrics][:wpm] %>
+              <div class="insight-metric">
+                <span class="metric-label">Pace</span>
+                <span class="metric-value"><%= @last_session_insight[:key_metrics][:wpm].round %> WPM</span>
+              </div>
+            <% end %>
+          </div>
+
+          <%= link_to "View Full Report", session_path(@last_session_insight[:session]), class: "btn-link" %>
+        </div>
+      <% end %>
+
+      <!-- Weekly Focus Section -->
+      <div class="weekly-focus-card">
+        <div class="card-header">
+          <h3>THIS WEEK'S GOAL</h3>
+          <span class="estimated-time">Est. time<br>6–8 min / day</span>
+        </div>
+
+        <% if @priority_recommendations&.dig(:focus_this_week)&.first %>
+          <% focus_area = @priority_recommendations[:focus_this_week].first %>
+
+          <div class="focus-title">
+            <span class="focus-icon"><%= icon_svg(:fire, css_class: 'icon-inline') %></span>
+            <h2><%= humanize_improvement_type(focus_area[:type]) %></h2>
+          </div>
+
+          <!-- Personalized Narrative (ENHANCED) -->
+          <div class="focus-narrative">
+            <% if @weekly_focus_tracking %>
+              <%
+                current = focus_area[:current_value]
+                target = focus_area[:target_value]
+                progress = @weekly_focus_tracking[:sessions_this_week]
+                total = @weekly_focus_tracking[:target_this_week]
+              %>
+              <p class="narrative-text">
+                <%= generate_weekly_focus_narrative(focus_area, @weekly_focus_tracking) %>
+              </p>
+            <% else %>
+              <p class="narrative-text">
+                Target <%= format_metric_value(focus_area[:target_value], focus_area[:type]) %> by Sunday.
+                Average last 5 sessions: <%= format_metric_value(focus_area[:current_value], focus_area[:type]) %>.
+              </p>
+            <% end %>
+          </div>
+
+          <div class="focus-progress-grid">
+            <div class="progress-item">
+              <div class="progress-label">Today</div>
+              <div class="progress-value">
+                <%= @weekly_focus_tracking ? "#{@weekly_focus_tracking[:sessions_today]} / #{@weekly_focus_tracking[:target_today]} drills" : "0 / 2 drills" %>
+              </div>
+            </div>
+            <div class="progress-item">
+              <div class="progress-label">Week</div>
+              <div class="progress-value">
+                <%= @weekly_focus_tracking ? "#{@weekly_focus_tracking[:sessions_this_week]} / #{@weekly_focus_tracking[:target_this_week]} drills" : "0 / 10 drills" %>
+              </div>
+            </div>
+            <div class="progress-item">
+              <div class="progress-label">Streak</div>
+              <div class="progress-value">
+                <%= @weekly_focus_tracking ? "#{@weekly_focus_tracking[:streak_days]} day#{'s' unless @weekly_focus_tracking[:streak_days] == 1}" : "0 days" %>
+              </div>
+            </div>
+          </div>
+
+          <div class="focus-actions">
+            <% if @daily_plan && @daily_plan[:drills].present? %>
+              <%= link_to icon_from_emoji(@daily_plan[:drills].first[:icon]) + " #{@daily_plan[:drills].first[:title]}",
+                  practice_path(
+                    weekly_focus_id: @weekly_focus&.id,
+                    is_planned_session: true,
+                    drill_title: @daily_plan[:drills].first[:title],
+                    target_seconds: @daily_plan[:drills].first[:duration_seconds]
+                  ),
+                  class: "btn btn-primary" %>
+              <% if @daily_plan[:drills].length > 1 %>
+                <%= link_to icon_from_emoji(@daily_plan[:drills][1][:icon]) + " #{@daily_plan[:drills][1][:title]}",
+                    practice_path(
+                      weekly_focus_id: @weekly_focus&.id,
+                      is_planned_session: true,
+                      drill_title: @daily_plan[:drills][1][:title],
+                      target_seconds: @daily_plan[:drills][1][:duration_seconds]
+                    ),
+                    class: "btn btn-secondary" %>
+              <% end %>
+            <% else %>
+              <%= link_to icon_svg(:mic, css_class: 'icon-inline') + " Start Practice", practice_path, class: "btn btn-primary" %>
+            <% end %>
+          </div>
+
+          <!-- Why This Focus (NEW) -->
+          <div class="why-this-focus">
+            <strong>Why this focus?</strong>
+            <p><%= focus_area[:actionable_steps]&.first || "Based on your recent sessions, this is your highest-impact area for improvement." %></p>
+          </div>
+        <% else %>
+          <div class="no-focus">
+            <p>Complete more sessions to get personalized weekly focus recommendations.</p>
+            <%= link_to "Start Practicing", practice_path, class: "btn btn-primary" %>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Today's Focus (renamed from Today's Plan) -->
+      <div class="daily-plan-card">
+        <div class="card-header">
+          <h3>TODAY'S FOCUS</h3>
+        </div>
+
+        <% if @daily_plan && @daily_plan[:drills].present? %>
+          <div class="plan-items">
+            <% @daily_plan[:drills].each do |drill| %>
+              <div class="plan-item">
+                <div class="plan-number"><%= drill[:order] %></div>
+                <div class="plan-content">
+                  <h4><%= icon_from_emoji(drill[:icon]) %> <%= drill[:title] %></h4>
+                  <p class="drill-description"><%= drill[:description] %></p>
+
+                  <!-- Drill Reasoning (ENHANCED) - Will be populated by service update -->
+                  <% if drill[:reasoning].present? %>
+                    <p class="drill-reasoning">💡 <%= drill[:reasoning] %></p>
+                  <% end %>
+                </div>
+                <%= link_to practice_path(
+                  weekly_focus_id: drill[:weekly_focus_id],
+                  is_planned_session: true,
+                  drill_title: drill[:title],
+                  target_seconds: drill[:duration_seconds]
+                ), class: "btn-start", method: :get do %>
+                  ⭐ Start
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+
+          <div class="plan-actions">
+            <%= link_to icon_svg(:star, css_class: 'icon-inline') + " Start Today's Plan", practice_path(
+              weekly_focus_id: @weekly_focus&.id,
+              is_planned_session: true,
+              drill_title: @daily_plan[:drills].first[:title],
+              target_seconds: @daily_plan[:drills].first[:duration_seconds]
+            ), class: "btn btn-primary" %>
+          </div>
+        <% else %>
+          <div class="plan-items">
+            <div class="plan-item">
+              <div class="plan-number">1</div>
+              <div class="plan-content">
+                <h4>Complete More Sessions</h4>
+                <p>Record a few more practice sessions to get personalized daily plans.</p>
+              </div>
+              <%= link_to practice_path, class: "btn-start" do %>
+                <%= icon_svg(:star, css_class: 'icon-inline') %> Start
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Practice Calendar -->
+      <div class="practice-calendar-card">
+        <div class="card-header">
+          <h3>PRACTICE CALENDAR</h3>
+        </div>
+
+        <% if @calendar_data.present? %>
+          <div class="calendar-grid">
+            <% @calendar_data.each do |day| %>
+              <div class="calendar-day <%= day[:has_session] ? 'trained' : 'missed' %>"
+                   title="<%= day[:date].strftime('%b %d, %Y') %>">
+              </div>
+            <% end %>
+          </div>
+
+          <div class="calendar-legend">
+            <div class="legend-item">
+              <div class="legend-dot missed"></div>
+              <span>Missed day</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot trained"></div>
+              <span>Trained</span>
+            </div>
+          </div>
+
+          <div class="calendar-note">
+            Each filled square = a completed practice day. Keep the streak alive.
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Quick Link to Progress Dashboard -->
+      <div class="progress-link-card">
+        <%= link_to progress_path, class: "progress-link-btn" do %>
+          <div class="link-content">
+            <span class="link-icon"><%= icon_svg(:chart_bar, css_class: 'icon-inline') %></span>
+            <div class="link-text">
+              <h4>View Detailed Progress</h4>
+              <p>Track your improvement across all metrics</p>
+            </div>
+          </div>
+          <span class="link-arrow">→</span>
+        <% end %>
+      </div>
+
+    </div>
+  <% else %>
+    <div class="no-sessions-message">
+      <h3><%= icon_svg(:mic, css_class: 'icon-inline') %> No Sessions Yet</h3>
+      <p>Complete a few practice sessions to get your personalized coaching plan!</p>
+      <%= link_to "Start Practicing", practice_path, class: "btn btn-primary" %>
+    </div>
+  <% end %>
+</div>
+
+<style>
+  .coach-page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+
+  .page-header {
+    margin-bottom: 2.5rem;
+  }
+
+  .page-header h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .page-subtitle {
+    font-size: 1.125rem;
+    color: #64748b;
+    margin: 0;
+  }
+
+  .coach-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  /* Last Session Insight Card (NEW) */
+  .last-session-insight-card {
+    background: linear-gradient(135deg, #fef3c7 0%, #fef9e7 100%);
+    border: 2px solid #f59e0b;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.1);
+  }
+
+  .last-session-insight-card .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .last-session-insight-card .card-header h3 {
+    font-size: 0.875rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: #92400e;
+    margin: 0;
+  }
+
+  .last-session-insight-card .session-date {
+    font-size: 0.875rem;
+    color: #92400e;
+    opacity: 0.8;
+  }
+
+  .insight-narrative {
+    margin-bottom: 1.5rem;
+  }
+
+  .insight-narrative p {
+    font-size: 1.125rem;
+    line-height: 1.7;
+    color: #78350f;
+    margin: 0;
+  }
+
+  .insight-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .insight-metric {
+    background: white;
+    padding: 1rem;
+    border-radius: 12px;
+    text-align: center;
+  }
+
+  .insight-metric .metric-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #92400e;
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.05em;
+  }
+
+  .insight-metric .metric-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #78350f;
+  }
+
+  /* Weekly Focus Card (ENHANCED) */
+  .weekly-focus-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
+    border: 2px solid #10b981;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
+  }
+
+  .focus-narrative {
+    background: #f0fdf4;
+    border-left: 4px solid #10b981;
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .focus-narrative .narrative-text {
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    color: #065f46;
+    margin: 0;
+    font-weight: 500;
+  }
+
+  .why-this-focus {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-top: 1.5rem;
+  }
+
+  .why-this-focus strong {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #475569;
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.05em;
+  }
+
+  .why-this-focus p {
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: #64748b;
+    margin: 0;
+  }
+
+  /* Daily Plan Card (ENHANCED) */
+  .drill-reasoning {
+    font-size: 0.9375rem;
+    color: #6366f1;
+    font-style: italic;
+    margin-top: 0.5rem;
+    padding: 0.75rem;
+    background: #eef2ff;
+    border-radius: 8px;
+    border-left: 3px solid #6366f1;
+  }
+
+  /* Progress Link Card (NEW) */
+  .progress-link-card {
+    margin-top: 1rem;
+  }
+
+  .progress-link-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(135deg, #4F46E5 0%, #6366F1 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    border-radius: 16px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+  }
+
+  .progress-link-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(79, 70, 229, 0.3);
+    border-color: #4338CA;
+  }
+
+  .link-content {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+  }
+
+  .link-icon {
+    font-size: 2rem;
+  }
+
+  .link-text h4 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin: 0 0 0.25rem 0;
+  }
+
+  .link-text p {
+    font-size: 0.9375rem;
+    opacity: 0.9;
+    margin: 0;
+  }
+
+  .link-arrow {
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+
+  /* Inherit all existing styles from progress page */
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .card-header h3 {
+    font-size: 0.875rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: #64748b;
+    margin: 0;
+  }
+
+  .estimated-time {
+    font-size: 0.75rem;
+    color: #64748b;
+    text-align: right;
+    line-height: 1.4;
+  }
+
+  .focus-title {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .focus-title h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+  }
+
+  .focus-target {
+    font-size: 1rem;
+    color: #475569;
+    margin-bottom: 1.5rem;
+  }
+
+  .focus-progress-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .progress-item {
+    background: white;
+    padding: 1rem;
+    border-radius: 12px;
+    text-align: center;
+  }
+
+  .progress-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.05em;
+  }
+
+  .progress-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+  }
+
+  .focus-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .btn {
+    flex: 1;
+    padding: 0.875rem 1.25rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    border: none;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #4F46E5 0%, #6366F1 100%);
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #4338CA 0%, #4F46E5 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+  }
+
+  .btn-secondary {
+    background: white;
+    color: #4F46E5;
+    border: 2px solid #e2e8f0;
+  }
+
+  .btn-secondary:hover {
+    background: #f8fafc;
+    border-color: #4F46E5;
+  }
+
+  .btn-link {
+    color: #92400e;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .btn-link:hover {
+    text-decoration: underline;
+  }
+
+  /* Daily Plan */
+  .daily-plan-card {
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 2rem;
+  }
+
+  .plan-items {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .plan-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1.25rem;
+    background: #f8fafc;
+    border-radius: 12px;
+    align-items: flex-start;
+  }
+
+  .plan-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: #4F46E5;
+    color: white;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  .plan-content {
+    flex: 1;
+  }
+
+  .plan-content h4 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .plan-content p {
+    font-size: 0.9375rem;
+    color: #64748b;
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  .btn-start {
+    padding: 0.625rem 1.25rem;
+    background: linear-gradient(135deg, #4F46E5 0%, #6366F1 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    cursor: pointer;
+    text-decoration: none;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+
+  .btn-start:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+  }
+
+  .plan-actions {
+    margin-top: 1.5rem;
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  /* Practice Calendar */
+  .practice-calendar-card {
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 2rem;
+  }
+
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(12px, 1fr));
+    gap: 4px;
+    margin-bottom: 1.5rem;
+  }
+
+  .calendar-day {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    transition: all 0.2s;
+  }
+
+  .calendar-day.missed {
+    background: #e2e8f0;
+  }
+
+  .calendar-day.trained {
+    background: #10b981;
+  }
+
+  .calendar-day:hover {
+    transform: scale(1.3);
+    cursor: pointer;
+  }
+
+  .calendar-legend {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+  }
+
+  .legend-dot.missed {
+    background: #e2e8f0;
+  }
+
+  .legend-dot.trained {
+    background: #10b981;
+  }
+
+  .legend-item span {
+    font-size: 0.875rem;
+    color: #64748b;
+  }
+
+  .calendar-note {
+    font-size: 0.875rem;
+    color: #64748b;
+    line-height: 1.6;
+  }
+
+  /* No sessions state */
+  .no-sessions-message {
+    text-align: center;
+    padding: 4rem 2rem;
+  }
+
+  .no-sessions-message h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 1rem 0;
+  }
+
+  .no-sessions-message p {
+    font-size: 1.125rem;
+    color: #64748b;
+    margin: 0 0 2rem 0;
+  }
+
+  /* Mobile responsive */
+  @media (max-width: 768px) {
+    .coach-page {
+      padding: 1.5rem 1rem;
+    }
+
+    .page-header h1 {
+      font-size: 2rem;
+    }
+
+    .focus-progress-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .focus-actions {
+      flex-direction: column;
+    }
+
+    .plan-item {
+      flex-direction: column;
+    }
+
+    .progress-link-btn {
+      padding: 1.25rem 1.5rem;
+    }
+
+    .link-content {
+      gap: 1rem;
+    }
+  }
+</style>

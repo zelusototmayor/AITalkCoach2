@@ -161,7 +161,7 @@
       Share Feedback
     </button>
 
-    <% if logged_in? %>
+    <% if logged_in? && request.subdomain == 'app' %>
       <!-- Check if user is in onboarding flow -->
       <% in_onboarding = request.path.starts_with?('/onboarding') %>
 
@@ -173,7 +173,7 @@
           <%= yield %>
         </main>
       <% else %>
-        <!-- Dashboard Layout with Sidebar (for logged-in users) -->
+        <!-- Dashboard Layout with Sidebar (for logged-in users on app subdomain) -->
         <div class="app-layout-with-sidebar">
           <%= render 'shared/sidebar' %>
           <%= render 'shared/flash_messages' %>
@@ -231,22 +231,52 @@
                   <span class="nav-text">Pricing</span>
                 <% end %>
               </li>
-              <li class="nav-item" role="none">
-                <%= link_to app_subdomain_url('/login'),
-                      class: "nav-link",
-                      role: "menuitem",
-                      data: { action: "click->navigation#closeMenu" } do %>
-                  <span class="nav-text">Log in</span>
-                <% end %>
-              </li>
-              <li class="nav-item" role="none">
-                <%= link_to app_subdomain_url('/signup'),
-                      class: "nav-link signup-link",
-                      role: "menuitem",
-                      data: { action: "click->navigation#closeMenu" } do %>
-                  <span class="nav-text">Sign Up</span>
-                <% end %>
-              </li>
+
+              <% if logged_in? %>
+                <!-- Logged-in user menu -->
+                <li class="nav-item" role="none">
+                  <%= link_to app_subdomain_url('/practice'),
+                        class: "nav-link",
+                        role: "menuitem",
+                        data: { action: "click->navigation#closeMenu" } do %>
+                    <span class="nav-text">Go to App</span>
+                  <% end %>
+                </li>
+                <li class="nav-item" role="none">
+                  <span class="nav-link user-info" role="menuitem">
+                    <span class="nav-text"><%= current_user.name %></span>
+                  </span>
+                </li>
+                <li class="nav-item" role="none">
+                  <%= link_to app_subdomain_url('/logout'),
+                        class: "nav-link",
+                        role: "menuitem",
+                        data: {
+                          turbo_method: :delete,
+                          action: "click->navigation#closeMenu"
+                        } do %>
+                    <span class="nav-text">Log out</span>
+                  <% end %>
+                </li>
+              <% else %>
+                <!-- Non-logged-in user menu -->
+                <li class="nav-item" role="none">
+                  <%= link_to app_subdomain_url('/login'),
+                        class: "nav-link",
+                        role: "menuitem",
+                        data: { action: "click->navigation#closeMenu" } do %>
+                    <span class="nav-text">Log in</span>
+                  <% end %>
+                </li>
+                <li class="nav-item" role="none">
+                  <%= link_to app_subdomain_url('/signup'),
+                        class: "nav-link signup-link",
+                        role: "menuitem",
+                        data: { action: "click->navigation#closeMenu" } do %>
+                    <span class="nav-text">Sign Up</span>
+                  <% end %>
+                </li>
+              <% end %>
             </ul>
           </div>
         </nav>

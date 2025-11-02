@@ -1,0 +1,174 @@
+<% content_for :title, "AI Talk Coach" %>
+
+<div class="splash-screen">
+  <div class="splash-content">
+    <p class="splash-welcome">welcome</p>
+
+    <!-- Wave Animation Logo -->
+    <div class="wave-animation-container">
+      <div class="wave-logo">
+        <div class="wave-bar wave-bar-1"></div>
+        <div class="wave-bar wave-bar-2"></div>
+        <div class="wave-bar wave-bar-3"></div>
+        <div class="wave-bar wave-bar-4"></div>
+        <div class="wave-bar wave-bar-5"></div>
+      </div>
+    </div>
+
+    <h1 class="splash-brand">AI Talk Coach</h1>
+  </div>
+</div>
+
+<style>
+  /* Splash Screen Container */
+  .splash-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #f5f7fa 0%, #ffffff 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+
+  .splash-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  /* Welcome Text */
+  .splash-welcome {
+    font-size: 18px;
+    font-weight: 400;
+    color: #64748b;
+    margin-bottom: 0;
+    opacity: 0.7;
+  }
+
+  /* Wave Animation Logo */
+  .wave-animation-container {
+    width: 120px;
+    height: 120px;
+    border-radius: 28px;
+    background: linear-gradient(135deg, #FF8C42 0%, #FFAB73 100%);
+    box-shadow: 0 4px 16px rgba(255, 140, 66, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .wave-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    height: 120px;
+  }
+
+  .wave-bar {
+    width: 10px;
+    background-color: #FFFFFF;
+    border-radius: 5px;
+    animation: wave 1.4s ease-in-out infinite;
+  }
+
+  /* Different heights and delays for wave effect */
+  .wave-bar-1 {
+    height: 50px;
+    animation-delay: 0s;
+  }
+
+  .wave-bar-2 {
+    height: 65px;
+    animation-delay: 0.14s;
+  }
+
+  .wave-bar-3 {
+    height: 80px;
+    animation-delay: 0.28s;
+  }
+
+  .wave-bar-4 {
+    height: 65px;
+    animation-delay: 0.42s;
+  }
+
+  .wave-bar-5 {
+    height: 50px;
+    animation-delay: 0.56s;
+  }
+
+  @keyframes wave {
+    0%, 100% {
+      height: var(--base-height, 50px);
+      opacity: 0.5;
+    }
+    50% {
+      height: var(--max-height, 70px);
+      opacity: 1;
+    }
+  }
+
+  /* Set CSS variables for each bar */
+  .wave-bar-1 {
+    --base-height: 50px;
+    --max-height: 70px;
+  }
+
+  .wave-bar-2 {
+    --base-height: 65px;
+    --max-height: 90px;
+  }
+
+  .wave-bar-3 {
+    --base-height: 80px;
+    --max-height: 110px;
+  }
+
+  .wave-bar-4 {
+    --base-height: 65px;
+    --max-height: 90px;
+  }
+
+  .wave-bar-5 {
+    --base-height: 50px;
+    --max-height: 70px;
+  }
+
+  /* Brand Text */
+  .splash-brand {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1e293b;
+    letter-spacing: 0.5px;
+    text-align: center;
+  }
+
+  /* Auto-advance after 2.5 seconds */
+  @keyframes fadeOut {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+
+  .splash-screen {
+    animation: fadeOut 0.5s ease-in-out 2s forwards;
+  }
+</style>
+
+<script>
+  // Auto-advance to welcome page after 2.5 seconds
+  setTimeout(function() {
+    window.location.href = '<%= onboarding_welcome_path %>';
+  }, 2500);
+</script>

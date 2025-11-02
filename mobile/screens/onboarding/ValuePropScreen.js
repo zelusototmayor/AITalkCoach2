@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import OnboardingNavigation from '../../components/OnboardingNavigation';
 import AnimatedBackground from '../../components/AnimatedBackground';
+import QuitOnboardingButton from '../../components/QuitOnboardingButton';
 import { COLORS, SPACING, TYPOGRAPHY } from '../../constants/colors';
 import { VALUE_PROPS } from '../../constants/onboardingData';
 
@@ -9,6 +10,7 @@ export default function ValuePropScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <AnimatedBackground />
+      <QuitOnboardingButton />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}

@@ -7,125 +7,473 @@
 
 <div class="onboarding-container">
   <div class="onboarding-content">
-    <!-- Quit Button -->
-    <div style="text-align: right; margin-bottom: 1rem;">
-      <%= link_to logout_path, class: 'quit-onboarding-btn', data: { turbo_method: :delete, turbo_confirm: "Are you sure you want to quit? You'll need to start over." } do %>
-        <span class="quit-icon">×</span> Quit
-      <% end %>
-    </div>
+    <!-- Quit Button - Top Right -->
+    <%= link_to logout_path, class: 'quit-btn-top-right', data: { turbo_method: :delete, turbo_confirm: "Are you sure you want to quit? You'll need to start over." } do %>
+      <span class="quit-icon">×</span>
+    <% end %>
 
-    <!-- Progress Indicator -->
-    <%= render 'onboarding/progress', current_step: 4 %>
+    <!-- Pricing Section -->
+    <div class="pricing-section" data-controller="onboarding-payment" data-onboarding-payment-setup-intent-value="<%= @setup_intent.client_secret %>">
+      <h1 class="pricing-title">Choose Your Backup Plan</h1>
+      <p class="pricing-subtitle">You'll only be charged if you miss a day of practice</p>
 
-    <!-- Form Section -->
-    <div class="onboarding-form-section">
-      <h1 class="onboarding-title">Practice Daily, Use Free Forever</h1>
-      <p class="onboarding-subtitle">Add a payment method to activate your free trial. You'll only be charged if you miss a day of practice.</p>
-
-      <!-- Free Forever Explanation -->
-      <div class="info-banner">
-        <div class="info-icon" aria-hidden="true"><%= icon_svg(:info, css_class: 'icon') %></div>
-        <div class="info-content">
-          <div class="info-title">How it works:</div>
-          <ul class="info-list">
+      <!-- How It Works Banner -->
+      <div class="how-it-works-banner">
+        <div class="banner-icon">ℹ️</div>
+        <div class="banner-content">
+          <div class="banner-title">How it works:</div>
+          <ul class="banner-list">
             <li>Start with 24 hours of free access</li>
-            <li>Practice for 1+ minute daily to extend your trial by 24 hours</li>
-            <li><strong>Keep practicing daily = Stay free forever!</strong></li>
-            <li>Miss a day? We'll charge you for the plan you selected</li>
+            <li>Practice 1+ minute daily to extend free access</li>
+            <li><strong>Practice daily = Free forever!</strong></li>
+            <li>Miss a day? We charge the plan below</li>
           </ul>
         </div>
       </div>
 
-      <!-- Plan Selection -->
-      <div class="plan-selection" data-controller="onboarding-payment" data-onboarding-payment-setup-intent-value="<%= @setup_intent.client_secret %>">
-        <h2 class="section-title" id="plan-selection-title">Choose your backup plan</h2>
-        <p class="section-subtitle" id="plan-selection-description">Select the plan you'll be charged if you miss a practice day</p>
-
-        <div class="pricing-cards-compact" role="radiogroup" aria-labelledby="plan-selection-title" aria-describedby="plan-selection-description" aria-required="true">
-          <!-- Monthly Plan -->
-          <label class="pricing-card-compact" tabindex="0">
-            <input type="radio" name="selected_plan" value="monthly" class="plan-radio" id="plan_monthly" data-onboarding-payment-target="planRadio" data-action="change->onboarding-payment#selectPlan" aria-describedby="plan-monthly-details">
-            <div class="plan-content" id="plan-monthly-details">
-              <div class="plan-header">
-                <div class="plan-name">Monthly Plan</div>
-                <div class="plan-price">
-                  <span class="price-amount">€9.99</span>
-                  <span class="price-period">/month</span>
-                </div>
-              </div>
-              <div class="plan-features">
-                <div class="feature-item">✓ Free forever if you practice daily</div>
-                <div class="feature-item">✓ Unlimited sessions</div>
-                <div class="feature-item">✓ AI-powered insights</div>
-              </div>
+      <!-- Plan Selection Cards -->
+      <div class="plan-cards">
+        <!-- Monthly Plan -->
+        <label class="plan-card">
+          <input type="radio" name="selected_plan" value="monthly" class="plan-radio" data-onboarding-payment-target="planRadio" data-action="change->onboarding-payment#selectPlan">
+          <div class="plan-card-content">
+            <div class="plan-name">Monthly</div>
+            <div class="plan-price">
+              <span class="price-amount">€9.99</span>
+              <span class="price-period">/month</span>
             </div>
-          </label>
-
-          <!-- Yearly Plan (Recommended) -->
-          <label class="pricing-card-compact recommended" tabindex="0">
-            <input type="radio" name="selected_plan" value="yearly" class="plan-radio" id="plan_yearly" data-onboarding-payment-target="planRadio" data-action="change->onboarding-payment#selectPlan" aria-describedby="plan-yearly-details" checked>
-            <div class="best-value-badge" aria-label="Recommended plan - best value">BEST VALUE</div>
-            <div class="plan-content" id="plan-yearly-details">
-              <div class="plan-header">
-                <div class="plan-name">Yearly Plan</div>
-                <div class="plan-price">
-                  <span class="price-amount">€60</span>
-                  <span class="price-period">/year</span>
-                </div>
-                <div class="plan-savings">Just €5/month • Save 50%</div>
-              </div>
-              <div class="plan-features">
-                <div class="feature-item">✓ Everything in Monthly</div>
-                <div class="feature-item">✓ Save €60 per year</div>
-                <div class="feature-item">✓ Lock in your price</div>
-              </div>
+            <div class="plan-features">
+              <div class="feature">✓ Free if you practice daily</div>
+              <div class="feature">✓ Unlimited sessions</div>
+              <div class="feature">✓ AI-powered insights</div>
             </div>
-          </label>
-        </div>
-
-        <!-- Payment Method Section -->
-        <div class="payment-section">
-          <h3 class="section-title" id="payment-method-title">Payment Method</h3>
-          <p class="payment-notice" id="payment-notice" role="status" aria-live="polite">
-            <%= icon_svg(:shield, css_class: 'icon-inline') %> Your card will only be charged after you miss a day of practice
-          </p>
-
-          <!-- Stripe Card Element -->
-          <div id="stripe-card-element"
-               class="stripe-card-element"
-               role="group"
-               aria-labelledby="payment-method-title"
-               aria-describedby="payment-notice card-errors"></div>
-          <div id="card-errors" class="card-errors" role="alert" aria-live="polite" aria-atomic="true"></div>
-        </div>
-
-        <!-- Submit Button -->
-        <div class="onboarding-actions">
-          <button type="button"
-                  class="primary-btn btn-large"
-                  data-onboarding-payment-target="submitBtn"
-                  data-action="click->onboarding-payment#submitPayment"
-                  aria-describedby="submit-note">
-            <span data-onboarding-payment-target="submitText">Add Payment Method & Start Free</span>
-            <span data-onboarding-payment-target="submitLoader" class="btn-loader" style="display: none;" aria-hidden="true"></span>
-          </button>
-          <p class="submit-note" id="submit-note">Cancel anytime • No charge if you practice daily</p>
-        </div>
-
-        <% if flash[:alert] %>
-          <div class="form-error" role="alert" aria-live="assertive" aria-atomic="true">
-            <%= flash[:alert] %>
           </div>
-        <% end %>
+        </label>
+
+        <!-- Yearly Plan (Recommended) -->
+        <label class="plan-card recommended">
+          <input type="radio" name="selected_plan" value="yearly" class="plan-radio" data-onboarding-payment-target="planRadio" data-action="change->onboarding-payment#selectPlan" checked>
+          <div class="best-value-badge">BEST VALUE</div>
+          <div class="plan-card-content">
+            <div class="plan-name">Yearly</div>
+            <div class="plan-price">
+              <span class="price-amount">€60</span>
+              <span class="price-period">/year</span>
+            </div>
+            <div class="plan-savings">Just €5/month • Save 50%</div>
+            <div class="plan-features">
+              <div class="feature">✓ Everything in Monthly</div>
+              <div class="feature">✓ Save €60 per year</div>
+              <div class="feature">✓ Lock in your price</div>
+            </div>
+          </div>
+        </label>
       </div>
 
-      <!-- Back Navigation -->
-      <div class="onboarding-back-action">
-        <%= link_to onboarding_test_path, class: 'text-btn' do %>
-          <%= icon_svg(:arrow_right, css_class: 'icon-inline', style: 'transform: rotate(180deg)') %>
-          Back to test
-        <% end %>
+      <!-- Payment Method Section -->
+      <div class="payment-section">
+        <div class="payment-header">Payment Method</div>
+        <p class="payment-notice">🔒 Your card will only be charged if you miss a day</p>
+
+        <!-- Stripe Card Element -->
+        <div id="stripe-card-element" class="stripe-card-element"></div>
+        <div id="card-errors" class="card-errors"></div>
+      </div>
+
+      <% if flash[:alert] %>
+        <div class="form-error">
+          <%= flash[:alert] %>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Floating Continue Button -->
+    <div class="floating-button-container">
+      <button type="button"
+              class="primary-btn btn-large"
+              data-onboarding-payment-target="submitBtn"
+              data-action="click->onboarding-payment#submitPayment">
+        <span data-onboarding-payment-target="submitText">Start Free Trial</span>
+        <span data-onboarding-payment-target="submitLoader" class="btn-loader" style="display: none;"></span>
+      </button>
+      <p class="continue-note">Cancel anytime • No charge if you practice daily</p>
+
+      <!-- Progress Dots -->
+      <div class="progress-dots">
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot active"></div>
       </div>
     </div>
   </div>
 </div>
+
+<style>
+  /* Container */
+  .onboarding-container {
+    min-height: 100vh;
+    position: relative;
+    background-color: #F8FAFC;
+  }
+
+  .onboarding-content {
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* Quit Button */
+  .quit-btn-top-right {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f1f5f9;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    z-index: 100;
+  }
+
+  .quit-btn-top-right:hover {
+    background-color: #e2e8f0;
+  }
+
+  .quit-btn-top-right .quit-icon {
+    font-size: 20px;
+    color: #64748b;
+    line-height: 1;
+  }
+
+  /* Pricing Section */
+  .pricing-section {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 7rem 1.5rem;
+  }
+
+  .pricing-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1e293b;
+    text-align: center;
+    margin-bottom: 0.35rem;
+  }
+
+  .pricing-subtitle {
+    font-size: 0.875rem;
+    color: #64748b;
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  /* How It Works Banner */
+  .how-it-works-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    background: linear-gradient(135deg, #FFF9F5 0%, #FFF4ED 100%);
+    border: 2px solid #FFE8D9;
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 2rem;
+  }
+
+  .banner-icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+
+  .banner-content {
+    flex: 1;
+  }
+
+  .banner-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #FF8C42;
+    margin-bottom: 0.5rem;
+  }
+
+  .banner-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 0.875rem;
+    color: #1e293b;
+    line-height: 1.6;
+  }
+
+  .banner-list li {
+    margin-bottom: 0.25rem;
+  }
+
+  .banner-list strong {
+    color: #FF8C42;
+  }
+
+  /* Plan Cards */
+  .plan-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .plan-card {
+    position: relative;
+    background: #ffffff;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .plan-card:hover {
+    border-color: #FF8C42;
+    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.15);
+    transform: translateY(-2px);
+  }
+
+  .plan-card.recommended {
+    border-color: #FF8C42;
+    background: linear-gradient(135deg, #FFF9F5 0%, #ffffff 100%);
+  }
+
+  .plan-radio {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .plan-card:has(.plan-radio:checked) {
+    border-color: #FF8C42;
+    background: linear-gradient(135deg, #FFF9F5 0%, #ffffff 100%);
+    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.2);
+  }
+
+  .best-value-badge {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #FF8C42 0%, #FF7028 100%);
+    color: white;
+    font-size: 0.625rem;
+    font-weight: 700;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    letter-spacing: 0.05em;
+  }
+
+  .plan-card-content {
+    text-align: center;
+  }
+
+  .plan-name {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0.75rem;
+  }
+
+  .plan-price {
+    margin-bottom: 0.5rem;
+  }
+
+  .price-amount {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    line-height: 1;
+  }
+
+  .price-period {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #64748b;
+  }
+
+  .plan-savings {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #10b981;
+    margin-bottom: 1rem;
+  }
+
+  .plan-features {
+    text-align: left;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+  }
+
+  .feature {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Payment Section */
+  .payment-section {
+    margin-bottom: 1.5rem;
+  }
+
+  .payment-header {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 0.75rem;
+  }
+
+  .payment-notice {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin-bottom: 1rem;
+  }
+
+  .stripe-card-element {
+    background: #ffffff;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1rem;
+    transition: all 0.2s ease;
+  }
+
+  .stripe-card-element:focus-within {
+    border-color: #FF8C42;
+    box-shadow: 0 0 0 3px rgba(255, 140, 66, 0.1);
+  }
+
+  .card-errors {
+    color: #dc2626;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+  }
+
+  /* Form Error */
+  .form-error {
+    background-color: #fee;
+    border: 1px solid #fcc;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+    color: #c33;
+    text-align: center;
+    font-size: 0.875rem;
+  }
+
+  /* Floating Button Container */
+  .floating-button-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1.25rem 1.5rem;
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    z-index: 50;
+    pointer-events: none;
+  }
+
+  .primary-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, #FF8C42 0%, #FF7028 100%);
+    color: white;
+    padding: 0.875rem 2rem;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.3);
+    pointer-events: auto;
+  }
+
+  .primary-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255, 140, 66, 0.4);
+  }
+
+  .primary-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .btn-loader {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .continue-note {
+    font-size: 0.8125rem;
+    color: #64748b;
+    text-align: center;
+    margin: 0;
+  }
+
+  /* Progress Dots */
+  .progress-dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .progress-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 4px;
+    background-color: #cbd5e1;
+    transition: all 0.3s ease;
+  }
+
+  .progress-dot.active {
+    width: 24px;
+    background-color: #FF8C42;
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .pricing-title {
+      font-size: 1.5rem;
+    }
+
+    .plan-cards {
+      grid-template-columns: 1fr;
+    }
+
+    .price-amount {
+      font-size: 2rem;
+    }
+
+    .floating-button-container {
+      padding: 1rem;
+    }
+  }
+</style>

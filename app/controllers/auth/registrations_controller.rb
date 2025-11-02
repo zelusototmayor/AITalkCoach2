@@ -20,8 +20,14 @@ class Auth::RegistrationsController < ApplicationController
       # Store user ID for analytics tracking
       session[:signup_completed_user_id] = @user.id
 
+      # Set trial period immediately so user can access app after onboarding
+      @user.update_columns(
+        trial_starts_at: Time.current,
+        trial_expires_at: 24.hours.from_now
+      )
+
       # Redirect to onboarding flow
-      redirect_to onboarding_welcome_path, notice: "Welcome! Let's get you set up."
+      redirect_to onboarding_splash_path, notice: "Welcome! Let's get you set up."
     else
       # Preserve trial token on form errors
       session[:trial_token] = params[:trial_token] if params[:trial_token].present?

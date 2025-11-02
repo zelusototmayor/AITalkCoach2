@@ -1,0 +1,913 @@
+<% content_for :title, "Your Coach" %>
+
+<div class="coach-page">
+  <div class="page-header">
+    <h1>Your Personal Coach</h1>
+    <p class="page-subtitle">Your personalized plan to improve your speaking skills</p>
+  </div>
+
+  <% if @recent_sessions.any? %>
+    <div class="coach-dashboard">
+
+      <!-- Row 1: Last Session Insight + Weekly Goal (Side by Side) -->
+      <div class="dashboard-row-top">
+        <!-- Last Session Insight (Enhanced, 50% width) -->
+        <% if @last_session_insight %>
+          <div class="last-session-card">
+            <div class="card-header-compact">
+              <%= icon_svg(:activity, css_class: 'header-icon') %>
+              <div>
+                <h3>Last Session</h3>
+                <span class="session-date"><%= @last_session_insight[:date].strftime("%b %d") %></span>
+              </div>
+            </div>
+
+            <p class="insight-text"><%= @last_session_insight[:narrative] %></p>
+
+            <!-- Overall Score (Prominent) -->
+            <% if @last_session_insight[:key_metrics][:overall_score][:value] %>
+              <%
+                overall = @last_session_insight[:key_metrics][:overall_score]
+                value_pct = (overall[:value] * 100).round
+                delta_pct = overall[:delta] ? (overall[:delta] * 100).round : nil
+                delta_class = if delta_pct.nil?
+                  'neutral'
+                elsif delta_pct > 0
+                  'positive'
+                elsif delta_pct < 0
+                  'negative'
+                else
+                  'neutral'
+                end
+              %>
+              <div class="overall-score-display">
+                <span class="overall-label">Overall Score</span>
+                <span class="overall-value">
+                  <%= value_pct %>%
+                  <% if delta_pct %>
+                    <span class="delta <%= delta_class %>">
+                      <%= delta_pct > 0 ? '▲' : delta_pct < 0 ? '▼' : '—' %>
+                      <%= delta_pct.abs %>%
+                    </span>
+                  <% end %>
+                </span>
+              </div>
+            <% end %>
+
+            <!-- All Metrics Grid (3 columns x 2 rows) -->
+            <div class="metrics-grid-compact">
+              <%
+                metrics_config = [
+                  { key: :filler_rate, label: 'Filler', is_percent: true, inverse: true, multiplier: 100, decimals: 1 },
+                  { key: :clarity_score, label: 'Clarity', is_percent: true, inverse: false, multiplier: 100, decimals: 0 },
+                  { key: :wpm, label: 'Pace', is_percent: false, inverse: false, multiplier: 1, decimals: 0 },
+                  { key: :fluency_score, label: 'Fluency', is_percent: true, inverse: false, multiplier: 100, decimals: 0 },
+                  { key: :engagement_score, label: 'Engagement', is_percent: true, inverse: false, multiplier: 100, decimals: 0 },
+                  { key: :pace_consistency, label: 'Consistency', is_percent: true, inverse: false, multiplier: 100, decimals: 0 }
+                ]
+              %>
+
+              <% metrics_config.each do |config| %>
+                <%
+                  metric = @last_session_insight[:key_metrics][config[:key]]
+                  next unless metric && metric[:value]
+
+                  value = (metric[:value] * config[:multiplier]).round(config[:decimals])
+                  delta_raw = metric[:delta] ? (metric[:delta] * config[:multiplier]).round(config[:decimals]) : nil
+
+                  # Determine if improvement (considering inverse metrics like filler)
+                  is_improvement = if delta_raw.nil?
+                    nil
+                  elsif config[:inverse]
+                    delta_raw < 0 # For filler, lower is better
+                  else
+                    delta_raw > 0 # For most metrics, higher is better
+                  end
+
+                  delta_class = if is_improvement.nil?
+                    'neutral'
+                  elsif is_improvement
+                    'positive'
+                  else
+                    'negative'
+                  end
+                %>
+
+                <div class="metric-item">
+                  <span class="label"><%= config[:label] %></span>
+                  <span class="value">
+                    <%= value %><%= config[:is_percent] ? '%' : '' %>
+                    <% if delta_raw %>
+                      <span class="delta <%= delta_class %>">
+                        <%= is_improvement ? '▲' : is_improvement == false ? '▼' : '—' %>
+                        <%= delta_raw.abs %><%= config[:is_percent] ? '%' : '' %>
+                      </span>
+                    <% end %>
+                  </span>
+                </div>
+              <% end %>
+            </div>
+
+            <!-- Other Observations (Conditional) -->
+            <% if @last_session_insight[:secondary_observations]&.any? %>
+              <div class="other-observations">
+                <h4>Other Observations</h4>
+                <ul>
+                  <% @last_session_insight[:secondary_observations].each do |obs| %>
+                    <li><%= obs[:actionable_steps]&.first || obs[:reason] %></li>
+                  <% end %>
+                </ul>
+              </div>
+            <% end %>
+
+            <%= link_to session_path(@last_session_insight[:session]), class: "view-link" do %>
+              <%= icon_svg(:arrow_right, css_class: 'icon-xs') %> View Full Report
+            <% end %>
+          </div>
+        <% end %>
+
+        <!-- Weekly Goal (60% width) -->
+        <div class="weekly-goal-card">
+          <div class="card-header-compact">
+            <%= icon_svg(:target, css_class: 'header-icon') %>
+            <div>
+              <h3>This Week's Goal</h3>
+              <span class="time-estimate">6–8 min/day</span>
+            </div>
+          </div>
+
+          <% if @priority_recommendations&.dig(:focus_this_week)&.first %>
+            <% focus_area = @priority_recommendations[:focus_this_week].first %>
+
+            <h2 class="goal-title"><%= humanize_improvement_type(focus_area[:type]) %></h2>
+
+            <div class="goal-narrative">
+              <% if @weekly_focus_tracking %>
+                <%= generate_weekly_focus_narrative(focus_area, @weekly_focus_tracking) %>
+              <% else %>
+                Target <%= format_metric_value(focus_area[:target_value], focus_area[:type]) %> by Sunday.
+                Average last 5 sessions: <%= format_metric_value(focus_area[:current_value], focus_area[:type]) %>.
+              <% end %>
+            </div>
+
+            <div class="goal-progress">
+              <div class="progress-stat">
+                <span class="stat-value"><%= @weekly_focus_tracking ? @weekly_focus_tracking[:sessions_today] : 0 %> / <%= @weekly_focus_tracking ? @weekly_focus_tracking[:target_today] : 2 %></span>
+                <span class="stat-label">Today</span>
+              </div>
+              <div class="progress-stat">
+                <span class="stat-value"><%= @weekly_focus_tracking ? @weekly_focus_tracking[:sessions_this_week] : 0 %> / <%= @weekly_focus_tracking ? @weekly_focus_tracking[:target_this_week] : 10 %></span>
+                <span class="stat-label">Week</span>
+              </div>
+              <div class="progress-stat">
+                <span class="stat-value"><%= @weekly_focus_tracking ? @weekly_focus_tracking[:streak_days] : 0 %></span>
+                <span class="stat-label">Streak</span>
+              </div>
+            </div>
+
+            <div class="why-section">
+              <strong>Why this focus?</strong>
+              <p><%= focus_area[:actionable_steps]&.first || "Based on your recent sessions, this is your highest-impact area for improvement." %></p>
+            </div>
+          <% else %>
+            <p class="no-goal-text">Complete more sessions to get personalized weekly focus recommendations.</p>
+            <%= link_to practice_path, class: "btn-primary" do %>
+              <%= icon_svg(:mic, css_class: 'icon-inline') %> Start Practicing
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Row 2: Today's Focus (Full Width, Horizontal Drills) -->
+      <div class="todays-focus-section">
+        <div class="section-header">
+          <%= icon_svg(:list, css_class: 'header-icon') %>
+          <h3>Today's Focus</h3>
+        </div>
+
+        <% if @daily_plan && @daily_plan[:drills].present? %>
+          <div class="drills-row">
+            <% @daily_plan[:drills].first(3).each do |drill| %>
+              <div class="drill-card">
+                <div class="drill-header">
+                  <%= icon_svg(:mic, css_class: 'drill-icon') %>
+                  <span class="drill-number"><%= drill[:order] %></span>
+                </div>
+                <h4 class="drill-title"><%= drill[:title] %></h4>
+                <p class="drill-desc"><%= drill[:description] %></p>
+                <% if drill[:reasoning].present? %>
+                  <p class="drill-reason"><%= drill[:reasoning] %></p>
+                <% end %>
+                <%= link_to practice_path(
+                  weekly_focus_id: drill[:weekly_focus_id],
+                  is_planned_session: true,
+                  drill_title: drill[:title],
+                  target_seconds: drill[:duration_seconds]
+                ), class: "btn-drill" do %>
+                  <%= icon_svg(:play, css_class: 'icon-xs') %> Start
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="no-drills">
+            <p>Record more sessions to get personalized daily drills.</p>
+            <%= link_to practice_path, class: "btn-primary" do %>
+              <%= icon_svg(:mic, css_class: 'icon-inline') %> Start Session
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Row 3: Calendar + Progress Link (Side by Side) -->
+      <div class="dashboard-row-bottom">
+        <!-- Practice Calendar (70% width) -->
+        <div class="calendar-card">
+          <div class="section-header">
+            <%= icon_svg(:calendar, css_class: 'header-icon') %>
+            <h3>Practice Calendar</h3>
+          </div>
+
+          <% if @calendar_data.present? %>
+            <div class="calendar-grid">
+              <% @calendar_data.each do |day| %>
+                <div class="calendar-day <%= day[:has_session] ? 'trained' : 'missed' %>"
+                     title="<%= day[:date].strftime('%b %d, %Y') %>">
+                </div>
+              <% end %>
+            </div>
+
+            <div class="calendar-legend">
+              <div class="legend-item">
+                <div class="legend-dot missed"></div>
+                <span>Missed</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-dot trained"></div>
+                <span>Practiced</span>
+              </div>
+            </div>
+          <% end %>
+        </div>
+
+        <!-- Progress Link (30% width) -->
+        <div class="progress-link-card">
+          <%= link_to progress_path, class: "progress-cta" do %>
+            <%= icon_svg(:trending_up, css_class: 'cta-icon') %>
+            <div class="cta-text">
+              <h4>View Progress</h4>
+              <p>Track all metrics</p>
+            </div>
+            <%= icon_svg(:arrow_right, css_class: 'cta-arrow') %>
+          <% end %>
+        </div>
+      </div>
+
+    </div>
+  <% else %>
+    <div class="no-sessions-state">
+      <%= icon_svg(:mic, css_class: 'empty-icon') %>
+      <h3>No Sessions Yet</h3>
+      <p>Complete a few practice sessions to get your personalized coaching plan!</p>
+      <%= link_to practice_path, class: "btn-primary-large" do %>
+        <%= icon_svg(:mic, css_class: 'icon-inline') %> Start Practicing
+      <% end %>
+    </div>
+  <% end %>
+</div>
+
+<style>
+  /* Coach Page - Dashboard Layout */
+  .coach-page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 1.5rem;
+  }
+
+  .page-header {
+    margin-bottom: 2rem;
+  }
+
+  .page-header h1 {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: var(--text, #0F172A);
+    margin: 0 0 0.25rem 0;
+  }
+
+  .page-subtitle {
+    font-size: 0.9375rem;
+    color: var(--muted, #64748B);
+    margin: 0;
+  }
+
+  /* Dashboard Grid Layout */
+  .coach-dashboard {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  /* Row 1: Last Session + Weekly Goal */
+  .dashboard-row-top {
+    display: grid;
+    grid-template-columns: 50% 50%;
+    gap: 1.5rem;
+  }
+
+  /* Last Session Card (Enhanced with subtle gray background) */
+  .last-session-card {
+    background: linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 100%);
+    border: 1px solid #E5E7EB;
+    border-radius: 16px;
+    padding: 1.25rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+  }
+
+  .card-header-compact {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .header-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--brand-500, #FF8C42);
+  }
+
+  .card-header-compact h3 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text, #0F172A);
+    margin: 0;
+  }
+
+  .session-date {
+    font-size: 0.75rem;
+    color: var(--muted, #64748B);
+  }
+
+  .insight-text {
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--text, #0F172A);
+    margin: 0 0 1rem 0;
+  }
+
+  /* Overall Score (Prominent Display) */
+  .overall-score-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background: #F1F5F9;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+  }
+
+  .overall-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .overall-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #0F172A;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* Metrics Grid (3 columns x 2 rows) */
+  .metrics-grid-compact {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .metric-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.625rem;
+    background: #F8FAFC;
+    border-radius: 8px;
+  }
+
+  .metric-item .label {
+    font-size: 0.625rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #64748B;
+    letter-spacing: 0.05em;
+  }
+
+  .metric-item .value {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: #0F172A;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+
+  /* Delta Indicators */
+  .delta {
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .delta.positive {
+    color: #10B981; /* Green */
+  }
+
+  .delta.negative {
+    color: #EF4444; /* Red */
+  }
+
+  .delta.neutral {
+    color: #64748B; /* Gray */
+  }
+
+  /* Other Observations Section */
+  .other-observations {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #E5E7EB;
+  }
+
+  .other-observations h4 {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #64748B;
+    letter-spacing: 0.05em;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .other-observations ul {
+    margin: 0;
+    padding-left: 1.25rem;
+    list-style: disc;
+  }
+
+  .other-observations li {
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: #475569;
+    margin-bottom: 0.375rem;
+  }
+
+  .other-observations li:last-child {
+    margin-bottom: 0;
+  }
+
+  .view-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--brand-600, #FF7028);
+    text-decoration: none;
+  }
+
+  .view-link:hover {
+    text-decoration: underline;
+  }
+
+  .icon-xs {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Weekly Goal Card (Reduced padding for space efficiency) */
+  .weekly-goal-card {
+    background: var(--card, #FFFFFF);
+    border: 1px solid #E5E7EB;
+    border-radius: 16px;
+    padding: 1.25rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+  }
+
+  .time-estimate {
+    font-size: 0.75rem;
+    color: var(--muted, #64748B);
+  }
+
+  .goal-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text, #0F172A);
+    margin: 1rem 0 0.75rem 0;
+  }
+
+  .goal-narrative {
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--muted, #64748B);
+    padding: 1rem;
+    background: linear-gradient(135deg, #FFF5EB 0%, #FFFFFF 100%);
+    border-left: 3px solid var(--brand-500, #FF8C42);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+  }
+
+  .goal-progress {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .progress-stat {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.75rem;
+    background: var(--bg, #F8FAFC);
+    border-radius: 10px;
+  }
+
+  .stat-value {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--brand-600, #FF7028);
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--muted, #64748B);
+    letter-spacing: 0.05em;
+    margin-top: 0.25rem;
+  }
+
+  .why-section {
+    background: var(--bg, #F8FAFC);
+    padding: 1rem;
+    border-radius: 10px;
+  }
+
+  .why-section strong {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--muted, #64748B);
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+  }
+
+  .why-section p {
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--text, #0F172A);
+    margin: 0;
+  }
+
+  /* Today's Focus Section */
+  .todays-focus-section {
+    background: var(--card, #FFFFFF);
+    border: 1px solid #E5E7EB;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .section-header h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text, #0F172A);
+    margin: 0;
+  }
+
+  /* Drills in Horizontal Row */
+  .drills-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+  }
+
+  .drill-card {
+    background: var(--bg, #F8FAFC);
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    padding: 1.25rem;
+    transition: all 0.2s ease;
+  }
+
+  .drill-card:hover {
+    border-color: var(--brand-500, #FF8C42);
+    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.15);
+    transform: translateY(-2px);
+  }
+
+  .drill-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+  }
+
+  .drill-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--brand-500, #FF8C42);
+  }
+
+  .drill-number {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--brand-500, #FF8C42);
+    color: white;
+    border-radius: 50%;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  .drill-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text, #0F172A);
+    margin: 0 0 0.5rem 0;
+  }
+
+  .drill-desc {
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: var(--muted, #64748B);
+    margin: 0 0 0.75rem 0;
+  }
+
+  .drill-reason {
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: var(--brand-600, #FF7028);
+    font-style: italic;
+    margin: 0 0 1rem 0;
+  }
+
+  .btn-drill {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    width: 100%;
+    padding: 0.625rem;
+    background: var(--gradient-primary, linear-gradient(135deg, #FF8C42, #FFAB73));
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-drill:hover {
+    filter: saturate(1.05) brightness(0.98);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(255, 140, 66, 0.3);
+  }
+
+  /* Row 3: Calendar + Progress Link */
+  .dashboard-row-bottom {
+    display: grid;
+    grid-template-columns: 68% 32%;
+    gap: 1.5rem;
+  }
+
+  /* Calendar Card */
+  .calendar-card {
+    background: var(--card, #FFFFFF);
+    border: 1px solid #E5E7EB;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+  }
+
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(10px, 1fr));
+    gap: 3px;
+    margin-bottom: 1rem;
+  }
+
+  .calendar-day {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    transition: all 0.2s ease;
+  }
+
+  .calendar-day.missed {
+    background: #E5E7EB;
+  }
+
+  .calendar-day.trained {
+    background: var(--brand-500, #FF8C42);
+  }
+
+  .calendar-day:hover {
+    transform: scale(1.2);
+    cursor: pointer;
+  }
+
+  .calendar-legend {
+    display: flex;
+    gap: 1.25rem;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+  }
+
+  .legend-dot.missed {
+    background: #E5E7EB;
+  }
+
+  .legend-dot.trained {
+    background: var(--brand-500, #FF8C42);
+  }
+
+  .legend-item span {
+    font-size: 0.8125rem;
+    color: var(--muted, #64748B);
+  }
+
+  /* Progress Link Card */
+  .progress-link-card {
+    background: var(--card, #FFFFFF);
+    border: 1px solid #E5E7EB;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .progress-cta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    height: 100%;
+    padding: 2rem 1.5rem;
+    background: var(--gradient-primary, linear-gradient(135deg, #FF8C42, #FFAB73));
+    color: white;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .progress-cta:hover {
+    filter: saturate(1.05) brightness(0.98);
+    transform: translateY(-2px);
+  }
+
+  .cta-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .cta-text {
+    text-align: center;
+  }
+
+  .cta-text h4 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin: 0 0 0.25rem 0;
+  }
+
+  .cta-text p {
+    font-size: 0.875rem;
+    opacity: 0.9;
+    margin: 0;
+  }
+
+  .cta-arrow {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Buttons */
+  .btn-primary,
+  .btn-primary-large {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: var(--gradient-primary, linear-gradient(135deg, #FF8C42, #FFAB73));
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-primary-large {
+    padding: 1rem 2rem;
+    font-size: 1.0625rem;
+  }
+
+  .btn-primary:hover,
+  .btn-primary-large:hover {
+    filter: saturate(1.05) brightness(0.98);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(255, 140, 66, 0.3);
+  }
+
+  .icon-inline {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Empty State */
+  .no-sessions-state {
+    text-align: center;
+    padding: 4rem 2rem;
+  }
+
+  .empty-icon {
+    width: 64px;
+    height: 64px;
+    color: var(--muted, #64748B);
+    margin: 0 auto 1.5rem;
+  }
+
+  .no-sessions-state h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text, #0F172A);
+    margin: 0 0 0.75rem 0;
+  }
+
+  .no-sessions-state p {
+    font-size: 1rem;
+    color: var(--muted, #64748B);
+    margin: 0 0 2rem 0;
+  }
+
+  /* Mobile Responsive */
+  @media (max-width: 768px) {
+    .coach-page {
+      padding: 1rem;
+    }
+
+    .page-header h1 {
+      font-size: 1.5rem;
+    }
+
+    .dashboard-row-top,
+    .dashboard-row-bottom {
+      grid-template-columns: 1fr;
+    }
+
+    .drills-row {
+      grid-template-columns: 1fr;
+    }
+
+    .goal-progress {
+      flex-direction: column;
+    }
+
+    .calendar-grid {
+      grid-template-columns: repeat(auto-fill, minmax(8px, 1fr));
+    }
+
+    .calendar-day {
+      width: 8px;
+      height: 8px;
+    }
+  }
+</style>

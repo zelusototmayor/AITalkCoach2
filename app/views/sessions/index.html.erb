@@ -341,80 +341,98 @@
         <% end %>
       <% else %>
         <!-- Regular User Insights -->
-        <div class="insights-header-card">
-          <h3><%= icon_svg(:activity, css_class: 'icon-inline') %> Insights</h3>
-          <p class="insights-subtitle" style="font-size: 12px; color: #6b7280; margin: -8px 0 12px 0;">30-day averages</p>
-          <div class="key-metrics-row">
-            <div class="key-metric">
-              <div class="metric-label">AVG WPM</div>
-              <div class="metric-value-large">
-                <%= @quick_metrics[:avg_wpm] || 0 %>
+        <% if @has_any_sessions %>
+          <div class="insights-header-card">
+            <h3><%= icon_svg(:activity, css_class: 'icon-inline') %> Insights</h3>
+            <p class="insights-subtitle" style="font-size: 12px; color: #6b7280; margin: -8px 0 12px 0;">30-day averages</p>
+            <div class="key-metrics-row">
+              <div class="key-metric">
+                <div class="metric-label">AVG WPM</div>
+                <div class="metric-value-large">
+                  <%= @quick_metrics[:avg_wpm] || 0 %>
+                </div>
+              </div>
+              <div class="key-metric">
+                <div class="metric-label">FILLER %</div>
+                <div class="metric-value-large">
+                  <%= @quick_metrics[:filler_rate] || 0 %>%
+                </div>
               </div>
             </div>
-            <div class="key-metric">
-              <div class="metric-label">FILLER %</div>
-              <div class="metric-value-large">
-                <%= @quick_metrics[:filler_rate] || 0 %>%
+            <div class="key-metrics-row secondary-row">
+              <div class="key-metric">
+                <div class="metric-label">CLARITY</div>
+                <div class="metric-value-large">
+                  <%= @quick_metrics[:clarity_score] || 0 %>
+                </div>
+              </div>
+              <div class="key-metric">
+                <div class="metric-label">STREAK</div>
+                <div class="metric-value-large">
+                  <%= @current_streak %> days
+                </div>
               </div>
             </div>
           </div>
-          <div class="key-metrics-row secondary-row">
-            <div class="key-metric">
-              <div class="metric-label">CLARITY</div>
-              <div class="metric-value-large">
-                <%= @quick_metrics[:clarity_score] || 0 %>
-              </div>
-            </div>
-            <div class="key-metric">
-              <div class="metric-label">STREAK</div>
-              <div class="metric-value-large">
-                <%= @current_streak %> days
-              </div>
+        <% else %>
+          <!-- Empty State for New Users -->
+          <div class="insights-header-card empty-state">
+            <h3><%= icon_svg(:rocket, css_class: 'icon-inline') %> Ready to Get Started?</h3>
+            <div style="padding: 24px 0; text-align: center;">
+              <%= icon_svg(:microphone, css_class: 'icon-inline', style: 'width: 64px; height: 64px; opacity: 0.3; margin-bottom: 16px;') %>
+              <p style="font-size: 16px; color: #6b7280; margin-bottom: 8px; line-height: 1.5;">
+                Record your first session to see your<br>progress and personalized insights!
+              </p>
+              <p style="font-size: 14px; color: #9ca3af;">
+                Your speaking metrics and coaching recommendations<br>will appear here after your first session.
+              </p>
             </div>
           </div>
-        </div>
+        <% end %>
       <% end %>
 
       <% unless trial_mode? %>
-        <!-- Detailed Performance Metrics -->
-        <div class="performance-metrics-card">
-          <h4>Performance Metrics</h4>
-          <div class="metrics-grid-enhanced">
-            <div class="metric-item">
-              <div class="metric-label">Sessions</div>
-              <div class="metric-value">
-                <%= @lifetime_session_count %>
-              </div>
-            </div>
-            <div class="metric-item">
-              <div class="metric-label">Total Time</div>
-              <div class="metric-value">
-                <%= @lifetime_total_minutes %>m
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Recent Sessions Quick Access -->
-        <% if @recent_sessions.any? %>
-          <div class="recent-sessions-card">
-            <h5>Recent Sessions</h5>
-            <div class="recent-sessions-list">
-              <% @recent_sessions.first(3).each do |session| %>
-                <div class="recent-session-item">
-                  <a href="<%= session_path(session) %>" class="session-link">
-                    <div class="session-title"><%= session.title.truncate(25) %></div>
-                    <div class="session-meta">
-                      <%= time_ago_in_words(session.created_at) %> ago
-                      <span class="session-duration">
-                        <%= session.duration_seconds ? "#{(session.duration_seconds / 60.0).round(1)}m" : "N/A" %>
-                      </span>
-                    </div>
-                  </a>
+        <% if @has_any_sessions %>
+          <!-- Detailed Performance Metrics -->
+          <div class="performance-metrics-card">
+            <h4>Performance Metrics</h4>
+            <div class="metrics-grid-enhanced">
+              <div class="metric-item">
+                <div class="metric-label">Sessions</div>
+                <div class="metric-value">
+                  <%= @lifetime_session_count %>
                 </div>
-              <% end %>
+              </div>
+              <div class="metric-item">
+                <div class="metric-label">Total Time</div>
+                <div class="metric-value">
+                  <%= @lifetime_total_minutes %>m
+                </div>
+              </div>
             </div>
           </div>
+
+          <!-- Recent Sessions Quick Access -->
+          <% if @recent_sessions.any? %>
+            <div class="recent-sessions-card">
+              <h5>Recent Sessions</h5>
+              <div class="recent-sessions-list">
+                <% @recent_sessions.first(3).each do |session| %>
+                  <div class="recent-session-item">
+                    <a href="<%= session_path(session) %>" class="session-link">
+                      <div class="session-title"><%= session.title.truncate(25) %></div>
+                      <div class="session-meta">
+                        <%= time_ago_in_words(session.created_at) %> ago
+                        <span class="session-duration">
+                          <%= session.duration_seconds ? "#{(session.duration_seconds / 60.0).round(1)}m" : "N/A" %>
+                        </span>
+                      </div>
+                    </a>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
         <% end %>
 
         <!-- Focus Areas -->

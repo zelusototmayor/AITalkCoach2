@@ -3,6 +3,11 @@ class OnboardingController < ApplicationController
   skip_before_action :require_onboarding
   before_action :redirect_if_completed, except: [ :complete ]
 
+  # Screen 0: Splash screen with animated logo
+  def splash
+    # Auto-advances to welcome page after 2.5 seconds
+  end
+
   # Screen 1: Why communication matters (informational page)
   def welcome
     # No form - just informational content with CTA to continue
@@ -21,13 +26,18 @@ class OnboardingController < ApplicationController
       end
 
       if current_user.update(speaking_goal: goals)
-        redirect_to onboarding_demographics_path
+        redirect_to onboarding_motivation_path
       else
         flash.now[:alert] = "Unable to save your goals"
         render :profile, status: :unprocessable_content
       end
     end
     # GET request - render form
+  end
+
+  # Screen 2.5: Motivation page
+  def motivation
+    # Informational page - auto-advances or has continue button
   end
 
   # Screen 3: Style + demographics + pronouns
@@ -77,7 +87,9 @@ class OnboardingController < ApplicationController
     elsif request.post?
       # Handle fresh test recording or skip
       if params[:skipped] == "true"
-        redirect_to onboarding_pricing_path(skipped: true)
+        # Create a mock trial session for preview
+        create_mock_trial_session_for_user
+        redirect_to onboarding_report_path
       elsif params[:audio_file].present? && params[:trial_recording] == "true"
         # Handle trial recording upload
         begin
@@ -178,9 +190,20 @@ class OnboardingController < ApplicationController
     end
   end
 
+  # Screen 4.75: Cinematic "Free Forever" animation
+  def cinematic
+    # Just renders the cinematic animation page
+  end
+
   # Screen 5: Pricing & payment collection
   def pricing
     if request.get?
+      # Skip Stripe setup in development mode
+      if Rails.env.development?
+        @setup_intent = OpenStruct.new(client_secret: "mock_client_secret_for_development")
+        return
+      end
+
       # Create Stripe SetupIntent for payment method collection
       setup_stripe_customer
 
@@ -189,6 +212,17 @@ class OnboardingController < ApplicationController
         payment_method_types: [ "card" ]
       )
     elsif request.post?
+      # Skip Stripe in development mode
+      if Rails.env.development?
+        selected_plan = params[:selected_plan] || 'monthly'
+        current_user.update!(
+          subscription_plan: selected_plan,
+          stripe_payment_method_id: 'mock_payment_method_for_development'
+        )
+        redirect_to onboarding_complete_path
+        return
+      end
+
       # Verify SetupIntent and save payment method
       setup_intent_id = params[:setup_intent_id]
       selected_plan = params[:selected_plan] # 'monthly' or 'yearly'
@@ -240,11 +274,11 @@ class OnboardingController < ApplicationController
       trial_expires_at: 24.hours.from_now
     )
 
-    # Migrate trial session to full session if it exists and is completed
+    # Migrate trial session to full session if it exists, is completed, and is not mock data
     if current_user.onboarding_demo_session_id.present?
       trial_session = TrialSession.find_by(id: current_user.onboarding_demo_session_id)
 
-      if trial_session&.completed?
+      if trial_session&.completed? && !trial_session.is_mock
         begin
           migrator = TrialSessionMigrator.new(trial_session.token, current_user)
           migrated_session = migrator.migrate!
@@ -254,7 +288,11 @@ class OnboardingController < ApplicationController
           Rails.logger.error "Failed to migrate onboarding trial session: #{e.message}"
         end
       else
-        Rails.logger.warn "Trial session #{trial_session&.id} not completed, skipping migration"
+        if trial_session&.is_mock
+          Rails.logger.info "Trial session #{trial_session.id} is mock data, skipping migration"
+        else
+          Rails.logger.warn "Trial session #{trial_session&.id} not completed, skipping migration"
+        end
       end
     end
 
@@ -277,5 +315,31 @@ class OnboardingController < ApplicationController
 
     # Create Stripe customer if doesn't exist
     current_user.get_or_create_stripe_customer
+  end
+
+  def create_mock_trial_session_for_user
+    # Create a mock trial session with realistic sample data
+    mock_transcript = "Well, last week was actually pretty interesting. I had a chance to, um, catch up with an old friend I hadn't seen in years. We went to this new coffee shop downtown, and it was really nice to just, you know, reconnect and talk about old times. The weather was perfect too, which made the whole experience even better."
+
+    trial_session = TrialSession.create!(
+      title: "Sample Demo Session (Mock Data)",
+      language: "en",
+      media_kind: "audio",
+      target_seconds: 30,
+      duration_ms: 30000,
+      processing_state: "completed",
+      completed: true,
+      processed_at: Time.current,
+      is_mock: true,
+      analysis_data: {
+        transcript: mock_transcript,
+        wpm: 165,
+        filler_count: 3  # "um" and two "you know"s
+      }
+    )
+
+    # Link to user
+    current_user.update(onboarding_demo_session_id: trial_session.id)
+    trial_session
   end
 end

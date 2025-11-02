@@ -10,6 +10,65 @@ Rails.application.routes.draw do
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
   # =============================================================================
+  # MOBILE API ROUTES (works with IP addresses, no subdomain required)
+  # =============================================================================
+  # API namespace for mobile app
+  namespace :api do
+    namespace :v1 do
+      # Authentication
+      post 'auth/login', to: 'auth#login'
+      post 'auth/signup', to: 'auth#signup'
+      post 'auth/refresh', to: 'auth#refresh'
+      get 'auth/me', to: 'auth#me'
+      post 'auth/logout', to: 'auth#logout'
+      post 'auth/forgot_password', to: 'auth#forgot_password'
+      post 'auth/reset_password', to: 'auth#reset_password'
+
+      # Sessions
+      resources :sessions, only: [:index, :show, :create, :destroy] do
+        member do
+          get 'status'
+        end
+      end
+
+      # Progress
+      get 'progress', to: 'progress#index'
+
+      # Coach
+      get 'coach', to: 'coach#index'
+
+      # Prompts
+      get 'prompts', to: 'prompts#index'
+    end
+  end
+
+  # Legacy mobile API routes (for backward compatibility during transition)
+  # These routes must come BEFORE subdomain constraints to allow mobile app
+  # access via IP address (e.g., http://192.168.100.38:3002)
+  # They only match JSON requests, so web browser requests fall through to
+  # subdomain-based routes below.
+  scope constraints: ->(req) { req.format == :json } do
+    # Coach recommendations endpoint
+    get "coach", to: "sessions#coach"
+
+    # Session resources for mobile app
+    resources :sessions, only: [ :show, :create ] do
+      member do
+        get :status
+      end
+    end
+
+    # Trial sessions for mobile app (onboarding)
+    namespace :api do
+      resources :trial_sessions, only: [ :create, :show ], param: :token do
+        member do
+          get :status
+        end
+      end
+    end
+  end
+
+  # =============================================================================
   # MARKETING SITE (aitalkcoach.com - no subdomain)
   # =============================================================================
   constraints subdomain: [ "", "www" ] do
@@ -23,7 +82,14 @@ Rails.application.routes.draw do
     get "practice", to: "sessions#index"
 
     # Session creation route for trial mode
-    resources :sessions, only: [ :create ]
+    resources :sessions, only: [ :create, :show ] do
+      member do
+        get :status
+      end
+    end
+
+    # Coach recommendations (for mobile app)
+    get "coach", to: "sessions#coach"
 
     # Trial session routes (public demo)
     resources :trial_sessions, only: [ :show ], param: :token, path: "trial" do
@@ -34,7 +100,7 @@ Rails.application.routes.draw do
 
     # Trial session API routes
     namespace :api do
-      resources :trial_sessions, only: [], param: :token do
+      resources :trial_sessions, only: [ :show ], param: :token do
         member do
           get :status
         end
@@ -58,15 +124,18 @@ Rails.application.routes.draw do
 
     # Onboarding flow
     namespace :onboarding do
+      get :splash
       get :welcome
       get :profile
       post :profile
+      get :motivation
       get :demographics
       post :demographics
       get :test
       post :test
       get :waiting
       get :report
+      get :cinematic
       get :pricing
       post :pricing
       get :complete
@@ -86,12 +155,16 @@ Rails.application.routes.draw do
     # Progress route - view user's improvement progress
     get "progress", to: "sessions#progress"
 
+    # Coach route - personalized coaching and daily plan
+    get "coach", to: "sessions#coach"
+
     # Core application routes
     resources :sessions, except: [ :edit, :update, :new ] do
       collection do
         get :history
       end
       member do
+        get :status
         delete :destroy
       end
     end
