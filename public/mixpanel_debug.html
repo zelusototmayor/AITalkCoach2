@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Mixpanel Debug Test</title>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        #status {
+            padding: 15px;
+            background: #fff;
+            border-left: 4px solid #2196F3;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .result-item {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            border-left: 4px solid #ccc;
+            background: white;
+        }
+        .result-item.success {
+            border-color: #4CAF50;
+            background: #f1f8f4;
+        }
+        .result-item.error {
+            border-color: #f44336;
+            background: #ffebee;
+        }
+        .result-item.info {
+            border-color: #2196F3;
+            background: #e3f2fd;
+        }
+        .timestamp {
+            color: #666;
+            font-size: 12px;
+            margin-right: 10px;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+
+    <!-- Mixpanel Analytics -->
+    <script type="text/javascript">
+      (function(e,c){if(!c.__SV){var l,h;window.mixpanel=c;c._i=[];c.init=function(q,r,f){function t(d,a){var g=a.split(".");2==g.length&&(d=d[g[0]],a=g[1]);d[a]=function(){d.push([a].concat(Array.prototype.slice.call(arguments,0)))}}var b=c;"undefined"!==typeof f?b=c[f]=[]:f="mixpanel";b.people=b.people||[];b.toString=function(d){var a="mixpanel";"mixpanel"!==f&&(a+="."+f);d||(a+=" (stub)");return a};b.people.toString=function(){return b.toString(1)+".people (stub)"};l="disable time_event track track_pageview track_links track_forms track_with_groups add_group set_group remove_group register register_once alias unregister identify name_tag set_config reset opt_in_tracking opt_out_tracking has_opted_in_tracking has_opted_out_tracking clear_opt_in_out_tracking start_batch_senders start_session_recording stop_session_recording people.set people.set_once people.unset people.increment people.append people.union people.track_charge people.clear_charges people.delete_user people.remove".split(" ");
+      for(h=0;h<l.length;h++)t(b,l[h]);var n="set set_once union unset remove delete".split(" ");b.get_group=function(){function d(p){a[p]=function(){b.push([g,[p].concat(Array.prototype.slice.call(arguments,0))])}}for(var a={},g=["get_group"].concat(Array.prototype.slice.call(arguments,0)),m=0;m<n.length;m++)d(n[m]);return a};c._i.push([q,r,f])};c.__SV=1.2;var k=e.createElement("script");k.type="text/javascript";k.async=!0;k.src="undefined"!==typeof MIXPANEL_CUSTOM_LIB_URL?MIXPANEL_CUSTOM_LIB_URL:"file:"===
+      e.location.protocol&&"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js".match(/^\/\//)?"https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js":"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js";e=e.getElementsByTagName("script")[0];e.parentNode.insertBefore(k,e)}})(document,window.mixpanel||[])
+    </script>
+</head>
+<body>
+    <h1>Mixpanel Debug Test - AI Talk Coach</h1>
+
+    <div id="status">⏳ Initializing Mixpanel...</div>
+
+    <div class="controls">
+        <h2>Test Controls</h2>
+        <button onclick="checkConfig()">1. Check Configuration</button>
+        <button onclick="testBasicTracking()">2. Test Basic Event</button>
+        <button onclick="testIdentify()">3. Test User Identify</button>
+        <button onclick="testPeopleSet()">4. Test People Properties</button>
+        <button onclick="testBatchEvents()">5. Test Multiple Events</button>
+        <button onclick="testNetworkConnection()">6. Test Network Connection</button>
+        <button onclick="clearResults()">Clear Results</button>
+    </div>
+
+    <div id="results"></div>
+
+    <script>
+        let mixpanelReady = false;
+        let eventQueue = [];
+
+        // Initialize with your token and EU endpoint
+        console.log('Initializing Mixpanel with EU configuration...');
+
+        mixpanel.init('44bf717b1ffcda5744f92721374b15da', {
+            debug: true,
+            verbose: true,
+            api_host: 'https://api-eu.mixpanel.com',
+            loaded: function(mixpanel) {
+                console.log('✅ Mixpanel loaded successfully');
+                document.getElementById('status').innerHTML = '✅ Mixpanel loaded and ready';
+                mixpanelReady = true;
+
+                // Process any queued events
+                while (eventQueue.length > 0) {
+                    const event = eventQueue.shift();
+                    event();
+                }
+
+                // Enable verbose logging
+                mixpanel.set_config({
+                    debug: true,
+                    verbose: true,
+                    error_reporter: function(error_msg, item) {
+                        console.error('Mixpanel Error:', error_msg, item);
+                        addResult(`Mixpanel Error: ${error_msg}`, 'error');
+                    }
+                });
+
+                addResult('Mixpanel initialized with EU configuration', 'success');
+            }
+        });
+
+        // Add error handling
+        window.addEventListener('error', function(e) {
+            console.error('Global error caught:', e);
+            addResult(`Global Error: ${e.message}`, 'error');
+        });
+
+        function addResult(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `result-item ${type}`;
+
+            const time = document.createElement('span');
+            time.className = 'timestamp';
+            time.textContent = new Date().toLocaleTimeString();
+
+            const msg = document.createElement('span');
+            msg.innerHTML = message;
+
+            div.appendChild(time);
+            div.appendChild(msg);
+            results.insertBefore(div, results.firstChild);
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+            addResult('Results cleared', 'info');
+        }
+
+        function checkConfig() {
+            console.log('=== Checking Mixpanel Configuration ===');
+
+            if (typeof mixpanel === 'undefined') {
+                addResult('❌ Mixpanel is not defined', 'error');
+                return;
+            }
+
+            try {
+                // Get config details
+                const config = mixpanel.get_config();
+                console.log('Current config:', config);
+
+                addResult('<strong>Configuration Details:</strong>', 'info');
+                addResult(`Token: ${config.token || 'Not set'}`, 'info');
+                addResult(`API Host: ${config.api_host || 'Default (US)'}`, 'info');
+                addResult(`Debug Mode: ${config.debug ? 'Enabled' : 'Disabled'}`, 'info');
+                addResult(`Batch Size: ${config.batch_size || 'Default'}`, 'info');
+
+                // Check distinct_id
+                const distinctId = mixpanel.get_distinct_id();
+                addResult(`Distinct ID: ${distinctId}`, 'info');
+
+                // Check property values
+                const props = mixpanel.get_property('$device_id');
+                addResult(`Device ID: ${props || 'Not set'}`, 'info');
+
+                // Check if tracking is opted in
+                if (mixpanel.has_opted_out_tracking()) {
+                    addResult('⚠️ User has opted out of tracking', 'error');
+                } else {
+                    addResult('✅ Tracking is enabled', 'success');
+                }
+
+            } catch (error) {
+                console.error('Config check error:', error);
+                addResult(`Error checking config: ${error.message}`, 'error');
+            }
+        }
+
+        function testBasicTracking() {
+            console.log('=== Testing Basic Event Tracking ===');
+
+            if (!mixpanelReady) {
+                addResult('⏳ Mixpanel not ready, queueing event...', 'info');
+                eventQueue.push(() => testBasicTracking());
+                return;
+            }
+
+            const eventName = 'Debug Test Event';
+            const properties = {
+                test_id: Date.now(),
+                test_property: 'test_value',
+                environment: 'debug',
+                timestamp: new Date().toISOString()
+            };
+
+            console.log('Sending event:', eventName, properties);
+
+            // Track with callback
+            mixpanel.track(eventName, properties, function(response) {
+                console.log('Track callback response:', response);
+                if (response === 1) {
+                    addResult(`✅ Event "${eventName}" sent successfully`, 'success');
+                } else {
+                    addResult(`❌ Event "${eventName}" failed (response: ${response})`, 'error');
+                }
+            });
+
+            addResult(`📤 Attempted to send event: ${eventName}`, 'info');
+        }
+
+        function testIdentify() {
+            console.log('=== Testing User Identification ===');
+
+            if (!mixpanelReady) {
+                addResult('⏳ Mixpanel not ready, queueing identify...', 'info');
+                eventQueue.push(() => testIdentify());
+                return;
+            }
+
+            const testUserId = `debug_user_${Date.now()}`;
+            console.log('Identifying user:', testUserId);
+
+            // Reset before identifying
+            mixpanel.reset();
+
+            // Identify user
+            mixpanel.identify(testUserId);
+
+            // Verify identification
+            const newDistinctId = mixpanel.get_distinct_id();
+
+            if (newDistinctId === testUserId) {
+                addResult(`✅ User identified successfully: ${testUserId}`, 'success');
+            } else {
+                addResult(`⚠️ Identification mismatch. Expected: ${testUserId}, Got: ${newDistinctId}`, 'error');
+            }
+
+            // Track an event after identification
+            mixpanel.track('User Identified', {
+                user_id: testUserId,
+                source: 'debug_test'
+            });
+        }
+
+        function testPeopleSet() {
+            console.log('=== Testing People Properties ===');
+
+            if (!mixpanelReady) {
+                addResult('⏳ Mixpanel not ready, queueing people.set...', 'info');
+                eventQueue.push(() => testPeopleSet());
+                return;
+            }
+
+            const userProps = {
+                $email: 'debug@test.com',
+                $name: 'Debug Test User',
+                $created: new Date().toISOString(),
+                test_property: 'test_value',
+                debug_timestamp: Date.now()
+            };
+
+            console.log('Setting user properties:', userProps);
+
+            // Set user properties with callback
+            mixpanel.people.set(userProps, function(response) {
+                console.log('People.set callback response:', response);
+                if (response === 1) {
+                    addResult('✅ User properties set successfully', 'success');
+                } else {
+                    addResult(`❌ Failed to set user properties (response: ${response})`, 'error');
+                }
+            });
+
+            addResult('📤 Attempted to set user properties', 'info');
+        }
+
+        function testBatchEvents() {
+            console.log('=== Testing Batch Events ===');
+
+            if (!mixpanelReady) {
+                addResult('⏳ Mixpanel not ready, queueing batch test...', 'info');
+                eventQueue.push(() => testBatchEvents());
+                return;
+            }
+
+            const events = [
+                { name: 'Test Event 1', props: { index: 1, type: 'batch' } },
+                { name: 'Test Event 2', props: { index: 2, type: 'batch' } },
+                { name: 'Test Event 3', props: { index: 3, type: 'batch' } }
+            ];
+
+            events.forEach((event, index) => {
+                setTimeout(() => {
+                    mixpanel.track(event.name, event.props, function(response) {
+                        if (response === 1) {
+                            addResult(`✅ ${event.name} sent`, 'success');
+                        } else {
+                            addResult(`❌ ${event.name} failed`, 'error');
+                        }
+                    });
+                }, index * 100);
+            });
+
+            addResult(`📤 Sending ${events.length} events in batch`, 'info');
+        }
+
+        function testNetworkConnection() {
+            console.log('=== Testing Network Connection to Mixpanel EU ===');
+
+            const testData = {
+                event: 'Network Connection Test',
+                properties: {
+                    token: '44bf717b1ffcda5744f92721374b15da',
+                    time: Math.floor(Date.now() / 1000),
+                    distinct_id: mixpanel.get_distinct_id() || 'test_distinct_id',
+                    $insert_id: Math.random().toString(36).substring(7),
+                    test: true
+                }
+            };
+
+            const encodedData = btoa(JSON.stringify([testData]));
+
+            addResult('🔍 Testing direct API connection to EU endpoint...', 'info');
+
+            // Test the track endpoint
+            fetch('https://api-eu.mixpanel.com/track', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: 'data=' + encodedData
+            })
+            .then(response => {
+                console.log('Network test response:', response);
+                if (response.ok) {
+                    return response.text();
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            })
+            .then(responseText => {
+                console.log('Response text:', responseText);
+                if (responseText === '1' || responseText === '1\n') {
+                    addResult('✅ Network connection successful! Event received by Mixpanel EU', 'success');
+                } else {
+                    addResult(`⚠️ Unexpected response: ${responseText}`, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Network test error:', error);
+                addResult(`❌ Network connection failed: ${error.message}`, 'error');
+
+                // Check for CORS or network issues
+                if (error.message.includes('Failed to fetch')) {
+                    addResult('💡 This might be a CORS issue or network connectivity problem', 'info');
+                }
+            });
+
+            // Also test the engage endpoint (for people properties)
+            fetch('https://api-eu.mixpanel.com/engage', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: 'data=' + btoa(JSON.stringify([{
+                    $token: '44bf717b1ffcda5744f92721374b15da',
+                    $distinct_id: mixpanel.get_distinct_id() || 'test_distinct_id',
+                    $set: { test_property: 'network_test' }
+                }]))
+            })
+            .then(response => {
+                if (response.ok) {
+                    addResult('✅ Engage endpoint (People API) is reachable', 'success');
+                }
+            })
+            .catch(error => {
+                addResult(`⚠️ Engage endpoint error: ${error.message}`, 'error');
+            });
+        }
+
+        // Auto-check on load
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                console.log('Running initial configuration check...');
+                checkConfig();
+            }, 2000);
+        });
+
+        // Monitor Mixpanel queue
+        setInterval(() => {
+            if (window.mixpanel && window.mixpanel._i && window.mixpanel._i.length > 0) {
+                console.log('Mixpanel queue has', window.mixpanel._i.length, 'pending items');
+            }
+        }, 5000);
+    </script>
+</body>
+</html>

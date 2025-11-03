@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, SectionList, ActivityIndicator, Ref
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AnimatedBackground from '../../components/AnimatedBackground';
+import BottomNavigation from '../../components/BottomNavigation';
 import SessionListCard from '../../components/SessionListCard';
 import StatCard from '../../components/StatCard';
 import { COLORS, SPACING, TYPOGRAPHY } from '../../constants/colors';
@@ -138,6 +139,7 @@ export default function HistoryScreen({ navigation }) {
           <ActivityIndicator size="large" color={COLORS.primary} />
           <Text style={styles.loadingText}>Loading history...</Text>
         </View>
+        <BottomNavigation activeScreen="profile" />
       </SafeAreaView>
     );
   }
@@ -154,6 +156,7 @@ export default function HistoryScreen({ navigation }) {
             <Text style={styles.retryButtonText}>Retry</Text>
           </TouchableOpacity>
         </View>
+        <BottomNavigation activeScreen="profile" />
       </SafeAreaView>
     );
   }
@@ -225,6 +228,7 @@ export default function HistoryScreen({ navigation }) {
           }
         />
       )}
+      <BottomNavigation activeScreen="profile" />
     </SafeAreaView>
   );
 }
@@ -268,7 +272,7 @@ const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: SPACING.lg,
     paddingTop: SPACING.md,
-    paddingBottom: SPACING.xl,
+    paddingBottom: 100, // Space for bottom navigation
   },
   sectionHeader: {
     paddingVertical: SPACING.sm,

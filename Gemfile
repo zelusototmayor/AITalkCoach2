@@ -91,3 +91,6 @@ group :test do
 end
 
 gem "jwt", "~> 3.1"
+
+# Redis for JWT token blacklisting
+gem "redis", "~> 5.0"

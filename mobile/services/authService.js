@@ -2,7 +2,7 @@
 // Handles all authentication API calls
 
 const API_BASE_URL = __DEV__
-  ? 'http://192.168.100.38:3002' // Local IP for development
+  ? 'http://192.168.100.39:3002' // Local IP for development
   : 'https://app.aitalkcoach.com'; // Production URL
 
 /**
@@ -217,7 +217,7 @@ export async function resetPassword(token, password) {
  */
 export async function completeOnboarding(token) {
   try {
-    const response = await fetch(`${API_BASE_URL}/onboarding/complete`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/auth/complete_onboarding`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,

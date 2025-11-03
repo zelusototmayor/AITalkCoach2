@@ -387,9 +387,9 @@
     <div class="footer-container">
       <div>© <%= Date.current.year %> AI Talk Coach.</div>
       <div class="footer-links">
-        <a href="#" aria-label="Privacy Policy">Privacy</a>
-        <a href="#" aria-label="Terms of Service">Terms</a>
-        <a href="#" aria-label="Contact Us">Contact</a>
+        <%= link_to "Privacy", privacy_policy_path, aria: { label: "Privacy Policy" } %>
+        <%= link_to "Terms", terms_of_service_path, aria: { label: "Terms of Service" } %>
+        <%= link_to "Contact", contact_path, aria: { label: "Contact Us" } %>
       </div>
     </div>
   </footer>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { Audio } from 'expo-av';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PromptCard from '../../components/PromptCard';
@@ -13,24 +13,44 @@ import { COLORS, SPACING } from '../../constants/colors';
 import {
   PRACTICE_PROMPTS,
   TIME_OPTIONS,
-  MOCK_SEVEN_DAY_METRICS,
   MOCK_WEEKLY_FOCUS,
 } from '../../constants/practiceData';
-import { createSession } from '../../services/api';
+import { createSession, getProgressMetrics } from '../../services/api';
 
-export default function PracticeScreen({ navigation }) {
+export default function PracticeScreen({ navigation, route }) {
+  // Extract route params
+  const params = route?.params || {};
+  const {
+    presetDuration,
+    promptText,
+    promptTitle,
+    drillTitle,
+  } = params;
+
+  // Check if we have a custom prompt from navigation params
+  const customPrompt = (promptText || drillTitle) ? {
+    text: promptText || drillTitle,
+    category: promptTitle || 'Practice',
+    duration: presetDuration || 60,
+  } : null;
+
   // Prompt state
   const [currentPromptIndex, setCurrentPromptIndex] = useState(0);
-  const currentPrompt = PRACTICE_PROMPTS[currentPromptIndex];
+  const currentPrompt = customPrompt || PRACTICE_PROMPTS[currentPromptIndex];
+  const canShuffle = !customPrompt; // Disable shuffle when using custom prompt
 
   // Time selection state
-  const [selectedTime, setSelectedTime] = useState(60); // Default to 60s
+  const [selectedTime, setSelectedTime] = useState(presetDuration || 60); // Use preset or default to 60s
 
   // Recording state
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [progress, setProgress] = useState(0);
   const [shouldAutoStop, setShouldAutoStop] = useState(false); // Flag to trigger auto-stop
+
+  // Average metrics state
+  const [averageMetrics, setAverageMetrics] = useState(null);
+  const [metricsLoading, setMetricsLoading] = useState(true);
 
   const recordingRef = useRef(null);
   const intervalRef = useRef(null);
@@ -64,6 +84,25 @@ export default function PracticeScreen({ navigation }) {
     };
   }, []);
 
+  // Fetch average metrics on mount
+  useEffect(() => {
+    const fetchAverageMetrics = async () => {
+      try {
+        setMetricsLoading(true);
+        const data = await getProgressMetrics('10_sessions');
+        setAverageMetrics(data.average_values);
+      } catch (error) {
+        console.error('Error fetching average metrics:', error);
+        // Set empty object on error so we can show placeholder values
+        setAverageMetrics({});
+      } finally {
+        setMetricsLoading(false);
+      }
+    };
+
+    fetchAverageMetrics();
+  }, []);
+
   // Auto-stop recording when timer completes
   useEffect(() => {
     if (shouldAutoStop && isRecording) {
@@ -74,8 +113,27 @@ export default function PracticeScreen({ navigation }) {
   }, [shouldAutoStop, isRecording]);
 
   const handleShuffle = () => {
-    const nextIndex = (currentPromptIndex + 1) % PRACTICE_PROMPTS.length;
-    setCurrentPromptIndex(nextIndex);
+    // Only allow shuffle if not using a custom prompt
+    if (canShuffle) {
+      const nextIndex = (currentPromptIndex + 1) % PRACTICE_PROMPTS.length;
+      setCurrentPromptIndex(nextIndex);
+    }
+  };
+
+  // Helper functions to format metric values
+  const formatOverallScore = (value) => {
+    if (!value && value !== 0) return '--';
+    return Math.round(value * 100);
+  };
+
+  const formatFillerRate = (value) => {
+    if (!value && value !== 0) return '--';
+    return (value * 100).toFixed(1) + '%';
+  };
+
+  const formatWPM = (value) => {
+    if (!value && value !== 0) return '--';
+    return Math.round(value);
   };
 
   const startRecording = async () => {
@@ -207,19 +265,19 @@ export default function PracticeScreen({ navigation }) {
           type: 'audio/m4a',
         };
 
-        console.log('Uploading session with duration:', actualDurationSec, 'seconds');
+        console.log('Uploading session - actual duration:', actualDurationSec, 'seconds, target:', selectedTime, 'seconds');
 
-        // Upload session with actual duration
-        const session = await createSession(audioFile, userId, {
+        // Upload session with target duration (not actual) for validation
+        const session = await createSession(audioFile, {
           title: sessionTitle,
-          target_seconds: actualDurationSec, // Use actual duration from recording
+          target_seconds: selectedTime, // Use user's selected target time for validation
           language: 'en',
         });
 
-        console.log('Session created successfully:', session.id);
+        console.log('Session created successfully:', session.session_id);
 
         // Navigate to processing screen
-        navigation.navigate('SessionProcessing', { sessionId: session.id });
+        navigation.navigate('SessionProcessing', { sessionId: session.session_id });
       } catch (error) {
         console.error('Failed to upload session:', error);
         Alert.alert(
@@ -242,29 +300,13 @@ export default function PracticeScreen({ navigation }) {
     }
   };
 
-  const handleNavigation = (screen) => {
-    // Navigate to different screens based on screen name
-    if (screen === 'practice') {
-      // Already on practice screen
-      return;
-    }
-    // Map screen names to route names
-    const screenMap = {
-      progress: 'Progress',
-      coach: 'Coach',
-      prompts: 'Prompts',
-      profile: 'ProfileMain',
-    };
-    navigation.navigate(screenMap[screen] || screen);
-  };
-
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <AnimatedBackground />
 
       <View style={styles.content}>
         {/* Recommended Prompt Card */}
-        <PromptCard prompt={currentPrompt} onShuffle={handleShuffle} />
+        <PromptCard prompt={currentPrompt} onShuffle={handleShuffle} canShuffle={canShuffle} />
 
         {/* Time Selection Pills - Side by side */}
         <View style={styles.timePillsContainer}>
@@ -296,29 +338,35 @@ export default function PracticeScreen({ navigation }) {
           </View>
         </View>
 
-        {/* Average 7 Days Section */}
+        {/* Last 10 Sessions Average */}
         <View style={styles.averageSection}>
-          <Text style={styles.sectionTitle}>Average 7 Days</Text>
-          <View style={styles.metricsRow}>
-            <MetricCard
-              icon={MOCK_SEVEN_DAY_METRICS.overall.icon}
-              label={MOCK_SEVEN_DAY_METRICS.overall.label}
-              value={MOCK_SEVEN_DAY_METRICS.overall.value}
-              style={styles.metricCard}
-            />
-            <MetricCard
-              icon={MOCK_SEVEN_DAY_METRICS.filler.icon}
-              label={MOCK_SEVEN_DAY_METRICS.filler.label}
-              value={MOCK_SEVEN_DAY_METRICS.filler.value}
-              style={styles.metricCard}
-            />
-            <MetricCard
-              icon={MOCK_SEVEN_DAY_METRICS.wpm.icon}
-              label={MOCK_SEVEN_DAY_METRICS.wpm.label}
-              value={MOCK_SEVEN_DAY_METRICS.wpm.value}
-              style={styles.metricCard}
-            />
-          </View>
+          <Text style={styles.sectionTitle}>Last 10 Sessions</Text>
+          {metricsLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color={COLORS.primary} />
+            </View>
+          ) : (
+            <View style={styles.metricsRow}>
+              <MetricCard
+                icon={null}
+                label="Overall"
+                value={formatOverallScore(averageMetrics?.overall_score)}
+                style={styles.metricCard}
+              />
+              <MetricCard
+                icon={null}
+                label="Filler"
+                value={formatFillerRate(averageMetrics?.filler_rate)}
+                style={styles.metricCard}
+              />
+              <MetricCard
+                icon={null}
+                label="Words/min"
+                value={formatWPM(averageMetrics?.wpm)}
+                style={styles.metricCard}
+              />
+            </View>
+          )}
         </View>
 
         {/* Weekly Focus Section */}
@@ -329,7 +377,7 @@ export default function PracticeScreen({ navigation }) {
       </View>
 
       {/* Bottom Navigation */}
-      <BottomNavigation activeScreen="practice" onNavigate={handleNavigation} />
+      <BottomNavigation activeScreen="practice" />
     </SafeAreaView>
   );
 }
@@ -397,6 +445,11 @@ const styles = StyleSheet.create({
   },
   metricCard: {
     flex: 1,
+  },
+  loadingContainer: {
+    paddingVertical: SPACING.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   weeklyFocusSection: {
     marginTop: SPACING.xs,

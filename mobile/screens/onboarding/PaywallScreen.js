@@ -60,24 +60,22 @@ export default function PaywallScreen({ navigation }) {
     );
   };
 
-  const handleSkip = () => {
-    Alert.alert(
-      'Skip Payment',
-      'You can always add a payment method later in settings.',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Skip',
-          onPress: () => {
-            // Navigate to the Practice screen
-            navigation.navigate('Practice');
-          },
-        },
-      ]
-    );
+  const handleSkip = async () => {
+    // For testing: Skip payment and grant access as if they have a paid subscription
+    try {
+      // Mark onboarding as complete and grant subscription access
+      const result = await completeOnboarding();
+      if (result.success) {
+        // MainNavigator will automatically switch to AppStack
+        // No need to manually navigate - the app will show Practice screen
+        console.log('Onboarding completed successfully with free access');
+      } else {
+        Alert.alert('Error', 'Failed to complete onboarding. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error completing onboarding:', error);
+      Alert.alert('Error', 'Failed to complete onboarding. Please try again.');
+    }
   };
 
   return (

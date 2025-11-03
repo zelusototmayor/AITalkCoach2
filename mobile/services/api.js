@@ -7,7 +7,7 @@ import * as SecureStore from 'expo-secure-store';
 // For development: use your local IP or ngrok URL
 // For production: use your production domain
 const API_BASE_URL = __DEV__
-  ? 'http://192.168.100.38:3002' // Local IP for testing on physical device/Expo (port 3002) - HTTP for development
+  ? 'http://192.168.100.39:3002' // Local IP for testing on physical device/Expo (port 3002) - HTTP for development
   : 'https://app.aitalkcoach.com';
 
 /**
@@ -49,24 +49,24 @@ async function getAuthHeaders() {
 export async function createSession(audioFile, options = {}) {
   const formData = new FormData();
 
-  // Add audio file
-  formData.append('session[media_file]', {
+  // Add audio file (using media_files[] array format for ActiveStorage)
+  formData.append('session[media_files][]', {
     uri: audioFile.uri,
     name: audioFile.name || 'recording.m4a',
     type: audioFile.type || 'audio/m4a',
   });
 
-  // Add options
+  // Add required options
+  formData.append('session[media_kind]', options.media_kind || 'audio');
+  formData.append('session[language]', options.language || 'en');
+
+  // Add optional parameters
   if (options.title) {
     formData.append('session[title]', options.title);
   }
 
   if (options.target_seconds) {
     formData.append('session[target_seconds]', options.target_seconds);
-  }
-
-  if (options.language) {
-    formData.append('session[language]', options.language);
   }
 
   if (options.weekly_focus_id) {

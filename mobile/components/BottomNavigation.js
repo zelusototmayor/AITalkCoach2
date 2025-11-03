@@ -2,8 +2,10 @@ import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING } from '../constants/colors';
+import { useAppNavigation } from '../hooks/useAppNavigation';
 
-export default function BottomNavigation({ activeScreen, onNavigate }) {
+export default function BottomNavigation({ activeScreen }) {
+  const { navigateToScreen, getCurrentScreen } = useAppNavigation();
   const navItems = [
     { id: 'progress', icon: 'trending-up', label: 'Progress' },
     { id: 'coach', icon: 'school-outline', label: 'Coach' },
@@ -23,7 +25,7 @@ export default function BottomNavigation({ activeScreen, onNavigate }) {
             <TouchableOpacity
               key={item.id}
               style={styles.centerButton}
-              onPress={() => onNavigate(item.id)}
+              onPress={() => navigateToScreen(item.id)}
               activeOpacity={0.8}
             >
               <View style={styles.centerButtonCircle}>
@@ -41,7 +43,7 @@ export default function BottomNavigation({ activeScreen, onNavigate }) {
           <TouchableOpacity
             key={item.id}
             style={styles.navItem}
-            onPress={() => onNavigate(item.id)}
+            onPress={() => navigateToScreen(item.id)}
             activeOpacity={0.7}
           >
             <Ionicons

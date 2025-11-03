@@ -268,10 +268,12 @@ class OnboardingController < ApplicationController
 
   # Finalize onboarding
   def complete
+    # FOR TESTING: Grant extended trial (30 days) until Stripe is integrated
+    # TODO: Change this to 24.hours.from_now once payment is integrated
     current_user.update!(
       onboarding_completed_at: Time.current,
       trial_starts_at: Time.current,
-      trial_expires_at: 24.hours.from_now
+      trial_expires_at: 30.days.from_now  # Extended trial for testing
     )
 
     # Migrate trial session to full session if it exists, is completed, and is not mock data
@@ -299,7 +301,23 @@ class OnboardingController < ApplicationController
     # Send welcome email
     OnboardingMailer.welcome(current_user).deliver_later
 
-    redirect_to app_root_path, notice: "Welcome to AI Talk Coach! Your free trial is active. Practice daily to keep access free."
+    respond_to do |format|
+      format.html { redirect_to app_root_path, notice: "Welcome to AI Talk Coach! Your free trial is active. Practice daily to keep access free." }
+      format.json {
+        render json: {
+          success: true,
+          user: {
+            id: current_user.id,
+            name: current_user.name,
+            email: current_user.email,
+            onboarding_completed: true,
+            subscription_status: current_user.subscription_status,
+            trial_expires_at: current_user.trial_expires_at
+          },
+          message: "Onboarding completed successfully"
+        }
+      }
+    end
   end
 
   private

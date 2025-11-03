@@ -18,6 +18,13 @@ class Api::V1::SessionsController < Api::V1::BaseController
     session = current_user.sessions.find(params[:id])
     issues = session.issues.order(:start_ms)
 
+    # Get previous session for comparison
+    previous_session = current_user.sessions
+      .where(completed: true)
+      .where("id < ?", session.id)
+      .order(created_at: :desc)
+      .first
+
     # Generate recommendations if completed
     recommendations = nil
     weekly_focus = nil
@@ -55,6 +62,7 @@ class Api::V1::SessionsController < Api::V1::BaseController
       success: true,
       session: session_json(session, include_details: true),
       issues: issues.map { |i| issue_json(i) },
+      previous_session: previous_session ? session_json(previous_session, include_details: true) : nil,
       priority_recommendations: recommendations,
       weekly_focus: weekly_focus
     }

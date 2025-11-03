@@ -48,6 +48,8 @@ function AppStack() {
       screenOptions={{
         headerShown: false,
         cardStyle: { backgroundColor: '#FFFFFF' },
+        animation: 'none',
+        gestureEnabled: true,
       }}
     >
       <Stack.Screen name="Practice" component={PracticeScreen} />

@@ -63,7 +63,7 @@ export default class extends Controller {
           text: 'What trade-off did you make recently and why?',
           title: 'Quick Question',
           category: 'general',
-          difficulty: 'medium',
+          difficulty: 'intermediate',
           estimatedTime: 60
         }
         this.selectedPromptValue = fallbackPrompt
@@ -106,7 +106,7 @@ export default class extends Controller {
             text: prompt.prompt,
             title: prompt.title,
             description: prompt.description,
-            difficulty: prompt.difficulty || 'medium',
+            difficulty: prompt.difficulty || 'intermediate',
             estimatedTime: prompt.target_seconds || 60,
             tags: prompt.focus_areas || [],
             originalIndex: index
@@ -129,7 +129,7 @@ export default class extends Controller {
       prompt.id = prompt.id || index
       prompt.used = false
       prompt.lastUsed = null
-      prompt.difficulty = prompt.difficulty || 'medium'
+      prompt.difficulty = prompt.difficulty || 'intermediate'
       prompt.tags = prompt.tags || []
       prompt.estimatedTime = prompt.estimatedTime || 60
     })
@@ -255,7 +255,12 @@ export default class extends Controller {
   }
 
   getDifficultyClass(difficulty) {
-    switch (difficulty) {
+    const normalizedDifficulty = difficulty?.toLowerCase()
+    switch (normalizedDifficulty) {
+      case 'beginner': return 'bg-green-100 text-green-800'
+      case 'intermediate': return 'bg-yellow-100 text-yellow-800'
+      case 'advanced': return 'bg-red-100 text-red-800'
+      // Legacy support
       case 'easy': return 'bg-green-100 text-green-800'
       case 'medium': return 'bg-yellow-100 text-yellow-800'
       case 'hard': return 'bg-red-100 text-red-800'
@@ -425,7 +430,7 @@ export default class extends Controller {
       text: selectedPrompt.text || selectedPrompt,
       title: selectedPrompt.title || 'Random Prompt',
       category: selectedPrompt.category || 'general',
-      difficulty: selectedPrompt.difficulty || 'medium',
+      difficulty: selectedPrompt.difficulty || 'intermediate',
       estimatedTime: selectedPrompt.estimatedTime || 60
     }
 
@@ -450,7 +455,7 @@ export default class extends Controller {
             prompts.push({
               text: typeof prompt === 'string' ? prompt : prompt.prompt || prompt.text,
               category: category,
-              difficulty: prompt.difficulty || 'medium',
+              difficulty: prompt.difficulty || 'intermediate',
               estimatedTime: prompt.target_seconds || 60
             })
           })
@@ -475,7 +480,7 @@ export default class extends Controller {
         prompts.push({
           text: text,
           category: 'general',
-          difficulty: 'medium',
+          difficulty: 'intermediate',
           estimatedTime: 60
         })
       })

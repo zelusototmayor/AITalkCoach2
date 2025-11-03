@@ -1,0 +1,994 @@
+<% content_for :title, "Privacy Policy - AI Talk Coach" %>
+
+<div class="landing-page">
+  <div class="legal-page">
+    <div class="legal-container">
+      <header class="legal-header">
+        <h1>Privacy Policy</h1>
+        <p class="last-updated">Last Updated: <%= Date.current.strftime("%B %d, %Y") %></p>
+      </header>
+
+      <div class="legal-content">
+        <section class="legal-section">
+          <h2>Introduction</h2>
+          <p>
+            Welcome to AI Talk Coach. We respect your privacy and are committed to protecting your personal data.
+            This privacy policy explains how we collect, use, share, and protect your information when you use our
+            speech improvement and communication training platform (the "Service").
+          </p>
+          <p>
+            AI Talk Coach is operated by Jose Luis Sottomayor, based in Lisboa, Portugal. As a service based in the
+            European Union, we comply with the General Data Protection Regulation (GDPR), California Consumer Privacy
+            Act (CCPA), and other applicable privacy laws.
+          </p>
+          <p>
+            By using AI Talk Coach, you agree to the collection and use of information in accordance with this policy.
+            If you do not agree with our policies and practices, please do not use our Service.
+          </p>
+        </section>
+
+        <nav class="table-of-contents">
+          <h3>Table of Contents</h3>
+          <ol>
+            <li><a href="#information-we-collect">Information We Collect</a></li>
+            <li><a href="#how-we-use">How We Use Your Information</a></li>
+            <li><a href="#ai-processing">AI Processing and Analysis</a></li>
+            <li><a href="#sharing">How We Share Your Information</a></li>
+            <li><a href="#third-party-services">Third-Party Services</a></li>
+            <li><a href="#data-retention">Data Retention</a></li>
+            <li><a href="#your-rights">Your Privacy Rights</a></li>
+            <li><a href="#data-security">Data Security</a></li>
+            <li><a href="#children">Children's Privacy</a></li>
+            <li><a href="#international-transfers">International Data Transfers</a></li>
+            <li><a href="#cookies">Cookies and Tracking</a></li>
+            <li><a href="#california-rights">California Privacy Rights (CCPA)</a></li>
+            <li><a href="#eu-rights">European Privacy Rights (GDPR)</a></li>
+            <li><a href="#changes">Changes to This Policy</a></li>
+            <li><a href="#contact">Contact Us</a></li>
+          </ol>
+        </nav>
+
+        <section id="information-we-collect" class="legal-section">
+          <h2>1. Information We Collect</h2>
+
+          <h3>Account Information</h3>
+          <p>When you create an account, we collect:</p>
+          <ul>
+            <li><strong>Email address:</strong> Used for account authentication and essential communications</li>
+            <li><strong>Name:</strong> To personalize your experience</li>
+            <li><strong>Password:</strong> Securely hashed and stored (we never see your actual password)</li>
+          </ul>
+
+          <h3>Profile Information</h3>
+          <p>During onboarding, you may provide:</p>
+          <ul>
+            <li><strong>Speaking goals:</strong> Such as interview preparation, presentation skills, or conversation practice</li>
+            <li><strong>Speaking style preferences:</strong> To customize AI feedback</li>
+            <li><strong>Age range:</strong> To provide age-appropriate content</li>
+            <li><strong>Profession:</strong> (Optional) To provide relevant practice scenarios</li>
+            <li><strong>Preferred pronouns:</strong> (Optional) To personalize communication</li>
+          </ul>
+
+          <h3>Audio and Video Recordings</h3>
+          <p>The core of our Service involves analyzing your speech:</p>
+          <ul>
+            <li><strong>Voice recordings:</strong> Audio captured during practice sessions (30-180 seconds)</li>
+            <li><strong>Video recordings:</strong> (Optional) If you choose to record video for future features</li>
+            <li><strong>Transcripts:</strong> Text transcriptions of your speech</li>
+          </ul>
+          <p class="privacy-note">
+            <strong>Important:</strong> Your recordings are processed solely to provide you with speech coaching.
+            We do not use your recordings to train AI models. You can delete your recordings at any time,
+            and you can configure automatic deletion in your privacy settings (default: 30 days).
+          </p>
+
+          <h3>Speech Analysis Data</h3>
+          <p>Our AI analyzes your speech and generates:</p>
+          <ul>
+            <li><strong>Performance metrics:</strong> Words per minute, filler word count, clarity scores</li>
+            <li><strong>Detected issues:</strong> Categorized speech patterns (pacing, clarity, filler words, confidence)</li>
+            <li><strong>Progress tracking:</strong> Historical performance data to show improvement over time</li>
+            <li><strong>AI-generated feedback:</strong> Personalized coaching recommendations</li>
+          </ul>
+
+          <h3>Payment Information</h3>
+          <p>When you subscribe to a paid plan:</p>
+          <ul>
+            <li><strong>Billing information:</strong> Processed securely through Stripe (our payment processor)</li>
+            <li><strong>Subscription details:</strong> Plan type, billing cycle, subscription status</li>
+          </ul>
+          <p class="privacy-note">
+            <strong>Note:</strong> We do not store your complete credit card information. Payment details are
+            securely stored by Stripe, and we only receive a reference ID to manage your subscription.
+          </p>
+
+          <h3>Usage Information</h3>
+          <p>To improve our Service, we collect:</p>
+          <ul>
+            <li><strong>Session data:</strong> When you practice, how long each session lasts</li>
+            <li><strong>Feature usage:</strong> Which features you use (practice, progress tracking, coaching)</li>
+            <li><strong>Interaction data:</strong> Clicks, navigation patterns within the app</li>
+          </ul>
+
+          <h3>Technical Information</h3>
+          <p>Automatically collected when you use our Service:</p>
+          <ul>
+            <li><strong>Device information:</strong> Device type, operating system, browser type</li>
+            <li><strong>IP address:</strong> For security and geographic analytics</li>
+            <li><strong>Cookies:</strong> Session cookies for authentication (see <a href="#cookies">Cookies section</a>)</li>
+            <li><strong>Error logs:</strong> Crash reports and performance data (via Sentry)</li>
+          </ul>
+        </section>
+
+        <section id="how-we-use" class="legal-section">
+          <h2>2. How We Use Your Information</h2>
+          <p>We use your information for the following purposes:</p>
+
+          <h3>Provide the Service</h3>
+          <ul>
+            <li>Process and analyze your speech recordings</li>
+            <li>Generate personalized AI-powered feedback</li>
+            <li>Track your progress over time</li>
+            <li>Provide coaching recommendations</li>
+            <li>Enable access to practice scenarios and prompts</li>
+          </ul>
+
+          <h3>Manage Your Account</h3>
+          <ul>
+            <li>Create and maintain your user account</li>
+            <li>Authenticate your identity</li>
+            <li>Manage your subscription and billing</li>
+            <li>Process payments through Stripe</li>
+          </ul>
+
+          <h3>Communicate With You</h3>
+          <ul>
+            <li>Send transactional emails (password resets, welcome messages)</li>
+            <li>Notify you about your subscription status</li>
+            <li>Respond to your support inquiries</li>
+            <li>Send important service updates (with your consent for marketing communications)</li>
+          </ul>
+
+          <h3>Improve Our Service</h3>
+          <ul>
+            <li>Analyze usage patterns to enhance features</li>
+            <li>Identify and fix technical issues</li>
+            <li>Test and develop new features</li>
+            <li>Understand user needs and preferences</li>
+          </ul>
+
+          <h3>Security and Compliance</h3>
+          <ul>
+            <li>Detect and prevent fraud or abuse</li>
+            <li>Enforce our Terms of Use</li>
+            <li>Comply with legal obligations</li>
+            <li>Protect the rights and safety of users</li>
+          </ul>
+
+          <h3>Legal Basis for Processing (GDPR)</h3>
+          <p>For users in the European Union, our legal bases for processing your data are:</p>
+          <ul>
+            <li><strong>Contract performance:</strong> Processing necessary to provide the Service you've signed up for</li>
+            <li><strong>Consent:</strong> You've given explicit consent for specific processing activities</li>
+            <li><strong>Legitimate interests:</strong> Processing necessary for our legitimate business interests (improving the Service, security)</li>
+            <li><strong>Legal obligation:</strong> Processing required to comply with laws and regulations</li>
+          </ul>
+        </section>
+
+        <section id="ai-processing" class="legal-section">
+          <h2>3. AI Processing and Analysis</h2>
+          <p>
+            AI Talk Coach uses artificial intelligence to analyze your speech and provide feedback.
+            It's important you understand how this works:
+          </p>
+
+          <h3>How AI Analyzes Your Speech</h3>
+          <ol>
+            <li><strong>Transcription:</strong> Your audio is sent to Deepgram (a speech-to-text service) to create a written transcript</li>
+            <li><strong>Analysis:</strong> The transcript and audio metadata are sent to OpenAI's GPT-4 model to analyze speech patterns</li>
+            <li><strong>Feedback Generation:</strong> AI identifies areas for improvement and generates personalized coaching advice</li>
+            <li><strong>Results Storage:</strong> Analysis results are stored in your account to track progress</li>
+          </ol>
+
+          <h3>What Data Goes to AI Providers</h3>
+          <ul>
+            <li>Your audio recordings (sent to Deepgram for transcription)</li>
+            <li>Transcripts of your speech (sent to OpenAI for analysis)</li>
+            <li>Session metadata (duration, language, practice scenario)</li>
+          </ul>
+
+          <h3>Your Recordings Are NOT Used for Training</h3>
+          <p class="privacy-highlight">
+            <strong>We want to be crystal clear:</strong> Your audio recordings and transcripts are NOT used to train
+            AI models. Both Deepgram and OpenAI process your data solely to provide the Service to you, and they do
+            not use your data to improve their models. This is guaranteed through our agreements with these providers.
+          </p>
+
+          <h3>AI Accuracy and Limitations</h3>
+          <ul>
+            <li>AI feedback is for educational purposes only</li>
+            <li>AI may occasionally produce inaccurate results</li>
+            <li>AI is not a substitute for professional speech therapy or medical advice</li>
+            <li>Always use your judgment when applying AI recommendations</li>
+          </ul>
+        </section>
+
+        <section id="sharing" class="legal-section">
+          <h2>4. How We Share Your Information</h2>
+          <p>We share your information only in the following circumstances:</p>
+
+          <h3>AI Processing Services</h3>
+          <ul>
+            <li><strong>OpenAI:</strong> For speech analysis and feedback generation (receives transcripts and metadata)</li>
+            <li><strong>Deepgram:</strong> For speech-to-text transcription (receives audio recordings)</li>
+          </ul>
+
+          <h3>Payment Processing</h3>
+          <ul>
+            <li><strong>Stripe:</strong> For payment processing and subscription management (receives billing information)</li>
+          </ul>
+
+          <h3>Error Monitoring</h3>
+          <ul>
+            <li><strong>Sentry:</strong> For error tracking and performance monitoring (receives anonymized technical data)</li>
+          </ul>
+
+          <h3>Legal Requirements</h3>
+          <p>We may disclose your information if required by law:</p>
+          <ul>
+            <li>To comply with legal processes (subpoenas, court orders)</li>
+            <li>To enforce our Terms of Use</li>
+            <li>To protect our rights, property, or safety</li>
+            <li>To protect the rights or safety of other users</li>
+          </ul>
+
+          <h3>Business Transfers</h3>
+          <p>
+            In the event of a merger, acquisition, or sale of assets, your information may be transferred
+            to the acquiring entity. We will notify you via email and/or a prominent notice on our website
+            before your information is transferred.
+          </p>
+
+          <h3>With Your Consent</h3>
+          <p>
+            We may share your information for other purposes with your explicit consent.
+          </p>
+
+          <h3>What We DON'T Do</h3>
+          <ul>
+            <li><strong>We do NOT sell your personal data</strong> to advertisers or third parties for money</li>
+            <li><strong>We do NOT share your recordings</strong> with anyone except the AI processing services described above</li>
+            <li><strong>We do NOT use your data for advertising</strong></li>
+          </ul>
+        </section>
+
+        <section id="third-party-services" class="legal-section">
+          <h2>5. Third-Party Services</h2>
+          <p>
+            We work with trusted third-party service providers to operate our Service. These providers
+            have their own privacy policies, and we encourage you to read them:
+          </p>
+
+          <h3>OpenAI (Speech Analysis)</h3>
+          <ul>
+            <li><strong>What they do:</strong> Analyze speech transcripts and generate coaching feedback</li>
+            <li><strong>Data shared:</strong> Speech transcripts, session metadata</li>
+            <li><strong>Location:</strong> United States</li>
+            <li><strong>Privacy Policy:</strong> <a href="https://openai.com/privacy" target="_blank" rel="noopener">https://openai.com/privacy</a></li>
+            <li><strong>Data usage:</strong> Does NOT train on your data (covered by API agreement)</li>
+          </ul>
+
+          <h3>Deepgram (Speech Transcription)</h3>
+          <ul>
+            <li><strong>What they do:</strong> Convert audio recordings to text transcripts</li>
+            <li><strong>Data shared:</strong> Audio recordings</li>
+            <li><strong>Location:</strong> United States</li>
+            <li><strong>Privacy Policy:</strong> <a href="https://deepgram.com/privacy" target="_blank" rel="noopener">https://deepgram.com/privacy</a></li>
+            <li><strong>Data usage:</strong> Does NOT store or train on your data</li>
+          </ul>
+
+          <h3>Stripe (Payment Processing)</h3>
+          <ul>
+            <li><strong>What they do:</strong> Process payments and manage subscriptions</li>
+            <li><strong>Data shared:</strong> Billing information, payment methods</li>
+            <li><strong>Location:</strong> Global infrastructure</li>
+            <li><strong>Privacy Policy:</strong> <a href="https://stripe.com/privacy" target="_blank" rel="noopener">https://stripe.com/privacy</a></li>
+            <li><strong>Security:</strong> PCI-DSS Level 1 certified (highest security standard for payments)</li>
+          </ul>
+
+          <h3>Sentry (Error Monitoring)</h3>
+          <ul>
+            <li><strong>What they do:</strong> Track errors and monitor application performance</li>
+            <li><strong>Data shared:</strong> Error logs, anonymized user data, technical information</li>
+            <li><strong>Location:</strong> United States / European Union (configurable)</li>
+            <li><strong>Privacy Policy:</strong> <a href="https://sentry.io/privacy/" target="_blank" rel="noopener">https://sentry.io/privacy/</a></li>
+          </ul>
+        </section>
+
+        <section id="data-retention" class="legal-section">
+          <h2>6. Data Retention</h2>
+          <p>We retain your information for different periods depending on the type of data:</p>
+
+          <h3>Audio Recordings</h3>
+          <ul>
+            <li><strong>Default:</strong> 30 days after creation</li>
+            <li><strong>Configurable:</strong> You can change this in Privacy Settings</li>
+            <li><strong>Manual deletion:</strong> You can delete recordings immediately at any time</li>
+            <li><strong>After deletion:</strong> Recordings are permanently removed from our servers</li>
+          </ul>
+
+          <h3>Account Data</h3>
+          <ul>
+            <li><strong>Active accounts:</strong> Retained while your account is active</li>
+            <li><strong>After account deletion:</strong> Personal data is deleted within 30 days</li>
+            <li><strong>Anonymized data:</strong> May be retained for analytics (not linked to you)</li>
+          </ul>
+
+          <h3>Speech Analysis Data</h3>
+          <ul>
+            <li><strong>Retention:</strong> Stored to track your progress over time</li>
+            <li><strong>After account deletion:</strong> Deleted with your account</li>
+          </ul>
+
+          <h3>Payment Records</h3>
+          <ul>
+            <li><strong>Retention:</strong> Kept for 7 years for tax and accounting purposes (as required by law)</li>
+            <li><strong>Stored by:</strong> Stripe (our payment processor)</li>
+          </ul>
+
+          <h3>Technical Logs</h3>
+          <ul>
+            <li><strong>Retention:</strong> Typically 90 days for security and debugging</li>
+            <li><strong>Anonymized logs:</strong> May be retained longer for security analysis</li>
+          </ul>
+        </section>
+
+        <section id="your-rights" class="legal-section">
+          <h2>7. Your Privacy Rights</h2>
+          <p>
+            You have control over your personal data. Depending on your location, you have various rights
+            regarding your information:
+          </p>
+
+          <h3>Access Your Data</h3>
+          <p>
+            You can access most of your personal data by logging into your account. To request a complete
+            copy of all data we hold about you, contact us at <%= mail_to "zsottomayor@gmail.com" %>.
+          </p>
+
+          <h3>Correct Your Data</h3>
+          <p>
+            You can update your profile information, email, and preferences in your Account Settings.
+            If you need help correcting your data, contact us.
+          </p>
+
+          <h3>Delete Your Data</h3>
+          <ul>
+            <li><strong>Individual recordings:</strong> Delete from your session history at any time</li>
+            <li><strong>Your account:</strong> Delete your entire account in Settings > Account > Delete Account</li>
+            <li><strong>Complete deletion:</strong> All your personal data will be deleted within 30 days</li>
+          </ul>
+
+          <h3>Export Your Data</h3>
+          <p>
+            Request a copy of your data in a portable format (JSON/CSV). Contact us at
+            <%= mail_to "zsottomayor@gmail.com" %> to request a data export.
+          </p>
+
+          <h3>Manage Privacy Settings</h3>
+          <p>In your Privacy Settings, you can:</p>
+          <ul>
+            <li>Configure automatic audio deletion (default: 30 days)</li>
+            <li>Enable privacy mode for enhanced protection</li>
+            <li>Choose to delete processed audio immediately</li>
+            <li>View statistics about your stored audio files</li>
+          </ul>
+
+          <h3>Opt Out of Communications</h3>
+          <ul>
+            <li>Unsubscribe from marketing emails (link in every email)</li>
+            <li>You'll still receive essential transactional emails (password resets, billing notices)</li>
+          </ul>
+
+          <h3>Object to Processing</h3>
+          <p>
+            If you're in the EU, you can object to processing based on legitimate interests. Contact us
+            to exercise this right.
+          </p>
+
+          <h3>Withdraw Consent</h3>
+          <p>
+            If processing is based on your consent, you can withdraw it at any time. This won't affect
+            the lawfulness of processing before withdrawal.
+          </p>
+        </section>
+
+        <section id="data-security" class="legal-section">
+          <h2>8. Data Security</h2>
+          <p>
+            We implement industry-standard security measures to protect your personal data:
+          </p>
+
+          <h3>Encryption</h3>
+          <ul>
+            <li><strong>In transit:</strong> All data transmitted over HTTPS/TLS encryption</li>
+            <li><strong>At rest:</strong> Databases and file storage are encrypted</li>
+            <li><strong>Passwords:</strong> Hashed using bcrypt (we never store plaintext passwords)</li>
+          </ul>
+
+          <h3>Authentication Security</h3>
+          <ul>
+            <li><strong>JWT tokens:</strong> Secure token-based authentication</li>
+            <li><strong>Token blacklisting:</strong> Revoked tokens are tracked and rejected</li>
+            <li><strong>Password requirements:</strong> Minimum 6 characters (we recommend strong passwords)</li>
+          </ul>
+
+          <h3>Access Controls</h3>
+          <ul>
+            <li>Limited employee access to personal data</li>
+            <li>Access logging and monitoring</li>
+            <li>Regular security audits</li>
+          </ul>
+
+          <h3>Infrastructure Security</h3>
+          <ul>
+            <li><strong>Hosting:</strong> Servers located in the European Union</li>
+            <li><strong>DDoS protection:</strong> Rate limiting and attack prevention</li>
+            <li><strong>Regular updates:</strong> Software and security patches applied promptly</li>
+          </ul>
+
+          <h3>No Security is Perfect</h3>
+          <p class="privacy-note">
+            While we use reasonable security measures, no method of transmission over the internet or
+            electronic storage is 100% secure. We cannot guarantee absolute security of your data.
+            If you become aware of any security breach, please contact us immediately.
+          </p>
+        </section>
+
+        <section id="children" class="legal-section">
+          <h2>9. Children's Privacy</h2>
+          <p>
+            AI Talk Coach is not intended for children under the age of 16 (or 13 in the United States).
+            We do not knowingly collect personal information from children.
+          </p>
+          <p>
+            If you are a parent or guardian and believe your child has provided us with personal data,
+            please contact us at <%= mail_to "zsottomayor@gmail.com" %>. We will delete the information
+            promptly.
+          </p>
+          <p>
+            If we discover we have collected personal information from a child without parental consent,
+            we will take steps to delete that information as quickly as possible.
+          </p>
+        </section>
+
+        <section id="international-transfers" class="legal-section">
+          <h2>10. International Data Transfers</h2>
+          <p>
+            AI Talk Coach is based in the European Union (Portugal), and our servers are located in the EU.
+            However, some of our service providers are located in the United States:
+          </p>
+
+          <h3>EU to US Transfers</h3>
+          <ul>
+            <li><strong>OpenAI:</strong> US-based (speech analysis service)</li>
+            <li><strong>Deepgram:</strong> US-based (transcription service)</li>
+            <li><strong>Stripe:</strong> Global service with US operations (payment processing)</li>
+          </ul>
+
+          <h3>Safeguards for EU Users</h3>
+          <p>
+            When your data is transferred to the US, we ensure appropriate safeguards are in place:
+          </p>
+          <ul>
+            <li><strong>Standard Contractual Clauses (SCCs):</strong> Approved by the European Commission</li>
+            <li><strong>Contractual commitments:</strong> Our agreements with US providers include data protection obligations</li>
+            <li><strong>Minimal data:</strong> We only transfer data necessary to provide the Service</li>
+            <li><strong>Encryption:</strong> All transfers are encrypted</li>
+          </ul>
+
+          <h3>Your Consent</h3>
+          <p>
+            By using AI Talk Coach, you consent to the transfer of your data to these third-party services
+            for the purposes described in this policy. If you're in the EU and do not consent to these
+            transfers, unfortunately you will not be able to use our Service, as these providers are
+            essential to our AI-powered analysis.
+          </p>
+        </section>
+
+        <section id="cookies" class="legal-section">
+          <h2>11. Cookies and Tracking</h2>
+          <p>
+            We use cookies and similar technologies to provide and improve our Service.
+          </p>
+
+          <h3>Essential Cookies</h3>
+          <p>Required for the Service to function:</p>
+          <ul>
+            <li><strong>Session cookies:</strong> To keep you logged in</li>
+            <li><strong>Authentication tokens:</strong> To verify your identity</li>
+            <li><strong>Security cookies:</strong> To protect against fraud and abuse</li>
+          </ul>
+
+          <h3>What We DON'T Use</h3>
+          <ul>
+            <li><strong>No advertising cookies:</strong> We don't use cookies for targeted advertising</li>
+            <li><strong>No third-party tracking:</strong> We don't allow third parties to track you on our site</li>
+            <li><strong>No cross-site tracking:</strong> We don't track you across other websites</li>
+          </ul>
+
+          <h3>Managing Cookies</h3>
+          <p>
+            You can configure your browser to refuse cookies, but this may limit your ability to use
+            the Service. Essential cookies are required for core functionality (login, security).
+          </p>
+        </section>
+
+        <section id="california-rights" class="legal-section">
+          <h2>12. California Privacy Rights (CCPA)</h2>
+          <p>
+            If you are a California resident, you have specific rights under the California Consumer
+            Privacy Act (CCPA):
+          </p>
+
+          <h3>Right to Know</h3>
+          <p>You have the right to request:</p>
+          <ul>
+            <li>Categories of personal information we collect</li>
+            <li>Specific pieces of personal information we hold about you</li>
+            <li>Categories of sources from which we collect data</li>
+            <li>Business purposes for collecting data</li>
+            <li>Categories of third parties with whom we share data</li>
+          </ul>
+
+          <h3>Right to Delete</h3>
+          <p>
+            You have the right to request deletion of your personal information, subject to certain exceptions
+            (e.g., completing transactions, legal compliance).
+          </p>
+
+          <h3>Right to Opt-Out of "Sale"</h3>
+          <p class="privacy-highlight">
+            <strong>We do NOT sell your personal information</strong> in the traditional sense (we don't sell
+            data to advertisers for money). However, under CCPA's broad definition, sharing data with third
+            parties like OpenAI and Deepgram might be considered a "sale."
+          </p>
+          <p>
+            If you wish to opt out of this data sharing, please note that you will not be able to use our Service,
+            as these AI providers are essential for speech analysis. If you still wish to opt out, contact us at
+            <%= mail_to "zsottomayor@gmail.com" %>.
+          </p>
+
+          <h3>Right to Correct</h3>
+          <p>
+            You have the right to request correction of inaccurate personal information. You can update most
+            information in your Account Settings, or contact us for assistance.
+          </p>
+
+          <h3>Right to Limit Use of Sensitive Personal Information</h3>
+          <p>
+            Voice recordings may be considered "sensitive personal information" under CCPA. We use voice recordings
+            solely to provide the Service you requested (speech analysis and coaching). You can delete recordings
+            at any time or configure automatic deletion in Privacy Settings.
+          </p>
+
+          <h3>Right to Non-Discrimination</h3>
+          <p>
+            We will not discriminate against you for exercising your CCPA rights. You will receive the same
+            service and pricing regardless of whether you exercise these rights.
+          </p>
+
+          <h3>How to Exercise Your Rights</h3>
+          <p>
+            To exercise any of these rights, contact us at:
+          </p>
+          <ul>
+            <li><strong>Email:</strong> <%= mail_to "zsottomayor@gmail.com" %></li>
+            <li><strong>Subject line:</strong> "CCPA Request"</li>
+          </ul>
+          <p>
+            We will verify your identity and respond within 45 days (may be extended by another 45 days if needed).
+          </p>
+
+          <h3>Authorized Agents</h3>
+          <p>
+            You may designate an authorized agent to make requests on your behalf. The agent must provide proof
+            of authorization, and we may require you to verify your identity directly with us.
+          </p>
+        </section>
+
+        <section id="eu-rights" class="legal-section">
+          <h2>13. European Privacy Rights (GDPR)</h2>
+          <p>
+            If you are in the European Economic Area (EEA), United Kingdom, or Switzerland, you have specific
+            rights under the General Data Protection Regulation (GDPR):
+          </p>
+
+          <h3>Data Controller</h3>
+          <p>
+            The data controller for your personal data is:
+          </p>
+          <address class="contact-address">
+            Jose Luis Sottomayor<br>
+            Rua Bartolomeu Dias, 83, 1e<br>
+            1400-023 Lisboa, Portugal<br>
+            Email: <%= mail_to "zsottomayor@gmail.com" %>
+          </address>
+
+          <h3>Your GDPR Rights</h3>
+
+          <h4>Right of Access (Article 15)</h4>
+          <p>Request confirmation of whether we process your data and obtain a copy.</p>
+
+          <h4>Right to Rectification (Article 16)</h4>
+          <p>Correct inaccurate personal data and complete incomplete data.</p>
+
+          <h4>Right to Erasure / "Right to be Forgotten" (Article 17)</h4>
+          <p>Request deletion of your personal data in certain circumstances.</p>
+
+          <h4>Right to Restriction of Processing (Article 18)</h4>
+          <p>Request that we limit how we use your data in certain situations.</p>
+
+          <h4>Right to Data Portability (Article 20)</h4>
+          <p>Receive your data in a structured, machine-readable format and transmit it to another controller.</p>
+
+          <h4>Right to Object (Article 21)</h4>
+          <p>Object to processing based on legitimate interests or for direct marketing purposes.</p>
+
+          <h4>Rights Related to Automated Decision-Making (Article 22)</h4>
+          <p>
+            We use AI to analyze your speech and provide feedback. This is not automated decision-making that
+            produces legal or similarly significant effects. However, if you have concerns about AI analysis,
+            please contact us.
+          </p>
+
+          <h4>Right to Withdraw Consent</h4>
+          <p>
+            Where processing is based on consent, you can withdraw consent at any time (doesn't affect
+            lawfulness of past processing).
+          </p>
+
+          <h3>How to Exercise Your Rights</h3>
+          <p>To exercise your GDPR rights, contact us at:</p>
+          <ul>
+            <li><strong>Email:</strong> <%= mail_to "zsottomayor@gmail.com" %></li>
+            <li><strong>Subject line:</strong> "GDPR Request"</li>
+            <li><strong>Response time:</strong> We will respond within 1 month (may be extended by 2 more months for complex requests)</li>
+          </ul>
+
+          <h3>Right to Lodge a Complaint</h3>
+          <p>
+            If you're unhappy with how we handle your data, you have the right to lodge a complaint with
+            your local supervisory authority:
+          </p>
+          <p>
+            <strong>For residents of Portugal:</strong> Comissão Nacional de Proteção de Dados (CNPD)<br>
+            Website: <a href="https://www.cnpd.pt" target="_blank" rel="noopener">www.cnpd.pt</a>
+          </p>
+          <p>
+            You can also contact the supervisory authority in your EU member state. Find your local authority at:
+            <a href="https://edpb.europa.eu/about-edpb/board/members_en" target="_blank" rel="noopener">https://edpb.europa.eu/about-edpb/board/members_en</a>
+          </p>
+
+          <h3>Legal Bases for Processing</h3>
+          <p>We process your personal data based on:</p>
+          <ul>
+            <li><strong>Contract (Article 6(1)(b)):</strong> Necessary to provide the Service</li>
+            <li><strong>Consent (Article 6(1)(a)):</strong> For optional features and communications</li>
+            <li><strong>Legitimate interests (Article 6(1)(f)):</strong> Improving the Service, security, fraud prevention</li>
+            <li><strong>Legal obligation (Article 6(1)(c)):</strong> Tax records, legal compliance</li>
+          </ul>
+        </section>
+
+        <section id="changes" class="legal-section">
+          <h2>14. Changes to This Policy</h2>
+          <p>
+            We may update this Privacy Policy from time to time to reflect changes in our practices,
+            technology, legal requirements, or other factors.
+          </p>
+
+          <h3>How We Notify You</h3>
+          <ul>
+            <li><strong>Minor changes:</strong> Updated "Last Updated" date at the top of this policy</li>
+            <li><strong>Material changes:</strong> Email notification to your registered email address and/or prominent notice on our website</li>
+          </ul>
+
+          <h3>Your Continued Use</h3>
+          <p>
+            Your continued use of the Service after changes become effective constitutes your acceptance
+            of the updated Privacy Policy. If you don't agree with the changes, please stop using the Service
+            and delete your account.
+          </p>
+
+          <h3>Review Regularly</h3>
+          <p>
+            We encourage you to review this Privacy Policy periodically to stay informed about how we
+            protect your information.
+          </p>
+        </section>
+
+        <section id="contact" class="legal-section">
+          <h2>15. Contact Us</h2>
+          <p>
+            If you have questions, concerns, or requests regarding this Privacy Policy or our data practices,
+            please contact us:
+          </p>
+
+          <div class="contact-info">
+            <h3>Email</h3>
+            <p><%= mail_to "zsottomayor@gmail.com", "zsottomayor@gmail.com", class: "contact-link" %></p>
+
+            <h3>Mail</h3>
+            <address class="contact-address">
+              Jose Luis Sottomayor<br>
+              AI Talk Coach<br>
+              Rua Bartolomeu Dias, 83, 1e<br>
+              1400-023 Lisboa<br>
+              Portugal
+            </address>
+
+            <h3>Response Time</h3>
+            <p>
+              We aim to respond to all privacy inquiries within 5 business days. For GDPR and CCPA requests,
+              we will respond within the timeframes required by law (30 days for GDPR, 45 days for CCPA).
+            </p>
+
+            <h3>Subject Lines for Specific Requests</h3>
+            <ul>
+              <li>GDPR requests: "GDPR Request"</li>
+              <li>CCPA requests: "CCPA Request"</li>
+              <li>Data deletion: "Delete My Data"</li>
+              <li>Data export: "Data Export Request"</li>
+              <li>General privacy inquiries: "Privacy Question"</li>
+            </ul>
+          </div>
+        </section>
+
+        <footer class="legal-footer">
+          <p>
+            Thank you for trusting AI Talk Coach with your data. We're committed to protecting your privacy
+            and being transparent about our practices.
+          </p>
+          <p>
+            <strong>Last Updated:</strong> <%= Date.current.strftime("%B %d, %Y") %>
+          </p>
+          <p>
+            <%= link_to "Return to Home", root_path, class: "btn-link" %> |
+            <%= link_to "View Terms of Use", terms_of_service_path, class: "btn-link" %>
+          </p>
+        </footer>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="landing-footer">
+    <div class="footer-container">
+      <div>© <%= Date.current.year %> AI Talk Coach.</div>
+      <div class="footer-links">
+        <%= link_to "Privacy", privacy_policy_path %>
+        <%= link_to "Terms", terms_of_service_path %>
+        <%= link_to "Contact", contact_path %>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<style>
+.legal-page {
+  background: #F8FAFC;
+  min-height: 100vh;
+  padding: 60px 20px;
+}
+
+.legal-container {
+  max-width: 900px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1), 0 1px 2px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+}
+
+.legal-header {
+  background: linear-gradient(135deg, #FF8C42 0%, #FFAB73 100%);
+  color: white;
+  padding: 60px 40px 40px;
+  text-align: center;
+}
+
+.legal-header h1 {
+  font-size: 3rem;
+  font-weight: 700;
+  margin: 0 0 15px;
+  letter-spacing: -0.5px;
+}
+
+.last-updated {
+  font-size: 1rem;
+  opacity: 0.9;
+  margin: 0;
+  font-weight: 300;
+}
+
+.legal-content {
+  padding: 60px 60px 40px;
+  line-height: 1.8;
+  color: #333;
+}
+
+.legal-section {
+  margin-bottom: 50px;
+}
+
+.legal-section h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #FF8C42;
+  margin: 40px 0 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #FFE5D4;
+}
+
+.legal-section h3 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #FF7028;
+  margin: 30px 0 15px;
+}
+
+.legal-section h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #FF8C42;
+  margin: 20px 0 10px;
+}
+
+.legal-section p {
+  margin: 15px 0;
+  font-size: 1.05rem;
+}
+
+.legal-section ul,
+.legal-section ol {
+  margin: 15px 0 15px 25px;
+  font-size: 1.05rem;
+}
+
+.legal-section li {
+  margin: 10px 0;
+  line-height: 1.7;
+}
+
+.table-of-contents {
+  background: #f7fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 30px;
+  margin: 30px 0;
+}
+
+.table-of-contents h3 {
+  font-size: 1.3rem;
+  color: #2d3748;
+  margin: 0 0 15px;
+}
+
+.table-of-contents ol {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.table-of-contents li {
+  margin: 8px 0;
+}
+
+.table-of-contents a {
+  color: #FF8C42;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.table-of-contents a:hover {
+  color: #FF7028;
+  text-decoration: underline;
+}
+
+.privacy-note {
+  background: #fffbeb;
+  border-left: 4px solid #f59e0b;
+  padding: 15px 20px;
+  margin: 20px 0;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.privacy-highlight {
+  background: #ecfdf5;
+  border-left: 4px solid #10b981;
+  padding: 15px 20px;
+  margin: 20px 0;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.contact-info {
+  background: #f8f9fa;
+  padding: 30px;
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+.contact-address {
+  font-style: normal;
+  line-height: 1.8;
+  color: #4a5568;
+}
+
+.contact-link {
+  color: #FF8C42;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.contact-link:hover {
+  text-decoration: underline;
+}
+
+.legal-footer {
+  background: #f7fafc;
+  padding: 40px;
+  text-align: center;
+  border-top: 1px solid #e2e8f0;
+  margin-top: 40px;
+}
+
+.legal-footer p {
+  margin: 10px 0;
+  color: #4a5568;
+}
+
+.btn-link {
+  color: #FF8C42;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.btn-link:hover {
+  color: #FF7028;
+  text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .legal-page {
+    padding: 30px 15px;
+  }
+
+  .legal-header {
+    padding: 40px 25px 30px;
+  }
+
+  .legal-header h1 {
+    font-size: 2rem;
+  }
+
+  .legal-content {
+    padding: 30px 25px;
+  }
+
+  .legal-section h2 {
+    font-size: 1.6rem;
+  }
+
+  .legal-section h3 {
+    font-size: 1.2rem;
+  }
+
+  .contact-info {
+    padding: 20px;
+  }
+}
+</style>

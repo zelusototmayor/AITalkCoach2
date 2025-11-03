@@ -23,6 +23,7 @@ Rails.application.routes.draw do
       post 'auth/logout', to: 'auth#logout'
       post 'auth/forgot_password', to: 'auth#forgot_password'
       post 'auth/reset_password', to: 'auth#reset_password'
+      post 'auth/complete_onboarding', to: 'auth#complete_onboarding'
 
       # Sessions
       resources :sessions, only: [:index, :show, :create, :destroy] do
@@ -74,6 +75,11 @@ Rails.application.routes.draw do
   constraints subdomain: [ "", "www" ] do
     # Root route - landing page
     root "landing#index"
+
+    # Legal pages
+    get "privacy", to: "legal#privacy", as: :privacy_policy
+    get "terms", to: "legal#terms", as: :terms_of_service
+    get "contact", to: "legal#contact", as: :contact
 
     # Pricing page
     get "pricing", to: "pricing#index"
@@ -145,7 +151,7 @@ Rails.application.routes.draw do
     # Convenient aliases
     get "/login", to: "auth/sessions#new"
     post "/login", to: "auth/sessions#create"
-    delete "/logout", to: "auth/sessions#destroy", as: :logout
+    match "/logout", to: "auth/sessions#destroy", via: [:get, :delete], as: :logout
     get "/signup", to: "auth/registrations#new"
     post "/signup", to: "auth/registrations#create"
 

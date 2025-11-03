@@ -98,16 +98,6 @@ export default function ProgressScreen({ navigation }) {
     loadData();
   };
 
-  const handleNavigation = (screen) => {
-    if (screen === 'progress') return;
-    const screenMap = {
-      practice: 'Practice',
-      coach: 'Coach',
-      prompts: 'Prompts',
-      profile: 'ProfileMain',
-    };
-    navigation.navigate(screenMap[screen] || screen);
-  };
 
   const getChartData = () => {
     if (!progressData?.chart_data) return [];
@@ -269,7 +259,7 @@ export default function ProgressScreen({ navigation }) {
           <ActivityIndicator size="large" color={COLORS.primary} />
           <Text style={styles.loadingText}>Loading your progress...</Text>
         </View>
-        <BottomNavigation activeScreen="progress" onNavigate={handleNavigation} />
+        <BottomNavigation activeScreen="progress" />
       </SafeAreaView>
     );
   }
@@ -286,7 +276,7 @@ export default function ProgressScreen({ navigation }) {
             <Text style={styles.retryButtonText}>Retry</Text>
           </TouchableOpacity>
         </View>
-        <BottomNavigation activeScreen="progress" onNavigate={handleNavigation} />
+        <BottomNavigation activeScreen="progress" />
       </SafeAreaView>
     );
   }
@@ -409,7 +399,7 @@ export default function ProgressScreen({ navigation }) {
         <View style={{ height: 100 }} />
       </ScrollView>
 
-      <BottomNavigation activeScreen="progress" onNavigate={handleNavigation} />
+      <BottomNavigation activeScreen="progress" />
     </SafeAreaView>
   );
 }

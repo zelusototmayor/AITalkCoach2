@@ -66,16 +66,6 @@ export default function CoachScreen({ navigation }) {
     loadData();
   };
 
-  const handleNavigation = (screen) => {
-    if (screen === 'coach') return;
-    const screenMap = {
-      practice: 'Practice',
-      progress: 'Progress',
-      prompts: 'Prompts',
-      profile: 'ProfileMain',
-    };
-    navigation.navigate(screenMap[screen] || screen);
-  };
 
   const handleStartDrill = (drill) => {
     // Navigate to Practice screen with pre-filled parameters
@@ -236,7 +226,7 @@ export default function CoachScreen({ navigation }) {
           <ActivityIndicator size="large" color={COLORS.primary} />
           <Text style={styles.loadingText}>Loading your coaching plan...</Text>
         </View>
-        <BottomNavigation activeScreen="coach" onNavigate={handleNavigation} />
+        <BottomNavigation activeScreen="coach" />
       </SafeAreaView>
     );
   }
@@ -253,7 +243,7 @@ export default function CoachScreen({ navigation }) {
             <Text style={styles.retryButtonText}>Retry</Text>
           </TouchableOpacity>
         </View>
-        <BottomNavigation activeScreen="coach" onNavigate={handleNavigation} />
+        <BottomNavigation activeScreen="coach" />
       </SafeAreaView>
     );
   }
@@ -289,7 +279,7 @@ export default function CoachScreen({ navigation }) {
         <View style={{ height: 100 }} />
       </ScrollView>
 
-      <BottomNavigation activeScreen="coach" onNavigate={handleNavigation} />
+      <BottomNavigation activeScreen="coach" />
     </SafeAreaView>
   );
 }

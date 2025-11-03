@@ -32,11 +32,22 @@ export default function SessionProcessingScreen({ route, navigation }) {
           3000 // Poll every 3 seconds
         );
 
-        // Processing complete - fetch full session data and navigate to report screen
+        // Processing complete - fetch full session data
         const fullSession = await getSessionReport(sessionId);
-        setTimeout(() => {
-          navigation.replace('SessionReport', { sessionId, sessionData: fullSession });
-        }, 500);
+
+        // Check if session is incomplete (too short)
+        if (fullSession.session && !fullSession.session.completed && fullSession.session.incomplete_reason) {
+          // Session was too short - show error and go back
+          setError(fullSession.session.incomplete_reason);
+          setTimeout(() => {
+            navigation.goBack();
+          }, 3000);
+        } else {
+          // Session completed successfully - navigate to report screen
+          setTimeout(() => {
+            navigation.replace('SessionReport', { sessionId, sessionData: fullSession });
+          }, 500);
+        }
       } catch (err) {
         console.error('Processing error:', err);
         setError(err.message || 'Failed to process your recording');

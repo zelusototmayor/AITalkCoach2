@@ -45,16 +45,6 @@ export default function PromptsScreen({ navigation }) {
     return [...cats, ...uniqueCats];
   }, [prompts]);
 
-  const handleNavigation = (screen) => {
-    if (screen === 'prompts') return;
-    const screenMap = {
-      practice: 'Practice',
-      progress: 'Progress',
-      coach: 'Coach',
-      profile: 'ProfileMain',
-    };
-    navigation.navigate(screenMap[screen] || screen);
-  };
 
   const handlePractice = (prompt) => {
     navigation.navigate('Practice', {
@@ -86,7 +76,7 @@ export default function PromptsScreen({ navigation }) {
           <ActivityIndicator size="large" color={COLORS.primary} />
           <Text style={styles.loadingText}>Loading prompts...</Text>
         </View>
-        <BottomNavigation activeScreen="prompts" onNavigate={handleNavigation} />
+        <BottomNavigation activeScreen="prompts" />
       </SafeAreaView>
     );
   }
@@ -103,7 +93,7 @@ export default function PromptsScreen({ navigation }) {
             <Text style={styles.retryButtonText}>Retry</Text>
           </TouchableOpacity>
         </View>
-        <BottomNavigation activeScreen="prompts" onNavigate={handleNavigation} />
+        <BottomNavigation activeScreen="prompts" />
       </SafeAreaView>
     );
   }
@@ -193,7 +183,7 @@ export default function PromptsScreen({ navigation }) {
         />
       </View>
 
-      <BottomNavigation activeScreen="prompts" onNavigate={handleNavigation} />
+      <BottomNavigation activeScreen="prompts" />
     </SafeAreaView>
   );
 }

@@ -3,18 +3,20 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING } from '../constants/colors';
 
-export default function PromptCard({ prompt, onShuffle }) {
+export default function PromptCard({ prompt, onShuffle, canShuffle = true }) {
   return (
     <View style={styles.card}>
       <View style={styles.header}>
         <Text style={styles.label}>Recommended Prompt</Text>
-        <TouchableOpacity
-          onPress={onShuffle}
-          style={styles.shuffleButton}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="shuffle" size={20} color={COLORS.primary} />
-        </TouchableOpacity>
+        {canShuffle && (
+          <TouchableOpacity
+            onPress={onShuffle}
+            style={styles.shuffleButton}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="shuffle" size={20} color={COLORS.primary} />
+          </TouchableOpacity>
+        )}
       </View>
 
       <Text style={styles.promptText}>{prompt.text}</Text>

@@ -393,6 +393,48 @@
 
       <% unless trial_mode? %>
         <% if @has_any_sessions %>
+          <!-- This Week's Goal -->
+          <div class="weekly-goal-card-practice">
+            <div class="card-header-compact">
+              <div>
+                <h3>This Week's Goal</h3>
+                <span class="time-estimate">6–8 min/day</span>
+              </div>
+            </div>
+
+            <% if @priority_recommendations&.dig(:focus_this_week)&.first %>
+              <% focus_area = @priority_recommendations[:focus_this_week].first %>
+
+              <h2 class="goal-title"><%= humanize_improvement_type(focus_area[:type]) %></h2>
+
+              <div class="goal-narrative">
+                <% if @weekly_focus_tracking %>
+                  <%= generate_weekly_focus_narrative(focus_area, @weekly_focus_tracking) %>
+                <% else %>
+                  Target <%= format_metric_value(focus_area[:target_value], focus_area[:type]) %> by Sunday.
+                  Average last 5 sessions: <%= format_metric_value(focus_area[:current_value], focus_area[:type]) %>.
+                <% end %>
+              </div>
+
+              <div class="goal-progress">
+                <div class="progress-stat">
+                  <span class="stat-value"><%= @weekly_focus_tracking ? @weekly_focus_tracking[:sessions_today] : 0 %> / <%= @weekly_focus_tracking ? @weekly_focus_tracking[:target_today] : 2 %></span>
+                  <span class="stat-label">Today</span>
+                </div>
+                <div class="progress-stat">
+                  <span class="stat-value"><%= @weekly_focus_tracking ? @weekly_focus_tracking[:sessions_this_week] : 0 %> / <%= @weekly_focus_tracking ? @weekly_focus_tracking[:target_this_week] : 10 %></span>
+                  <span class="stat-label">Week</span>
+                </div>
+                <div class="progress-stat">
+                  <span class="stat-value"><%= @weekly_focus_tracking ? @weekly_focus_tracking[:streak_days] : 0 %></span>
+                  <span class="stat-label">Streak</span>
+                </div>
+              </div>
+            <% else %>
+              <p class="goal-placeholder">Complete a few sessions to unlock your personalized weekly goal!</p>
+            <% end %>
+          </div>
+
           <!-- Detailed Performance Metrics -->
           <div class="performance-metrics-card">
             <h4>Performance Metrics</h4>
@@ -411,120 +453,116 @@
               </div>
             </div>
           </div>
+        <% end %>
 
-          <!-- Recent Sessions Quick Access -->
-          <% if @recent_sessions.any? %>
-            <div class="recent-sessions-card">
-              <h5>Recent Sessions</h5>
-              <div class="recent-sessions-list">
-                <% @recent_sessions.first(3).each do |session| %>
-                  <div class="recent-session-item">
-                    <a href="<%= session_path(session) %>" class="session-link">
-                      <div class="session-title"><%= session.title.truncate(25) %></div>
-                      <div class="session-meta">
-                        <%= time_ago_in_words(session.created_at) %> ago
-                        <span class="session-duration">
-                          <%= session.duration_seconds ? "#{(session.duration_seconds / 60.0).round(1)}m" : "N/A" %>
-                        </span>
-                      </div>
-                    </a>
+        <!-- Prompt Library (Mobile-Inspired Design) -->
+        <div class="prompt-library-practice" data-controller="prompts-practice">
+          <div class="library-header">
+            <h4>Prompt Library</h4>
+            <p class="library-subtitle">Choose a prompt to start practicing</p>
+          </div>
+
+          <!-- Search and Filters -->
+          <div class="library-controls">
+            <div class="library-search">
+              <input type="search"
+                     placeholder="Search prompts..."
+                     class="search-input-practice"
+                     data-prompts-practice-target="searchInput"
+                     data-action="input->prompts-practice#filterPrompts">
+            </div>
+
+            <div class="library-filters">
+              <select class="filter-select-practice"
+                      data-prompts-practice-target="difficultyFilter"
+                      data-action="change->prompts-practice#filterPrompts">
+                <option value="">All Levels</option>
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+              </select>
+
+              <select class="filter-select-practice"
+                      data-prompts-practice-target="categoryFilter"
+                      data-action="change->prompts-practice#filterPrompts">
+                <option value="">All Categories</option>
+                <% @prompts.keys.sort.each do |category| %>
+                  <option value="<%= category %>"><%= category.humanize %></option>
+                <% end %>
+              </select>
+            </div>
+          </div>
+
+          <!-- Prompt Cards Grid -->
+          <div class="library-prompts-grid">
+            <%
+              all_prompts = []
+              @prompts.each do |category, prompts_list|
+                next unless prompts_list.is_a?(Array)
+                prompts_list.each_with_index do |prompt, index|
+                  next unless prompt.is_a?(Hash)
+                  all_prompts << { prompt: prompt, category: category, index: index }
+                end
+              end
+              all_prompts.first(8).each do |item|
+                prompt = item[:prompt]
+                category = item[:category]
+                index = item[:index]
+            %>
+              <div class="prompt-card-practice"
+                   data-prompts-practice-target="card"
+                   data-category="<%= category %>"
+                   data-difficulty="<%= prompt['difficulty'] %>"
+                   data-title="<%= prompt['title'] %>"
+                   data-prompt-text="<%= prompt['prompt'] %>">
+
+                <!-- Title and Badges Row -->
+                <div class="prompt-title-row">
+                  <h3 class="prompt-title-practice"><%= prompt['title'] %></h3>
+                  <div class="prompt-badges-practice">
+                    <span class="prompt-category">
+                      <%= category.humanize %>
+                    </span>
+                    <% if prompt['difficulty'] %>
+                      <span class="difficulty-badge difficulty-<%= prompt['difficulty'].downcase %>">
+                        <%= prompt['difficulty'].capitalize %>
+                      </span>
+                    <% end %>
                   </div>
-                <% end %>
+                </div>
+
+                <!-- Description -->
+                <p class="prompt-description-practice"><%= prompt['description'] %></p>
+
+                <!-- Full Prompt Text -->
+                <div class="prompt-text-practice">
+                  <%= prompt['prompt'] %>
+                </div>
+
+                <!-- Footer -->
+                <div class="prompt-footer-practice">
+                  <div class="prompt-footer-left">
+                    <span class="duration-icon">⏱</span>
+                    <span class="duration-text"><%= distance_of_time_in_words(prompt['target_seconds']) %></span>
+                  </div>
+
+                  <div class="prompt-footer-right">
+                    <button type="button"
+                            class="btn btn-primary practice-btn-small"
+                            data-action="click->prompts-practice#usePrompt"
+                            data-prompt-id="<%= "#{category}_#{index}" %>"
+                            data-prompt-text="<%= prompt['prompt'] %>"
+                            data-target-seconds="<%= prompt['target_seconds'] %>">
+                      Practice ›
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-          <% end %>
-        <% end %>
-
-        <!-- Focus Areas -->
-        <% if @focus_areas.any? %>
-          <div class="focus-areas-card">
-            <h5>Focus Areas</h5>
-            <ul class="focus-list">
-              <% @focus_areas.each do |area| %>
-                <li>• <%= area %></li>
-              <% end %>
-            </ul>
-          </div>
-        <% end %>
-
-        <!-- Prompt Library (Enhanced to match screenshot) -->
-        <div class="prompt-library-card">
-          <h4><%= icon_svg(:star, css_class: 'icon-inline') %> Prompt Library</h4>
-
-          <div class="library-tabs">
-            <button type="button" class="tab-btn active"
-                    data-action="click->prompts#selectCategory"
-                    data-category="any">Any</button>
-            <button type="button" class="tab-btn"
-                    data-action="click->prompts#selectCategory"
-                    data-category="interviews">Interviews</button>
-            <button type="button" class="tab-btn"
-                    data-action="click->prompts#selectCategory"
-                    data-category="pitching">Pitching</button>
-            <button type="button" class="tab-btn"
-                    data-action="click->prompts#selectCategory"
-                    data-category="story">Story</button>
+            <% end %>
           </div>
 
-          <div class="library-content">
-            <div class="fluency-section">
-              <h5>Fluency</h5>
-              <div class="prompt-list" data-prompts-target="library">
-                <!-- Featured prompts with Use buttons -->
-                <div class="prompt-item featured" data-category="interviews">
-                  <div class="prompt-text">Tell me about a time you influenced a decision without authority.</div>
-                  <button type="button" class="use-btn primary"
-                          data-action="click->prompts#usePrompt"
-                          data-prompt="Tell me about a time you influenced a decision without authority.">Use</button>
-                </div>
-
-                <div class="prompt-item featured" data-category="pitching">
-                  <div class="prompt-text">Explain your startup to a 10-year-old in 30s.</div>
-                  <button type="button" class="use-btn primary"
-                          data-action="click->prompts#usePrompt"
-                          data-prompt="Explain your startup to a 10-year-old in 30s.">Use</button>
-                </div>
-
-                <div class="prompt-item featured" data-category="story">
-                  <div class="prompt-text">Describe a failure that changed your perspective.</div>
-                  <button type="button" class="use-btn primary"
-                          data-action="click->prompts#usePrompt"
-                          data-prompt="Describe a failure that changed your perspective.">Use</button>
-                </div>
-
-                <!-- Dynamic prompts from configuration -->
-                <% @prompts.each do |category, prompts_list| %>
-                  <% next unless prompts_list.is_a?(Array) %>
-                  <% prompts_list.first(2).each do |prompt| %>
-                    <div class="prompt-item" data-category="<%= category.downcase %>">
-                      <div class="prompt-text">
-                        <% if prompt.is_a?(Hash) %>
-                          <%= prompt['prompt'] %>
-                        <% else %>
-                          <%= prompt %>
-                        <% end %>
-                      </div>
-                      <button type="button" class="use-btn"
-                              data-action="click->prompts#usePrompt"
-                              data-prompt="<%= prompt.is_a?(Hash) ? prompt['prompt'] : prompt %>">Use</button>
-                    </div>
-                  <% end %>
-                <% end %>
-              </div>
-            </div>
-
-            <!-- Elevator Pitch section -->
-            <div class="elevator-pitch-section">
-              <h5>Elevator Pitch</h5>
-              <div class="prompt-list">
-                <div class="prompt-item featured" data-category="pitching">
-                  <div class="prompt-text">Imagine you are in an elevator with someone who could fund your project. You have 30 seconds to explain what you are working on and why it matters.</div>
-                  <button type="button" class="use-btn primary"
-                          data-action="click->prompts#usePrompt"
-                          data-prompt="Imagine you are in an elevator with someone who could fund your project. You have 30 seconds to explain what you are working on and why it matters.">Use</button>
-                </div>
-              </div>
-            </div>
+          <div class="library-footer">
+            <%= link_to "Browse All Prompts →", prompts_path, class: "browse-all-link" %>
           </div>
         </div>
       <% end %>

@@ -9,19 +9,6 @@ import { useAuth } from '../../context/AuthContext';
 
 export default function ProfileScreen({ navigation }) {
   const { user, logout } = useAuth();
-  const handleNavigation = (screen) => {
-    if (screen === 'profile') {
-      return;
-    }
-    // Map screen names to route names
-    const screenMap = {
-      practice: 'Practice',
-      progress: 'Progress',
-      coach: 'Coach',
-      prompts: 'Prompts',
-    };
-    navigation.navigate(screenMap[screen] || screen);
-  };
 
   const menuItems = [
     { id: 'settings', label: 'Settings', icon: 'settings-outline', screen: 'Settings' },
@@ -94,7 +81,7 @@ export default function ProfileScreen({ navigation }) {
         </TouchableOpacity>
       </ScrollView>
 
-      <BottomNavigation activeScreen="profile" onNavigate={handleNavigation} />
+      <BottomNavigation activeScreen="profile" />
     </SafeAreaView>
   );
 }

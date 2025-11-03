@@ -96,6 +96,28 @@ export default function CoachRecommendationCard({
     }
   };
 
+  // Extract filler words for display
+  const getFillerWordsDisplay = (recommendation) => {
+    // Check if we have specific_issues with filler data
+    if (recommendation.specific_issues && recommendation.specific_issues.length > 0) {
+      return recommendation.specific_issues
+        .map(issue => issue[0]) // Extract word from [word, timestamp, tip]
+        .slice(0, 3) // Top 3 fillers
+        .map(word => `"${word}"`)
+        .join(', ');
+    }
+
+    // Fallback: parse from actionable_steps[1] if available
+    if (recommendation.actionable_steps && recommendation.actionable_steps.length > 1) {
+      const match = recommendation.actionable_steps[1].match(/fillers are ['"](.+?)['"]/);
+      if (match) {
+        return match[1];
+      }
+    }
+
+    return null;
+  };
+
   return (
     <View style={[styles.card, { borderLeftColor: badgeInfo.color }]}>
       <View style={[styles.badge, { backgroundColor: badgeInfo.color + '20' }]}>
@@ -127,16 +149,26 @@ export default function CoachRecommendationCard({
         </View>
       </View>
 
-      {/* Action steps (condensed to top 2) */}
+      {/* Show filler words for reduce_fillers type */}
+      {topRecommendation.type === 'reduce_fillers' && getFillerWordsDisplay(topRecommendation) && (
+        <View style={styles.fillerWordsContainer}>
+          <Text style={styles.fillerWordsLabel}>Most common filler words:</Text>
+          <Text style={styles.fillerWordsText}>
+            {getFillerWordsDisplay(topRecommendation)}
+          </Text>
+        </View>
+      )}
+
+      {/* Action steps (show only first step for context) */}
       {topRecommendation.actionable_steps && topRecommendation.actionable_steps.length > 0 && (
         <View style={styles.stepsContainer}>
           <Text style={styles.stepsTitle}>How to improve:</Text>
-          {topRecommendation.actionable_steps.slice(0, 2).map((step, index) => (
-            <View key={index} style={styles.stepItem}>
-              <Text style={styles.stepBullet}>•</Text>
-              <Text style={styles.stepText}>{step}</Text>
-            </View>
-          ))}
+          <View style={styles.stepItem}>
+            <Text style={styles.stepBullet}>•</Text>
+            <Text style={styles.stepText}>
+              {topRecommendation.actionable_steps[0]}
+            </Text>
+          </View>
         </View>
       )}
 
@@ -228,6 +260,25 @@ const styles = StyleSheet.create({
   },
   metricValueTarget: {
     color: COLORS.primary,
+  },
+  fillerWordsContainer: {
+    backgroundColor: COLORS.background,
+    padding: SPACING.sm,
+    borderRadius: 8,
+    marginBottom: SPACING.md,
+  },
+  fillerWordsLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+    marginBottom: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  fillerWordsText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.text,
   },
   stepsContainer: {
     marginBottom: SPACING.md,

@@ -14,6 +14,9 @@ class JsonWebToken
     # Add issued at timestamp
     payload[:iat] = Time.now.to_i
 
+    # Add JWT ID for blacklisting support
+    payload[:jti] = SecureRandom.uuid
+
     JWT.encode(payload, SECRET_KEY, 'HS256')
   end
 
@@ -22,6 +25,16 @@ class JsonWebToken
     return nil if token.blank?
 
     body = JWT.decode(token, SECRET_KEY, true, algorithm: 'HS256')[0]
+
+    # Check if token is blacklisted
+    if $redis && body['jti']
+      is_blacklisted = $redis.get("jwt_blacklist:#{body['jti']}")
+      if is_blacklisted
+        Rails.logger.info "Rejected blacklisted JWT: #{body['jti']}"
+        return nil
+      end
+    end
+
     HashWithIndifferentAccess.new(body)
   rescue JWT::DecodeError, JWT::ExpiredSignature
     nil

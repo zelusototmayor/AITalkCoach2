@@ -84,8 +84,30 @@ class Api::V1::AuthController < Api::V1::BaseController
 
   # POST /api/v1/auth/logout
   def logout
-    # In a JWT system, logout is handled client-side by removing the token
-    # We could implement token blacklisting here if needed
+    # Blacklist the current JWT token if Redis is available
+    if $redis && request.headers['Authorization'].present?
+      token = request.headers['Authorization'].split(' ').last
+
+      begin
+        # Decode token to get expiration time
+        decoded = JWT.decode(token, Rails.application.credentials.secret_key_base, true, algorithm: 'HS256')
+        jti = decoded[0]['jti'] # JWT ID
+        exp = decoded[0]['exp'] # Expiration timestamp
+
+        if jti && exp
+          # Store the JTI in Redis with expiration matching token expiration
+          # This prevents the token from being used again
+          ttl = exp - Time.now.to_i
+          if ttl > 0
+            $redis.setex("jwt_blacklist:#{jti}", ttl, 'true')
+            Rails.logger.info "JWT token blacklisted: #{jti}"
+          end
+        end
+      rescue JWT::DecodeError => e
+        Rails.logger.warn "Failed to decode JWT for blacklisting: #{e.message}"
+      end
+    end
+
     render json: { success: true, message: 'Logged out successfully' }
   end
 
@@ -133,6 +155,38 @@ class Api::V1::AuthController < Api::V1::BaseController
         error: 'Invalid or expired reset token'
       }, status: :unauthorized
     end
+  end
+
+  # POST /api/v1/auth/complete_onboarding
+  def complete_onboarding
+    # FOR TESTING: Grant extended trial (30 days) until Stripe is integrated
+    # TODO: Change this to 24.hours.from_now once payment is integrated
+    current_user.update!(
+      onboarding_completed_at: Time.current,
+      trial_starts_at: Time.current,
+      trial_expires_at: 30.days.from_now  # Extended trial for testing
+    )
+
+    # Migrate trial session to full session if it exists
+    if current_user.onboarding_demo_session_id.present?
+      trial_session = TrialSession.find_by(id: current_user.onboarding_demo_session_id)
+
+      if trial_session&.completed? && !trial_session.is_mock
+        begin
+          migrator = TrialSessionMigrator.new(trial_session.token, current_user)
+          migrated_session = migrator.migrate!
+          Rails.logger.info "Successfully migrated onboarding trial session #{trial_session.id} to session #{migrated_session.id} for user #{current_user.id}"
+        rescue => e
+          Rails.logger.error "Failed to migrate onboarding trial session: #{e.message}"
+        end
+      end
+    end
+
+    render json: {
+      success: true,
+      user: user_json(current_user),
+      message: "Onboarding completed successfully"
+    }
   end
 
   private

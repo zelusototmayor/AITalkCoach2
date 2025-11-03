@@ -41,6 +41,7 @@ class Api::V1::ProgressController < Api::V1::BaseController
       recent_milestones: recent_milestones,
       weekly_focus: weekly_focus,
       current_values: extract_current_values(sessions),
+      average_values: extract_average_values(sessions, time_range),
       best_values: extract_best_values(sessions),
       trends: extract_trends(sessions),
       deltas: extract_deltas(sessions)
@@ -168,6 +169,32 @@ class Api::V1::ProgressController < Api::V1::BaseController
       fluency_score: latest.analysis_data["fluency_score"],
       engagement_score: latest.analysis_data["engagement_score"],
       pace_consistency: latest.analysis_data["pace_consistency"]
+    }
+  end
+
+  def extract_average_values(sessions, time_range)
+    return {} if sessions.empty?
+
+    # Filter sessions based on time range (matching chart data logic)
+    filtered_sessions = case time_range
+    when "10_sessions"
+      sessions.last(10)
+    when "7"
+      sessions.last(7)
+    when "10"
+      sessions.where('created_at >= ?', 10.days.ago)
+    else
+      sessions.last(10) # Default to last 10 sessions
+    end
+
+    {
+      overall_score: calculate_average(filtered_sessions, "overall_score"),
+      filler_rate: calculate_average(filtered_sessions, "filler_rate"),
+      wpm: calculate_average(filtered_sessions, "wpm"),
+      clarity_score: calculate_average(filtered_sessions, "clarity_score"),
+      fluency_score: calculate_average(filtered_sessions, "fluency_score"),
+      engagement_score: calculate_average(filtered_sessions, "engagement_score"),
+      pace_consistency: calculate_average(filtered_sessions, "pace_consistency")
     }
   end
 

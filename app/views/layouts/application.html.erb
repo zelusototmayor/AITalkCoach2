@@ -49,6 +49,11 @@
   </head>
 
   <body data-controller="accessibility analytics feedback-menu" data-analytics-enabled-value="<%= Rails.env.production? %>" data-analytics-debug-value="<%= !Rails.env.production? %>" data-user-id="<%= current_user&.id %>" data-user-email="<%= current_user&.email %>" data-user-name="<%= current_user&.name %>">
+    <!-- Animated Background -->
+    <div class="animated-background">
+      <div class="wave-layer"></div>
+    </div>
+
     <!-- Skip to main content link for keyboard users -->
     <a href="#main-content" class="skip-link">Skip to main content</a>
 
@@ -252,7 +257,7 @@
                         class: "nav-link",
                         role: "menuitem",
                         data: {
-                          turbo_method: :delete,
+                          turbo: false,
                           action: "click->navigation#closeMenu"
                         } do %>
                     <span class="nav-text">Log out</span>

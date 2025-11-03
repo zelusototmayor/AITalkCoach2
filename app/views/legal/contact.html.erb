@@ -1,0 +1,527 @@
+<% content_for :title, "Contact Us - AI Talk Coach" %>
+
+<div class="landing-page">
+  <div class="legal-page">
+    <div class="legal-container">
+      <header class="legal-header">
+        <h1>Contact Us</h1>
+        <p class="last-updated">We're here to help!</p>
+      </header>
+
+      <div class="legal-content">
+        <section class="legal-section">
+          <h2>Get in Touch</h2>
+          <p>
+            Have questions about AI Talk Coach? Need help with your account? Want to request data deletion
+            or exercise your privacy rights? We're here to help.
+          </p>
+        </section>
+
+        <section class="legal-section">
+          <div class="contact-info-grid">
+            <div class="contact-card">
+              <div class="contact-icon">✉️</div>
+              <h3>Email</h3>
+              <p>For all inquiries, support, and privacy requests:</p>
+              <p class="contact-detail">
+                <%= mail_to "zsottomayor@gmail.com", "zsottomayor@gmail.com", class: "contact-link-large" %>
+              </p>
+              <p class="contact-note">We typically respond within 5 business days</p>
+            </div>
+
+            <div class="contact-card">
+              <div class="contact-icon">📍</div>
+              <h3>Mailing Address</h3>
+              <p>For formal correspondence:</p>
+              <address class="contact-detail">
+                <strong>Jose Luis Sottomayor</strong><br>
+                AI Talk Coach<br>
+                Rua Bartolomeu Dias, 83, 1e<br>
+                1400-023 Lisboa<br>
+                Portugal
+              </address>
+            </div>
+          </div>
+        </section>
+
+        <section class="legal-section">
+          <h2>What Can We Help You With?</h2>
+
+          <div class="help-topics">
+            <div class="help-topic">
+              <h3>💬 General Support</h3>
+              <ul>
+                <li>Questions about how to use AI Talk Coach</li>
+                <li>Technical issues or bugs</li>
+                <li>Feature requests and suggestions</li>
+                <li>Feedback about the Service</li>
+              </ul>
+              <p><strong>Subject line:</strong> "Support Request"</p>
+            </div>
+
+            <div class="help-topic">
+              <h3>💳 Billing & Subscriptions</h3>
+              <ul>
+                <li>Questions about pricing or plans</li>
+                <li>Billing inquiries</li>
+                <li>Cancellation assistance</li>
+                <li>Refund requests</li>
+              </ul>
+              <p><strong>Subject line:</strong> "Billing Question"</p>
+            </div>
+
+            <div class="help-topic">
+              <h3>🔒 Privacy & Data</h3>
+              <ul>
+                <li>GDPR or CCPA requests</li>
+                <li>Data deletion requests</li>
+                <li>Data export requests</li>
+                <li>Privacy questions</li>
+              </ul>
+              <p><strong>Subject line:</strong> "Privacy Request" or "GDPR Request" or "CCPA Request"</p>
+            </div>
+
+            <div class="help-topic">
+              <h3>👤 Account Issues</h3>
+              <ul>
+                <li>Can't log in or access your account</li>
+                <li>Password reset problems</li>
+                <li>Account deletion</li>
+                <li>Email change requests</li>
+              </ul>
+              <p><strong>Subject line:</strong> "Account Issue"</p>
+            </div>
+
+            <div class="help-topic">
+              <h3>⚖️ Legal Inquiries</h3>
+              <ul>
+                <li>Questions about Terms of Use</li>
+                <li>Copyright or trademark concerns</li>
+                <li>Legal notices or compliance</li>
+                <li>Partnership inquiries</li>
+              </ul>
+              <p><strong>Subject line:</strong> "Legal Inquiry"</p>
+            </div>
+
+            <div class="help-topic">
+              <h3>🚨 Report an Issue</h3>
+              <ul>
+                <li>Report abuse or violations</li>
+                <li>Security vulnerabilities</li>
+                <li>Inappropriate content</li>
+                <li>Safety concerns</li>
+              </ul>
+              <p><strong>Subject line:</strong> "Report Issue" or "Security Concern"</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="legal-section">
+          <h2>Response Times</h2>
+          <div class="response-times">
+            <div class="response-item">
+              <strong>General Inquiries:</strong>
+              <span>Within 5 business days</span>
+            </div>
+            <div class="response-item">
+              <strong>Support Requests:</strong>
+              <span>Within 2-3 business days</span>
+            </div>
+            <div class="response-item">
+              <strong>Security Issues:</strong>
+              <span>Within 24 hours</span>
+            </div>
+            <div class="response-item">
+              <strong>GDPR Requests:</strong>
+              <span>Within 30 days (as required by law)</span>
+            </div>
+            <div class="response-item">
+              <strong>CCPA Requests:</strong>
+              <span>Within 45 days (as required by law)</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="legal-section">
+          <h2>Before You Contact Us</h2>
+          <p>You might find answers faster by checking these resources:</p>
+          <ul>
+            <li>
+              <strong><%= link_to "Privacy Policy", privacy_policy_path %></strong> -
+              Learn about how we handle your data, your rights, and privacy controls
+            </li>
+            <li>
+              <strong><%= link_to "Terms of Use", terms_of_service_path %></strong> -
+              Understand your rights and responsibilities when using AI Talk Coach
+            </li>
+            <li>
+              <strong>Account Settings</strong> -
+              Manage your profile, privacy settings, and subscription
+            </li>
+            <li>
+              <strong>Privacy Settings</strong> -
+              Configure audio deletion, privacy mode, and data controls
+            </li>
+          </ul>
+        </section>
+
+        <section class="legal-section">
+          <h2>When Contacting Us</h2>
+          <p>To help us assist you quickly, please include:</p>
+          <ul>
+            <li><strong>Clear subject line:</strong> Use suggested subject lines above</li>
+            <li><strong>Your account email:</strong> So we can locate your account</li>
+            <li><strong>Detailed description:</strong> Explain the issue or question clearly</li>
+            <li><strong>Screenshots:</strong> If reporting a bug or technical issue (if applicable)</li>
+            <li><strong>Expected outcome:</strong> What would you like us to do?</li>
+          </ul>
+        </section>
+
+        <section class="legal-section privacy-highlight">
+          <h2>Data Protection Officer</h2>
+          <p>
+            For EU users: As a small operation based in Portugal, we currently do not have a designated
+            Data Protection Officer. However, all privacy-related inquiries are handled directly by
+            Jose Luis Sottomayor at <%= mail_to "zsottomayor@gmail.com" %>.
+          </p>
+          <p>
+            If you're unhappy with how we handle your data, you have the right to lodge a complaint with
+            the Portuguese supervisory authority:
+          </p>
+          <p>
+            <strong>Comissão Nacional de Proteção de Dados (CNPD)</strong><br>
+            Website: <a href="https://www.cnpd.pt" target="_blank" rel="noopener">www.cnpd.pt</a>
+          </p>
+        </section>
+
+        <footer class="legal-footer">
+          <p>
+            We're committed to providing excellent support and being responsive to your needs.
+            Thank you for using AI Talk Coach!
+          </p>
+          <p>
+            <%= link_to "Return to Home", root_path, class: "btn-link" %> |
+            <%= link_to "View Privacy Policy", privacy_policy_path, class: "btn-link" %> |
+            <%= link_to "View Terms of Use", terms_of_service_path, class: "btn-link" %>
+          </p>
+        </footer>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="landing-footer">
+    <div class="footer-container">
+      <div>© <%= Date.current.year %> AI Talk Coach.</div>
+      <div class="footer-links">
+        <%= link_to "Privacy", privacy_policy_path %>
+        <%= link_to "Terms", terms_of_service_path %>
+        <%= link_to "Contact", contact_path %>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<style>
+/* Reuse base legal page styles */
+.legal-page {
+  background: #F8FAFC;
+  min-height: 100vh;
+  padding: 60px 20px;
+}
+
+.legal-container {
+  max-width: 900px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1), 0 1px 2px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+}
+
+.legal-header {
+  background: linear-gradient(135deg, #FF8C42 0%, #FFAB73 100%);
+  color: white;
+  padding: 60px 40px 40px;
+  text-align: center;
+}
+
+.legal-header h1 {
+  font-size: 3rem;
+  font-weight: 700;
+  margin: 0 0 15px;
+  letter-spacing: -0.5px;
+}
+
+.last-updated {
+  font-size: 1.2rem;
+  opacity: 0.9;
+  margin: 0;
+  font-weight: 300;
+}
+
+.legal-content {
+  padding: 60px 60px 40px;
+  line-height: 1.8;
+  color: #333;
+}
+
+.legal-section {
+  margin-bottom: 50px;
+}
+
+.legal-section h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #FF8C42;
+  margin: 40px 0 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #FFE5D4;
+}
+
+.legal-section h3 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #FF7028;
+  margin: 25px 0 15px;
+}
+
+.legal-section p {
+  margin: 15px 0;
+  font-size: 1.05rem;
+}
+
+.legal-section ul {
+  margin: 15px 0 15px 25px;
+  font-size: 1.05rem;
+}
+
+.legal-section li {
+  margin: 10px 0;
+  line-height: 1.7;
+}
+
+/* Contact-specific styles */
+.contact-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+  margin: 30px 0;
+}
+
+.contact-card {
+  background: #f8f9fa;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 30px;
+  text-align: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.contact-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(255, 140, 66, 0.15);
+}
+
+.contact-icon {
+  font-size: 3rem;
+  margin-bottom: 15px;
+}
+
+.contact-card h3 {
+  font-size: 1.5rem;
+  color: #FF8C42;
+  margin: 10px 0 15px;
+}
+
+.contact-detail {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  margin: 15px 0;
+  font-size: 1.1rem;
+  line-height: 1.8;
+}
+
+.contact-link-large {
+  color: #FF8C42;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1.2rem;
+  word-break: break-all;
+}
+
+.contact-link-large:hover {
+  text-decoration: underline;
+  color: #FF7028;
+}
+
+.contact-note {
+  font-size: 0.95rem;
+  color: #718096;
+  margin-top: 10px;
+  font-style: italic;
+}
+
+.help-topics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 25px;
+  margin: 30px 0;
+}
+
+.help-topic {
+  background: #f7fafc;
+  border-left: 4px solid #FF8C42;
+  padding: 25px;
+  border-radius: 8px;
+  transition: border-color 0.2s;
+}
+
+.help-topic:hover {
+  border-left-color: #FF7028;
+}
+
+.help-topic h3 {
+  font-size: 1.3rem;
+  color: #2d3748;
+  margin: 0 0 15px;
+}
+
+.help-topic ul {
+  margin: 15px 0;
+  padding-left: 20px;
+  font-size: 1rem;
+}
+
+.help-topic li {
+  margin: 8px 0;
+  color: #4a5568;
+}
+
+.help-topic p {
+  margin: 15px 0 0;
+  font-size: 0.95rem;
+  color: #718096;
+}
+
+.response-times {
+  background: #f7fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 30px;
+  margin: 20px 0;
+}
+
+.response-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.response-item:last-child {
+  border-bottom: none;
+}
+
+.response-item strong {
+  color: #2d3748;
+  font-size: 1.05rem;
+}
+
+.response-item span {
+  color: #FF8C42;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.privacy-highlight {
+  background: #ecfdf5;
+  border-left: 4px solid #10b981;
+  padding: 30px;
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+.privacy-highlight h2 {
+  border-bottom: none;
+  color: #059669;
+  margin-top: 0;
+}
+
+.privacy-highlight a {
+  color: #059669;
+  font-weight: 600;
+}
+
+.privacy-highlight a:hover {
+  text-decoration: underline;
+}
+
+.legal-footer {
+  background: #f7fafc;
+  padding: 40px;
+  text-align: center;
+  border-top: 1px solid #e2e8f0;
+  margin-top: 40px;
+}
+
+.legal-footer p {
+  margin: 10px 0;
+  color: #4a5568;
+}
+
+.btn-link {
+  color: #FF8C42;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.btn-link:hover {
+  color: #FF7028;
+  text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .legal-page {
+    padding: 30px 15px;
+  }
+
+  .legal-header {
+    padding: 40px 25px 30px;
+  }
+
+  .legal-header h1 {
+    font-size: 2rem;
+  }
+
+  .legal-content {
+    padding: 30px 25px;
+  }
+
+  .legal-section h2 {
+    font-size: 1.6rem;
+  }
+
+  .legal-section h3 {
+    font-size: 1.2rem;
+  }
+
+  .contact-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .help-topics {
+    grid-template-columns: 1fr;
+  }
+
+  .response-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+</style>

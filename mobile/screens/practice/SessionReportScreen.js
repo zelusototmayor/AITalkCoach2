@@ -12,13 +12,15 @@ import TranscriptContent from '../../components/TranscriptContent';
 import MetricInfoModal from '../../components/MetricInfoModal';
 import BottomNavigation from '../../components/BottomNavigation';
 import { COLORS, SPACING } from '../../constants/colors';
-import { getSessionReport, getCoachRecommendations, getCurrentWeeklyFocus } from '../../services/api';
+import { getSessionReport } from '../../services/api';
+import { PRACTICE_PROMPTS } from '../../constants/practiceData';
 
 export default function SessionReportScreen({ route, navigation }) {
   const { sessionId, sessionData: initialData } = route.params;
 
   // State
   const [sessionData, setSessionData] = useState(initialData || null);
+  const [issues, setIssues] = useState([]);
   const [coachRecommendation, setCoachRecommendation] = useState(null);
   const [weeklyFocus, setWeeklyFocus] = useState(null);
   const [previousSession, setPreviousSession] = useState(null);
@@ -34,24 +36,24 @@ export default function SessionReportScreen({ route, navigation }) {
     const fetchData = async () => {
       try {
         if (!sessionData) {
+          // Fetch full session report including recommendations and weekly focus
           const data = await getSessionReport(sessionId);
-          setSessionData(data);
+          console.log('Session report data:', data);
+
+          setSessionData(data.session);
+          setIssues(data.issues || []);
+          setPreviousSession(data.previous_session || null);
+          setCoachRecommendation(data.priority_recommendations);
+          setWeeklyFocus(data.weekly_focus);
+        } else {
+          // If sessionData was passed in, it might not have recommendations
+          // The data from SessionProcessing screen includes full response
+          setSessionData(sessionData.session || sessionData);
+          setIssues(sessionData.issues || []);
+          setPreviousSession(sessionData.previous_session || null);
+          setCoachRecommendation(sessionData.priority_recommendations);
+          setWeeklyFocus(sessionData.weekly_focus);
         }
-
-        // TODO: Replace with actual user ID from auth context
-        const userId = sessionData?.user_id || 'test-user';
-
-        // Fetch coach recommendations and weekly focus
-        const [recommendations, focus] = await Promise.all([
-          getCoachRecommendations(userId),
-          getCurrentWeeklyFocus(userId).catch(() => null), // Gracefully handle missing route
-        ]);
-
-        setCoachRecommendation(recommendations);
-        setWeeklyFocus(focus);
-
-        // TODO: Fetch previous session for comparison
-        // For now, we'll skip this
 
         setLoading(false);
       } catch (error) {
@@ -90,32 +92,61 @@ export default function SessionReportScreen({ route, navigation }) {
 
   // Handle viewing full coaching plan
   const handleViewPlan = () => {
-    // TODO: Navigate to coaching plan screen
-    Alert.alert('Coming Soon', 'Full coaching plan view is under development');
+    navigation.navigate('Coach');
   };
 
   // Handle practicing recommended area
   const handlePracticeArea = () => {
-    // Navigate back to practice screen
-    navigation.navigate('Practice');
-  };
+    const topRecommendation = coachRecommendation?.focus_this_week?.[0];
 
-  // Handle navigation
-  const handleNavigation = (screen) => {
-    if (screen === 'practice') {
-      navigation.navigate('Practice');
+    if (topRecommendation) {
+      // Map recommendation types to focus instructions
+      const focusInstructions = {
+        reduce_fillers: 'Focus on speaking without filler words like "um", "uh", or "like". ',
+        improve_pace: 'Focus on speaking at a steady, natural pace. ',
+        enhance_clarity: 'Focus on speaking clearly and articulating each word. ',
+        boost_engagement: 'Focus on speaking with energy and enthusiasm. ',
+        improve_fluency: 'Focus on speaking smoothly without long pauses. ',
+        pace_consistency: 'Focus on maintaining a consistent speaking pace. ',
+      };
+
+      // Get a random prompt from PRACTICE_PROMPTS
+      const randomPromptIndex = Math.floor(Math.random() * PRACTICE_PROMPTS.length);
+      const randomPrompt = PRACTICE_PROMPTS[randomPromptIndex];
+
+      // Combine focus instruction with random prompt
+      const focusText = focusInstructions[topRecommendation.type] || '';
+      const fullPrompt = focusText + randomPrompt.text;
+
+      // Map to friendly display name
+      const areaNames = {
+        reduce_fillers: 'Filler Words',
+        improve_pace: 'Speaking Pace',
+        enhance_clarity: 'Clarity',
+        boost_engagement: 'Engagement',
+        improve_fluency: 'Fluency',
+        pace_consistency: 'Pace Consistency',
+      };
+
+      navigation.navigate('Practice', {
+        promptText: fullPrompt,
+        promptTitle: areaNames[topRecommendation.type] || 'Focus Area',
+        presetDuration: 60,
+      });
     } else {
-      Alert.alert('Coming Soon', `${screen} screen is under development`);
+      // No recommendation available, just navigate to practice
+      navigation.navigate('Practice');
     }
   };
+
 
   // Calculate metric comparisons
   const getMetricComparison = (currentValue, metricType) => {
-    if (!previousSession || !previousSession.analysis_json) {
+    if (!previousSession || !previousSession.analysis_data) {
       return null;
     }
 
-    const previousValue = previousSession.analysis_json[metricType];
+    const previousValue = previousSession.analysis_data[metricType];
     if (previousValue === undefined || previousValue === null) {
       return null;
     }
@@ -168,7 +199,7 @@ export default function SessionReportScreen({ route, navigation }) {
     return 'A bit fast';
   };
 
-  if (loading || !sessionData || !sessionData.analysis_json) {
+  if (loading || !sessionData || !sessionData.analysis_data) {
     return (
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <AnimatedBackground />
@@ -179,9 +210,23 @@ export default function SessionReportScreen({ route, navigation }) {
     );
   }
 
-  const analysis = sessionData.analysis_json;
-  const issues = sessionData.issues || [];
-  const isFirstSession = !previousSession; // TODO: Check actual session count
+  // Check if session is incomplete (too short)
+  if (!sessionData.completed && sessionData.incomplete_reason) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+        <AnimatedBackground />
+        <View style={styles.loadingContainer}>
+          <Text style={styles.errorIcon}>⚠️</Text>
+          <Text style={styles.errorTitle}>Session Incomplete</Text>
+          <Text style={styles.errorMessage}>{sessionData.incomplete_reason}</Text>
+          <Text style={styles.errorHint}>Please record a longer session next time.</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const analysis = sessionData.analysis_data;
+  const isFirstSession = !previousSession;
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
@@ -287,7 +332,7 @@ export default function SessionReportScreen({ route, navigation }) {
       </ScrollView>
 
       {/* Bottom Navigation */}
-      <BottomNavigation activeScreen="practice" onNavigate={handleNavigation} />
+      <BottomNavigation activeScreen="practice" />
 
       {/* Metric Info Modal */}
       <MetricInfoModal
@@ -315,10 +360,33 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: SPACING.xl,
   },
   loadingText: {
     fontSize: 18,
     color: COLORS.textSecondary,
+  },
+  errorIcon: {
+    fontSize: 64,
+    marginBottom: SPACING.lg,
+  },
+  errorTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginBottom: SPACING.sm,
+    textAlign: 'center',
+  },
+  errorMessage: {
+    fontSize: 16,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    marginBottom: SPACING.xs,
+  },
+  errorHint: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
   },
   sessionTitle: {
     fontSize: 24,

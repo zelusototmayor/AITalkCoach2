@@ -8,7 +8,7 @@
 <div class="onboarding-container">
   <div class="onboarding-content">
     <!-- Quit Button - Top Right -->
-    <%= link_to logout_path, class: 'quit-btn-top-right', data: { turbo_method: :delete, turbo_confirm: "Are you sure you want to quit? You'll need to start over." } do %>
+    <%= link_to logout_path, class: 'quit-btn-top-right', data: { turbo: false, turbo_confirm: "Are you sure you want to quit? You'll need to start over." } do %>
       <span class="quit-icon">×</span>
     <% end %>
 

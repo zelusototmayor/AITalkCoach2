@@ -90,6 +90,32 @@ class SessionsController < ApplicationController
       # Check if user has any sessions at all (for empty state)
       @has_any_sessions = current_user.sessions.exists?
 
+      # Generate weekly goal data for practice dashboard
+      @latest_session = @recent_sessions.first
+      if @latest_session
+        begin
+          total_sessions_count = current_user.sessions.where(completed: true).count
+          user_context = {
+            speech_context: @latest_session.speech_context || "general",
+            historical_sessions: @recent_sessions.to_a,
+            total_sessions_count: total_sessions_count
+          }
+          recommender = Analysis::PriorityRecommender.new(@latest_session, user_context)
+          @priority_recommendations = recommender.generate_priority_recommendations
+          @weekly_focus = recommender.create_or_update_weekly_focus(current_user)
+
+          # Calculate weekly focus tracking metrics
+          if @weekly_focus
+            @weekly_focus_tracking = calculate_weekly_focus_tracking(@weekly_focus)
+          end
+        rescue => e
+          Rails.logger.error "Weekly goal error: #{e.message}"
+          @priority_recommendations = nil
+          @weekly_focus = nil
+          @weekly_focus_tracking = nil
+        end
+      end
+
       # Handle prompt parameters from recommended/selected prompts
       if params[:adaptive_prompt] && params[:category] && params[:index]
         # User clicked on an adaptive/recommended prompt

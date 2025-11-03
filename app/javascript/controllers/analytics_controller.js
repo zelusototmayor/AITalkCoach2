@@ -10,17 +10,12 @@ export default class extends Controller {
 
   connect() {
     // Enable analytics in production or when explicitly enabled
-    this.enabledValue = this.enabledValue ?? (window.location.hostname !== 'localhost')
-    this.debugValue = this.debugValue ?? false
+    // TEMPORARILY: Also enable in development for testing
+    this.enabledValue = this.enabledValue ?? true // Changed from checking localhost
+    this.debugValue = this.debugValue ?? true // Enable debug logging
 
-    // Initialize Mixpanel
-    this.initializeMixpanel()
-
-    // Track initial page view
-    this.trackPageView()
-
-    // Check for signup completion tracking
-    this.checkSignupCompletion()
+    // Wait for Mixpanel to be ready before initializing
+    this.waitForMixpanel()
 
     // Set up global analytics instance for other controllers to use
     window.analyticsController = this
@@ -31,6 +26,30 @@ export default class extends Controller {
         userType: this.getUserType()
       })
     }
+  }
+
+  // Wait for Mixpanel library to load before initializing
+  waitForMixpanel() {
+    if (typeof mixpanel !== 'undefined' && mixpanel.__loaded) {
+      // Mixpanel is ready
+      this.onMixpanelReady()
+    } else {
+      // Check again in 100ms
+      setTimeout(() => this.waitForMixpanel(), 100)
+    }
+  }
+
+  onMixpanelReady() {
+    console.log('Mixpanel is ready, initializing analytics...')
+
+    // Initialize Mixpanel
+    this.initializeMixpanel()
+
+    // Track initial page view
+    this.trackPageView()
+
+    // Check for signup completion tracking
+    this.checkSignupCompletion()
   }
 
   disconnect() {
@@ -46,33 +65,89 @@ export default class extends Controller {
       return
     }
 
-    // Identify user if logged in
-    const userId = this.element.dataset.userId
-    const userEmail = this.element.dataset.userEmail
-    const userName = this.element.dataset.userName
-
-    if (userId) {
-      mixpanel.identify(userId)
-      mixpanel.people.set({
-        '$email': userEmail,
-        '$name': userName,
-        'User Type': 'authenticated'
+    try {
+      // Set super properties first (sent with every event)
+      mixpanel.register({
+        'User Type': this.getUserType(),
+        'Environment': window.location.hostname === 'localhost' ? 'development' : 'production',
+        'Platform': 'Web',
+        'Page URL': window.location.href,
+        'Page Title': document.title
       })
 
       if (this.debugValue) {
-        console.log('Mixpanel user identified:', userId)
+        console.log('Mixpanel super properties registered')
       }
-    }
 
-    // Set super properties (sent with every event)
-    mixpanel.register({
-      'User Type': this.getUserType(),
-      'Environment': window.location.hostname === 'localhost' ? 'development' : 'production',
-      'Platform': 'Web'
-    })
+      // Identify user if logged in
+      const userId = this.element.dataset.userId
+      const userEmail = this.element.dataset.userEmail
+      const userName = this.element.dataset.userName
 
-    if (this.debugValue) {
-      console.log('Mixpanel initialized with super properties')
+      if (userId && userId !== '' && userId !== 'null' && userId !== 'undefined') {
+        // Reset previous user data if switching users
+        if (mixpanel.get_distinct_id() !== userId) {
+          mixpanel.reset()
+        }
+
+        // Identify the user
+        mixpanel.identify(userId)
+
+        // Set user properties with error handling
+        mixpanel.people.set({
+          '$email': userEmail || '',
+          '$name': userName || '',
+          '$created': new Date().toISOString(),
+          'User Type': 'authenticated',
+          'Platform': 'Web'
+        }, (response) => {
+          if (this.debugValue) {
+            console.log('Mixpanel people.set response:', response)
+            if (response === 1) {
+              console.log('✅ User properties set successfully for:', userId)
+            } else {
+              console.error('❌ Failed to set user properties:', response)
+            }
+          }
+        })
+
+        if (this.debugValue) {
+          console.log('Mixpanel user identified:', userId, {
+            email: userEmail,
+            name: userName
+          })
+        }
+
+        // Track user login event
+        this.trackEvent('user_logged_in', {
+          user_id: userId,
+          email: userEmail
+        })
+      } else {
+        if (this.debugValue) {
+          console.log('No user ID available, using anonymous tracking')
+        }
+      }
+
+      // Set config for better debugging
+      mixpanel.set_config({
+        debug: this.debugValue,
+        verbose: this.debugValue,
+        api_host: 'https://api-eu.mixpanel.com',
+        error_reporter: (msg, item) => {
+          console.error('Mixpanel error:', msg, item)
+        }
+      })
+
+      if (this.debugValue) {
+        console.log('Mixpanel initialization complete', {
+          distinct_id: mixpanel.get_distinct_id(),
+          user_id: userId || 'anonymous'
+        })
+      }
+
+    } catch (error) {
+      console.error('Error initializing Mixpanel:', error)
     }
   }
 
@@ -96,16 +171,37 @@ export default class extends Controller {
 
     // Track with Google Analytics
     if (typeof gtag !== 'undefined') {
-      gtag('event', eventName, enrichedParameters)
+      try {
+        gtag('event', eventName, enrichedParameters)
+      } catch (error) {
+        console.error('GA tracking error:', error)
+      }
     }
 
     // Track with Mixpanel
     if (typeof mixpanel !== 'undefined') {
-      // Convert snake_case to Title Case for Mixpanel
-      const mixpanelEventName = this.formatEventName(eventName)
-      const mixpanelProperties = this.formatPropertiesForMixpanel(enrichedParameters)
+      try {
+        // Convert snake_case to Title Case for Mixpanel
+        const mixpanelEventName = this.formatEventName(eventName)
+        const mixpanelProperties = this.formatPropertiesForMixpanel(enrichedParameters)
 
-      mixpanel.track(mixpanelEventName, mixpanelProperties)
+        // Track with callback for debugging
+        mixpanel.track(mixpanelEventName, mixpanelProperties, (response) => {
+          if (this.debugValue) {
+            if (response === 1) {
+              console.log(`✅ Mixpanel event sent: ${mixpanelEventName}`, mixpanelProperties)
+            } else {
+              console.error(`❌ Mixpanel event failed: ${mixpanelEventName}`, response)
+            }
+          }
+        })
+      } catch (error) {
+        console.error('Mixpanel tracking error:', error)
+      }
+    } else {
+      if (this.debugValue) {
+        console.warn('Mixpanel is not available for tracking:', eventName)
+      }
     }
 
     if (this.debugValue) {
