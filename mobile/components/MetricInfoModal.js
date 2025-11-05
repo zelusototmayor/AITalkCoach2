@@ -78,7 +78,7 @@ export default function MetricInfoModal({ visible, metricType, onClose }) {
         'Time between words',
         'Overall tempo',
       ],
-      idealRange: '140-180 WPM (Natural)',
+      idealRange: '130-170 WPM (Natural)',
       howToImprove: [
         'Practice speaking at different speeds',
         'Use a metronome to maintain consistent pace',

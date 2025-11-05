@@ -9,6 +9,7 @@ class User < ApplicationRecord
   validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :name, presence: true, length: { minimum: 2, maximum: 50 }
   validates :password, length: { minimum: 6 }, if: -> { new_record? || !password.nil? }
+  validates :preferred_language, inclusion: { in: -> (_) { LanguageService.supported_language_codes } }, allow_blank: false
 
   # Serialize speaking_goal as JSON array
   serialize :speaking_goal, coder: JSON
@@ -71,6 +72,21 @@ class User < ApplicationRecord
   end
 
   # ============================================================================
+  # LANGUAGE PREFERENCE METHODS
+  # ============================================================================
+
+  # Get the language to use for sessions
+  # Returns user's preferred language or default
+  def language_for_sessions
+    preferred_language.presence || LanguageService.default_language
+  end
+
+  # Get human-readable language name
+  def language_display_name
+    LanguageService.native_language_name(preferred_language)
+  end
+
+  # ============================================================================
   # SUBSCRIPTION & TRIAL METHODS
   # ============================================================================
 
@@ -79,9 +95,25 @@ class User < ApplicationRecord
     subscription_active? || subscription_lifetime? || trial_active?
   end
 
-  # Check if user has an active paid subscription
+  # Check if user has an active paid subscription (any platform)
   def subscription_active?
-    subscription_status.in?([ "active" ]) && current_period_end&.future?
+    stripe_subscription_active? || apple_subscription_active?
+  end
+
+  # Check if user has an active Stripe subscription
+  def stripe_subscription_active?
+    stripe_subscription_id.present? &&
+      subscription_status == "active" &&
+      (subscription_platform.nil? || subscription_platform == "stripe") &&
+      current_period_end&.future?
+  end
+
+  # Check if user has an active Apple subscription
+  def apple_subscription_active?
+    apple_subscription_id.present? &&
+      subscription_status == "active" &&
+      subscription_platform == "apple" &&
+      current_period_end&.future?
   end
 
   # Check if user's free trial is still valid
@@ -141,11 +173,24 @@ class User < ApplicationRecord
     when "lifetime"
       "Lifetime Access"
     when "active"
-      "#{subscription_plan&.titleize} Plan"
+      platform_text = subscription_platform ? " (#{subscription_platform.titleize})" : ""
+      "#{subscription_plan&.titleize} Plan#{platform_text}"
     when "canceled"
       "Canceled"
     when "past_due"
       "Payment Failed"
+    else
+      "Unknown"
+    end
+  end
+
+  # Get subscription platform display name
+  def subscription_platform_name
+    case subscription_platform
+    when "stripe"
+      "Web (Credit Card)"
+    when "apple"
+      "Apple App Store"
     else
       "Unknown"
     end
@@ -190,5 +235,13 @@ class User < ApplicationRecord
 
     update!(stripe_customer_id: customer.id)
     customer
+  end
+
+  # ============================================================================
+  # ADMIN METHODS
+  # ============================================================================
+
+  def admin?
+    admin == true
   end
 end

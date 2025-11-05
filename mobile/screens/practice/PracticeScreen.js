@@ -15,9 +15,12 @@ import {
   TIME_OPTIONS,
   MOCK_WEEKLY_FOCUS,
 } from '../../constants/practiceData';
-import { createSession, getProgressMetrics } from '../../services/api';
+import { createSession, getProgressMetrics, getCoachRecommendations } from '../../services/api';
+import analytics from '../../services/analytics';
+import { useAuth } from '../../context/AuthContext';
 
 export default function PracticeScreen({ navigation, route }) {
+  const { user } = useAuth();
   // Extract route params
   const params = route?.params || {};
   const {
@@ -52,11 +55,17 @@ export default function PracticeScreen({ navigation, route }) {
   const [averageMetrics, setAverageMetrics] = useState(null);
   const [metricsLoading, setMetricsLoading] = useState(true);
 
+  // Weekly focus state
+  const [weeklyFocus, setWeeklyFocus] = useState(null);
+
   const recordingRef = useRef(null);
   const intervalRef = useRef(null);
   const recordingTimeRef = useRef(0); // Track current recording time to avoid stale closure
 
   useEffect(() => {
+    // Track screen view
+    analytics.trackScreen('Practice');
+
     // Request audio permissions on mount
     (async () => {
       try {
@@ -67,9 +76,18 @@ export default function PracticeScreen({ navigation, route }) {
             'We need microphone access to record your speech.',
             [{ text: 'OK' }]
           );
+
+          // Track permission denied
+          analytics.track('Microphone Permission Denied');
+        } else {
+          // Track permission granted
+          analytics.track('Microphone Permission Granted');
         }
       } catch (error) {
         console.error('Error requesting audio permissions:', error);
+        analytics.track('Microphone Permission Error', {
+          error: error.message,
+        });
       }
     })();
 
@@ -103,6 +121,44 @@ export default function PracticeScreen({ navigation, route }) {
     fetchAverageMetrics();
   }, []);
 
+  // Fetch weekly focus on mount
+  useEffect(() => {
+    const fetchWeeklyFocus = async () => {
+      try {
+        const coachData = await getCoachRecommendations();
+
+        // Transform the API response to match WeeklyFocusCard format
+        if (coachData.weekly_focus && coachData.weekly_focus_tracking) {
+          const transformedFocus = {
+            title: coachData.weekly_focus.title || 'Weekly Practice Goal',
+            tip: coachData.weekly_focus.coaching_tip || 'Keep practicing to improve',
+            today: {
+              completed: coachData.weekly_focus_tracking.sessions_today || 0,
+              goal: coachData.weekly_focus_tracking.target_today || 2,
+            },
+            week: {
+              completed: coachData.weekly_focus_tracking.sessions_this_week || 0,
+              goal: coachData.weekly_focus_tracking.target_this_week || 10,
+            },
+            streak: {
+              days: coachData.weekly_focus_tracking.streak_days || 0,
+            },
+          };
+          setWeeklyFocus(transformedFocus);
+        } else {
+          // Use fallback if no weekly focus is set
+          setWeeklyFocus(MOCK_WEEKLY_FOCUS);
+        }
+      } catch (error) {
+        console.error('Error fetching weekly focus:', error);
+        // Use fallback on error
+        setWeeklyFocus(MOCK_WEEKLY_FOCUS);
+      }
+    };
+
+    fetchWeeklyFocus();
+  }, []);
+
   // Auto-stop recording when timer completes
   useEffect(() => {
     if (shouldAutoStop && isRecording) {
@@ -117,6 +173,11 @@ export default function PracticeScreen({ navigation, route }) {
     if (canShuffle) {
       const nextIndex = (currentPromptIndex + 1) % PRACTICE_PROMPTS.length;
       setCurrentPromptIndex(nextIndex);
+
+      // Track prompt shuffle
+      analytics.track('Prompt Shuffled', {
+        new_prompt_category: PRACTICE_PROMPTS[nextIndex].category,
+      });
     }
   };
 
@@ -142,6 +203,9 @@ export default function PracticeScreen({ navigation, route }) {
       const { status } = await Audio.requestPermissionsAsync();
       if (status !== 'granted') {
         Alert.alert('Permission denied', 'Cannot record without microphone permission');
+        analytics.track('Recording Start Failed', {
+          reason: 'permission_denied',
+        });
         return;
       }
 
@@ -161,6 +225,14 @@ export default function PracticeScreen({ navigation, route }) {
       setRecordingTime(0);
       setProgress(0);
       recordingTimeRef.current = 0; // Reset ref
+
+      // Track recording started
+      analytics.track('Recording Started', {
+        target_duration: selectedTime,
+        prompt_category: currentPrompt.category,
+        prompt_text: currentPrompt.text,
+        source: customPrompt ? 'custom' : 'practice',
+      });
 
       // Start timer
       intervalRef.current = setInterval(() => {
@@ -250,44 +322,45 @@ export default function PracticeScreen({ navigation, route }) {
       setProgress(0);
       recordingTimeRef.current = 0;
 
-      // Upload to backend and navigate to processing screen
-      try {
-        // TODO: Get actual user ID from auth context
-        const userId = 'test-user';
+      // Track recording stopped
+      analytics.track('Recording Stopped', {
+        actual_duration: actualDurationSec,
+        target_duration: selectedTime,
+        completion_percentage: (actualDurationSec / selectedTime) * 100,
+        stopped_by: actualDurationSec >= selectedTime ? 'auto' : 'user',
+        prompt_category: currentPrompt.category,
+      });
 
-        // Create session title
-        const sessionTitle = `Practice Session - ${new Date().toLocaleDateString()}`;
+      // Prepare audio file object and session options
+      const audioFile = {
+        uri,
+        name: `recording_${Date.now()}.m4a`,
+        type: 'audio/m4a',
+      };
 
-        // Prepare audio file object
-        const audioFile = {
-          uri,
-          name: `recording_${Date.now()}.m4a`,
-          type: 'audio/m4a',
-        };
+      const sessionTitle = `Practice Session - ${new Date().toLocaleDateString()}`;
+      const sessionOptions = {
+        title: sessionTitle,
+        target_seconds: selectedTime,
+        language: user?.preferred_language || 'en',
+      };
 
-        console.log('Uploading session - actual duration:', actualDurationSec, 'seconds, target:', selectedTime, 'seconds');
+      console.log('Navigating to processing screen with audio file');
 
-        // Upload session with target duration (not actual) for validation
-        const session = await createSession(audioFile, {
-          title: sessionTitle,
-          target_seconds: selectedTime, // Use user's selected target time for validation
-          language: 'en',
-        });
-
-        console.log('Session created successfully:', session.session_id);
-
-        // Navigate to processing screen
-        navigation.navigate('SessionProcessing', { sessionId: session.session_id });
-      } catch (error) {
-        console.error('Failed to upload session:', error);
-        Alert.alert(
-          'Upload Failed',
-          'Could not upload your recording. Please try again.',
-          [{ text: 'OK' }]
-        );
-      }
+      // Navigate to processing screen IMMEDIATELY - let it handle the upload
+      navigation.navigate('SessionProcessing', {
+        audioFile,
+        sessionOptions,
+      });
     } catch (error) {
       console.error('Failed to stop recording:', error);
+
+      // Track recording error
+      analytics.track('Recording Error', {
+        error: error.message,
+        stage: 'stop',
+      });
+
       Alert.alert('Error', 'Failed to stop recording. Please try again.');
     }
   };
@@ -298,6 +371,16 @@ export default function PracticeScreen({ navigation, route }) {
     } else {
       startRecording();
     }
+  };
+
+  const handleTimeSelection = (duration) => {
+    setSelectedTime(duration);
+
+    // Track time duration selection
+    analytics.track('Time Duration Selected', {
+      duration_seconds: duration,
+      duration_label: TIME_OPTIONS.find(opt => opt.value === duration)?.label,
+    });
   };
 
   return (
@@ -315,7 +398,7 @@ export default function PracticeScreen({ navigation, route }) {
               key={option.value}
               label={option.label}
               isSelected={selectedTime === option.value}
-              onPress={() => setSelectedTime(option.value)}
+              onPress={() => handleTimeSelection(option.value)}
               style={styles.pillButton}
             />
           ))}
@@ -370,10 +453,12 @@ export default function PracticeScreen({ navigation, route }) {
         </View>
 
         {/* Weekly Focus Section */}
-        <View style={styles.weeklyFocusSection}>
-          <Text style={styles.sectionTitle}>Weekly Focus</Text>
-          <WeeklyFocusCard focus={MOCK_WEEKLY_FOCUS} />
-        </View>
+        {weeklyFocus && (
+          <View style={styles.weeklyFocusSection}>
+            <Text style={styles.sectionTitle}>Weekly Focus</Text>
+            <WeeklyFocusCard focus={weeklyFocus} />
+          </View>
+        )}
       </View>
 
       {/* Bottom Navigation */}

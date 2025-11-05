@@ -104,10 +104,10 @@ export async function createSession(audioFile, options = {}) {
  * Poll session status until processing is complete
  * @param {number} sessionId - Session ID
  * @param {function} onProgress - Callback for progress updates (progress_percent, processing_state)
- * @param {number} pollInterval - Polling interval in milliseconds (default 3000)
+ * @param {number} pollInterval - Polling interval in milliseconds (default 1500)
  * @returns {Promise<Object>} Complete session data
  */
-export async function pollSessionStatus(sessionId, onProgress = null, pollInterval = 3000) {
+export async function pollSessionStatus(sessionId, onProgress = null, pollInterval = 1500) {
   return new Promise((resolve, reject) => {
     const poll = async () => {
       try {
@@ -240,10 +240,10 @@ export async function createTrialSession(audioFile, options = {}) {
  * Poll trial session status until processing is complete
  * @param {string} trialToken - Trial session token
  * @param {function} onProgress - Callback for progress updates
- * @param {number} pollInterval - Polling interval in milliseconds (default 2000)
+ * @param {number} pollInterval - Polling interval in milliseconds (default 1500)
  * @returns {Promise<Object>} Complete trial session status
  */
-export async function pollTrialSessionStatus(trialToken, onProgress = null, pollInterval = 2000) {
+export async function pollTrialSessionStatus(trialToken, onProgress = null, pollInterval = 1500) {
   return new Promise((resolve, reject) => {
     const poll = async () => {
       try {
@@ -482,5 +482,36 @@ export function getProcessingStage(progressPercent) {
       name: 'Complete',
       description: 'Your report is ready!',
     };
+  }
+}
+
+/**
+ * Update user's preferred language
+ * @param {string} languageCode - ISO language code (e.g., 'en', 'pt', 'es')
+ * @returns {Promise<Object>} Updated user object
+ */
+export async function updateLanguage(languageCode) {
+  try {
+    const headers = await getAuthHeaders();
+
+    const response = await fetch(`${API_BASE_URL}/api/v1/auth/update_language`, {
+      method: 'PATCH',
+      headers: {
+        ...headers,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ language: languageCode }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to update language');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error updating language:', error);
+    throw error;
   }
 }

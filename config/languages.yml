@@ -1,0 +1,208 @@
+# Supported languages configuration for AI Talk Coach
+# This file defines all languages supported by the application
+
+supported_languages:
+  en:
+    code: "en"
+    name: "English"
+    native_name: "English"
+    deepgram_code: "en-US"
+    has_rules: true
+    flag: "🇬🇧"
+    filler_examples:
+      - "um"
+      - "uh"
+      - "like"
+      - "so"
+      - "you know"
+      - "I mean"
+      - "basically"
+      - "actually"
+
+  pt:
+    code: "pt"
+    name: "Portuguese"
+    native_name: "Português"
+    deepgram_code: "pt-PT"
+    has_rules: true
+    flag: "🇵🇹"
+    filler_examples:
+      - "né"
+      - "assim"
+      - "tipo"
+      - "então"
+      - "sabe"
+      - "entendeu"
+      - "tá"
+      - "bom"
+
+  es:
+    code: "es"
+    name: "Spanish"
+    native_name: "Español"
+    deepgram_code: "es-US"
+    has_rules: false
+    flag: "🇪🇸"
+    filler_examples:
+      - "eh"
+      - "este"
+      - "pues"
+      - "o sea"
+      - "viste"
+      - "sabes"
+      - "tipo"
+      - "bueno"
+
+  fr:
+    code: "fr"
+    name: "French"
+    native_name: "Français"
+    deepgram_code: "fr-FR"
+    has_rules: false
+    flag: "🇫🇷"
+    filler_examples:
+      - "euh"
+      - "ben"
+      - "genre"
+      - "quoi"
+      - "voilà"
+      - "en fait"
+      - "donc"
+      - "tu vois"
+
+  de:
+    code: "de"
+    name: "German"
+    native_name: "Deutsch"
+    deepgram_code: "de-DE"
+    has_rules: false
+    flag: "🇩🇪"
+    filler_examples:
+      - "äh"
+      - "ähm"
+      - "also"
+      - "irgendwie"
+      - "halt"
+      - "sozusagen"
+      - "oder so"
+      - "weißt du"
+
+  it:
+    code: "it"
+    name: "Italian"
+    native_name: "Italiano"
+    deepgram_code: "it-IT"
+    has_rules: false
+    flag: "🇮🇹"
+    filler_examples:
+      - "ehm"
+      - "cioè"
+      - "diciamo"
+      - "insomma"
+      - "praticamente"
+      - "vedi"
+      - "allora"
+      - "ecco"
+
+  nl:
+    code: "nl"
+    name: "Dutch"
+    native_name: "Nederlands"
+    deepgram_code: "nl"
+    has_rules: false
+    flag: "🇳🇱"
+    filler_examples:
+      - "eh"
+      - "uhm"
+      - "dus"
+      - "eigenlijk"
+      - "zeg maar"
+      - "gewoon"
+      - "nou"
+      - "ja"
+
+  sv:
+    code: "sv"
+    name: "Swedish"
+    native_name: "Svenska"
+    deepgram_code: "sv-SE"
+    has_rules: false
+    flag: "🇸🇪"
+    filler_examples:
+      - "eh"
+      - "öh"
+      - "liksom"
+      - "typ"
+      - "alltså"
+      - "du vet"
+      - "okej"
+      - "så"
+
+  da:
+    code: "da"
+    name: "Danish"
+    native_name: "Dansk"
+    deepgram_code: "da-DK"
+    has_rules: false
+    flag: "🇩🇰"
+    filler_examples:
+      - "øh"
+      - "altså"
+      - "ligesom"
+      - "ikke"
+      - "sådan"
+      - "jo"
+      - "bare"
+      - "nu"
+
+  no:
+    code: "no"
+    name: "Norwegian"
+    native_name: "Norsk"
+    deepgram_code: "no"
+    has_rules: false
+    flag: "🇳🇴"
+    filler_examples:
+      - "eh"
+      - "liksom"
+      - "altså"
+      - "ikke sant"
+      - "sånn"
+      - "vet du"
+      - "bare"
+      - "ja"
+
+  tr:
+    code: "tr"
+    name: "Turkish"
+    native_name: "Türkçe"
+    deepgram_code: "tr"
+    has_rules: false
+    flag: "🇹🇷"
+    filler_examples:
+      - "yani"
+      - "işte"
+      - "hani"
+      - "falan"
+      - "şey"
+      - "tamam mı"
+      - "yok"
+      - "öyle"
+
+# Default language if none specified
+default_language: "en"
+
+# Language aliases (for backward compatibility or regional variants)
+aliases:
+  "en-US": "en"
+  "en-GB": "en"
+  "pt-BR": "pt"
+  "pt-PT": "pt"
+  "es-ES": "es"
+  "es-419": "es"
+  "fr-FR": "fr"
+  "fr-CA": "fr"
+  "de-DE": "de"
+  "it-IT": "it"
+  "sv-SE": "sv"
+  "da-DK": "da"

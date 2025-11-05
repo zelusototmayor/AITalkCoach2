@@ -3,12 +3,12 @@ pt:
   # Veja: app/services/ai/prompt_builder.rb - prompt filler_word_detection
 
   pace_issues:
-    - pattern: 'speaking_rate_below_120'
+    - pattern: 'speaking_rate_below_110'
       severity: 'medium'
       description: 'Falar muito devagar pode perder a atenção da audiência'
       tip: 'Considere falar um pouco mais rápido para manter o engajamento mantendo a clareza.'
-      
-    - pattern: 'speaking_rate_above_180'
+
+    - pattern: 'speaking_rate_above_170'
       severity: 'medium'
       description: 'Falar muito rapidamente pode ser difícil de acompanhar'
       tip: 'Diminua a velocidade para garantir que sua audiência possa processar sua mensagem efetivamente.'

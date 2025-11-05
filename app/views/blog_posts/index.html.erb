@@ -1,0 +1,61 @@
+<div class="blog-container">
+  <header class="blog-header">
+    <h1>Blog</h1>
+    <p class="blog-subtitle">Insights on improving your communication skills with AI</p>
+  </header>
+
+  <% if @blog_posts.any? %>
+    <div class="blog-grid">
+      <% @blog_posts.each do |post| %>
+        <article class="blog-card">
+          <% if post.featured_image.attached? %>
+            <%= link_to blog_post_path(post.slug), class: "blog-card-image" do %>
+              <%= image_tag post.featured_image, alt: post.title %>
+            <% end %>
+          <% else %>
+            <div class="blog-card-image-placeholder">
+              <%= link_to blog_post_path(post.slug) do %>
+                <span>📝</span>
+              <% end %>
+            </div>
+          <% end %>
+
+          <div class="blog-card-content">
+            <h2 class="blog-card-title">
+              <%= link_to post.title, blog_post_path(post.slug) %>
+            </h2>
+
+            <div class="blog-card-meta">
+              <span class="blog-card-date">
+                <%= post.published_at.strftime("%B %d, %Y") %>
+              </span>
+              <% if post.reading_time && post.reading_time > 0 %>
+                <span class="blog-card-reading-time">
+                  <%= post.reading_time %> min read
+                </span>
+              <% end %>
+            </div>
+
+            <% if post.excerpt.present? %>
+              <p class="blog-card-excerpt">
+                <%= truncate(post.excerpt, length: 150) %>
+              </p>
+            <% end %>
+
+            <%= link_to "Read More →", blog_post_path(post.slug), class: "blog-card-link" %>
+          </div>
+        </article>
+      <% end %>
+    </div>
+
+    <% if @blog_posts.respond_to?(:total_pages) && @blog_posts.total_pages > 1 %>
+      <div class="blog-pagination">
+        <%= paginate @blog_posts %>
+      </div>
+    <% end %>
+  <% else %>
+    <div class="blog-empty">
+      <p>No blog posts published yet. Check back soon!</p>
+    </div>
+  <% end %>
+</div>

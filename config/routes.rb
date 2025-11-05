@@ -24,6 +24,8 @@ Rails.application.routes.draw do
       post 'auth/forgot_password', to: 'auth#forgot_password'
       post 'auth/reset_password', to: 'auth#reset_password'
       post 'auth/complete_onboarding', to: 'auth#complete_onboarding'
+      patch 'auth/update_profile', to: 'auth#update_profile'
+      patch 'auth/update_language', to: 'auth#update_language'
 
       # Sessions
       resources :sessions, only: [:index, :show, :create, :destroy] do
@@ -40,8 +42,16 @@ Rails.application.routes.draw do
 
       # Prompts
       get 'prompts', to: 'prompts#index'
+
+      # Subscriptions (Apple IAP via RevenueCat)
+      get 'subscriptions/status', to: 'subscriptions#status'
+      post 'subscriptions/sync', to: 'subscriptions#sync'
+      post 'subscriptions/restore', to: 'subscriptions#restore'
     end
   end
+
+  # RevenueCat webhook (outside subdomain constraints, accepts any request)
+  post "/webhooks/revenuecat", to: "webhooks#revenuecat"
 
   # Legacy mobile API routes (for backward compatibility during transition)
   # These routes must come BEFORE subdomain constraints to allow mobile app
@@ -75,6 +85,9 @@ Rails.application.routes.draw do
   constraints subdomain: [ "", "www" ] do
     # Root route - landing page
     root "landing#index"
+
+    # Blog routes
+    resources :blog_posts, only: [:index, :show], path: "blog", param: :slug
 
     # Legal pages
     get "privacy", to: "legal#privacy", as: :privacy_policy
@@ -225,6 +238,9 @@ Rails.application.routes.draw do
     namespace :admin do
       get "health", to: "health#show"
       get "health/detailed", to: "health#detailed"
+
+      # Blog CMS
+      resources :blog_posts
     end
   end
 end

@@ -3,10 +3,10 @@ module Analysis
     class MetricsError < StandardError; end
 
     # Standard speech rate ranges (words per minute)
-    OPTIMAL_WPM_RANGE = (140..160).freeze
-    ACCEPTABLE_WPM_RANGE = (120..180).freeze
-    SLOW_WPM_THRESHOLD = 120
-    FAST_WPM_THRESHOLD = 180
+    OPTIMAL_WPM_RANGE = (130..150).freeze
+    ACCEPTABLE_WPM_RANGE = (110..170).freeze
+    SLOW_WPM_THRESHOLD = 110
+    FAST_WPM_THRESHOLD = 170
 
     # Clarity scoring weights
     CLARITY_WEIGHTS = {
@@ -1157,10 +1157,10 @@ module Analysis
       case wpm
       when OPTIMAL_WPM_RANGE then 100
       when ACCEPTABLE_WPM_RANGE then 85
-      when 100..SLOW_WPM_THRESHOLD then 70
-      when FAST_WPM_THRESHOLD..200 then 70
-      when 80..100 then 50
-      when 200..250 then 50
+      when 90..SLOW_WPM_THRESHOLD then 70
+      when FAST_WPM_THRESHOLD..190 then 70
+      when 70..90 then 50
+      when 190..240 then 50
       else 30
       end
     end

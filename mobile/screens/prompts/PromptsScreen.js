@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, FlatList, ActivityIndicator, RefreshControl, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AnimatedBackground from '../../components/AnimatedBackground';
@@ -11,6 +11,8 @@ import { getPrompts } from '../../services/api';
 export default function PromptsScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedDifficulty, setSelectedDifficulty] = useState('all');
+  const [showDifficultyModal, setShowDifficultyModal] = useState(false);
   const [prompts, setPrompts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -64,9 +66,12 @@ export default function PromptsScreen({ navigation }) {
       const matchesCategory = selectedCategory === 'all' ||
         prompt.category === selectedCategory;
 
-      return matchesSearch && matchesCategory;
+      const matchesDifficulty = selectedDifficulty === 'all' ||
+        prompt.difficulty?.toLowerCase() === selectedDifficulty.toLowerCase();
+
+      return matchesSearch && matchesCategory && matchesDifficulty;
     });
-  }, [searchQuery, selectedCategory, prompts]);
+  }, [searchQuery, selectedCategory, selectedDifficulty, prompts]);
 
   if (loading) {
     return (
@@ -122,6 +127,19 @@ export default function PromptsScreen({ navigation }) {
           )}
         </View>
 
+        {/* Difficulty Filter */}
+        <TouchableOpacity
+          style={styles.difficultyFilterButton}
+          onPress={() => setShowDifficultyModal(true)}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="options-outline" size={18} color={COLORS.primary} />
+          <Text style={styles.difficultyFilterText}>
+            Difficulty: {selectedDifficulty === 'all' ? 'All' : selectedDifficulty.charAt(0).toUpperCase() + selectedDifficulty.slice(1)}
+          </Text>
+          <Ionicons name="chevron-down" size={16} color={COLORS.textSecondary} />
+        </TouchableOpacity>
+
         {/* Category Filter */}
         <ScrollView
           horizontal
@@ -165,6 +183,7 @@ export default function PromptsScreen({ navigation }) {
               promptText={item.prompt_text}
               duration={item.duration}
               focusAreas={item.focus_areas}
+              difficulty={item.difficulty}
               onPractice={() => handlePractice(item)}
             />
           )}
@@ -184,6 +203,77 @@ export default function PromptsScreen({ navigation }) {
       </View>
 
       <BottomNavigation activeScreen="prompts" />
+
+      {/* Difficulty Selection Modal */}
+      <Modal
+        visible={showDifficultyModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowDifficultyModal(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowDifficultyModal(false)}
+        >
+          <TouchableOpacity
+            style={styles.modalContainer}
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Filter by Difficulty</Text>
+              <TouchableOpacity
+                onPress={() => setShowDifficultyModal(false)}
+                style={styles.modalCloseButton}
+              >
+                <Ionicons name="close" size={24} color={COLORS.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Difficulty Options */}
+            <View style={styles.modalContent}>
+              {[
+                { value: 'all', label: 'All Levels', icon: 'apps-outline' },
+                { value: 'beginner', label: 'Beginner', icon: 'leaf-outline' },
+                { value: 'intermediate', label: 'Intermediate', icon: 'trending-up-outline' },
+                { value: 'advanced', label: 'Advanced', icon: 'flame-outline' },
+              ].map((option) => (
+                <TouchableOpacity
+                  key={option.value}
+                  style={[
+                    styles.difficultyOption,
+                    selectedDifficulty === option.value && styles.difficultyOptionSelected
+                  ]}
+                  onPress={() => {
+                    setSelectedDifficulty(option.value);
+                    setShowDifficultyModal(false);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.difficultyOptionLeft}>
+                    <Ionicons
+                      name={option.icon}
+                      size={22}
+                      color={selectedDifficulty === option.value ? COLORS.primary : COLORS.textSecondary}
+                    />
+                    <Text style={[
+                      styles.difficultyOptionText,
+                      selectedDifficulty === option.value && styles.difficultyOptionTextSelected
+                    ]}>
+                      {option.label}
+                    </Text>
+                  </View>
+                  {selectedDifficulty === option.value && (
+                    <Ionicons name="checkmark-circle" size={22} color={COLORS.primary} />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -221,6 +311,25 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     marginLeft: SPACING.xs,
     paddingVertical: 4,
+  },
+  difficultyFilterButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.cardBackground,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    marginHorizontal: SPACING.lg,
+    marginBottom: SPACING.md,
+    gap: 8,
+  },
+  difficultyFilterText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.text,
   },
   categoryScroll: {
     marginBottom: SPACING.xl,
@@ -320,5 +429,68 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContainer: {
+    backgroundColor: COLORS.background,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: SPACING.lg,
+    paddingHorizontal: SPACING.lg,
+    paddingBottom: SPACING.xl,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.lg,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  modalCloseButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: COLORS.cardBackground,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    gap: SPACING.xs,
+  },
+  difficultyOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: COLORS.cardBackground,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.md,
+  },
+  difficultyOptionSelected: {
+    backgroundColor: COLORS.primary + '15',
+    borderColor: COLORS.primary,
+  },
+  difficultyOptionLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
+  difficultyOptionText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  difficultyOptionTextSelected: {
+    color: COLORS.primary,
   },
 });

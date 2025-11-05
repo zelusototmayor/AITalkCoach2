@@ -5,19 +5,24 @@ module Analysis
     @@loaded_rules = {}
 
     def self.load_rules(language = "en")
-      return @@loaded_rules[language] if @@loaded_rules[language]
+      # Return cached result (including nil) if already attempted
+      return @@loaded_rules[language] if @@loaded_rules.key?(language)
 
       rule_file = Rails.root.join("config", "clarity", "#{language}.yml")
 
       unless File.exist?(rule_file)
-        raise RuleLoadError, "Rules file not found for language: #{language}"
+        Rails.logger.warn "Rules file not found for language: #{language}. AI-only analysis will be used."
+        @@loaded_rules[language] = nil
+        return nil
       end
 
       begin
         raw_rules = YAML.load_file(rule_file)
         @@loaded_rules[language] = parse_rules(raw_rules[language])
       rescue => e
-        raise RuleLoadError, "Failed to load rules for #{language}: #{e.message}"
+        Rails.logger.error "Failed to load rules for #{language}: #{e.message}"
+        @@loaded_rules[language] = nil
+        return nil
       end
 
       @@loaded_rules[language]
@@ -31,16 +36,20 @@ module Analysis
 
     def self.rules_for_category(language, category)
       rules = load_rules(language)
+      return [] if rules.nil?
       rules[category.to_s] || []
     end
 
     def self.all_categories(language = "en")
       rules = load_rules(language)
+      return [] if rules.nil?
       rules.keys
     end
 
     def self.validate_rules(language = "en")
       rules = load_rules(language)
+      return [] if rules.nil?
+
       errors = []
 
       rules.each do |category, rule_list|

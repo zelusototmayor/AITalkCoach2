@@ -4,10 +4,37 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING } from '../constants/colors';
 
 export default function PromptCard({ prompt, onShuffle, canShuffle = true }) {
+  const getDifficultyColors = (diff) => {
+    const colors = {
+      'beginner': {
+        background: '#d1fae5',
+        text: '#065f46',
+      },
+      'intermediate': {
+        background: '#fef3c7',
+        text: '#92400e',
+      },
+      'advanced': {
+        background: '#fee2e2',
+        text: '#991b1b',
+      },
+    };
+    return colors[diff?.toLowerCase()] || { background: '#e5e7eb', text: '#6b7280' };
+  };
+
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <Text style={styles.label}>Recommended Prompt</Text>
+        <View style={styles.headerLeft}>
+          <Text style={styles.label}>Recommended Prompt</Text>
+          {prompt.difficulty && (
+            <View style={[styles.difficultyBadge, { backgroundColor: getDifficultyColors(prompt.difficulty).background }]}>
+              <Text style={[styles.difficultyText, { color: getDifficultyColors(prompt.difficulty).text }]}>
+                {prompt.difficulty.toUpperCase()}
+              </Text>
+            </View>
+          )}
+        </View>
         {canShuffle && (
           <TouchableOpacity
             onPress={onShuffle}
@@ -53,11 +80,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: SPACING.xs,
   },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   label: {
     fontSize: 11,
     fontWeight: '600',
     color: COLORS.textSecondary,
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  difficultyBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  difficultyText: {
+    fontSize: 9,
+    fontWeight: '600',
     letterSpacing: 0.5,
   },
   shuffleButton: {

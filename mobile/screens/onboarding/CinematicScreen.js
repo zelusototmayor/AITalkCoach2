@@ -4,6 +4,7 @@ import AnimatedBackground from '../../components/AnimatedBackground';
 import QuitOnboardingButton from '../../components/QuitOnboardingButton';
 import { COLORS, SPACING } from '../../constants/colors';
 import { CINEMATIC_MESSAGES } from '../../constants/onboardingData';
+import { SHOW_FREE_FOREVER } from '../../config/features';
 
 const FADE_DURATION = 300; // 300ms for fade in
 const FADE_OUT_DURATION = 600; // 600ms for fade out (slower)
@@ -240,12 +241,21 @@ export default function CinematicScreen({ navigation }) {
               ]}
             >
               {isLastMessage ? (
-                <View style={styles.freeForeverContainer}>
-                  <Text style={styles.regularText}>Practice every day, and the app is</Text>
-                  <Animated.View style={styles.freeForeverHighlight}>
-                    <Text style={styles.freeForeverText}>FREE FOREVER</Text>
-                  </Animated.View>
-                </View>
+                SHOW_FREE_FOREVER ? (
+                  <View style={styles.freeForeverContainer}>
+                    <Text style={styles.regularText}>Practice every day, and the app is</Text>
+                    <Animated.View style={styles.freeForeverHighlight}>
+                      <Text style={styles.freeForeverText}>FREE FOREVER</Text>
+                    </Animated.View>
+                  </View>
+                ) : (
+                  <View style={styles.freeForeverContainer}>
+                    <Text style={styles.regularText}>You're all set!</Text>
+                    <Animated.View style={styles.freeForeverHighlight}>
+                      <Text style={styles.freeForeverText}>LET'S BEGIN</Text>
+                    </Animated.View>
+                  </View>
+                )
               ) : (
                 <Text style={[
                   styles.messageText,

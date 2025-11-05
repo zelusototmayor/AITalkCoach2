@@ -939,9 +939,11 @@ module Ai
     # Comprehensive Speech Analysis - Combines filler detection + issue classification
     def build_comprehensive_speech_analysis_system_prompt
       language = @options[:language] || "en"
+      filler_examples = get_filler_examples_for_language(language)
+      language_name = get_language_name(language)
 
       <<~PROMPT
-        You are an expert speech coach performing comprehensive analysis of #{language} communication.
+        You are an expert speech coach performing comprehensive analysis of #{language_name} communication.
 
         Your task is to analyze the full transcript and provide:
         1. **Filler Word Detection**: Identify ALL words/phrases used as verbal crutches
@@ -954,7 +956,9 @@ module Ai
         - "like" in "I like pizza" = legitimate (preference)
         - "like" in "it's, like, really good" = filler (verbal crutch)
 
-        Common fillers: um, uh, like, so, you know, I mean, basically, actually, kind of, sort of, just, right, well, okay, now
+        Common fillers in #{language_name}: #{filler_examples}
+
+        Identify ALL instances where words/phrases are used as hesitation markers or verbal crutches, disrupting natural speech flow.
 
         ## Issue Validation Guidelines
 
@@ -1138,6 +1142,55 @@ module Ai
           }
         }
       }
+    end
+
+    # Helper method to get language-specific filler word examples
+    def get_filler_examples_for_language(language_code)
+      case language_code.to_s.downcase
+      when "en"
+        "um, uh, like, so, you know, I mean, basically, actually, kind of, sort of, just, right, well, okay, now"
+      when "pt"
+        "né, assim, tipo, então, sabe, entendeu, tá, bom, enfim, pois, quer dizer"
+      when "es"
+        "eh, este, pues, o sea, osea, viste, sabes, tipo, como que, digamos, bueno, entonces, ya"
+      when "fr"
+        "euh, ben, genre, quoi, voilà, en fait, donc, tu vois, tu sais, bah, hein"
+      when "de"
+        "äh, ähm, also, irgendwie, halt, sozusagen, oder so, weißt du, na ja, eigentlich"
+      when "it"
+        "ehm, cioè, diciamo, insomma, praticamente, vedi, dunque, allora, ecco"
+      when "nl"
+        "eh, uhm, dus, eigenlijk, zeg maar, gewoon, nou, hè, ja, toch"
+      when "sv"
+        "eh, öh, liksom, typ, alltså, du vet, nu, ja, okej, så"
+      when "da"
+        "øh, altså, ligesom, ikke, sådan, ikk', jo, bare, nu"
+      when "no"
+        "eh, liksom, altså, ikke sant, sånn, vet du, bare, ja, nå"
+      when "tr"
+        "yani, işte, hani, falan, şey, tamam mı, bilmem ne, yok, öyle"
+      else
+        # Fallback for unsupported languages - use English examples
+        "um, uh, er, ah (adjust based on language context)"
+      end
+    end
+
+    # Helper method to get human-readable language name
+    def get_language_name(language_code)
+      case language_code.to_s.downcase
+      when "en" then "English"
+      when "pt" then "Portuguese"
+      when "es" then "Spanish"
+      when "fr" then "French"
+      when "de" then "German"
+      when "it" then "Italian"
+      when "nl" then "Dutch"
+      when "sv" then "Swedish"
+      when "da" then "Danish"
+      when "no" then "Norwegian"
+      when "tr" then "Turkish"
+      else language_code.upcase
+      end
     end
   end
 end

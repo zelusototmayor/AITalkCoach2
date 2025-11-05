@@ -28,7 +28,10 @@ module Sessions
       begin
         # Update session state and record job execution time
         update_session_state("processing", nil)
-        @session.update_column(:updated_at, Time.current) # Heartbeat for monitoring
+        @session.update!(
+          updated_at: Time.current,
+          processing_started_at: Time.current
+        ) # Heartbeat for monitoring
 
         # Execute the analysis pipeline
         @pipeline_result = execute_analysis_pipeline
@@ -184,7 +187,10 @@ module Sessions
       validate_transcription_quality(transcription_result)
 
       # Store transcript immediately after successful transcription
-      @session.update!(analysis_data: { "transcript" => transcription_result[:transcript] })
+      # Merge into existing data to preserve processing_stage and processing_progress
+      current_data = @session.analysis_data || {}
+      current_data["transcript"] = transcription_result[:transcript]
+      @session.update!(analysis_data: current_data)
 
       transcription_result
     end
@@ -196,12 +202,18 @@ module Sessions
       )
 
       begin
-        detected_issues = rule_detector.detect_all_issues
+        if rule_detector.rules_available?
+          detected_issues = rule_detector.detect_all_issues
 
-        # Store issues in database
-        store_detected_issues(detected_issues, "rule")
+          # Store issues in database
+          store_detected_issues(detected_issues, "rule")
 
-        Rails.logger.info "Detected #{detected_issues.length} rule-based issues"
+          Rails.logger.info "Detected #{detected_issues.length} rule-based issues for language '#{@session.language}'"
+        else
+          detected_issues = []
+          Rails.logger.info "No rules available for language '#{@session.language}', proceeding with AI-only analysis"
+        end
+
         detected_issues
 
       rescue => e
@@ -776,7 +788,15 @@ module Sessions
       current_data = @session.analysis_data || {}
       current_data["processing_stage"] = stage
       current_data["processing_progress"] = progress_percent
-      @session.update_column(:analysis_data, current_data)
+      # Use update! to touch updated_at so polling can see changes
+      @session.update!(analysis_data: current_data)
+
+      # Optional: Add delay in development to make progress visible
+      # Set SLOW_PROCESSING=true to see incremental progress updates
+      if Rails.env.development? && ENV['SLOW_PROCESSING'] == 'true'
+        sleep(2)
+        Rails.logger.debug "Progress update: #{stage} at #{progress_percent}%"
+      end
     end
 
     def store_interim_metrics(metrics)

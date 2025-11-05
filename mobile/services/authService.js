@@ -213,10 +213,28 @@ export async function resetPassword(token, password) {
 /**
  * Mark onboarding as complete
  * @param {string} token - Auth token
+ * @param {Object} onboardingData - Onboarding data (language, communicationStyle, ageRange)
  * @returns {Promise<Object>} Response with updated user
  */
-export async function completeOnboarding(token) {
+export async function completeOnboarding(token, onboardingData = {}) {
   try {
+    // Prepare the request body with onboarding demographics
+    const body = {};
+
+    if (onboardingData.language) {
+      body.preferred_language = onboardingData.language;
+    }
+
+    if (onboardingData.communicationStyle) {
+      body.speaking_style = onboardingData.communicationStyle;
+    }
+
+    if (onboardingData.ageRange) {
+      body.age_range = onboardingData.ageRange;
+    }
+
+    console.log('Completing onboarding with data:', body);
+
     const response = await fetch(`${API_BASE_URL}/api/v1/auth/complete_onboarding`, {
       method: 'POST',
       headers: {
@@ -224,6 +242,7 @@ export async function completeOnboarding(token) {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
+      body: JSON.stringify(body),
     });
 
     const data = await response.json();

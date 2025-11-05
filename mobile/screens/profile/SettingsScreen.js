@@ -1,16 +1,66 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AnimatedBackground from '../../components/AnimatedBackground';
 import { COLORS, SPACING, TYPOGRAPHY } from '../../constants/colors';
+import { LANGUAGES } from '../../constants/onboardingData';
+import { useAuth } from '../../context/AuthContext';
+import { updateLanguage } from '../../services/api';
 
 export default function SettingsScreen({ navigation }) {
+  const { user, updateUserData } = useAuth();
+
   const [formData, setFormData] = useState({
-    name: 'User Name',
-    email: 'user@example.com',
+    name: user?.name || 'User Name',
+    email: user?.email || 'user@example.com',
   });
+  const [selectedLanguage, setSelectedLanguage] = useState(user?.preferred_language || 'en');
   const [saving, setSaving] = useState(false);
+  const [languageUpdating, setLanguageUpdating] = useState(false);
+
+  // Update form data when user changes
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        name: user.name,
+        email: user.email,
+      });
+      setSelectedLanguage(user.preferred_language || 'en');
+    }
+  }, [user]);
+
+  const handleLanguageChange = async (languageCode) => {
+    if (languageCode === selectedLanguage) return;
+
+    setLanguageUpdating(true);
+
+    try {
+      const response = await updateLanguage(languageCode);
+      setSelectedLanguage(languageCode);
+
+      // CRITICAL: Update the AuthContext's cached user object immediately
+      // This ensures the app uses the new language for future sessions
+      if (updateUserData) {
+        updateUserData({
+          preferred_language: languageCode,
+          language_display_name: response.user?.language_display_name || languageCode
+        });
+        console.log('Updated cached user language to:', languageCode);
+      }
+
+      const languageName = LANGUAGES.find(l => l.id === languageCode)?.label || languageCode;
+      Alert.alert(
+        'Language Updated',
+        `Your preferred language has been changed to ${languageName}. Future recordings will be analyzed in this language.`
+      );
+    } catch (error) {
+      console.error('Error updating language:', error);
+      Alert.alert('Error', 'Failed to update language preference. Please try again.');
+    } finally {
+      setLanguageUpdating(false);
+    }
+  };
 
   const handleSave = async () => {
     // Validate inputs
@@ -93,7 +143,54 @@ export default function SettingsScreen({ navigation }) {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Preferences</Text>
-          <Text style={styles.comingSoon}>More preferences coming soon...</Text>
+
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Language</Text>
+            <Text style={styles.languageHint}>
+              Choose the language you'll speak in during practice sessions
+            </Text>
+
+            <View style={styles.languageGrid}>
+              {LANGUAGES.map((language) => (
+                <TouchableOpacity
+                  key={language.id}
+                  style={[
+                    styles.languageOption,
+                    selectedLanguage === language.id && styles.languageOptionSelected,
+                    languageUpdating && styles.languageOptionDisabled,
+                  ]}
+                  onPress={() => handleLanguageChange(language.id)}
+                  activeOpacity={0.7}
+                  disabled={languageUpdating}
+                >
+                  <Text style={styles.languageIcon}>{language.icon}</Text>
+                  <Text
+                    style={[
+                      styles.languageLabel,
+                      selectedLanguage === language.id && styles.languageLabelSelected,
+                    ]}
+                  >
+                    {language.label}
+                  </Text>
+                  {selectedLanguage === language.id && (
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={20}
+                      color={COLORS.primary}
+                      style={styles.languageCheck}
+                    />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {languageUpdating && (
+              <View style={styles.updatingContainer}>
+                <ActivityIndicator color={COLORS.primary} />
+                <Text style={styles.updatingText}>Updating language...</Text>
+              </View>
+            )}
+          </View>
         </View>
 
         <TouchableOpacity
@@ -201,5 +298,62 @@ const styles = StyleSheet.create({
     ...TYPOGRAPHY.body,
     color: '#FFFFFF',
     fontWeight: '600',
+  },
+  languageHint: {
+    ...TYPOGRAPHY.caption,
+    color: COLORS.textSecondary,
+    marginBottom: SPACING.md,
+    fontStyle: 'italic',
+  },
+  languageGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: -SPACING.xs,
+  },
+  languageOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.background,
+    borderRadius: 12,
+    padding: SPACING.sm,
+    margin: SPACING.xs,
+    borderWidth: 2,
+    borderColor: COLORS.border,
+    minWidth: '45%',
+  },
+  languageOptionSelected: {
+    borderColor: COLORS.primary,
+    backgroundColor: `${COLORS.primary}15`,
+  },
+  languageOptionDisabled: {
+    opacity: 0.5,
+  },
+  languageIcon: {
+    fontSize: 24,
+    marginRight: SPACING.xs,
+  },
+  languageLabel: {
+    ...TYPOGRAPHY.body,
+    color: COLORS.text,
+    flex: 1,
+  },
+  languageLabelSelected: {
+    color: COLORS.primary,
+    fontWeight: '600',
+  },
+  languageCheck: {
+    marginLeft: SPACING.xs,
+  },
+  updatingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: SPACING.md,
+    padding: SPACING.sm,
+  },
+  updatingText: {
+    ...TYPOGRAPHY.body,
+    color: COLORS.textSecondary,
+    marginLeft: SPACING.sm,
   },
 });

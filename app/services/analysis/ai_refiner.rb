@@ -1269,7 +1269,7 @@ module Analysis
       # Pace opportunities
       if coaching_insights["pace_patterns"].present?
         pace = coaching_insights["pace_patterns"]
-        if pace["average_wpm"] && pace["average_wpm"].between?(140, 160)
+        if pace["average_wpm"] && pace["average_wpm"].between?(130, 150)
           opportunities << {
             type: "pace_strength",
             insight: "Natural conversational pace",

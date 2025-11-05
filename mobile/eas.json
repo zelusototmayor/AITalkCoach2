@@ -1,6 +1,7 @@
 {
   "cli": {
-    "version": ">= 3.0.0"
+    "version": ">= 3.0.0",
+    "appVersionSource": "remote"
   },
   "build": {
     "development": {
@@ -28,7 +29,7 @@
       },
       "env": {
         "ENVIRONMENT": "staging",
-        "API_URL": "https://staging.aitalkcoach.com"
+        "API_URL": "https://app.aitalkcoach.com"
       }
     },
     "production": {
@@ -42,16 +43,16 @@
       },
       "env": {
         "ENVIRONMENT": "production",
-        "API_URL": "https://api.aitalkcoach.com"
+        "API_URL": "https://app.aitalkcoach.com"
       }
     }
   },
   "submit": {
     "production": {
       "ios": {
-        "appleId": "your-apple-id@example.com",
-        "ascAppId": "YOUR_APP_STORE_CONNECT_APP_ID",
-        "appleTeamId": "YOUR_APPLE_TEAM_ID"
+        "appleId": "zsottomayor@gmail.com",
+        "ascAppId": "6754871317",
+        "appleTeamId": "3J6V246JKC"
       },
       "android": {
         "track": "production",

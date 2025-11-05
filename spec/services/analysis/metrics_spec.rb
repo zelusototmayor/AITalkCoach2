@@ -223,8 +223,8 @@ RSpec.describe Analysis::Metrics do
 
   describe 'constants and ranges' do
     it 'defines optimal WPM range' do
-      expect(described_class::OPTIMAL_WPM_RANGE).to eq(140..160)
-      expect(described_class::ACCEPTABLE_WPM_RANGE).to eq(120..180)
+      expect(described_class::OPTIMAL_WPM_RANGE).to eq(130..150)
+      expect(described_class::ACCEPTABLE_WPM_RANGE).to eq(110..170)
     end
 
     it 'defines clarity scoring weights' do

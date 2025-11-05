@@ -1,0 +1,73 @@
+<article class="blog-post">
+  <header class="blog-post-header">
+    <div class="blog-post-container">
+      <%= link_to "← Back to Blog", blog_posts_path, class: "blog-back-link" %>
+
+      <h1 class="blog-post-title"><%= @blog_post.title %></h1>
+
+      <div class="blog-post-meta">
+        <% if @blog_post.author.present? %>
+          <span class="blog-post-author">By <%= @blog_post.author %></span>
+          <span class="blog-post-separator">•</span>
+        <% end %>
+        <time class="blog-post-date" datetime="<%= @blog_post.published_at.iso8601 %>">
+          <%= @blog_post.published_at.strftime("%B %d, %Y") %>
+        </time>
+        <% if @blog_post.reading_time && @blog_post.reading_time > 0 %>
+          <span class="blog-post-separator">•</span>
+          <span class="blog-post-reading-time">
+            <%= @blog_post.reading_time %> min read
+          </span>
+        <% end %>
+      </div>
+
+      <% if @blog_post.featured_image.attached? %>
+        <div class="blog-post-featured-image">
+          <%= image_tag @blog_post.featured_image, alt: @blog_post.title %>
+        </div>
+      <% end %>
+    </div>
+  </header>
+
+  <div class="blog-post-content">
+    <div class="blog-post-container">
+      <%= @blog_post.content %>
+    </div>
+  </div>
+
+  <footer class="blog-post-footer">
+    <div class="blog-post-container">
+      <%= link_to "← Back to Blog", blog_posts_path, class: "btn btn-secondary" %>
+    </div>
+  </footer>
+</article>
+
+<!-- JSON-LD Structured Data for SEO -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "<%= j @blog_post.title %>",
+  "description": "<%= j(@blog_post.meta_description.presence || @blog_post.excerpt.presence || @blog_post.title) %>",
+  "datePublished": "<%= @blog_post.published_at.iso8601 %>",
+  "dateModified": "<%= @blog_post.updated_at.iso8601 %>",
+  <% if @blog_post.author.present? %>
+  "author": {
+    "@type": "Person",
+    "name": "<%= j @blog_post.author %>"
+  },
+  <% end %>
+  "publisher": {
+    "@type": "Organization",
+    "name": "AI Talk Coach",
+    "url": "<%= root_url %>"
+  },
+  <% if @blog_post.featured_image.attached? %>
+  "image": "<%= j url_for(@blog_post.featured_image) %>",
+  <% end %>
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "<%= blog_post_url(@blog_post.slug) %>"
+  }
+}
+</script>

@@ -1,61 +1,138 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AnimatedBackground from '../../components/AnimatedBackground';
 import { COLORS, SPACING } from '../../constants/colors';
-import { pollSessionStatus, getProcessingStage, getSessionReport } from '../../services/api';
+import { createSession, pollSessionStatus, getProcessingStage, getSessionReport } from '../../services/api';
+import analytics from '../../services/analytics';
 
 export default function SessionProcessingScreen({ route, navigation }) {
-  const { sessionId } = route.params;
+  const { sessionId: initialSessionId, audioFile, sessionOptions } = route.params;
 
+  const [sessionId, setSessionId] = useState(initialSessionId);
   const [progressPercent, setProgressPercent] = useState(0);
   const [processingState, setProcessingState] = useState('pending');
   const [stageInfo, setStageInfo] = useState({
     stage: 1,
-    name: 'Media Extraction',
-    description: 'Extracting audio from your recording...',
+    name: 'Uploading',
+    description: 'Uploading your recording...',
   });
   const [error, setError] = useState(null);
+  const startTimeRef = useRef(null);
+  const lastMilestoneRef = useRef(0);
 
   useEffect(() => {
-    // Start polling for session status
-    const startPolling = async () => {
+    const startProcessing = async () => {
       try {
+        startTimeRef.current = Date.now();
+        let currentSessionId = sessionId;
+
+        // Track processing started
+        analytics.track('Session Processing Started', {
+          has_audio_file: !!audioFile,
+          initial_session_id: initialSessionId,
+        });
+
+        // If we have audioFile, upload it first
+        if (audioFile && sessionOptions) {
+          console.log('Uploading session from processing screen...');
+          setStageInfo({
+            stage: 1,
+            name: 'Uploading',
+            description: 'Uploading your recording...',
+          });
+
+          analytics.track('Session Upload Started', {
+            target_duration: sessionOptions.target_seconds,
+          });
+
+          const uploadStartTime = Date.now();
+          const session = await createSession(audioFile, sessionOptions);
+          currentSessionId = session.session_id;
+          setSessionId(currentSessionId);
+          console.log('Session created:', currentSessionId);
+
+          // Track upload completed
+          analytics.track('Session Upload Completed', {
+            session_id: currentSessionId,
+            upload_duration_ms: Date.now() - uploadStartTime,
+          });
+        }
+
+        if (!currentSessionId) {
+          throw new Error('No session ID available');
+        }
+
+        // Start polling for session status
         const completeSession = await pollSessionStatus(
-          sessionId,
+          currentSessionId,
           (progress) => {
             // Update progress in real-time
             setProgressPercent(progress.progress_percent);
             setProcessingState(progress.processing_state);
             setStageInfo(getProcessingStage(progress.progress_percent));
+
+            // Track progress milestones (every 25%)
+            const currentMilestone = Math.floor(progress.progress_percent / 25) * 25;
+            if (currentMilestone > lastMilestoneRef.current && currentMilestone > 0) {
+              analytics.track('Session Processing Progress', {
+                session_id: currentSessionId,
+                progress_percent: currentMilestone,
+                stage: getProcessingStage(progress.progress_percent).name,
+              });
+              lastMilestoneRef.current = currentMilestone;
+            }
           },
-          3000 // Poll every 3 seconds
+          1500 // Poll every 1.5 seconds for more responsive updates
         );
 
         // Processing complete - fetch full session data
-        const fullSession = await getSessionReport(sessionId);
+        const fullSession = await getSessionReport(currentSessionId);
 
         // Check if session is incomplete (too short)
         if (fullSession.session && !fullSession.session.completed && fullSession.session.incomplete_reason) {
+          // Track session incomplete
+          analytics.track('Session Incomplete', {
+            session_id: currentSessionId,
+            reason: fullSession.session.incomplete_reason,
+            duration_ms: fullSession.session.duration_ms,
+          });
+
           // Session was too short - show error and go back
           setError(fullSession.session.incomplete_reason);
           setTimeout(() => {
             navigation.goBack();
           }, 3000);
         } else {
+          // Track successful processing completion
+          analytics.track('Session Processing Completed', {
+            session_id: currentSessionId,
+            total_duration_ms: Date.now() - startTimeRef.current,
+            final_progress: progressPercent,
+          });
+
           // Session completed successfully - navigate to report screen
           setTimeout(() => {
-            navigation.replace('SessionReport', { sessionId, sessionData: fullSession });
+            navigation.replace('SessionReport', { sessionId: currentSessionId, sessionData: fullSession });
           }, 500);
         }
       } catch (err) {
         console.error('Processing error:', err);
+
+        // Track processing failure
+        analytics.track('Session Processing Failed', {
+          session_id: sessionId,
+          error: err.message || 'Unknown error',
+          stage: stageInfo.name,
+          progress_percent: progressPercent,
+        });
+
         setError(err.message || 'Failed to process your recording');
       }
     };
 
-    startPolling();
-  }, [sessionId, navigation]);
+    startProcessing();
+  }, []);
 
   if (error) {
     return (

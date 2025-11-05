@@ -87,6 +87,12 @@ module Stt
     private
 
     def map_language_code(lang)
+      # Use LanguageService if available for dynamic mapping
+      if defined?(LanguageService) && LanguageService.language_supported?(lang)
+        return LanguageService.deepgram_code(lang)
+      end
+
+      # Fallback to hardcoded mappings for backward compatibility
       case lang
       when "pt" then "pt-PT"    # Portuguese (Portugal)
       when "en" then "en-US"    # English (US)
@@ -94,6 +100,11 @@ module Stt
       when "fr" then "fr-FR"    # French (France)
       when "de" then "de-DE"    # German (Germany)
       when "it" then "it-IT"    # Italian (Italy)
+      when "nl" then "nl"       # Dutch
+      when "sv" then "sv-SE"    # Swedish (Sweden)
+      when "da" then "da-DK"    # Danish (Denmark)
+      when "no" then "no"       # Norwegian
+      when "tr" then "tr"       # Turkish
       else lang                 # Pass through if already in correct format
       end
     end

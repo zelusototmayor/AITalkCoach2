@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title><%= content_for(:title) || "AI Talk Coach" %></title>
+    <%= display_meta_tags %>
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="description" content="AI-powered speech coaching platform to improve your communication skills">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <%= csrf_meta_tags %>
@@ -27,11 +26,30 @@
       for(h=0;h<l.length;h++)t(b,l[h]);var n="set set_once union unset remove delete".split(" ");b.get_group=function(){function d(p){a[p]=function(){b.push([g,[p].concat(Array.prototype.slice.call(arguments,0))])}}for(var a={},g=["get_group"].concat(Array.prototype.slice.call(arguments,0)),m=0;m<n.length;m++)d(n[m]);return a};c._i.push([q,r,f])};c.__SV=1.2;var k=e.createElement("script");k.type="text/javascript";k.async=!0;k.src="undefined"!==typeof MIXPANEL_CUSTOM_LIB_URL?MIXPANEL_CUSTOM_LIB_URL:"file:"===
       e.location.protocol&&"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js".match(/^\/\//)?"https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js":"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js";e=e.getElementsByTagName("script")[0];e.parentNode.insertBefore(k,e)}})(document,window.mixpanel||[])
 
-      mixpanel.init('44bf717b1ffcda5744f92721374b15da', {
+      <%
+        # Use environment-based token selection
+        mixpanel_token = ENV['MIXPANEL_TOKEN'] || '44bf717b1ffcda5744f92721374b15da'
+        is_debug = !Rails.env.production?
+      %>
+      mixpanel.init('<%= mixpanel_token %>', {
         autocapture: true,
         record_sessions_percent: 100,
         api_host: 'https://api-eu.mixpanel.com',
+        debug: <%= is_debug %>,
+        verbose: <%= is_debug %>,
+        loaded: function(mixpanel) {
+          console.log('✅ Mixpanel loaded successfully');
+        },
+        error_reporter: function(msg, item) {
+          console.error('❌ Mixpanel error:', msg, item);
+        }
       })
+
+      console.log('🔧 Mixpanel initialization started', {
+        environment: '<%= Rails.env %>',
+        debug: <%= is_debug %>,
+        token: '<%= mixpanel_token[0..7] %>...'
+      });
     </script>
 
     <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>

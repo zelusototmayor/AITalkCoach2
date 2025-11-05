@@ -9,9 +9,6 @@ abort("The Rails environment is running in production mode!") if Rails.env.produ
 # return unless Rails.env.test?
 require 'rspec/rails'
 # Add additional requires below this line. Rails is not loaded until this point!
-require 'factory_bot_rails'
-require 'webmock/rspec'
-require 'vcr'
 
 # Requires supporting ruby files with custom matchers and macros, etc, in
 # spec/support/ and its subdirectories. Files matching `spec/**/*_spec.rb` are
@@ -72,41 +69,4 @@ RSpec.configure do |config|
   config.filter_rails_from_backtrace!
   # arbitrary gems may also be filtered via:
   # config.filter_gems_from_backtrace("gem name")
-
-  # Include Factory Bot syntax to avoid the need for FactoryBot.create
-  config.include FactoryBot::Syntax::Methods
-
-  # Infer spec type from file location automatically
-  config.infer_spec_type_from_file_location!
-
-  # System specs configuration
-  config.before(:each, type: :system) do
-    driven_by :rack_test
-  end
-
-  config.before(:each, type: :system, js: true) do
-    driven_by :selenium_chrome_headless
-  end
-end
-
-# VCR configuration
-VCR.configure do |config|
-  config.cassette_library_dir = "spec/vcr_cassettes"
-  config.hook_into :webmock
-  config.default_cassette_options = { record: :once }
-
-  # Filter sensitive data
-  config.filter_sensitive_data('<OPENAI_API_KEY>') { ENV['OPENAI_API_KEY'] }
-  config.filter_sensitive_data('<DEEPGRAM_API_KEY>') { ENV['DEEPGRAM_API_KEY'] }
-end
-
-# WebMock configuration
-WebMock.disable_net_connect!(allow_localhost: true)
-
-# Shoulda Matchers configuration
-Shoulda::Matchers.configure do |config|
-  config.integrate do |with|
-    with.test_framework :rspec
-    with.library :rails
-  end
 end

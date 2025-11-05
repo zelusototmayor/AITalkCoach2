@@ -183,6 +183,11 @@ class Api::V1::ProgressController < Api::V1::BaseController
       sessions.last(7)
     when "10"
       sessions.where('created_at >= ?', 10.days.ago)
+    when /^custom:(.+):(.+)$/
+      # Custom date range: custom:YYYY-MM-DD:YYYY-MM-DD
+      start_date = Date.parse($1) rescue 7.days.ago.to_date
+      end_date = Date.parse($2) rescue Date.today
+      sessions.where('created_at >= ? AND created_at <= ?', start_date.beginning_of_day, end_date.end_of_day)
     else
       sessions.last(10) # Default to last 10 sessions
     end

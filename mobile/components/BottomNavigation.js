@@ -51,6 +51,12 @@ export default function BottomNavigation({ activeScreen }) {
               size={24}
               color={isActive ? COLORS.primary : COLORS.textSecondary}
             />
+            <Text style={[
+              styles.navLabel,
+              { color: isActive ? COLORS.primary : COLORS.textSecondary }
+            ]}>
+              {item.label}
+            </Text>
           </TouchableOpacity>
         );
       })}
@@ -69,7 +75,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     backgroundColor: COLORS.cardBackground,
     borderRadius: 30,
-    paddingVertical: 12,
+    paddingVertical: 6,
     paddingHorizontal: 16,
     shadowColor: '#000',
     shadowOffset: {
@@ -81,9 +87,16 @@ const styles = StyleSheet.create({
     elevation: 12,
   },
   navItem: {
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 12,
+    padding: 6,
+    gap: 2,
+  },
+  navLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    marginTop: 2,
   },
   centerButton: {
     alignItems: 'center',

@@ -313,7 +313,7 @@ RSpec.describe 'Analysis Pipeline Performance', type: :performance do
         # Pace analysis
         pace_sessions = recent_sessions.select do |session|
           wpm = session.analysis_data['wpm']
-          wpm && (wpm < 120 || wpm > 200)
+          wpm && (wpm < 110 || wpm > 190)
         end
 
         # Clarity analysis

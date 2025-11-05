@@ -186,9 +186,9 @@ class Api::V1::CoachController < Api::V1::BaseController
       weaknesses << "speech clarity (#{(clarity_score * 100).round}%)"
     end
 
-    if wpm && wpm >= 140 && wpm <= 180
+    if wpm && wpm >= 130 && wpm <= 170
       strengths << "natural pace (#{wpm.round} WPM)"
-    elsif wpm && (wpm < 120 || wpm > 200)
+    elsif wpm && (wpm < 110 || wpm > 190)
       weaknesses << "speaking pace (#{wpm.round} WPM)"
     end
 

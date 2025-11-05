@@ -124,14 +124,14 @@ module Analysis
 
       # Pace analysis
       wpm = current_metrics[:wpm]
-      if wpm < 140 || wpm > 180
-        target_wpm = wpm < 140 ? 150 : 165
+      if wpm < 130 || wpm > 170
+        target_wpm = wpm < 130 ? 140 : 155
         areas << {
           type: "improve_pace",
           current_value: wpm,
           target_value: target_wpm,
           potential_improvement: calculate_pace_improvement_impact(wpm, target_wpm),
-          severity: wpm < 120 || wpm > 200 ? "high" : "medium",
+          severity: wpm < 110 || wpm > 190 ? "high" : "medium",
           specific_issues: extract_pace_issues
         }
       end
@@ -370,10 +370,10 @@ module Analysis
 
     def calculate_wpm_score(wpm)
       case wpm
-      when 140..160 then 1.0
-      when 120..180 then 0.85
-      when 100..120, 180..200 then 0.70
-      when 80..100, 200..250 then 0.50
+      when 130..150 then 1.0
+      when 110..170 then 0.85
+      when 90..110, 170..190 then 0.70
+      when 70..90, 190..240 then 0.50
       else 0.30
       end
     end
@@ -413,7 +413,7 @@ module Analysis
         current_wpm = area[:current_value].round
         target_wpm = area[:target_value].round
 
-        if current_wpm < 140
+        if current_wpm < 130
           [
             "Your current pace is #{current_wpm} WPM. Let's increase it to #{target_wpm} WPM gradually.",
             "Practice with a metronome set to #{target_wpm} beats per minute (1 word per beat).",

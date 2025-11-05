@@ -194,8 +194,8 @@ export default function SessionReportScreen({ route, navigation }) {
   };
 
   const getPaceStatus = (wpm) => {
-    if (wpm >= 140 && wpm <= 180) return 'Natural range';
-    if (wpm < 140) return 'A bit slow';
+    if (wpm >= 130 && wpm <= 170) return 'Natural range';
+    if (wpm < 130) return 'A bit slow';
     return 'A bit fast';
   };
 

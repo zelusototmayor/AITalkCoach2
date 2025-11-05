@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import Button from '../../components/Button';
 import PricingCard from '../../components/PricingCard';
 import AnimatedBackground from '../../components/AnimatedBackground';
@@ -8,75 +8,153 @@ import { COLORS, SPACING } from '../../constants/colors';
 import { PRICING_PLANS, HOW_IT_WORKS } from '../../constants/onboardingData';
 import { useOnboarding } from '../../context/OnboardingContext';
 import { useAuth } from '../../context/AuthContext';
+import { SHOW_FREE_FOREVER } from '../../config/features';
+import * as subscriptionService from '../../services/subscriptionService';
 
 export default function PaywallScreen({ navigation }) {
-  const { updateOnboardingData } = useOnboarding();
-  const { completeOnboarding } = useAuth();
+  const { updateOnboardingData, onboardingData } = useOnboarding();
+  const { completeOnboarding, user } = useAuth();
   const [selectedPlan, setSelectedPlan] = useState('yearly'); // Default to yearly
-  const [paymentMethod, setPaymentMethod] = useState('');
+  const [offerings, setOfferings] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isPurchasing, setIsPurchasing] = useState(false);
+
+  // Load offerings from RevenueCat
+  useEffect(() => {
+    loadOfferings();
+  }, []);
+
+  const loadOfferings = async () => {
+    try {
+      setIsLoading(true);
+
+      // Initialize RevenueCat with user ID or anonymous ID
+      // During onboarding, user is logged in, so we have user.id
+      // But if this screen is accessed before login, use anonymous ID
+      const userId = user && user.id ? user.id.toString() : `anonymous_${Date.now()}`;
+      console.log('🚀 PaywallScreen: Initializing RevenueCat with userId:', userId);
+
+      const initResult = await subscriptionService.initializePurchases(userId);
+      console.log('🚀 PaywallScreen: RevenueCat initialization result:', initResult);
+
+      console.log('🚀 PaywallScreen: Fetching offerings...');
+      const availableOfferings = await subscriptionService.getOfferings();
+      console.log('🚀 PaywallScreen: Received offerings:', availableOfferings.length, 'packages');
+
+      setOfferings(availableOfferings);
+
+      if (availableOfferings.length === 0) {
+        console.warn('⚠️ PaywallScreen: No offerings received. Check RevenueCat dashboard.');
+        Alert.alert(
+          'Configuration Issue',
+          'Subscription options are not available. Please check RevenueCat dashboard configuration:\n\n1. Create products (IDs: 02, 03)\n2. Create an offering with both packages\n3. Set it as "Current Offering"\n4. Create and link entitlements'
+        );
+      }
+    } catch (error) {
+      console.error('❌ PaywallScreen: Error loading offerings:', error);
+      Alert.alert('Error', 'Failed to load subscription options. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handlePlanSelect = (planId) => {
     setSelectedPlan(planId);
   };
 
-  const handleAddPayment = () => {
-    // For now, just show a placeholder message
-    // Later: Integrate with Stripe/RevenueCat
-    updateOnboardingData({
-      selectedPlan,
-    });
+  const handleStartTrial = async () => {
+    if (isPurchasing) return;
 
-    if (!paymentMethod || paymentMethod.length < 4) {
-      Alert.alert(
-        'Add Card Details',
-        'Please enter your card number above to continue.',
-        [
-          {
-            text: 'OK',
-          },
-        ]
-      );
-      return;
-    }
-
-    Alert.alert(
-      'Payment Integration Coming Soon',
-      'Payment processing will be integrated soon. For now, you can skip to explore the app.',
-      [
-        {
-          text: 'OK',
-          onPress: async () => {
-            // Mark onboarding as complete
-            const result = await completeOnboarding();
-            if (result.success) {
-              // MainNavigator will automatically switch to AppStack
-              // No need to manually navigate
-            } else {
-              Alert.alert('Error', 'Failed to complete onboarding. Please try again.');
-            }
-          },
-        },
-      ]
-    );
-  };
-
-  const handleSkip = async () => {
-    // For testing: Skip payment and grant access as if they have a paid subscription
     try {
-      // Mark onboarding as complete and grant subscription access
-      const result = await completeOnboarding();
+      setIsPurchasing(true);
+
+      // Find the selected package
+      const selectedPackage = offerings.find(
+        offering => offering.productId === (selectedPlan === 'monthly' ? '02' : '03')
+      );
+
+      if (!selectedPackage) {
+        Alert.alert('Error', 'Selected plan not available. Please try again.');
+        return;
+      }
+
+      // Purchase the package via RevenueCat
+      const result = await subscriptionService.purchasePackage(selectedPackage.product);
+
       if (result.success) {
-        // MainNavigator will automatically switch to AppStack
-        // No need to manually navigate - the app will show Practice screen
-        console.log('Onboarding completed successfully with free access');
+        // Purchase successful
+        updateOnboardingData({
+          selectedPlan,
+          hasActiveSubscription: true,
+        });
+
+        // Complete onboarding with demographics data
+        const onboardingResult = await completeOnboarding(onboardingData);
+        if (onboardingResult.success) {
+          // MainNavigator will automatically switch to AppStack
+          console.log('Subscription activated and onboarding completed');
+        } else {
+          Alert.alert('Error', 'Failed to complete onboarding. Please try again.');
+        }
+      } else if (result.cancelled) {
+        // User cancelled, do nothing
+        console.log('User cancelled purchase');
       } else {
-        Alert.alert('Error', 'Failed to complete onboarding. Please try again.');
+        // Error occurred
+        Alert.alert('Purchase Failed', result.error || 'Please try again.');
       }
     } catch (error) {
-      console.error('Error completing onboarding:', error);
-      Alert.alert('Error', 'Failed to complete onboarding. Please try again.');
+      console.error('Error during purchase:', error);
+      Alert.alert('Error', 'Failed to process purchase. Please try again.');
+    } finally {
+      setIsPurchasing(false);
     }
   };
+
+  const handleRestore = async () => {
+    try {
+      setIsLoading(true);
+      const result = await subscriptionService.restorePurchases();
+
+      if (result.success && result.hasActiveSubscription) {
+        Alert.alert(
+          'Success',
+          'Your subscription has been restored!',
+          [
+            {
+              text: 'OK',
+              onPress: async () => {
+                const onboardingResult = await completeOnboarding(onboardingData);
+                if (!onboardingResult.success) {
+                  Alert.alert('Error', 'Failed to complete onboarding. Please try again.');
+                }
+              },
+            },
+          ]
+        );
+      } else {
+        Alert.alert('No Subscription Found', 'No active subscription found to restore.');
+      }
+    } catch (error) {
+      console.error('Error restoring purchases:', error);
+      Alert.alert('Error', 'Failed to restore purchases. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <AnimatedBackground />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={COLORS.primary} />
+          <Text style={styles.loadingText}>Loading subscription options...</Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -88,23 +166,29 @@ export default function PaywallScreen({ navigation }) {
       >
         <Text style={styles.header}>Choose Your Plan</Text>
         <Text style={styles.subheader}>
-          Practice daily and stay 100% free forever
+          {SHOW_FREE_FOREVER
+            ? "Practice daily and stay 100% free forever"
+            : "Start your 3-day free trial"}
         </Text>
 
-        {/* How It Works Card */}
-        <View style={styles.howItWorksCard}>
-          <Text style={styles.howItWorksTitle}>{HOW_IT_WORKS.title}</Text>
-          {HOW_IT_WORKS.steps.map((step, index) => (
-            <View key={index} style={styles.stepRow}>
-              <Text style={styles.stepBullet}>•</Text>
-              <Text style={styles.stepText}>{step}</Text>
-            </View>
-          ))}
-        </View>
+        {/* How It Works Card - Only show if feature flag enabled */}
+        {SHOW_FREE_FOREVER && (
+          <View style={styles.howItWorksCard}>
+            <Text style={styles.howItWorksTitle}>{HOW_IT_WORKS.title}</Text>
+            {HOW_IT_WORKS.steps.map((step, index) => (
+              <View key={index} style={styles.stepRow}>
+                <Text style={styles.stepBullet}>•</Text>
+                <Text style={styles.stepText}>{step}</Text>
+              </View>
+            ))}
+          </View>
+        )}
 
         {/* Pricing Plans */}
         <Text style={styles.sectionSubtitle}>
-          Only charged if you miss a day
+          {SHOW_FREE_FOREVER
+            ? "Only charged if you miss a day"
+            : "Choose your subscription"}
         </Text>
 
         {/* Side-by-side plan cards */}
@@ -148,41 +232,26 @@ export default function PaywallScreen({ navigation }) {
           </View>
         </View>
 
-        {/* Payment Method Input (Placeholder) */}
-        <View style={styles.paymentSection}>
-          <Text style={styles.paymentLabel}>Payment Method</Text>
-          <TextInput
-            style={styles.paymentInput}
-            placeholder="Card number"
-            placeholderTextColor={COLORS.textMuted}
-            value={paymentMethod}
-            onChangeText={setPaymentMethod}
-            keyboardType="numeric"
-            maxLength={19}
-          />
-          <Text style={styles.paymentNote}>
-            Secure payment processing
-          </Text>
-        </View>
-
         {/* Fine Print */}
         <Text style={styles.finePrint}>
-          Cancel anytime. No charges if you practice daily.
+          {SHOW_FREE_FOREVER
+            ? "Cancel anytime. No charges if you practice daily."
+            : "Cancel anytime during your trial. Subscription auto-renews after 3 days."}
+        </Text>
+
+        {/* Restore Purchases Link */}
+        <Text style={styles.restoreText} onPress={handleRestore}>
+          Already subscribed? Restore purchases
         </Text>
       </ScrollView>
 
       <View style={styles.buttonContainer}>
         <Button
-          title="Add Payment and Start"
-          onPress={handleAddPayment}
+          title={isPurchasing ? "Processing..." : "Start Free Trial"}
+          onPress={handleStartTrial}
           variant="primary"
           style={styles.button}
-        />
-        <Button
-          title="Skip for now"
-          onPress={handleSkip}
-          variant="secondary"
-          style={[styles.button, styles.skipButton]}
+          disabled={isPurchasing}
         />
       </View>
     </View>
@@ -318,40 +387,34 @@ const styles = StyleSheet.create({
     flex: 1,
     lineHeight: 22,
   },
-  paymentSection: {
-    marginTop: SPACING.lg,
-    marginBottom: SPACING.lg,
-  },
-  paymentLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: SPACING.sm,
-  },
-  paymentInput: {
-    backgroundColor: COLORS.cardBackground,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.lg,
-    fontSize: 16,
-    fontWeight: '500',
-    color: COLORS.text,
-    marginBottom: SPACING.sm,
-  },
-  paymentNote: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: COLORS.textSecondary,
-    textAlign: 'center',
-  },
   finePrint: {
     fontSize: 12,
     fontWeight: '400',
     color: COLORS.textMuted,
     textAlign: 'center',
     marginTop: SPACING.lg,
+    marginBottom: SPACING.sm,
+  },
+  restoreText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.primary,
+    textAlign: 'center',
+    marginTop: SPACING.md,
+    marginBottom: SPACING.xl,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.lg,
+  },
+  loadingText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: COLORS.text,
+    marginTop: SPACING.md,
+    textAlign: 'center',
   },
   buttonContainer: {
     position: 'absolute',
@@ -363,8 +426,5 @@ const styles = StyleSheet.create({
   },
   button: {
     width: '100%',
-  },
-  skipButton: {
-    marginTop: SPACING.sm,
   },
 });

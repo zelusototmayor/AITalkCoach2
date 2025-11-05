@@ -29,7 +29,7 @@ module Analysis
         thresholds: [3, 5, 10],
         icon: "⚡",
         title_template: "%{count} Sessions in Ideal Pace Range",
-        description_template: "Maintained 140-180 WPM in %{count} consecutive sessions"
+        description_template: "Maintained 130-170 WPM in %{count} consecutive sessions"
       },
       weekly_focus_champion: {
         thresholds: [1, 3, 5, 10],
@@ -137,7 +137,7 @@ module Analysis
       consecutive_count = 0
       @sessions.each do |session|
         wpm = session.analysis_data["wpm"]&.to_f || 0
-        if wpm >= 140 && wpm <= 180
+        if wpm >= 130 && wpm <= 170
           consecutive_count += 1
         else
           break

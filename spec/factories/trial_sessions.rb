@@ -24,12 +24,12 @@ FactoryBot.define do
       analysis_data do
         {
           'transcript' => 'Hello, um, this is a, uh, practice recording for testing.',
-          'wpm' => 120,
+          'wpm' => 140,
           'filler_count' => 3,
           'filler_rate' => 5.2,
           'clarity_score' => 82.5,
           'metrics' => {
-            'speaking_rate' => 120,
+            'speaking_rate' => 140,
             'total_words' => 10,
             'total_duration_seconds' => 5.0
           }

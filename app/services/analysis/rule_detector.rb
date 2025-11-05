@@ -7,10 +7,21 @@ module Analysis
       @language = language
       @rules = Rulepacks.load_rules(language)
       @detected_issues = []
+
+      if @rules.nil?
+        Rails.logger.info "RuleDetector: No rules available for language '#{language}', skipping rule-based detection"
+      end
+    end
+
+    def rules_available?
+      !@rules.nil?
     end
 
     def detect_all_issues
       @detected_issues = []
+
+      # Return empty array if no rules available
+      return @detected_issues if @rules.nil?
 
       @rules.each do |category, category_rules|
         # Skip filler_words - AI will handle these from scratch
@@ -29,6 +40,8 @@ module Analysis
     end
 
     def detect_category_issues(category)
+      return [] if @rules.nil?
+
       category_rules = @rules[category.to_s] || []
       issues = []
 
@@ -56,9 +69,9 @@ module Analysis
 
     def detect_special_pattern_issues(rule, category)
       case rule[:pattern]
-      when "speaking_rate_below_120"
+      when "speaking_rate_below_110"
         detect_slow_speaking_rate(rule, category)
-      when "speaking_rate_above_180"
+      when "speaking_rate_above_170"
         detect_fast_speaking_rate(rule, category)
       when "long_pause_over_3s"
         detect_long_pauses(rule, category)

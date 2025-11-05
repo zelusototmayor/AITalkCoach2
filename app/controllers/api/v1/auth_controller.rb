@@ -159,13 +159,27 @@ class Api::V1::AuthController < Api::V1::BaseController
 
   # POST /api/v1/auth/complete_onboarding
   def complete_onboarding
-    # FOR TESTING: Grant extended trial (30 days) until Stripe is integrated
-    # TODO: Change this to 24.hours.from_now once payment is integrated
-    current_user.update!(
+    # Update onboarding completion and demographics
+    update_params = {
       onboarding_completed_at: Time.current,
       trial_starts_at: Time.current,
       trial_expires_at: 30.days.from_now  # Extended trial for testing
-    )
+    }
+
+    # Save demographics from onboarding
+    if params[:speaking_style].present?
+      update_params[:speaking_style] = params[:speaking_style]
+    end
+
+    if params[:age_range].present?
+      update_params[:age_range] = params[:age_range]
+    end
+
+    if params[:preferred_language].present?
+      update_params[:preferred_language] = LanguageService.normalize_language_code(params[:preferred_language])
+    end
+
+    current_user.update!(update_params)
 
     # Migrate trial session to full session if it exists
     if current_user.onboarding_demo_session_id.present?
@@ -189,10 +203,56 @@ class Api::V1::AuthController < Api::V1::BaseController
     }
   end
 
+  # PATCH /api/v1/auth/update_profile
+  def update_profile
+    if current_user.update(profile_params)
+      render json: {
+        success: true,
+        user: user_json(current_user),
+        message: "Profile updated successfully"
+      }
+    else
+      render json: {
+        success: false,
+        errors: current_user.errors.full_messages
+      }, status: :unprocessable_entity
+    end
+  end
+
+  # PATCH /api/v1/auth/update_language
+  def update_language
+    normalized_lang = LanguageService.normalize_language_code(params[:language])
+
+    unless LanguageService.language_supported?(normalized_lang)
+      render json: {
+        success: false,
+        error: "Language '#{params[:language]}' is not supported"
+      }, status: :unprocessable_entity
+      return
+    end
+
+    if current_user.update(preferred_language: normalized_lang)
+      render json: {
+        success: true,
+        user: user_json(current_user),
+        message: "Language preference updated to #{LanguageService.language_name(normalized_lang)}"
+      }
+    else
+      render json: {
+        success: false,
+        errors: current_user.errors.full_messages
+      }, status: :unprocessable_entity
+    end
+  end
+
   private
 
   def user_params
     params.permit(:name, :email, :password, :password_confirmation)
+  end
+
+  def profile_params
+    params.permit(:name, :email, :preferred_language, :speaking_style, :age_range)
   end
 
   def user_json(user)
@@ -206,6 +266,10 @@ class Api::V1::AuthController < Api::V1::BaseController
       trial_active: user.trial_active?,
       trial_hours_remaining: user.trial_hours_remaining,
       onboarding_completed: user.onboarding_completed?,
+      preferred_language: user.preferred_language,
+      language_display_name: user.language_display_name,
+      speaking_style: user.speaking_style,
+      age_range: user.age_range,
       created_at: user.created_at
     }
   end

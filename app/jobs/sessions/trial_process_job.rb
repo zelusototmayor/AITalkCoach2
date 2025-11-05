@@ -12,10 +12,11 @@ module Sessions
       Rails.logger.info "Starting trial analysis for session #{trial_session_token}"
 
       begin
-        # Update session state
+        # Update session state and record when processing started
         @trial_session.update!(
           processing_state: "processing",
-          updated_at: Time.current
+          updated_at: Time.current,
+          processing_started_at: Time.current
         )
 
         # Extract audio and get duration for time estimates

@@ -40,7 +40,7 @@ export default class extends Controller {
   }
 
   onMixpanelReady() {
-    console.log('Mixpanel is ready, initializing analytics...')
+    console.log('✅ Mixpanel library loaded and ready')
 
     // Initialize Mixpanel
     this.initializeMixpanel()
@@ -129,20 +129,11 @@ export default class extends Controller {
         }
       }
 
-      // Set config for better debugging
-      mixpanel.set_config({
-        debug: this.debugValue,
-        verbose: this.debugValue,
-        api_host: 'https://api-eu.mixpanel.com',
-        error_reporter: (msg, item) => {
-          console.error('Mixpanel error:', msg, item)
-        }
-      })
-
       if (this.debugValue) {
-        console.log('Mixpanel initialization complete', {
+        console.log('✅ Mixpanel initialization complete', {
           distinct_id: mixpanel.get_distinct_id(),
-          user_id: userId || 'anonymous'
+          user_id: userId || 'anonymous',
+          user_type: this.getUserType()
         })
       }
 
@@ -155,7 +146,7 @@ export default class extends Controller {
   trackEvent(eventName, parameters = {}) {
     if (!this.enabledValue) {
       if (this.debugValue) {
-        console.log('Analytics disabled:', eventName, parameters)
+        console.log('⚠️ Analytics disabled:', eventName, parameters)
       }
       return
     }
@@ -205,7 +196,7 @@ export default class extends Controller {
     }
 
     if (this.debugValue) {
-      console.log('Analytics event tracked:', eventName, enrichedParameters)
+      console.log('📊 Analytics event tracked:', eventName, enrichedParameters)
     }
   }
 

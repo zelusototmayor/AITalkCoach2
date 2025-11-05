@@ -174,7 +174,7 @@ class TrialSessionMigrator
     pace_penalty = 0
 
     wpm = trial_data["wpm"] || 150
-    if wpm < 120 || wpm > 200
+    if wpm < 110 || wpm > 190
       pace_penalty = 0.1
     end
 
@@ -208,9 +208,9 @@ class TrialSessionMigrator
     duration = trial_data["duration_seconds"] || 30
 
     # Engagement factors
-    pace_factor = if wpm >= 130 && wpm <= 180
+    pace_factor = if wpm >= 120 && wpm <= 170
       1.0
-    elsif wpm < 100 || wpm > 220
+    elsif wpm < 90 || wpm > 210
       0.6
     else
       0.8

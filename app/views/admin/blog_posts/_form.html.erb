@@ -1,0 +1,80 @@
+<%= form_with(model: [:admin, @blog_post], local: true, class: "blog-post-form") do |form| %>
+  <% if @blog_post.errors.any? %>
+    <div class="alert alert-danger">
+      <h4><%= pluralize(@blog_post.errors.count, "error") %> prohibited this blog post from being saved:</h4>
+      <ul>
+        <% @blog_post.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="form-row">
+    <div class="form-group col-md-8">
+      <%= form.label :title, "Title *" %>
+      <%= form.text_field :title, class: "form-control", placeholder: "Enter blog post title", required: true %>
+      <small class="form-text text-muted">This will be the main heading of your blog post</small>
+    </div>
+
+    <div class="form-group col-md-4">
+      <%= form.label :slug, "URL Slug" %>
+      <%= form.text_field :slug, class: "form-control", placeholder: "auto-generated" %>
+      <small class="form-text text-muted">Leave blank to auto-generate from title</small>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :excerpt, "Excerpt" %>
+    <%= form.text_area :excerpt, class: "form-control", rows: 3, placeholder: "Brief summary (optional)" %>
+    <small class="form-text text-muted">A short summary shown in blog listing and previews (max 500 characters)</small>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :content, "Content *" %>
+    <%= form.rich_text_area :content, class: "form-control" %>
+    <small class="form-text text-muted">Main content of your blog post</small>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :featured_image, "Featured Image" %>
+    <%= form.file_field :featured_image, class: "form-control-file", accept: "image/*" %>
+    <% if @blog_post.featured_image.attached? %>
+      <div class="mt-2">
+        <%= image_tag @blog_post.featured_image, style: "max-width: 300px; height: auto;" %>
+      </div>
+    <% end %>
+    <small class="form-text text-muted">Upload a featured image for this post (recommended: 1200x630px for social sharing)</small>
+  </div>
+
+  <hr>
+
+  <h4>SEO Settings</h4>
+
+  <div class="form-group">
+    <%= form.label :meta_description, "Meta Description" %>
+    <%= form.text_area :meta_description, class: "form-control", rows: 2, placeholder: "SEO description", maxlength: 160 %>
+    <small class="form-text text-muted">Used in search results and social shares (max 160 characters)</small>
+  </div>
+
+  <div class="form-group">
+    <%= form.label :meta_keywords, "Meta Keywords" %>
+    <%= form.text_field :meta_keywords, class: "form-control", placeholder: "keyword1, keyword2, keyword3" %>
+    <small class="form-text text-muted">Comma-separated keywords for SEO</small>
+  </div>
+
+  <hr>
+
+  <div class="form-group">
+    <div class="form-check">
+      <%= form.check_box :published, class: "form-check-input" %>
+      <%= form.label :published, "Publish this post", class: "form-check-label" %>
+    </div>
+    <small class="form-text text-muted">Uncheck to save as draft</small>
+  </div>
+
+  <div class="form-actions">
+    <%= form.submit "Save Blog Post", class: "btn btn-primary" %>
+    <%= link_to "Cancel", admin_blog_posts_path, class: "btn btn-secondary" %>
+  </div>
+<% end %>

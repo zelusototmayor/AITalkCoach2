@@ -13,14 +13,12 @@ import { useAuth } from '../../context/AuthContext';
 const RECORDING_DURATION = 30; // 30 seconds
 
 export default function TrialRecordingScreen({ navigation }) {
-  const { updateOnboardingData } = useOnboarding();
+  const { updateOnboardingData, onboardingData } = useOnboarding();
   const { getAccessToken } = useAuth();
 
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [progress, setProgress] = useState(0);
-  const [hasRecorded, setHasRecorded] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
 
   const recordingRef = useRef(null);
   const intervalRef = useRef(null);
@@ -106,67 +104,39 @@ export default function TrialRecordingScreen({ navigation }) {
 
       if (recordingRef.current) {
         setIsRecording(false);
-        setIsUploading(true);
 
         await recordingRef.current.stopAndUnloadAsync();
         const uri = recordingRef.current.getURI();
 
         console.log('Recording saved at:', uri);
+        console.log('Navigating to processing screen immediately');
 
-        // Upload to backend and get trial token
-        const response = await createTrialSession(
-          {
-            uri: uri,
-            name: 'trial-recording.m4a',
-            type: 'audio/m4a',
-          },
-          {
-            language: 'en',
-            target_seconds: RECORDING_DURATION,
-          }
-        );
+        // Prepare audio file data
+        const audioFile = {
+          uri: uri,
+          name: 'trial-recording.m4a',
+          type: 'audio/m4a',
+        };
 
-        console.log('Trial session created:', response.trial_token);
+        const trialOptions = {
+          language: onboardingData.language || 'en',
+          target_seconds: RECORDING_DURATION,
+        };
 
-        // Store trial token in context
-        updateOnboardingData({
-          trialSessionToken: response.trial_token,
+        // Navigate to processing screen IMMEDIATELY - let it handle the upload
+        navigation.navigate('TrialProcessing', {
+          audioFile,
+          trialOptions,
         });
-
-        setHasRecorded(true);
-        setIsUploading(false);
-
-        // Navigate to processing screen
-        navigation.navigate('TrialProcessing');
       }
     } catch (error) {
-      console.error('Failed to upload recording:', error);
-      setIsUploading(false);
+      console.error('Failed to stop recording:', error);
+      setIsRecording(false);
 
       Alert.alert(
-        'Upload Failed',
-        'Failed to upload your recording. Would you like to try again?',
-        [
-          {
-            text: 'Try Again',
-            onPress: () => {
-              setHasRecorded(false);
-              setRecordingTime(0);
-              setProgress(0);
-            },
-          },
-          {
-            text: 'Skip',
-            style: 'cancel',
-            onPress: () => {
-              // Use mock data
-              updateOnboardingData({
-                trialResults: MOCK_TRIAL_RESULTS,
-              });
-              navigation.navigate('Results');
-            },
-          },
-        ]
+        'Recording Error',
+        'Failed to stop recording. Please try again.',
+        [{ text: 'OK' }]
       );
     }
   };

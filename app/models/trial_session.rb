@@ -119,15 +119,15 @@ class TrialSession < ApplicationRecord
     score = clarity_score * 0.5
 
     # Add pace score (weighted 30%)
-    # Optimal range is 140-180 WPM, score 100% in that range
-    pace_score = if wpm >= 140 && wpm <= 180
+    # Optimal range is 130-170 WPM, score 100% in that range
+    pace_score = if wpm >= 130 && wpm <= 170
       100
-    elsif wpm < 140
+    elsif wpm < 130
       # Below optimal - scale down
-      [ 100 - (140 - wpm) * 2, 0 ].max
+      [ 100 - (130 - wpm) * 2, 0 ].max
     else
       # Above optimal - scale down
-      [ 100 - (wpm - 180) * 2, 0 ].max
+      [ 100 - (wpm - 170) * 2, 0 ].max
     end
     score += pace_score * 0.3
 

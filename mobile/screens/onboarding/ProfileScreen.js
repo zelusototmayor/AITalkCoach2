@@ -16,7 +16,7 @@ export default function ProfileScreen({ navigation }) {
     onboardingData.communicationStyle || null
   );
   const [ageRange, setAgeRange] = useState(onboardingData.ageRange || null);
-  const [language, setLanguage] = useState(onboardingData.language || 'English');
+  const [language, setLanguage] = useState(onboardingData.language || 'en');
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
 
   const handleCommunicationStyleSelect = (styleId) => {

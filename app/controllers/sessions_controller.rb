@@ -765,7 +765,7 @@ class SessionsController < ApplicationController
     # Analyze pace issues
     pace_sessions = recent_sessions.select do |session|
       wpm = session.analysis_data["wpm"]
-      wpm && (wpm < 120 || wpm > 200)
+      wpm && (wpm < 110 || wpm > 190)
     end
     if (pace_sessions.count / session_count) >= thresholds["pace_issues"]
       weaknesses << "pace_issues"
@@ -797,7 +797,7 @@ class SessionsController < ApplicationController
       clarity = session.analysis_data["clarity_score"]
       wpm = session.analysis_data["wpm"]
       # Simple heuristic: low variation in metrics suggests low engagement
-      clarity && wpm && clarity < 0.8 && (wpm < 140 || wpm > 180)
+      clarity && wpm && clarity < 0.8 && (wpm < 130 || wpm > 170)
     end
     if (engagement_sessions.count / session_count) >= thresholds["engagement_issues"]
       weaknesses << "engagement_issues"
@@ -1569,9 +1569,9 @@ class SessionsController < ApplicationController
       weaknesses << "speech clarity (#{(clarity_score * 100).round}%)"
     end
 
-    if wpm && wpm >= 140 && wpm <= 180
+    if wpm && wpm >= 130 && wpm <= 170
       strengths << "natural pace (#{wpm.round} WPM)"
-    elsif wpm && (wpm < 120 || wpm > 200)
+    elsif wpm && (wpm < 110 || wpm > 190)
       weaknesses << "speaking pace (#{wpm.round} WPM)"
     end
 

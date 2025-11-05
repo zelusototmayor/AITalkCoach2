@@ -29,14 +29,14 @@ FactoryBot.define do
       completed { true }
       analysis_json do
         {
-          wpm: 120,
+          wpm: 140,
           filler_rate: 0.1,
           clarity_score: 0.85,
           segments: [
             {
               start_ms: 0,
               end_ms: 30000,
-              wpm: 120,
+              wpm: 140,
               confidence: 0.95
             }
           ]

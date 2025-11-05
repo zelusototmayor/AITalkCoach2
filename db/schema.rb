@@ -10,7 +10,17 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_11_01_212022) do
+ActiveRecord::Schema[8.0].define(version: 2025_11_04_131534) do
+  create_table "action_text_rich_texts", force: :cascade do |t|
+    t.string "name", null: false
+    t.text "body"
+    t.string "record_type", null: false
+    t.bigint "record_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["record_type", "record_id", "name"], name: "index_action_text_rich_texts_uniqueness", unique: true
+  end
+
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -45,6 +55,23 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_01_212022) do
     t.datetime "updated_at", null: false
     t.index ["created_at"], name: "index_ai_caches_on_created_at"
     t.index ["updated_at"], name: "index_ai_caches_on_updated_at"
+  end
+
+  create_table "blog_posts", force: :cascade do |t|
+    t.string "title"
+    t.string "slug"
+    t.text "content"
+    t.text "excerpt"
+    t.string "meta_description"
+    t.string "meta_keywords"
+    t.boolean "published"
+    t.datetime "published_at"
+    t.string "author"
+    t.integer "reading_time"
+    t.integer "view_count"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["slug"], name: "index_blog_posts_on_slug", unique: true
   end
 
   create_table "issues", force: :cascade do |t|
@@ -95,6 +122,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_01_212022) do
     t.json "micro_tips", default: []
     t.json "coaching_insights", default: {}
     t.json "analysis_data", default: {}
+    t.datetime "processing_started_at"
     t.index ["analysis_json"], name: "index_sessions_on_analysis_json_gin"
     t.index ["completed", "created_at"], name: "index_sessions_on_completed_and_created_at"
     t.index ["created_at", "completed"], name: "index_sessions_on_date_completed"
@@ -139,6 +167,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_01_212022) do
     t.string "incomplete_reason"
     t.text "error_text"
     t.boolean "is_mock", default: false, null: false
+    t.datetime "processing_started_at"
     t.index ["created_at"], name: "index_trial_sessions_on_created_at"
     t.index ["expires_at"], name: "index_trial_sessions_on_expires_at"
     t.index ["processing_state"], name: "index_trial_sessions_on_processing_state"
@@ -194,9 +223,18 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_01_212022) do
     t.datetime "trial_starts_at"
     t.string "stripe_payment_method_id"
     t.integer "payment_retry_count", default: 0, null: false
+    t.string "preferred_language", default: "en", null: false
+    t.boolean "admin", default: false, null: false
+    t.string "apple_subscription_id"
+    t.string "revenuecat_customer_id"
+    t.string "subscription_platform"
+    t.index ["apple_subscription_id"], name: "index_users_on_apple_subscription_id"
+    t.index ["preferred_language"], name: "index_users_on_preferred_language"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+    t.index ["revenuecat_customer_id"], name: "index_users_on_revenuecat_customer_id"
     t.index ["stripe_customer_id"], name: "index_users_on_stripe_customer_id"
     t.index ["stripe_subscription_id"], name: "index_users_on_stripe_subscription_id"
+    t.index ["subscription_platform"], name: "index_users_on_subscription_platform"
     t.index ["subscription_status"], name: "index_users_on_subscription_status"
     t.index ["trial_expires_at"], name: "index_users_on_trial_expires_at"
   end

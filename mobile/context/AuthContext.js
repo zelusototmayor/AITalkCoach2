@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as authService from '../services/authService';
+import analytics from '../services/analytics';
+import * as subscriptionService from '../services/subscriptionService';
 
 const AuthContext = createContext();
 
@@ -41,6 +43,9 @@ export const AuthProvider = ({ children }) => {
         if (currentUser) {
           setUser(currentUser);
           setIsAuthenticated(true);
+
+          // Initialize RevenueCat for subscription management
+          await subscriptionService.initializePurchases(currentUser.id.toString());
         } else {
           // Token is invalid, try to refresh
           await tryRefreshToken();
@@ -96,8 +101,30 @@ export const AuthProvider = ({ children }) => {
         setUser(response.user);
         setIsAuthenticated(true);
 
+        // Initialize RevenueCat for subscription management
+        await subscriptionService.initializePurchases(response.user.id.toString());
+
+        // Track login and identify user
+        analytics.identify(response.user.id.toString(), {
+          name: response.user.name,
+          email: response.user.email,
+          onboarding_completed: response.user.onboarding_completed || false,
+        });
+
+        analytics.track('User Logged In', {
+          user_id: response.user.id,
+          email: response.user.email,
+          method: 'email',
+        });
+
         return { success: true };
       } else {
+        // Track login failure
+        analytics.track('Login Failed', {
+          email: email,
+          error: response.error || 'Login failed',
+        });
+
         return {
           success: false,
           error: response.error || 'Login failed'
@@ -105,6 +132,13 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('Login error:', error);
+
+      // Track login error
+      analytics.track('Login Error', {
+        email: email,
+        error: error.message || 'Network error',
+      });
+
       return {
         success: false,
         error: error.message || 'Network error. Please try again.'
@@ -127,8 +161,32 @@ export const AuthProvider = ({ children }) => {
         setUser(response.user);
         setIsAuthenticated(true);
 
+        // Initialize RevenueCat for subscription management
+        await subscriptionService.initializePurchases(response.user.id.toString());
+
+        // Track signup and identify user
+        analytics.identify(response.user.id.toString(), {
+          name: response.user.name,
+          email: response.user.email,
+          signup_date: new Date().toISOString(),
+          onboarding_completed: false,
+        });
+
+        analytics.track('User Signed Up', {
+          user_id: response.user.id,
+          email: response.user.email,
+          name: response.user.name,
+          method: 'email',
+        });
+
         return { success: true };
       } else {
+        // Track signup failure
+        analytics.track('Signup Failed', {
+          email: email,
+          errors: response.errors || ['Signup failed'],
+        });
+
         return {
           success: false,
           errors: response.errors || ['Signup failed']
@@ -136,6 +194,13 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('Signup error:', error);
+
+      // Track signup error
+      analytics.track('Signup Error', {
+        email: email,
+        error: error.message || 'Network error',
+      });
+
       return {
         success: false,
         errors: [error.message || 'Network error. Please try again.']
@@ -145,15 +210,26 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
+      // Track logout before clearing user data
+      analytics.track('User Logged Out', {
+        user_id: user?.id,
+      });
+
       // Call logout API (optional - JWT tokens are stateless)
       const token = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
       if (token) {
         await authService.logout(token);
       }
+
+      // Log out from RevenueCat
+      await subscriptionService.logoutUser();
     } catch (error) {
-      console.error('Logout API error:', error);
+      console.error('Logout error:', error);
       // Continue with local logout even if API call fails
     }
+
+    // Reset analytics (clears user identification)
+    analytics.reset();
 
     // Clear local auth state
     await clearAuth();
@@ -214,20 +290,37 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const completeOnboarding = async () => {
+  const completeOnboarding = async (onboardingData = {}) => {
     try {
       const token = await getAccessToken();
       if (!token) {
         throw new Error('No access token found');
       }
 
-      const response = await authService.completeOnboarding(token);
+      console.log('AuthContext: Completing onboarding with data:', onboardingData);
+
+      const response = await authService.completeOnboarding(token, onboardingData);
 
       if (response.success && response.user) {
-        // Update user with onboarding_completed flag
-        const updatedUser = { ...user, onboarding_completed: true };
+        // Update user with the complete user object from API (includes preferred_language)
+        const updatedUser = { ...response.user, onboarding_completed: true };
         setUser(updatedUser);
         await AsyncStorage.setItem(USER_DATA_KEY, JSON.stringify(updatedUser));
+
+        // Track onboarding completion with demographics
+        analytics.track('Onboarding Completed', {
+          user_id: updatedUser.id,
+          language: onboardingData.language,
+          communication_style: onboardingData.communicationStyle,
+          age_range: onboardingData.ageRange,
+        });
+
+        analytics.setUserProperties({
+          onboarding_completed: true,
+          onboarding_completion_date: new Date().toISOString(),
+          preferred_language: onboardingData.language,
+        });
+
         return { success: true };
       }
 

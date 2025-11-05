@@ -3,29 +3,47 @@ import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity } from 'rea
 import AnimatedBackground from '../../components/AnimatedBackground';
 import QuitOnboardingButton from '../../components/QuitOnboardingButton';
 import { COLORS, SPACING } from '../../constants/colors';
-import { pollTrialSessionStatus, getTrialSessionResults } from '../../services/api';
+import { createTrialSession, pollTrialSessionStatus, getTrialSessionResults } from '../../services/api';
 import { useOnboarding } from '../../context/OnboardingContext';
 
-export default function TrialProcessingScreen({ navigation }) {
+export default function TrialProcessingScreen({ navigation, route }) {
   const { onboardingData, updateOnboardingData } = useOnboarding();
+  const { audioFile, trialOptions } = route.params || {};
   const [progress, setProgress] = useState(0);
-  const [currentStep, setCurrentStep] = useState('Starting analysis...');
+  const [currentStep, setCurrentStep] = useState('Uploading...');
   const [error, setError] = useState(null);
 
-  const trialToken = onboardingData.trialSessionToken;
+  const existingTrialToken = onboardingData.trialSessionToken;
 
   useEffect(() => {
-    if (!trialToken) {
-      // No trial token - navigate back
-      navigation.navigate('TrialRecording');
-      return;
-    }
-
     startProcessing();
-  }, [trialToken]);
+  }, []);
 
   const startProcessing = async () => {
     try {
+      let trialToken = existingTrialToken;
+
+      // If we have audioFile, upload it first
+      if (audioFile && trialOptions) {
+        console.log('Uploading trial session from processing screen...');
+        setCurrentStep('Uploading...');
+        setProgress(5);
+
+        const response = await createTrialSession(audioFile, trialOptions);
+        trialToken = response.trial_token;
+
+        // Store trial token in context
+        updateOnboardingData({
+          trialSessionToken: trialToken,
+        });
+
+        console.log('Trial session created:', trialToken);
+      }
+
+      if (!trialToken) {
+        throw new Error('No trial token available');
+      }
+
       // Poll for completion
       await pollTrialSessionStatus(
         trialToken,

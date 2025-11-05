@@ -43,10 +43,10 @@ class OnboardingController < ApplicationController
   # Screen 3: Style + demographics + pronouns
   def demographics
     if request.post?
-      demographics_params = params.permit(:speaking_style, :age_range, :profession, :preferred_pronouns)
+      demographics_params = params.permit(:speaking_style, :age_range, :profession, :preferred_pronouns, :preferred_language)
 
       # Validate required fields
-      if demographics_params[:speaking_style].blank? || demographics_params[:age_range].blank?
+      if demographics_params[:speaking_style].blank? || demographics_params[:age_range].blank? || demographics_params[:preferred_language].blank?
         flash.now[:alert] = "Please complete all required fields"
         render :demographics, status: :unprocessable_content
         return
@@ -95,7 +95,7 @@ class OnboardingController < ApplicationController
         begin
           trial_session = TrialSession.create!(
             title: "Onboarding Test",
-            language: "en",
+            language: current_user.preferred_language || "en",
             media_kind: "audio",
             target_seconds: 30,
             processing_state: "pending"

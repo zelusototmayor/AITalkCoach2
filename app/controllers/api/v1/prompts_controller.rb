@@ -105,7 +105,7 @@ class Api::V1::PromptsController < Api::V1::BaseController
     # Analyze pace issues
     pace_sessions = recent_sessions.select do |session|
       wpm = session.analysis_data["wpm"]
-      wpm && (wpm < 120 || wpm > 200)
+      wpm && (wpm < 110 || wpm > 190)
     end
     if (pace_sessions.count / session_count) >= thresholds["pace_issues"]
       weaknesses << "pace_issues"

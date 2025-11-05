@@ -134,7 +134,7 @@ class LandingController < ApplicationController
       analysis_data = JSON.parse(session.analysis_json) rescue {}
       wpm = analysis_data["wpm"]&.to_f || 0
       clarity = analysis_data["clarity_score"]&.to_f || 0
-      wpm.between?(120, 180) && clarity > 0.7
+      wpm.between?(110, 170) && clarity > 0.7
     end
 
     sample = good_sessions.sample

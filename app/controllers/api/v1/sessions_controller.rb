@@ -1,4 +1,6 @@
 class Api::V1::SessionsController < Api::V1::BaseController
+  before_action :set_default_language, only: [:create]
+
   # GET /api/v1/sessions
   def index
     sessions = current_user.sessions
@@ -130,6 +132,27 @@ class Api::V1::SessionsController < Api::V1::BaseController
 
   private
 
+  def set_default_language
+    # ALWAYS use the user's current preferred language from database
+    # This ensures consistency even if client cache is stale
+    if params[:session]
+      user_language = current_user.language_for_sessions
+      params[:session][:language] = user_language
+
+      Rails.logger.info "Set session language to user's database preference: #{user_language}"
+
+      # Validate and normalize language code
+      normalized_lang = LanguageService.normalize_language_code(user_language)
+
+      unless LanguageService.language_supported?(normalized_lang)
+        Rails.logger.warn "User's preferred language '#{user_language}' not supported, falling back to English"
+        params[:session][:language] = "en"
+      else
+        params[:session][:language] = normalized_lang
+      end
+    end
+  end
+
   def session_params
     params.require(:session).permit(
       :title, :language, :media_kind, :target_seconds,
@@ -186,7 +209,10 @@ class Api::V1::SessionsController < Api::V1::BaseController
     case session.processing_state
     when "pending" then 5
     when "processing"
-      processing_duration = Time.current - session.updated_at
+      # Use processing_started_at if available, otherwise fall back to updated_at
+      start_time = session.processing_started_at || session.updated_at
+      processing_duration = Time.current - start_time
+
       if processing_duration < 10
         15
       elsif processing_duration < 30
@@ -208,7 +234,10 @@ class Api::V1::SessionsController < Api::V1::BaseController
     case session.processing_state
     when "pending" then "pending"
     when "processing"
-      processing_duration = Time.current - session.updated_at
+      # Use processing_started_at if available, otherwise fall back to updated_at
+      start_time = session.processing_started_at || session.updated_at
+      processing_duration = Time.current - start_time
+
       if processing_duration < 10
         "extraction"
       elsif processing_duration < 30

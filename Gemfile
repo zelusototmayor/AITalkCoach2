@@ -61,6 +61,9 @@ gem "rack-attack"
 # Payment processing
 gem "stripe", "~> 13.0"
 
+# Pagination
+gem "kaminari"
+
 group :development, :test do
   gem "dotenv-rails"
   gem "rspec-rails"

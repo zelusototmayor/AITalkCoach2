@@ -43,7 +43,7 @@ RSpec.describe Analysis::RuleDetector do
       ],
       'pace_issues' => [
         {
-          pattern: 'speaking_rate_below_120',
+          pattern: 'speaking_rate_below_110',
           regex: :special_pattern,
           description: 'Speaking rate is too slow',
           tip: 'Try to speak at a more natural pace',
@@ -170,7 +170,7 @@ RSpec.describe Analysis::RuleDetector do
 
         pace_issue = issues.find { |issue| issue[:kind] == 'pace_too_slow' }
         expect(pace_issue).to be_present
-        expect(pace_issue[:speaking_rate]).to be < 120
+        expect(pace_issue[:speaking_rate]).to be < 110
       end
     end
 
@@ -179,7 +179,7 @@ RSpec.describe Analysis::RuleDetector do
         test_rules.merge(
           'pace_issues' => [
             {
-              pattern: 'speaking_rate_above_180',
+              pattern: 'speaking_rate_above_170',
               regex: :special_pattern,
               description: 'Speaking rate is too fast',
               tip: 'Try to slow down your speech',
@@ -206,7 +206,7 @@ RSpec.describe Analysis::RuleDetector do
 
         pace_issue = issues.find { |issue| issue[:kind] == 'pace_too_fast' }
         expect(pace_issue).to be_present
-        expect(pace_issue[:speaking_rate]).to be > 180
+        expect(pace_issue[:speaking_rate]).to be > 170
       end
     end
 

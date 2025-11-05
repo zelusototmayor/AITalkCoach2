@@ -3,12 +3,12 @@ en:
   # See: app/services/ai/prompt_builder.rb - filler_word_detection prompt
 
   pace_issues:
-    - pattern: 'speaking_rate_below_120'
+    - pattern: 'speaking_rate_below_110'
       severity: 'medium'
       description: 'Speaking too slowly may lose audience attention'
       tip: 'Consider speaking a bit faster to maintain engagement while remaining clear.'
-      
-    - pattern: 'speaking_rate_above_180'
+
+    - pattern: 'speaking_rate_above_170'
       severity: 'medium'
       description: 'Speaking too quickly may be hard to follow'
       tip: 'Slow down to ensure your audience can process your message effectively.'

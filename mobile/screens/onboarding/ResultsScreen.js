@@ -12,8 +12,8 @@ import { getTrialSessionResults } from '../../services/api';
 // Helper function to calculate metrics and generate recommendations
 function calculateMetrics(results) {
   // Assume 30 second duration and extract word count from mock/real data
-  // For trial: ~75 words (150 WPM at 30s = 75 words)
-  const estimatedWordCount = Math.round((results.wordsPerMinute || 150) * 0.5); // 30s = 0.5 min
+  // For trial: ~70 words (140 WPM at 30s = 70 words)
+  const estimatedWordCount = Math.round((results.wordsPerMinute || 140) * 0.5); // 30s = 0.5 min
 
   // Calculate filler words percentage
   const fillerWordsPerMin = results.fillerWordsPerMinute || 8.5;
@@ -32,19 +32,19 @@ function calculateMetrics(results) {
     });
   }
 
-  // Pace recommendation (optimal: 140-160 WPM)
-  const wpm = results.wordsPerMinute || 145;
-  if (wpm < 140) {
+  // Pace recommendation (optimal: 130-150 WPM)
+  const wpm = results.wordsPerMinute || 140;
+  if (wpm < 130) {
     recommendations.push({
       metric: 'Pace',
       message: 'A bit slow - try speaking slightly faster',
-      severity: wpm < 120 ? 'high' : 'medium'
+      severity: wpm < 110 ? 'high' : 'medium'
     });
-  } else if (wpm > 160) {
+  } else if (wpm > 150) {
     recommendations.push({
       metric: 'Pace',
       message: 'A bit fast - slow down to give listeners time to absorb',
-      severity: wpm > 180 ? 'high' : 'medium'
+      severity: wpm > 170 ? 'high' : 'medium'
     });
   }
 

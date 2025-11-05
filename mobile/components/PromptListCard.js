@@ -10,6 +10,7 @@ export default function PromptListCard({
   promptText,
   duration,
   focusAreas,
+  difficulty,
   onPractice,
   style
 }) {
@@ -28,13 +29,40 @@ export default function PromptListCard({
     return colors[cat] || COLORS.textSecondary;
   };
 
+  const getDifficultyColors = (diff) => {
+    const colors = {
+      'beginner': {
+        background: '#d1fae5',
+        text: '#065f46',
+      },
+      'intermediate': {
+        background: '#fef3c7',
+        text: '#92400e',
+      },
+      'advanced': {
+        background: '#fee2e2',
+        text: '#991b1b',
+      },
+    };
+    return colors[diff?.toLowerCase()] || { background: '#e5e7eb', text: '#6b7280' };
+  };
+
   return (
     <View style={[styles.card, style]}>
-      {/* Category Tag */}
-      <View style={[styles.categoryTag, { backgroundColor: getCategoryColor(category) + '20' }]}>
-        <Text style={[styles.categoryText, { color: getCategoryColor(category) }]}>
-          {category}
-        </Text>
+      {/* Header with Category and Difficulty Tags */}
+      <View style={styles.headerRow}>
+        <View style={[styles.categoryTag, { backgroundColor: getCategoryColor(category) + '20' }]}>
+          <Text style={[styles.categoryText, { color: getCategoryColor(category) }]}>
+            {category}
+          </Text>
+        </View>
+        {difficulty && (
+          <View style={[styles.difficultyBadge, { backgroundColor: getDifficultyColors(difficulty).background }]}>
+            <Text style={[styles.difficultyText, { color: getDifficultyColors(difficulty).text }]}>
+              {difficulty.toUpperCase()}
+            </Text>
+          </View>
+        )}
       </View>
 
       {/* Title */}
@@ -102,17 +130,31 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 2,
   },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.xs,
+  },
   categoryTag: {
-    alignSelf: 'flex-start',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
-    marginBottom: SPACING.xs,
   },
   categoryText: {
     fontSize: 10,
     fontWeight: '700',
     textTransform: 'uppercase',
+  },
+  difficultyBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  difficultyText: {
+    fontSize: 10,
+    fontWeight: '600',
+    letterSpacing: 0.5,
   },
   title: {
     fontSize: 16,

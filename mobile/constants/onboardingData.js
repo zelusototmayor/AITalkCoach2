@@ -169,14 +169,19 @@ export const AGE_RANGES = [
   { id: '55+', label: '55+' },
 ];
 
-// Languages
+// Languages (using ISO language codes)
 export const LANGUAGES = [
-  { id: 'English', label: 'English', icon: '🇬🇧' },
-  { id: 'Spanish', label: 'Spanish', icon: '🇪🇸' },
-  { id: 'French', label: 'French', icon: '🇫🇷' },
-  { id: 'German', label: 'German', icon: '🇩🇪' },
-  { id: 'Portuguese', label: 'Portuguese', icon: '🇵🇹' },
-  { id: 'Other', label: 'Other', icon: '🌍' },
+  { id: 'en', label: 'English', icon: '🇬🇧' },
+  { id: 'pt', label: 'Português', icon: '🇵🇹' },
+  { id: 'es', label: 'Español', icon: '🇪🇸' },
+  { id: 'fr', label: 'Français', icon: '🇫🇷' },
+  { id: 'de', label: 'Deutsch', icon: '🇩🇪' },
+  { id: 'it', label: 'Italiano', icon: '🇮🇹' },
+  { id: 'nl', label: 'Nederlands', icon: '🇳🇱' },
+  { id: 'sv', label: 'Svenska', icon: '🇸🇪' },
+  { id: 'da', label: 'Dansk', icon: '🇩🇰' },
+  { id: 'no', label: 'Norsk', icon: '🇳🇴' },
+  { id: 'tr', label: 'Türkçe', icon: '🇹🇷' },
 ];
 
 // Trial recording prompt

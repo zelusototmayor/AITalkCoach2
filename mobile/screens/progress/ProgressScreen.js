@@ -114,9 +114,9 @@ export default function ProgressScreen({ navigation }) {
   };
 
   const getCurrentValue = () => {
-    if (!progressData?.current_values) return '--';
+    if (!progressData?.average_values) return '--';
     const config = METRIC_CONFIG[selectedMetric];
-    const value = progressData.current_values[config?.key];
+    const value = progressData.average_values[config?.key];
     if (value === undefined || value === null) return '--';
 
     // Convert decimal to percentage if needed
@@ -146,9 +146,9 @@ export default function ProgressScreen({ navigation }) {
   };
 
   const getStatsCardValue = (metric) => {
-    if (!progressData?.current_values) return '--';
+    if (!progressData?.average_values) return '--';
     const config = METRIC_CONFIG[metric];
-    const value = progressData.current_values[config?.key];
+    const value = progressData.average_values[config?.key];
     if (value === undefined || value === null) return '--';
 
     // Convert decimal to percentage if needed

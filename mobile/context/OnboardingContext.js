@@ -15,7 +15,7 @@ export const OnboardingProvider = ({ children }) => {
     goals: [],                    // Array of selected goal IDs
     communicationStyle: null,     // "introvert" | "extrovert" | "ambivert" | "not_sure"
     ageRange: null,              // "18-24" | "25-34" | "35-44" | "45-54" | "55+"
-    language: 'English',         // Default language
+    language: 'en',              // Default language (ISO code)
     trialSessionToken: null,     // Token from trial recording
     trialResults: null,          // Results from trial session
     selectedPlan: null,          // "monthly" | "yearly"

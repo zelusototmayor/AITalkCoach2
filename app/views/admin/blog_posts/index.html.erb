@@ -1,0 +1,65 @@
+<div class="admin-header">
+  <h1>Blog Posts</h1>
+  <%= link_to "New Blog Post", new_admin_blog_post_path, class: "btn btn-primary" %>
+</div>
+
+<div class="admin-content">
+  <% if @blog_posts.any? %>
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Status</th>
+          <th>Published Date</th>
+          <th>Views</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @blog_posts.each do |post| %>
+          <tr>
+            <td>
+              <strong><%= post.title %></strong>
+              <br>
+              <small class="text-muted">/blog/<%= post.slug %></small>
+            </td>
+            <td>
+              <% if post.published? %>
+                <span class="badge badge-success">Published</span>
+              <% else %>
+                <span class="badge badge-secondary">Draft</span>
+              <% end %>
+            </td>
+            <td>
+              <%= post.published_at&.strftime("%B %d, %Y") || "-" %>
+            </td>
+            <td>
+              <%= post.view_count %>
+            </td>
+            <td class="admin-actions">
+              <%= link_to "Edit", edit_admin_blog_post_path(post), class: "btn btn-sm btn-secondary" %>
+              <%= link_to "Delete", admin_blog_post_path(post),
+                  method: :delete,
+                  data: { turbo_method: :delete, turbo_confirm: "Are you sure?" },
+                  class: "btn btn-sm btn-danger" %>
+              <% if post.published? %>
+                <%= link_to "View", blog_post_path(post.slug), class: "btn btn-sm btn-info", target: "_blank" %>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <% if @blog_posts.respond_to?(:total_pages) %>
+      <div class="pagination">
+        <%= paginate @blog_posts %>
+      </div>
+    <% end %>
+  <% else %>
+    <div class="empty-state">
+      <p>No blog posts yet.</p>
+      <%= link_to "Create your first blog post", new_admin_blog_post_path, class: "btn btn-primary" %>
+    </div>
+  <% end %>
+</div>

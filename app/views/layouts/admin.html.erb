@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Admin - AI Talk Coach</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+    <%= stylesheet_link_tag "actiontext", "data-turbo-track": "reload" %>
+  </head>
+
+  <body class="admin-layout">
+    <nav class="admin-nav">
+      <div class="admin-nav-container">
+        <div class="admin-nav-brand">
+          <%= link_to "AI Talk Coach Admin", admin_blog_posts_path, class: "admin-logo" %>
+        </div>
+        <div class="admin-nav-links">
+          <%= link_to "Blog Posts", admin_blog_posts_path, class: "admin-nav-link" %>
+          <%= link_to "View Site", root_path, class: "admin-nav-link", target: "_blank" %>
+          <span class="admin-user-info"><%= current_user.email %></span>
+        </div>
+      </div>
+    </nav>
+
+    <main class="admin-main">
+      <% if notice %>
+        <div class="alert alert-success"><%= notice %></div>
+      <% end %>
+      <% if alert %>
+        <div class="alert alert-danger"><%= alert %></div>
+      <% end %>
+
+      <%= yield %>
+    </main>
+  </body>
+</html>

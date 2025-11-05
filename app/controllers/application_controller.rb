@@ -208,17 +208,19 @@ class ApplicationController < ActionController::Base
   def skip_onboarding_check?
     # Skip onboarding check for:
     # - Authentication controllers (login, signup, password reset)
-    # - Marketing site controllers (landing, pricing)
+    # - Marketing site controllers (landing, pricing, blog)
     # - Onboarding controllers (to avoid redirect loop)
     # - Webhook endpoints
     # - API health checks
+    # - Admin routes (for admin users)
     controller_path.starts_with?("auth/") ||
     controller_name == "landing" ||
     controller_name == "pricing" ||
+    controller_name == "blog_posts" ||
     controller_name == "trial_sessions" ||
     controller_path.starts_with?("onboarding/") ||
     controller_name == "webhooks" ||
-    controller_path.starts_with?("admin/health")
+    controller_path.starts_with?("admin/")
   end
 
   def skip_browser_check?

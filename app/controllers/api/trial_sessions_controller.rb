@@ -2,6 +2,7 @@ class Api::TrialSessionsController < Api::V1::BaseController
   before_action :set_trial_session, only: [ :show, :status ]
   skip_before_action :authenticate_request, only: [ :create, :show, :status ]
   before_action :optional_authenticate, only: [ :create, :show, :status ]
+  before_action :normalize_language, only: [ :create ]
 
   # Create a new trial session (for onboarding from mobile app)
   def create
@@ -94,6 +95,23 @@ class Api::TrialSessionsController < Api::V1::BaseController
 
   private
 
+  def normalize_language
+    # Normalize and validate language parameter
+    if params[:language].present?
+      normalized_lang = LanguageService.normalize_language_code(params[:language])
+
+      unless LanguageService.language_supported?(normalized_lang)
+        Rails.logger.warn "Unsupported language requested for trial: #{params[:language]}, falling back to English"
+        params[:language] = "en"
+      else
+        params[:language] = normalized_lang
+      end
+    else
+      # Default to English if no language specified
+      params[:language] = "en"
+    end
+  end
+
   def optional_authenticate
     # Try to authenticate if token is provided, but don't fail if not
     @current_user = decode_token
@@ -124,28 +142,43 @@ class Api::TrialSessionsController < Api::V1::BaseController
         estimated_time: trial_session.estimated_completion_time
       }
     when "processing"
-      # Better progress indication for trial sessions
-      processing_duration = Time.current - trial_session.updated_at
+      # Check if we have stored progress first
+      stored_progress = trial_session.analysis_data&.dig("processing_progress")
+      stored_stage = trial_session.analysis_data&.dig("processing_stage")
 
-      if processing_duration < 5
-        step_message = "Starting analysis..."
-        progress = 15
-      elsif processing_duration < 15
-        step_message = "Transcribing speech..."
-        progress = 40
-      elsif processing_duration < 25
-        step_message = "Analyzing patterns..."
-        progress = 70
+      if stored_progress.present?
+        # Use real progress from job
+        {
+          step: stored_stage || "Processing...",
+          progress: stored_progress,
+          estimated_time: trial_session.estimated_completion_time
+        }
       else
-        step_message = "Finalizing results..."
-        progress = 90
-      end
+        # Fall back to time-based estimation
+        # Use processing_started_at if available, otherwise fall back to updated_at
+        start_time = trial_session.processing_started_at || trial_session.updated_at
+        processing_duration = Time.current - start_time
 
-      {
-        step: step_message,
-        progress: progress,
-        estimated_time: trial_session.estimated_completion_time
-      }
+        if processing_duration < 5
+          step_message = "Starting analysis..."
+          progress = 15
+        elsif processing_duration < 15
+          step_message = "Transcribing speech..."
+          progress = 40
+        elsif processing_duration < 25
+          step_message = "Analyzing patterns..."
+          progress = 70
+        else
+          step_message = "Finalizing results..."
+          progress = 90
+        end
+
+        {
+          step: step_message,
+          progress: progress,
+          estimated_time: trial_session.estimated_completion_time
+        }
+      end
     when "preview_ready"
       {
         step: "Quick analysis complete, refining...",
