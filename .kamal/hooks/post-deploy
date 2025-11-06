@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# Post-deploy hook to run database seeds
+# This ensures blog posts and other seed data are created after deployment
+
+echo "Running database seeds..."
+kamal app exec --reuse "bin/rails db:seed"
+
+echo "$KAMAL_PERFORMER deployed $KAMAL_VERSION to $KAMAL_DESTINATION in $KAMAL_RUNTIME seconds"
