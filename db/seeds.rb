@@ -1629,3 +1629,103 @@ BlogPost.find_or_create_by!(slug: "podcast-delivery") do |post|
 end
 
 puts "Blog posts created successfully!"
+# Attach featured images to blog posts
+puts "Attaching featured images to blog posts..."
+
+if File.exist?(Rails.root.join('public/blog-images/ai-speech-coach.png'))
+  post = BlogPost.find_by(slug: 'ai-speech-coach')
+  if post && !post.featured_image.attached?
+    post.featured_image.attach(
+      io: File.open(Rails.root.join('public/blog-images/ai-speech-coach.png')),
+      filename: 'ai-speech-coach.png',
+      content_type: 'image/png'
+    )
+    puts "  Attached image to: #{post.title}"
+  end
+end
+
+if File.exist?(Rails.root.join('public/blog-images/public-speaking-app-guide.png'))
+  post = BlogPost.find_by(slug: 'public-speaking-app-guide')
+  if post && !post.featured_image.attached?
+    post.featured_image.attach(
+      io: File.open(Rails.root.join('public/blog-images/public-speaking-app-guide.png')),
+      filename: 'public-speaking-app-guide.png',
+      content_type: 'image/png'
+    )
+    puts "  Attached image to: #{post.title}"
+  end
+end
+
+if File.exist?(Rails.root.join('public/blog-images/stop-saying-um-like.jpg'))
+  post = BlogPost.find_by(slug: 'stop-saying-um-like')
+  if post && !post.featured_image.attached?
+    post.featured_image.attach(
+      io: File.open(Rails.root.join('public/blog-images/stop-saying-um-like.jpg')),
+      filename: 'stop-saying-um-like.jpg',
+      content_type: 'image/jpeg'
+    )
+    puts "  Attached image to: #{post.title}"
+  end
+end
+
+if File.exist?(Rails.root.join('public/blog-images/confident-in-meetings.png'))
+  post = BlogPost.find_by(slug: 'confident-in-meetings')
+  if post && !post.featured_image.attached?
+    post.featured_image.attach(
+      io: File.open(Rails.root.join('public/blog-images/confident-in-meetings.png')),
+      filename: 'confident-in-meetings.png',
+      content_type: 'image/png'
+    )
+    puts "  Attached image to: #{post.title}"
+  end
+end
+
+if File.exist?(Rails.root.join('public/blog-images/speaking-pace.png'))
+  post = BlogPost.find_by(slug: 'speaking-pace')
+  if post && !post.featured_image.attached?
+    post.featured_image.attach(
+      io: File.open(Rails.root.join('public/blog-images/speaking-pace.png')),
+      filename: 'speaking-pace.png',
+      content_type: 'image/png'
+    )
+    puts "  Attached image to: #{post.title}"
+  end
+end
+
+if File.exist?(Rails.root.join('public/blog-images/founder-pitch-clarity.png'))
+  post = BlogPost.find_by(slug: 'founder-pitch-clarity')
+  if post && !post.featured_image.attached?
+    post.featured_image.attach(
+      io: File.open(Rails.root.join('public/blog-images/founder-pitch-clarity.png')),
+      filename: 'founder-pitch-clarity.png',
+      content_type: 'image/png'
+    )
+    puts "  Attached image to: #{post.title}"
+  end
+end
+
+if File.exist?(Rails.root.join('public/blog-images/sound-natural-on-camera.jpg'))
+  post = BlogPost.find_by(slug: 'sound-natural-on-camera')
+  if post && !post.featured_image.attached?
+    post.featured_image.attach(
+      io: File.open(Rails.root.join('public/blog-images/sound-natural-on-camera.jpg')),
+      filename: 'sound-natural-on-camera.jpg',
+      content_type: 'image/jpeg'
+    )
+    puts "  Attached image to: #{post.title}"
+  end
+end
+
+if File.exist?(Rails.root.join('public/blog-images/podcast-delivery.webp'))
+  post = BlogPost.find_by(slug: 'podcast-delivery')
+  if post && !post.featured_image.attached?
+    post.featured_image.attach(
+      io: File.open(Rails.root.join('public/blog-images/podcast-delivery.webp')),
+      filename: 'podcast-delivery.webp',
+      content_type: 'image/webp'
+    )
+    puts "  Attached image to: #{post.title}"
+  end
+end
+
+puts "Featured images attached successfully!"
