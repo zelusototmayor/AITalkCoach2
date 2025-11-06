@@ -119,6 +119,60 @@ class Api::V1::SessionsController < Api::V1::BaseController
     }
   end
 
+  # POST /api/v1/sessions/:id/retake
+  def retake
+    session = current_user.sessions.find(params[:id])
+
+    # Only allow retake for sessions that failed relevance check
+    unless session.processing_state == "relevance_failed"
+      return render json: {
+        success: false,
+        error: "This session cannot be retaken"
+      }, status: :unprocessable_entity
+    end
+
+    # Return the original prompt/title for context
+    render json: {
+      success: true,
+      original_session_id: session.id,
+      title: session.title,
+      target_seconds: session.target_seconds,
+      language: session.language,
+      speech_context: session.speech_context,
+      retake_count: session.retake_count,
+      relevance_feedback: session.relevance_feedback
+    }
+  end
+
+  # POST /api/v1/sessions/:id/continue_anyway
+  def continue_anyway
+    session = current_user.sessions.find(params[:id])
+
+    # Only allow for sessions that failed relevance check
+    unless session.processing_state == "relevance_failed"
+      return render json: {
+        success: false,
+        error: "This session cannot be continued"
+      }, status: :unprocessable_entity
+    end
+
+    # Update session to skip relevance check and continue processing
+    session.update!(
+      off_topic: false, # Override the off-topic flag
+      processing_state: "pending"
+    )
+
+    # Re-enqueue the job, but this time it will skip relevance check
+    # since off_topic is now false
+    Sessions::ProcessJob.perform_later(session.id)
+
+    render json: {
+      success: true,
+      session_id: session.id,
+      message: "Continuing with analysis"
+    }
+  end
+
   # DELETE /api/v1/sessions/:id
   def destroy
     session = current_user.sessions.find(params[:id])
@@ -155,9 +209,10 @@ class Api::V1::SessionsController < Api::V1::BaseController
 
   def session_params
     params.require(:session).permit(
-      :title, :language, :media_kind, :target_seconds,
+      :title, :prompt_text, :language, :media_kind, :target_seconds,
       :minimum_duration_enforced, :speech_context,
       :weekly_focus_id, :is_planned_session, :planned_for_date,
+      :retake_count, :is_retake,
       :media_file, media_files: []
     )
   end

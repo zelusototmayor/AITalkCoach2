@@ -67,9 +67,13 @@
             <div class="metric-label">Speaking Pace</div>
             <div class="metric-description">
               <% wpm = @trial_session.wpm.to_i %>
-              <% if wpm >= 140 && wpm <= 180 %>
-                <span style="color: #10b981;">Natural range</span>
-              <% elsif wpm < 140 %>
+              <% if wpm >= 130 && wpm <= 150 %>
+                <span style="color: #10b981;">Optimal</span>
+              <% elsif wpm >= 110 && wpm < 130 %>
+                <span style="color: #3b82f6;">Slightly slow</span>
+              <% elsif wpm > 150 && wpm <= 170 %>
+                <span style="color: #3b82f6;">Slightly fast</span>
+              <% elsif wpm < 110 %>
                 Too slow
               <% else %>
                 Too fast
@@ -93,12 +97,12 @@
               if filler_rate > 5
                 recommendation_title = "Reduce Filler Words"
                 recommendation_text = "Try pausing for 0.5-1 seconds when you don't know what to say next. Silence is better than 'um' or 'uh'. This will make you sound more confident and help listeners focus on your message instead of distracting filler words."
-              elsif wpm < 130
+              elsif wpm < 110
                 recommendation_title = "Speed Up Your Pace"
-                recommendation_text = "Aim for 140-180 words per minute for a more engaging delivery. Practice reading aloud daily and gradually increase your speed while maintaining clarity. A natural pace keeps your audience engaged."
-              elsif wpm > 190
+                recommendation_text = "Aim for 130-150 words per minute for optimal delivery. Practice reading aloud daily and gradually increase your speed while maintaining clarity. A natural pace keeps your audience engaged."
+              elsif wpm > 170
                 recommendation_title = "Slow Down Your Pace"
-                recommendation_text = "Aim for 140-180 words per minute so listeners can follow along better. Take deliberate pauses between sentences and key points. Speaking too fast can overwhelm your audience and reduce comprehension."
+                recommendation_text = "Aim for 130-150 words per minute so listeners can follow along better. Take deliberate pauses between sentences and key points. Speaking too fast can overwhelm your audience and reduce comprehension."
               elsif clarity < 75
                 recommendation_title = "Improve Clarity"
                 recommendation_text = "Focus on articulating each word clearly and reducing filler words. Practice recording yourself and listening back for unclear moments. Clear speech builds credibility and ensures your message lands effectively."

@@ -104,14 +104,27 @@ module Analysis
         wpm: calculate_rolling_average(recent_sessions, "wpm")
       }
 
+      # Get current session values for contextual messaging
+      session_metrics = {
+        filler_rate: @analysis_data["filler_rate"],
+        clarity_score: @analysis_data["clarity_score"],
+        fluency_score: @analysis_data["fluency_score"],
+        engagement_score: @analysis_data["engagement_score"],
+        pace_consistency: @analysis_data["pace_consistency"],
+        overall_score: @analysis_data["overall_score"],
+        wpm: @analysis_data["wpm"]
+      }
+
       # Filler words analysis
       if current_metrics[:filler_rate] > 0.03 # More than 3%
         avg_filler = calculate_historical_average("filler_rate")
         filler_trend = determine_trend(current_metrics[:filler_rate], avg_filler)
         severity = current_metrics[:filler_rate] > 0.07 ? "high" : "medium"
-        areas << {
+
+        area = {
           type: "reduce_fillers",
           current_value: current_metrics[:filler_rate],
+          current_session_value: session_metrics[:filler_rate],
           target_value: 0.02,
           historical_average: avg_filler,
           trend: filler_trend,
@@ -120,56 +133,79 @@ module Analysis
           severity: severity,
           specific_issues: extract_filler_issues
         }
+
+        # Add contextual message based on session achievement
+        area[:contextual_message] = generate_contextual_message(area)
+        areas << area
       end
 
-      # Pace analysis
+      # Pace analysis (optimal range: 130-150 WPM, acceptable: 110-170 WPM)
       wpm = current_metrics[:wpm]
-      if wpm < 130 || wpm > 170
-        target_wpm = wpm < 130 ? 140 : 155
-        areas << {
+      if wpm < 110 || wpm > 170
+        # Only recommend improvement if outside acceptable range
+        target_wpm = wpm < 110 ? 135 : 145
+
+        area = {
           type: "improve_pace",
           current_value: wpm,
+          current_session_value: session_metrics[:wpm],
           target_value: target_wpm,
           potential_improvement: calculate_pace_improvement_impact(wpm, target_wpm),
-          severity: wpm < 110 || wpm > 190 ? "high" : "medium",
+          severity: wpm < 90 || wpm > 190 ? "high" : "medium",
           specific_issues: extract_pace_issues
         }
+
+        # Add contextual message based on session achievement
+        area[:contextual_message] = generate_contextual_message(area)
+        areas << area
       end
 
       # Clarity analysis
       if current_metrics[:clarity_score] < 0.75
-        areas << {
+        area = {
           type: "enhance_clarity",
           current_value: current_metrics[:clarity_score],
+          current_session_value: session_metrics[:clarity_score],
           target_value: 0.85,
           potential_improvement: calculate_clarity_improvement_impact(current_metrics[:clarity_score]),
           severity: current_metrics[:clarity_score] < 0.60 ? "high" : "medium",
           specific_issues: extract_clarity_issues
         }
+
+        area[:contextual_message] = generate_contextual_message(area)
+        areas << area
       end
 
       # Engagement analysis
       if current_metrics[:engagement_score] < 0.70
-        areas << {
+        area = {
           type: "boost_engagement",
           current_value: current_metrics[:engagement_score],
+          current_session_value: session_metrics[:engagement_score],
           target_value: 0.80,
           potential_improvement: calculate_engagement_improvement_impact(current_metrics[:engagement_score]),
           severity: current_metrics[:engagement_score] < 0.50 ? "high" : "medium",
           specific_issues: extract_engagement_issues
         }
+
+        area[:contextual_message] = generate_contextual_message(area)
+        areas << area
       end
 
       # Fluency analysis
       if current_metrics[:fluency_score] < 0.75
-        areas << {
+        area = {
           type: "increase_fluency",
           current_value: current_metrics[:fluency_score],
+          current_session_value: session_metrics[:fluency_score],
           target_value: 0.85,
           potential_improvement: calculate_fluency_improvement_impact(current_metrics[:fluency_score]),
           severity: current_metrics[:fluency_score] < 0.60 ? "high" : "medium",
           specific_issues: extract_fluency_issues
         }
+
+        area[:contextual_message] = generate_contextual_message(area)
+        areas << area
       end
 
       # Long pause analysis
@@ -413,16 +449,16 @@ module Analysis
         current_wpm = area[:current_value].round
         target_wpm = area[:target_value].round
 
-        if current_wpm < 130
+        if current_wpm < 110
           [
-            "Your current pace is #{current_wpm} WPM. Let's increase it to #{target_wpm} WPM gradually.",
+            "Your current pace is #{current_wpm} WPM. Let's increase it to #{target_wpm} WPM (optimal range: 130-150 WPM).",
             "Practice with a metronome set to #{target_wpm} beats per minute (1 word per beat).",
             "Read aloud for 5 minutes daily, gradually increasing speed while maintaining clarity.",
             "Record yourself and check your WPM after each session to track improvement."
           ]
         else
           [
-            "Your pace is #{current_wpm} WPM—a bit fast. Let's bring it down to #{target_wpm} WPM for better comprehension.",
+            "Your pace is #{current_wpm} WPM—too fast. Let's bring it down to #{target_wpm} WPM (optimal range: 130-150 WPM).",
             "Practice deliberate pausing for 2-3 seconds between key points.",
             "Focus on emphasizing important words by slowing down slightly on them.",
             "Practice breathing techniques: inhale for 4 counts, exhale slowly while speaking."
@@ -537,6 +573,178 @@ module Analysis
         "worsening"
       else
         "stable"
+      end
+    end
+
+    # Generate contextual message based on current session achievement
+    def generate_contextual_message(area)
+      current_session = area[:current_session_value]
+      rolling_avg = area[:current_value]
+      target = area[:target_value]
+
+      return nil unless current_session && rolling_avg && target
+
+      # Check if current session achieved target
+      achieved = session_achieved_target?(area)
+      close_to_target = within_threshold_of_target?(area, 0.10) # Within 10%
+
+      case area[:type]
+      when "improve_pace"
+        if achieved
+          {
+            badge: "GREAT SESSION 🎉",
+            title: "Amazing pace this session!",
+            body: "You hit #{current_session.round} WPM this session - #{current_session < 110 ? 'great improvement' : 'excellent control'}! Your 5-session average is #{rolling_avg.round} WPM. Keep practicing to make #{target.round}+ WPM your consistent baseline."
+          }
+        elsif close_to_target
+          {
+            badge: "ALMOST THERE 💪",
+            title: "You're getting close!",
+            body: "This session: #{current_session.round} WPM. Your 5-session average (#{rolling_avg.round} WPM) shows steady progress toward #{target.round} WPM."
+          }
+        else
+          {
+            badge: "KEEP GOING 💪",
+            title: "Improve Speaking Pace",
+            body: "Your average pace is #{rolling_avg.round} WPM. Let's #{rolling_avg < 110 ? 'increase' : 'adjust'} it to #{target.round} WPM gradually through consistent practice."
+          }
+        end
+
+      when "reduce_fillers"
+        if achieved
+          {
+            badge: "GREAT SESSION 🎉",
+            title: "Clean speech this session!",
+            body: "Only #{(current_session * 100).round(1)}% filler words - excellent! Your 5-session average is #{(rolling_avg * 100).round(1)}%. Keep it up to reach #{(target * 100).round(1)}% consistently."
+          }
+        elsif close_to_target
+          {
+            badge: "ALMOST THERE 💪",
+            title: "You're getting close!",
+            body: "This session: #{(current_session * 100).round(1)}% fillers. Your 5-session average (#{(rolling_avg * 100).round(1)}%) shows progress toward #{(target * 100).round(1)}%."
+          }
+        else
+          {
+            badge: "KEEP GOING 💪",
+            title: "Reduce Filler Words",
+            body: "Your average filler rate is #{(rolling_avg * 100).round(1)}%. Let's reduce it to #{(target * 100).round(1)}% through mindful pausing."
+          }
+        end
+
+      when "enhance_clarity"
+        if achieved
+          {
+            badge: "GREAT SESSION 🎉",
+            title: "Crystal clear this session!",
+            body: "#{(current_session * 100).round}% clarity score - excellent articulation! Your 5-session average is #{(rolling_avg * 100).round}%. Keep practicing to maintain #{(target * 100).round}%+ consistently."
+          }
+        elsif close_to_target
+          {
+            badge: "ALMOST THERE 💪",
+            title: "You're getting close!",
+            body: "This session: #{(current_session * 100).round}% clarity. Your 5-session average (#{(rolling_avg * 100).round}%) shows improvement toward #{(target * 100).round}%."
+          }
+        else
+          {
+            badge: "KEEP GOING 💪",
+            title: "Enhance Clarity",
+            body: "Your average clarity is #{(rolling_avg * 100).round}%. Let's boost it to #{(target * 100).round}% with articulation practice."
+          }
+        end
+
+      when "boost_engagement"
+        if achieved
+          {
+            badge: "GREAT SESSION 🎉",
+            title: "Energetic delivery this session!",
+            body: "#{(current_session * 100).round}% engagement score - great vocal variety! Your 5-session average is #{(rolling_avg * 100).round}%. Keep it up to maintain #{(target * 100).round}%+ energy."
+          }
+        elsif close_to_target
+          {
+            badge: "ALMOST THERE 💪",
+            title: "You're getting close!",
+            body: "This session: #{(current_session * 100).round}% engagement. Your 5-session average (#{(rolling_avg * 100).round}%) shows progress toward #{(target * 100).round}%."
+          }
+        else
+          {
+            badge: "KEEP GOING 💪",
+            title: "Boost Engagement",
+            body: "Your average engagement is #{(rolling_avg * 100).round}%. Let's increase it to #{(target * 100).round}% with more vocal variety."
+          }
+        end
+
+      when "increase_fluency"
+        if achieved
+          {
+            badge: "GREAT SESSION 🎉",
+            title: "Smooth delivery this session!",
+            body: "#{(current_session * 100).round}% fluency score - very smooth! Your 5-session average is #{(rolling_avg * 100).round}%. Keep practicing to maintain #{(target * 100).round}%+ fluency."
+          }
+        elsif close_to_target
+          {
+            badge: "ALMOST THERE 💪",
+            title: "You're getting close!",
+            body: "This session: #{(current_session * 100).round}% fluency. Your 5-session average (#{(rolling_avg * 100).round}%) shows improvement toward #{(target * 100).round}%."
+          }
+        else
+          {
+            badge: "KEEP GOING 💪",
+            title: "Increase Fluency",
+            body: "Your average fluency is #{(rolling_avg * 100).round}%. Let's improve it to #{(target * 100).round}% with consistent practice."
+          }
+        end
+
+      else
+        # Default message for other types
+        {
+          badge: "KEEP GOING 💪",
+          title: area[:type].titleize,
+          body: "Keep practicing to improve this area."
+        }
+      end
+    end
+
+    # Check if current session achieved the target
+    def session_achieved_target?(area)
+      current_session = area[:current_session_value]
+      target = area[:target_value]
+
+      return false unless current_session && target
+
+      case area[:type]
+      when "improve_pace"
+        # Achieved if within optimal range (110-170 WPM)
+        current_session.round.between?(110, 170)
+      when "reduce_fillers"
+        # Achieved if at or below target
+        current_session <= target
+      when "enhance_clarity", "boost_engagement", "increase_fluency"
+        # Achieved if at or above target
+        current_session >= target
+      else
+        false
+      end
+    end
+
+    # Check if current session is within threshold of target
+    def within_threshold_of_target?(area, threshold)
+      current_session = area[:current_session_value]
+      target = area[:target_value]
+
+      return false unless current_session && target
+
+      case area[:type]
+      when "improve_pace"
+        # Within 10% of target range
+        (current_session - target).abs <= (target * threshold)
+      when "reduce_fillers"
+        # Within threshold (e.g., 10%) for rates
+        (current_session - target).abs <= threshold
+      when "enhance_clarity", "boost_engagement", "increase_fluency"
+        # Within threshold (e.g., 10%) for scores
+        (current_session - target).abs <= threshold
+      else
+        false
       end
     end
 

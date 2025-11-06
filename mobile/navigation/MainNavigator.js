@@ -12,6 +12,7 @@ import SignUpScreen from '../screens/auth/SignUpScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
 import PracticeScreen from '../screens/practice/PracticeScreen';
 import SessionProcessingScreen from '../screens/practice/SessionProcessingScreen';
+import SessionRelevanceScreen from '../screens/SessionRelevanceScreen';
 import SessionReportScreen from '../screens/practice/SessionReportScreen';
 import ProgressScreen from '../screens/progress/ProgressScreen';
 import CoachScreen from '../screens/coach/CoachScreen';
@@ -59,6 +60,7 @@ function AppStack() {
       <Stack.Screen name="ProfileMain" component={ProfileScreen} />
       <Stack.Screen name="History" component={HistoryScreen} />
       <Stack.Screen name="SessionProcessing" component={SessionProcessingScreen} />
+      <Stack.Screen name="SessionRelevance" component={SessionRelevanceScreen} />
       <Stack.Screen name="SessionReport" component={SessionReportScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
       <Stack.Screen name="Privacy" component={PrivacyScreen} />

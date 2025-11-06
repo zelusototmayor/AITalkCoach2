@@ -2,7 +2,7 @@
 // Handles all authentication API calls
 
 const API_BASE_URL = __DEV__
-  ? 'http://192.168.100.39:3002' // Local IP for development
+  ? 'http://192.168.100.2:3002' // Local IP for development - Updated to current IP
   : 'https://app.aitalkcoach.com'; // Production URL
 
 /**

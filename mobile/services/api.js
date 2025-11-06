@@ -7,7 +7,7 @@ import * as SecureStore from 'expo-secure-store';
 // For development: use your local IP or ngrok URL
 // For production: use your production domain
 const API_BASE_URL = __DEV__
-  ? 'http://192.168.100.39:3002' // Local IP for testing on physical device/Expo (port 3002) - HTTP for development
+  ? 'http://192.168.100.2:3002' // Local IP for testing on physical device/Expo (port 3002) - HTTP for development
   : 'https://app.aitalkcoach.com';
 
 /**
@@ -75,6 +75,14 @@ export async function createSession(audioFile, options = {}) {
 
   if (options.speech_context) {
     formData.append('session[speech_context]', options.speech_context);
+  }
+
+  if (options.retake_count !== undefined) {
+    formData.append('session[retake_count]', options.retake_count);
+  }
+
+  if (options.is_retake !== undefined) {
+    formData.append('session[is_retake]', options.is_retake);
   }
 
   try {
@@ -512,6 +520,66 @@ export async function updateLanguage(languageCode) {
     return data;
   } catch (error) {
     console.error('Error updating language:', error);
+    throw error;
+  }
+}
+
+/**
+ * Initiate a retake for a session that failed relevance check
+ * @param {string} sessionId - Session ID to retake
+ * @returns {Promise<Object>} Session information for retake
+ */
+export async function retakeSession(sessionId) {
+  try {
+    const headers = await getAuthHeaders();
+
+    const response = await fetch(`${API_BASE_URL}/api/v1/sessions/${sessionId}/retake`, {
+      method: 'POST',
+      headers: {
+        ...headers,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to initiate retake');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error initiating retake:', error);
+    throw error;
+  }
+}
+
+/**
+ * Continue with analysis for a session that failed relevance check
+ * @param {string} sessionId - Session ID to continue
+ * @returns {Promise<Object>} Session information
+ */
+export async function continueSession(sessionId) {
+  try {
+    const headers = await getAuthHeaders();
+
+    const response = await fetch(`${API_BASE_URL}/api/v1/sessions/${sessionId}/continue_anyway`, {
+      method: 'POST',
+      headers: {
+        ...headers,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to continue session');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error continuing session:', error);
     throw error;
   }
 }

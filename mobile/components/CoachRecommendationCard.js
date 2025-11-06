@@ -58,8 +58,22 @@ export default function CoachRecommendationCard({
   // Check if recommendation matches weekly focus
   const matchesWeeklyFocus = weeklyFocus && weeklyFocus.focus_type === topRecommendation.type;
 
-  // Get badge and color based on state
+  // Get badge and color based on contextual message or state
   const getBadgeInfo = () => {
+    // Use contextual message badge if available
+    if (topRecommendation.contextual_message?.badge) {
+      const badge = topRecommendation.contextual_message.badge;
+      // Determine color based on badge content
+      if (badge.includes('🎉')) {
+        return { text: badge, color: COLORS.success };
+      } else if (badge.includes('💪')) {
+        return { text: badge, color: COLORS.primary };
+      } else {
+        return { text: badge, color: COLORS.primary };
+      }
+    }
+
+    // Fallback to original logic
     if (matchesWeeklyFocus) {
       return { text: 'KEEP GOING 💪', color: COLORS.success };
     } else if (weeklyFocus) {
@@ -127,13 +141,23 @@ export default function CoachRecommendationCard({
       </View>
 
       <Text style={styles.title}>
-        {getAreaDisplayName(topRecommendation.type)}
+        {topRecommendation.contextual_message?.title || getAreaDisplayName(topRecommendation.type)}
       </Text>
+
+      {/* Show session value if available */}
+      {topRecommendation.current_session_value != null && (
+        <View style={styles.sessionValueContainer}>
+          <Text style={styles.sessionValueLabel}>This Session:</Text>
+          <Text style={styles.sessionValue}>
+            {formatValue(topRecommendation.current_session_value, topRecommendation.type)}
+          </Text>
+        </View>
+      )}
 
       {/* Current vs Target */}
       <View style={styles.metricsRow}>
         <View style={styles.metricBox}>
-          <Text style={styles.metricLabel}>Current</Text>
+          <Text style={styles.metricLabel}>5-Session Avg</Text>
           <Text style={styles.metricValue}>
             {formatValue(topRecommendation.current_value, topRecommendation.type)}
           </Text>
@@ -142,7 +166,7 @@ export default function CoachRecommendationCard({
           <Text style={styles.arrowText}>→</Text>
         </View>
         <View style={styles.metricBox}>
-          <Text style={styles.metricLabel}>Target</Text>
+          <Text style={styles.metricLabel}>Goal</Text>
           <Text style={[styles.metricValue, styles.metricValueTarget]}>
             {formatValue(topRecommendation.target_value, topRecommendation.type)}
           </Text>
@@ -159,8 +183,14 @@ export default function CoachRecommendationCard({
         </View>
       )}
 
-      {/* Action steps (show only first step for context) */}
-      {topRecommendation.actionable_steps && topRecommendation.actionable_steps.length > 0 && (
+      {/* Contextual message or action steps */}
+      {topRecommendation.contextual_message?.body ? (
+        <View style={styles.contextMessageContainer}>
+          <Text style={styles.contextMessageText}>
+            {topRecommendation.contextual_message.body}
+          </Text>
+        </View>
+      ) : topRecommendation.actionable_steps && topRecommendation.actionable_steps.length > 0 ? (
         <View style={styles.stepsContainer}>
           <Text style={styles.stepsTitle}>How to improve:</Text>
           <View style={styles.stepItem}>
@@ -170,7 +200,7 @@ export default function CoachRecommendationCard({
             </Text>
           </View>
         </View>
-      )}
+      ) : null}
 
       {/* Action Buttons */}
       <View style={styles.buttonsContainer}>
@@ -260,6 +290,37 @@ const styles = StyleSheet.create({
   },
   metricValueTarget: {
     color: COLORS.primary,
+  },
+  sessionValueContainer: {
+    backgroundColor: COLORS.background,
+    padding: SPACING.sm,
+    borderRadius: 8,
+    marginBottom: SPACING.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sessionValueLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+    marginRight: SPACING.xs,
+  },
+  sessionValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  contextMessageContainer: {
+    backgroundColor: COLORS.background,
+    padding: SPACING.sm,
+    borderRadius: 8,
+    marginBottom: SPACING.md,
+  },
+  contextMessageText: {
+    fontSize: 14,
+    color: COLORS.text,
+    lineHeight: 20,
   },
   fillerWordsContainer: {
     backgroundColor: COLORS.background,

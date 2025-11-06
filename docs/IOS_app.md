@@ -1273,7 +1273,7 @@ GET  /api/trial_sessions/:token/status   - Trial session status
 - No React/Vue - Pure Rails with Stimulus controllers
 - Responsive design, PWA-ready
 
-### **Authentication**
+### **Authentication**ma
 - Session-based cookies (needs JWT for mobile)
 - bcrypt password hashing
 - Password reset tokens with 24-hour expiration

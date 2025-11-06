@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_11_04_131534) do
+ActiveRecord::Schema[8.0].define(version: 2025_11_06_172910) do
   create_table "action_text_rich_texts", force: :cascade do |t|
     t.string "name", null: false
     t.text "body"
@@ -123,6 +123,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_04_131534) do
     t.json "coaching_insights", default: {}
     t.json "analysis_data", default: {}
     t.datetime "processing_started_at"
+    t.float "relevance_score"
+    t.text "relevance_feedback"
+    t.boolean "off_topic", default: false
+    t.integer "retake_count", default: 0
+    t.boolean "is_retake", default: false
+    t.text "prompt_text"
     t.index ["analysis_json"], name: "index_sessions_on_analysis_json_gin"
     t.index ["completed", "created_at"], name: "index_sessions_on_completed_and_created_at"
     t.index ["created_at", "completed"], name: "index_sessions_on_date_completed"

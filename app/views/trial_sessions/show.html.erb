@@ -133,12 +133,16 @@
           <div class="metric-value-large"><%= @trial_session.wpm || 0 %> WPM</div>
           <div class="metric-feedback">
             <% wpm = @trial_session.wpm || 0 %>
-            <% if wpm >= 140 && wpm <= 180 %>
-              Great natural pace!
-            <% elsif wpm < 140 %>
-              Try speaking a bit faster
+            <% if wpm >= 130 && wpm <= 150 %>
+              Optimal pace!
+            <% elsif wpm >= 110 && wpm < 130 %>
+              Slightly slow, try speeding up a bit
+            <% elsif wpm > 150 && wpm <= 170 %>
+              Slightly fast, try slowing down a bit
+            <% elsif wpm < 110 %>
+              Too slow - try speaking faster
             <% else %>
-              Try slowing down slightly
+              Too fast - try slowing down
             <% end %>
           </div>
           <div class="upgrade-hint">🔒 Get detailed pace analysis with full version</div>

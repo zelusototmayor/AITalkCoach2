@@ -1055,6 +1055,15 @@ export default class extends Controller {
       titleField.value = titleValue
     }
 
+    // Sync prompt text from practice timer's prompt input
+    const promptInput = document.querySelector('[data-practice-timer-target="promptInput"]')
+    const promptTextField = form.querySelector('input[name="session[prompt_text]"]') ||
+                           form.querySelector('textarea[name="session[prompt_text]"]')
+    if (promptTextField && promptInput && promptInput.value) {
+      promptTextField.value = promptInput.value
+      console.log('Synced prompt text to form:', promptInput.value)
+    }
+
     const languageField = form.querySelector('select[name="session[language]"]') ||
                           form.querySelector('input[name="session[language]"]')
     if (languageField) {

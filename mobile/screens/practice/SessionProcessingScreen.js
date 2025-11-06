@@ -89,6 +89,22 @@ export default function SessionProcessingScreen({ route, navigation }) {
         // Processing complete - fetch full session data
         const fullSession = await getSessionReport(currentSessionId);
 
+        // Check if session failed relevance check
+        if (fullSession.session && fullSession.session.processing_state === 'relevance_failed') {
+          // Track relevance failure
+          analytics.track('Session Relevance Failed', {
+            session_id: currentSessionId,
+            relevance_score: fullSession.session.relevance_score,
+            retake_count: fullSession.session.retake_count || 0,
+          });
+
+          // Navigate to relevance screen for user decision
+          navigation.replace('SessionRelevance', {
+            session: fullSession.session
+          });
+          return;
+        }
+
         // Check if session is incomplete (too short)
         if (fullSession.session && !fullSession.session.completed && fullSession.session.incomplete_reason) {
           // Track session incomplete
@@ -166,7 +182,7 @@ export default function SessionProcessingScreen({ route, navigation }) {
           <View style={styles.progressCircle}>
             <View style={styles.progressInner}>
               <Text style={styles.progressPercent}>{Math.round(progressPercent)}%</Text>
-              <Text style={styles.progressStage}>Stage {stageInfo.stage}/6</Text>
+              <Text style={styles.progressStage}>Stage {stageInfo.stage}/7</Text>
             </View>
           </View>
 
@@ -205,24 +221,30 @@ export default function SessionProcessingScreen({ route, navigation }) {
           />
           <StageItem
             number={3}
-            name="Rule Analysis"
-            isComplete={progressPercent > 60}
-            isCurrent={progressPercent > 35 && progressPercent <= 60}
+            name="Relevance Check"
+            isComplete={progressPercent > 45}
+            isCurrent={progressPercent > 35 && progressPercent <= 45}
           />
           <StageItem
             number={4}
+            name="Rule Analysis"
+            isComplete={progressPercent > 60}
+            isCurrent={progressPercent > 45 && progressPercent <= 60}
+          />
+          <StageItem
+            number={5}
             name="AI Refinement"
             isComplete={progressPercent > 80}
             isCurrent={progressPercent > 60 && progressPercent <= 80}
           />
           <StageItem
-            number={5}
+            number={6}
             name="Metrics Calculation"
             isComplete={progressPercent >= 100}
             isCurrent={progressPercent > 80 && progressPercent < 100}
           />
           <StageItem
-            number={6}
+            number={7}
             name="Complete"
             isComplete={progressPercent >= 100}
             isCurrent={progressPercent >= 100}

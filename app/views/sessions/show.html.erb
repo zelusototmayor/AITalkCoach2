@@ -224,13 +224,17 @@
                 <%= @session.analysis_data['wpm'].to_i %> <span class="unit">wpm</span>
               </div>
               <div class="metric-label-compact">
-                <%= metric_tooltip("Pace", "Your speaking speed in words per minute (WPM). Natural conversational pace is 140-180 WPM.") %>
+                <%= metric_tooltip("Pace", "Your speaking speed in words per minute (WPM). Optimal pace is 130-150 WPM, acceptable range is 110-170 WPM.") %>
               </div>
               <div class="metric-status-compact">
                 <% wpm = @session.analysis_data['wpm'].to_i %>
-                <% if wpm >= 140 && wpm <= 180 %>
-                  <span style="color: #10b981;">Natural range</span>
-                <% elsif wpm < 140 %>
+                <% if wpm >= 130 && wpm <= 150 %>
+                  <span style="color: #10b981;">Optimal</span>
+                <% elsif wpm >= 110 && wpm < 130 %>
+                  <span style="color: #3b82f6;">Slightly slow</span>
+                <% elsif wpm > 150 && wpm <= 170 %>
+                  <span style="color: #3b82f6;">Slightly fast</span>
+                <% elsif wpm < 110 %>
                   <span style="color: #f59e0b;">Too slow</span>
                 <% else %>
                   <span style="color: #f59e0b;">Too fast</span>

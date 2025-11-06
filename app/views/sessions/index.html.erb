@@ -573,6 +573,7 @@
   <%= form_with model: Session.new, local: true, multipart: true, class: "hidden-form",
         data: { practice_timer_target: "form" } do |f| %>
     <%= f.hidden_field :title, data: { practice_timer_target: "titleInput" }, value: params[:drill_title] %>
+    <%= f.hidden_field :prompt_text, value: "" %>
     <%= f.hidden_field :language, value: "en" %>
     <%= f.hidden_field :media_kind, value: "audio" %>
     <%= f.hidden_field :target_seconds, data: { practice_timer_target: "durationInput" }, value: params[:target_seconds] %>

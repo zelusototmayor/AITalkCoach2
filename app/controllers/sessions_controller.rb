@@ -651,7 +651,7 @@ class SessionsController < ApplicationController
 
 
   def session_params
-    params.require(:session).permit(:title, :language, :media_kind, :target_seconds, :minimum_duration_enforced, :speech_context, :weekly_focus_id, :is_planned_session, :planned_for_date, :media_file, media_files: [])
+    params.require(:session).permit(:title, :prompt_text, :language, :media_kind, :target_seconds, :minimum_duration_enforced, :speech_context, :weekly_focus_id, :is_planned_session, :planned_for_date, :media_file, media_files: [])
   end
 
   def extract_session_metrics(session)

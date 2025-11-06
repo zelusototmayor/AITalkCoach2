@@ -20,14 +20,35 @@
 
     <% elsif @recommendation_matches_focus && @weekly_focus %>
       <!-- Matched with weekly focus: show progress and continuity -->
+      <%
+        # Get contextual badge info
+        badge_text = top_recommendation[:contextual_message]&.[](:badge) || "KEEP GOING 💪"
+        badge_class = badge_text.include?("🎉") ? "success-badge" : "action-badge"
+      %>
       <div class="coach-card matched-focus-card">
-        <div class="coach-card-badge action-badge">KEEP GOING 💪</div>
+        <div class="coach-card-badge <%= badge_class %>"><%= badge_text %></div>
         <h3 class="coach-card-title">
-          <%= humanize_improvement_type(top_recommendation[:type]) %>
+          <%= top_recommendation[:contextual_message]&.[](:title) || humanize_improvement_type(top_recommendation[:type]) %>
         </h3>
-        <p class="coach-card-description">
-          <%= top_recommendation[:actionable_steps].first %>
-        </p>
+
+        <!-- Show current session value if available -->
+        <% if top_recommendation[:current_session_value] %>
+          <div class="session-value-highlight">
+            <span class="session-label">This Session:</span>
+            <span class="session-value"><%= format_metric_value(top_recommendation[:current_session_value], top_recommendation[:type]) %></span>
+          </div>
+        <% end %>
+
+        <!-- Show contextual message if available, otherwise show first actionable step -->
+        <% if top_recommendation[:contextual_message]&.[](:body) %>
+          <p class="contextual-message">
+            <%= top_recommendation[:contextual_message][:body] %>
+          </p>
+        <% else %>
+          <p class="coach-card-description">
+            <%= top_recommendation[:actionable_steps].first %>
+          </p>
+        <% end %>
 
         <!-- Weekly progress bar -->
         <div class="weekly-progress-container">
@@ -55,14 +76,35 @@
 
     <% elsif @weekly_focus %>
       <!-- Has weekly focus but recommendation differs: offer to switch -->
+      <%
+        # Get contextual badge info
+        badge_text = top_recommendation[:contextual_message]&.[](:badge) || "NEW INSIGHT 💡"
+        badge_class = badge_text.include?("🎉") ? "success-badge" : "insight-badge"
+      %>
       <div class="coach-card switch-focus-card">
-        <div class="coach-card-badge insight-badge">NEW INSIGHT 💡</div>
+        <div class="coach-card-badge <%= badge_class %>"><%= badge_text %></div>
         <h3 class="coach-card-title">
-          Recommendation: <%= humanize_improvement_type(top_recommendation[:type]) %>
+          Recommendation: <%= top_recommendation[:contextual_message]&.[](:title) || humanize_improvement_type(top_recommendation[:type]) %>
         </h3>
-        <p class="coach-card-description">
-          Based on this session, I noticed: <%= top_recommendation[:actionable_steps].first %>
-        </p>
+
+        <!-- Show current session value if available -->
+        <% if top_recommendation[:current_session_value] %>
+          <div class="session-value-highlight">
+            <span class="session-label">This Session:</span>
+            <span class="session-value"><%= format_metric_value(top_recommendation[:current_session_value], top_recommendation[:type]) %></span>
+          </div>
+        <% end %>
+
+        <!-- Show contextual message if available, otherwise show first actionable step -->
+        <% if top_recommendation[:contextual_message]&.[](:body) %>
+          <p class="contextual-message">
+            <%= top_recommendation[:contextual_message][:body] %>
+          </p>
+        <% else %>
+          <p class="coach-card-description">
+            Based on this session, I noticed: <%= top_recommendation[:actionable_steps].first %>
+          </p>
+        <% end %>
         <p class="coach-card-note">
           <strong>Current weekly focus:</strong> <%= humanize_improvement_type(@weekly_focus.focus_type) %>
         </p>
@@ -84,25 +126,46 @@
 
     <% else %>
       <!-- No weekly focus: show recommendation with option to set as focus -->
+      <%
+        # Get contextual badge info
+        badge_text = top_recommendation[:contextual_message]&.[](:badge) || "RECOMMENDED 🎯"
+        badge_class = badge_text.include?("🎉") ? "success-badge" : "action-badge"
+      %>
       <div class="coach-card new-recommendation-card">
-        <div class="coach-card-badge action-badge">RECOMMENDED 🎯</div>
+        <div class="coach-card-badge <%= badge_class %>"><%= badge_text %></div>
         <h3 class="coach-card-title">
-          <%= humanize_improvement_type(top_recommendation[:type]) %>
+          <%= top_recommendation[:contextual_message]&.[](:title) || humanize_improvement_type(top_recommendation[:type]) %>
         </h3>
-        <p class="coach-card-description">
-          <%= top_recommendation[:actionable_steps].first %>
-        </p>
+
+        <!-- Show current session value if available -->
+        <% if top_recommendation[:current_session_value] %>
+          <div class="session-value-highlight">
+            <span class="session-label">This Session:</span>
+            <span class="session-value"><%= format_metric_value(top_recommendation[:current_session_value], top_recommendation[:type]) %></span>
+          </div>
+        <% end %>
+
+        <!-- Show contextual message if available, otherwise show first actionable step -->
+        <% if top_recommendation[:contextual_message]&.[](:body) %>
+          <p class="contextual-message">
+            <%= top_recommendation[:contextual_message][:body] %>
+          </p>
+        <% else %>
+          <p class="coach-card-description">
+            <%= top_recommendation[:actionable_steps].first %>
+          </p>
+        <% end %>
 
         <!-- Show current vs target metrics if available -->
         <% if top_recommendation[:current_value] && top_recommendation[:target_value] %>
           <div class="metric-comparison">
             <div class="metric-item">
-              <span class="metric-label">Current</span>
+              <span class="metric-label">5-Session Avg</span>
               <span class="metric-value"><%= format_metric_value(top_recommendation[:current_value], top_recommendation[:type]) %></span>
             </div>
             <span class="metric-arrow">→</span>
             <div class="metric-item">
-              <span class="metric-label">Target</span>
+              <span class="metric-label">Goal</span>
               <span class="metric-value target"><%= format_metric_value(top_recommendation[:target_value], top_recommendation[:type]) %></span>
             </div>
           </div>
@@ -176,6 +239,48 @@
     .insight-badge {
       background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
       color: #9f1239;
+    }
+
+    .success-badge {
+      background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+      color: #065f46;
+    }
+
+    .session-value-highlight {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.875rem 1.25rem;
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      border: 2px solid #bae6fd;
+      border-radius: 12px;
+      margin-bottom: 1rem;
+    }
+
+    .session-label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #0369a1;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .session-value {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #0c4a6e;
+    }
+
+    .contextual-message {
+      font-size: 1.0625rem;
+      color: #475569;
+      line-height: 1.7;
+      margin: 0 0 1.5rem 0;
+      padding: 1rem;
+      background: #f8fafc;
+      border-left: 3px solid #4F46E5;
+      border-radius: 6px;
     }
 
     .coach-card-title {

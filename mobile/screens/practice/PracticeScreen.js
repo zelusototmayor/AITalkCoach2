@@ -28,11 +28,15 @@ export default function PracticeScreen({ navigation, route }) {
     promptText,
     promptTitle,
     drillTitle,
+    isRetake,
+    originalTitle,
+    retakeCount,
+    relevanceFeedback,
   } = params;
 
   // Check if we have a custom prompt from navigation params
-  const customPrompt = (promptText || drillTitle) ? {
-    text: promptText || drillTitle,
+  const customPrompt = (promptText || drillTitle || originalTitle) ? {
+    text: promptText || drillTitle || originalTitle,
     category: promptTitle || 'Practice',
     duration: presetDuration || 60,
   } : null;
@@ -338,11 +342,13 @@ export default function PracticeScreen({ navigation, route }) {
         type: 'audio/m4a',
       };
 
-      const sessionTitle = `Practice Session - ${new Date().toLocaleDateString()}`;
+      const sessionTitle = originalTitle || `Practice Session - ${new Date().toLocaleDateString()}`;
       const sessionOptions = {
         title: sessionTitle,
         target_seconds: selectedTime,
         language: user?.preferred_language || 'en',
+        retake_count: retakeCount || 0,
+        is_retake: isRetake || false,
       };
 
       console.log('Navigating to processing screen with audio file');
@@ -388,6 +394,15 @@ export default function PracticeScreen({ navigation, route }) {
       <AnimatedBackground />
 
       <View style={styles.content}>
+        {/* Retake Banner */}
+        {isRetake && relevanceFeedback && (
+          <View style={styles.retakeBanner}>
+            <Text style={styles.retakeBannerTitle}>💡 Try Again - Stay On Topic</Text>
+            <Text style={styles.retakeBannerText}>{relevanceFeedback}</Text>
+            <Text style={styles.retakeBannerPrompt}>Focus on: {originalTitle}</Text>
+          </View>
+        )}
+
         {/* Recommended Prompt Card */}
         <PromptCard prompt={currentPrompt} onShuffle={handleShuffle} canShuffle={canShuffle} />
 
@@ -476,6 +491,32 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.lg,
     paddingTop: 4,
     paddingBottom: 100, // Add space for floating navigation bar
+  },
+  retakeBanner: {
+    backgroundColor: '#FFF3CD',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#FFD700',
+  },
+  retakeBannerTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#856404',
+    marginBottom: 8,
+  },
+  retakeBannerText: {
+    fontSize: 14,
+    color: '#856404',
+    marginBottom: 8,
+    lineHeight: 20,
+  },
+  retakeBannerPrompt: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#856404',
+    fontStyle: 'italic',
   },
   timePillsContainer: {
     flexDirection: 'row',

@@ -31,6 +31,8 @@ Rails.application.routes.draw do
       resources :sessions, only: [:index, :show, :create, :destroy] do
         member do
           get 'status'
+          post 'retake'
+          post 'continue_anyway'
         end
       end
 

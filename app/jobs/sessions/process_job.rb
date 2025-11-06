@@ -88,8 +88,27 @@ module Sessions
         estimated_wpm: calculate_quick_wpm(transcript_data, media_data[:duration])
       })
 
-      # Step 3: Run rule-based analysis
-      Rails.logger.info "Step 3: Running rule-based analysis for session #{@session.id}"
+      # Step 3: Check context relevance (early fail-fast for off-topic responses)
+      Rails.logger.info "Step 3: Checking context relevance for session #{@session.id}"
+      update_processing_stage("relevance", 45)
+      relevance_result = check_context_relevance(transcript_data)
+      pipeline_result[:relevance_check] = relevance_result
+
+      # If off-topic and first attempt, stop processing and prompt user to retake
+      if relevance_result[:off_topic] && @session.retake_count == 0
+        Rails.logger.info "Session #{@session.id} flagged as off-topic (first attempt) - stopping for retake"
+        handle_off_topic_response(relevance_result, pipeline_result)
+        return pipeline_result # Stop processing here
+      end
+
+      # If off-topic on second attempt, apply penalty and continue
+      if relevance_result[:off_topic] && @session.retake_count >= 1
+        Rails.logger.info "Session #{@session.id} still off-topic on attempt #{@session.retake_count + 1} - applying penalty"
+        @relevance_penalty = 10 # Will be applied in metrics calculation
+      end
+
+      # Step 4: Run rule-based analysis
+      Rails.logger.info "Step 4: Running rule-based analysis for session #{@session.id}"
       update_processing_stage("analysis", 60)
       rule_issues = analyze_with_rules(transcript_data)
       pipeline_result[:rule_analysis] = {
@@ -107,30 +126,40 @@ module Sessions
         pause_count: rule_issues.select { |i| i[:kind] == "long_pause" }.length
       })
 
-      # Step 4: AI refinement and enhancement (OPTIMIZED: unified analysis)
+      # Step 5: AI refinement and enhancement (OPTIMIZED: unified analysis)
       if should_run_ai_analysis?
-        Rails.logger.info "Step 4: Running comprehensive AI analysis for session #{@session.id} (optimized)"
+        Rails.logger.info "Step 5: Running comprehensive AI analysis for session #{@session.id} (optimized)"
         update_processing_stage("refinement", 80)
         ai_results = refine_with_ai(transcript_data, rule_issues)
         pipeline_result[:ai_refinement] = ai_results
       else
-        Rails.logger.info "Step 4: Skipping AI analysis (disabled or insufficient data)"
+        Rails.logger.info "Step 5: Skipping AI analysis (disabled or insufficient data)"
         pipeline_result[:ai_refinement] = { skipped: true, reason: skip_ai_reason }
       end
 
-      # Step 5: Calculate comprehensive metrics
-      Rails.logger.info "Step 5: Calculating metrics for session #{@session.id}"
+      # Step 6: Calculate comprehensive metrics
+      Rails.logger.info "Step 6: Calculating metrics for session #{@session.id}"
       final_issues = pipeline_result.dig(:ai_refinement, :refined_issues) || rule_issues
       metrics_data = calculate_comprehensive_metrics(transcript_data, final_issues, media_data)
+
+      # Apply relevance penalty if applicable (second off-topic attempt)
+      if @relevance_penalty && metrics_data.dig(:overall_scores, :overall_score)
+        original_score = metrics_data[:overall_scores][:overall_score]
+        penalized_score = [original_score - @relevance_penalty, 0].max
+        metrics_data[:overall_scores][:overall_score] = penalized_score
+        metrics_data[:overall_scores][:relevance_penalty_applied] = @relevance_penalty
+        Rails.logger.info "Applied relevance penalty: #{original_score} -> #{penalized_score}"
+      end
+
       pipeline_result[:metrics] = metrics_data
 
-      # Step 6: Generate embeddings for future personalization
+      # Step 7: Generate embeddings for future personalization
       if should_generate_embeddings?
-        Rails.logger.info "Step 6: Generating embeddings for session #{@session.id}"
+        Rails.logger.info "Step 7: Generating embeddings for session #{@session.id}"
         embeddings_data = generate_session_embeddings(transcript_data, final_issues)
         pipeline_result[:embeddings] = embeddings_data
       else
-        Rails.logger.info "Step 6: Skipping embedding generation"
+        Rails.logger.info "Step 7: Skipping embedding generation"
         pipeline_result[:embeddings] = { skipped: true }
       end
 
@@ -139,6 +168,52 @@ module Sessions
       pipeline_result[:processing_metadata][:total_duration_seconds] = processing_duration
 
       pipeline_result
+    end
+
+    def check_context_relevance(transcript_data)
+      # Skip relevance check if no title/prompt provided
+      return { on_topic: true, relevance_score: 1.0, skipped: true } if @session.title.blank?
+
+      # Skip relevance check if off_topic was already set to false (user chose "Continue Anyway")
+      return { on_topic: true, relevance_score: 1.0, skipped: true, reason: "user_override" } if @session.off_topic == false && @session.processing_state == "pending"
+
+      begin
+        relevance_checker = Analysis::RelevanceChecker.new(@session)
+        result = relevance_checker.check_relevance(transcript_data)
+
+        # Store relevance data in session
+        @session.update!(
+          relevance_score: result[:relevance_score],
+          relevance_feedback: result[:feedback],
+          off_topic: !result[:on_topic]
+        )
+
+        result
+      rescue => e
+        Rails.logger.error "Relevance check failed for session #{@session.id}: #{e.message}"
+        # On error, assume on-topic to avoid blocking user
+        { on_topic: true, relevance_score: 1.0, error: e.message }
+      end
+    end
+
+    def handle_off_topic_response(relevance_result, pipeline_result)
+      # Store partial analysis data for user to review
+      analysis_data = {
+        transcript: pipeline_result.dig(:transcription, :transcript),
+        processing_state: "relevance_failed",
+        relevance_score: relevance_result[:relevance_score],
+        relevance_feedback: relevance_result[:feedback],
+        duration_seconds: pipeline_result.dig(:media_extraction, :duration),
+        word_count: pipeline_result.dig(:transcription, :words)&.length || 0
+      }
+
+      @session.update!(
+        analysis_data: analysis_data,
+        processing_state: "relevance_failed",
+        completed: false
+      )
+
+      Rails.logger.info "Session #{@session.id} stopped for relevance retake"
     end
 
     def extract_media
