@@ -21,29 +21,58 @@
         <% end %>
       </div>
 
-      <!-- Current Prompt Display -->
-      <div class="prompt-display" data-prompts-target="display">
+      <!-- Current Prompt Display - Library Style -->
+      <div class="prompt-card practice-prompt-card" data-prompts-target="display" data-prompt-identifier="<%= @default_prompt_data[:identifier] %>">
         <div class="prompt-header">
-          <h4><%= params[:drill_title] || "Current Prompt" %></h4>
-          <div class="prompt-actions">
-            <span class="prompt-target-time" data-prompts-target="targetTime">~<%= params[:target_seconds] || @default_prompt_data[:target_seconds] %>s</span>
+          <!-- Title and Badges Row -->
+          <div class="prompt-title-row">
+            <h3 class="prompt-title-practice" data-prompts-target="title"><%= @default_prompt_data[:title] || "Practice Prompt" %></h3>
+            <div class="prompt-badges-practice">
+              <% if @default_prompt_data[:difficulty] %>
+                <span class="difficulty-badge difficulty-<%= @default_prompt_data[:difficulty].downcase %>">
+                  <%= @default_prompt_data[:difficulty].capitalize %>
+                </span>
+              <% end %>
+            </div>
+          </div>
+
+          <!-- Description (optional, if exists) -->
+          <% if @default_prompt_data[:description].present? %>
+            <p class="prompt-description-practice"><%= @default_prompt_data[:description] %></p>
+          <% end %>
+        </div>
+
+        <!-- Full Prompt Text -->
+        <div class="prompt-text-practice" data-prompts-target="content">
+          <% if params[:drill_title].present? %>
+            <%= params[:drill_title] %>
+          <% else %>
+            <%= @default_prompt %>
+          <% end %>
+        </div>
+
+        <!-- Footer -->
+        <div class="prompt-footer-practice">
+          <div class="prompt-footer-left">
+            <span class="duration-icon">⏱</span>
+            <span class="duration-text" data-prompts-target="targetTime">
+              <%= distance_of_time_in_words(@default_prompt_data[:duration] || params[:target_seconds] || 60) %>
+            </span>
+          </div>
+
+          <div class="prompt-footer-right">
             <% unless trial_mode? %>
-              <button type="button" class="shuffle-btn"
+              <button type="button" class="shuffle-btn-icon"
                       data-action="click->prompts#shufflePrompt"
-                      title="Get a random prompt">
-                Shuffle
+                      title="Shuffle to a random prompt">
+                <%= icon_svg(:shuffle, css_class: 'icon-sm') %>
               </button>
             <% end %>
           </div>
         </div>
-        <div class="prompt-content" data-prompts-target="content">
-          <% if params[:drill_title].present? %>
-            <p><strong>From your daily plan:</strong> <%= params[:drill_title] %></p>
-            <p class="drill-instruction">Follow the drill instructions and practice for the recommended duration.</p>
-          <% else %>
-            <p><%= @default_prompt %></p>
-          <% end %>
-        </div>
+
+        <!-- Hidden field to store prompt identifier for completion tracking -->
+        <input type="hidden" name="session[prompt_identifier]" value="<%= @default_prompt_data[:identifier] %>" data-recorder-target="promptIdentifier">
       </div>
 
       <!-- Timer Controls - Compact Layout -->

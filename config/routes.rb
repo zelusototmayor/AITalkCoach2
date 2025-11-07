@@ -44,6 +44,9 @@ Rails.application.routes.draw do
 
       # Prompts
       get 'prompts', to: 'prompts#index'
+      get 'prompts/daily', to: 'sessions#daily_prompt'
+      get 'prompts/shuffle', to: 'sessions#shuffle_prompt'
+      post 'prompts/complete', to: 'sessions#complete_prompt'
 
       # Subscriptions (Apple IAP via RevenueCat)
       get 'subscriptions/status', to: 'subscriptions#status'
@@ -191,6 +194,11 @@ Rails.application.routes.draw do
     end
 
     resources :prompts, only: [ :index ]
+
+    # Prompt API endpoints for web app
+    get "prompts/daily", to: "sessions#daily_prompt"
+    get "prompts/shuffle", to: "sessions#shuffle_prompt"
+    post "prompts/complete", to: "sessions#complete_prompt"
 
     # Privacy settings
     resource :privacy_settings, only: [ :show, :update ]

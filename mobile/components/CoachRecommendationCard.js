@@ -66,6 +66,8 @@ export default function CoachRecommendationCard({
       // Determine color based on badge content
       if (badge.includes('🎉')) {
         return { text: badge, color: COLORS.success };
+      } else if (badge.includes('😔')) {
+        return { text: badge, color: '#DC2626' }; // Red for setbacks
       } else if (badge.includes('💪')) {
         return { text: badge, color: COLORS.primary };
       } else {
@@ -113,9 +115,12 @@ export default function CoachRecommendationCard({
   // Extract filler words for display
   const getFillerWordsDisplay = (recommendation) => {
     // Check if we have specific_issues with filler data
+    // specific_issues format: [coaching_note, text, start_ms, tip]
+    // coaching_note is the isolated filler word for filler_words category
     if (recommendation.specific_issues && recommendation.specific_issues.length > 0) {
       return recommendation.specific_issues
-        .map(issue => issue[0]) // Extract word from [word, timestamp, tip]
+        .map(issue => issue[0]) // Extract coaching_note (isolated filler word)
+        .filter(word => word) // Filter out null/undefined values
         .slice(0, 3) // Top 3 fillers
         .map(word => `"${word}"`)
         .join(', ');
@@ -192,7 +197,6 @@ export default function CoachRecommendationCard({
         </View>
       ) : topRecommendation.actionable_steps && topRecommendation.actionable_steps.length > 0 ? (
         <View style={styles.stepsContainer}>
-          <Text style={styles.stepsTitle}>How to improve:</Text>
           <View style={styles.stepItem}>
             <Text style={styles.stepBullet}>•</Text>
             <Text style={styles.stepText}>

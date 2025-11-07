@@ -136,6 +136,7 @@ class Api::V1::SessionsController < Api::V1::BaseController
       success: true,
       original_session_id: session.id,
       title: session.title,
+      prompt_text: session.prompt_text,
       target_seconds: session.target_seconds,
       language: session.language,
       speech_context: session.speech_context,
@@ -170,6 +171,47 @@ class Api::V1::SessionsController < Api::V1::BaseController
       success: true,
       session_id: session.id,
       message: "Continuing with analysis"
+    }
+  end
+
+  # GET /api/v1/prompts/daily
+  def daily_prompt
+    prompt_selector = PromptSelector.new(current_user)
+    prompt = prompt_selector.daily_prompt
+
+    render json: { prompt: prompt }
+  end
+
+  # GET /api/v1/prompts/shuffle
+  def shuffle_prompt
+    prompt_selector = PromptSelector.new(current_user)
+    prompt = prompt_selector.shuffle_prompt
+
+    render json: { prompt: prompt }
+  end
+
+  # POST /api/v1/prompts/complete
+  def complete_prompt
+    prompt_identifier = params[:prompt_identifier]
+    session_id = params[:session_id]
+
+    if prompt_identifier.blank?
+      return render json: {
+        success: false,
+        error: "prompt_identifier is required"
+      }, status: :unprocessable_entity
+    end
+
+    # Record the completion
+    PromptCompletion.create!(
+      user: current_user,
+      prompt_identifier: prompt_identifier,
+      session_id: session_id
+    )
+
+    render json: {
+      success: true,
+      message: "Prompt marked as completed"
     }
   end
 

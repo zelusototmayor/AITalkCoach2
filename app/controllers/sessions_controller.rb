@@ -126,9 +126,11 @@ class SessionsController < ApplicationController
         @default_prompt_data = get_prompt_by_id(params[:prompt_id])
         @default_prompt = @default_prompt_data[:prompt]
       else
-        # Set a default prompt if none available
-        @default_prompt = get_default_prompt
-        @default_prompt_data = get_default_prompt_data
+        # Get daily prompt based on user's weekly focus
+        prompt_selector = PromptSelector.new(current_user)
+        daily_prompt = prompt_selector.daily_prompt
+        @default_prompt_data = daily_prompt
+        @default_prompt = daily_prompt[:text]
       end
     else
       # Not logged in or no subscription - redirect to pricing
@@ -325,6 +327,11 @@ class SessionsController < ApplicationController
         # Clear cache to ensure history page shows new session
         Rails.cache.delete("user_#{current_user.id}_sessions_count")
         Rails.cache.delete("user_#{current_user.id}_recent_sessions")
+
+        # Mark prompt as completed if prompt_identifier is provided
+        if params[:session][:prompt_identifier].present?
+          PromptSelector.mark_completed(current_user, params[:session][:prompt_identifier], @session.id)
+        end
 
         # Enqueue background job for processing
         Sessions::ProcessJob.perform_later(@session.id)
@@ -581,6 +588,50 @@ class SessionsController < ApplicationController
     }
   end
 
+  # API endpoint for mobile: Get daily prompt
+  def daily_prompt
+    # For mobile API in development
+    user = if request.format.json? && Rails.env.development? && params[:user_id]
+             User.find_by(id: params[:user_id]) || User.first
+           else
+             current_user
+           end
+
+    prompt_selector = PromptSelector.new(user)
+    prompt = prompt_selector.daily_prompt
+
+    render json: { prompt: prompt }
+  end
+
+  # API endpoint for mobile: Shuffle prompt
+  def shuffle_prompt
+    # For mobile API in development
+    user = if request.format.json? && Rails.env.development? && params[:user_id]
+             User.find_by(id: params[:user_id]) || User.first
+           else
+             current_user
+           end
+
+    prompt_selector = PromptSelector.new(user)
+    prompt = prompt_selector.shuffle_prompt
+
+    render json: { prompt: prompt }
+  end
+
+  # API endpoint for mobile: Mark prompt as completed
+  def complete_prompt
+    # For mobile API in development
+    user = if request.format.json? && Rails.env.development? && params[:user_id]
+             User.find_by(id: params[:user_id]) || User.first
+           else
+             current_user
+           end
+
+    PromptSelector.mark_completed(user, params[:prompt_identifier], params[:session_id])
+
+    render json: { success: true }
+  end
+
   # Make the helper methods available to views
   helper_method :normalize_metric_for_display, :humanize_improvement_type, :format_metric_value, :format_effort_level
 
@@ -651,7 +702,7 @@ class SessionsController < ApplicationController
 
 
   def session_params
-    params.require(:session).permit(:title, :prompt_text, :language, :media_kind, :target_seconds, :minimum_duration_enforced, :speech_context, :weekly_focus_id, :is_planned_session, :planned_for_date, :media_file, media_files: [])
+    params.require(:session).permit(:title, :prompt_text, :language, :media_kind, :target_seconds, :minimum_duration_enforced, :speech_context, :weekly_focus_id, :is_planned_session, :planned_for_date, :prompt_identifier, :media_file, media_files: [])
   end
 
   def extract_session_metrics(session)

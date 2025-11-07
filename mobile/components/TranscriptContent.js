@@ -22,14 +22,16 @@ export default function TranscriptContent({ transcript = '', issues = [] }) {
   };
 
   // Get filler words from issues
+  // coaching_note contains the actual filler word (e.g., "um", "like")
   const fillerWords = issues
     .filter((issue) => issue.category === 'filler_words')
     .map((issue) => ({
-      text: issue.text,
+      text: issue.coaching_note || issue.text, // Use coaching_note (isolated word) if available
       start_ms: issue.start_ms,
       end_ms: issue.end_ms,
       type: issue.coaching_note?.filler_type || 'filler_um',
-    }));
+    }))
+    .filter((filler) => filler.text); // Filter out entries without text
 
   // Helper function to escape regex special characters
   const escapeRegex = (str) => {

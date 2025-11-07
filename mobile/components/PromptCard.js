@@ -22,6 +22,27 @@ export default function PromptCard({ prompt, onShuffle, canShuffle = true }) {
     return colors[diff?.toLowerCase()] || { background: '#e5e7eb', text: '#6b7280' };
   };
 
+  // Handle null/undefined prompt
+  if (!prompt) {
+    return (
+      <View style={styles.card}>
+        <View style={styles.header}>
+          <Text style={styles.label}>Loading prompt...</Text>
+          {canShuffle && (
+            <TouchableOpacity
+              onPress={onShuffle}
+              style={styles.shuffleButton}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="shuffle" size={20} color={COLORS.primary} />
+            </TouchableOpacity>
+          )}
+        </View>
+        <Text style={styles.promptText}>Please wait while we load your prompt</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.card}>
       <View style={styles.header}>
@@ -46,12 +67,12 @@ export default function PromptCard({ prompt, onShuffle, canShuffle = true }) {
         )}
       </View>
 
-      <Text style={styles.promptText}>{prompt.text}</Text>
+      <Text style={styles.promptText}>{prompt.text || 'No prompt text available'}</Text>
 
       <View style={styles.footer}>
-        <Text style={styles.category}>{prompt.category}</Text>
+        <Text style={styles.category}>{prompt.category || 'General'}</Text>
         <View style={styles.timeBadge}>
-          <Text style={styles.timeText}>{prompt.duration}s</Text>
+          <Text style={styles.timeText}>{prompt.duration || 60}s</Text>
         </View>
       </View>
     </View>

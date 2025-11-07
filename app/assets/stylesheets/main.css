@@ -5987,6 +5987,51 @@ textarea:focus {
   border-top: 1px solid #f3f4f6;
 }
 
+.prompt-footer-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.prompt-footer-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.duration-icon {
+  font-size: 1rem;
+  opacity: 0.7;
+}
+
+.duration-text {
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.shuffle-btn-icon {
+  background: transparent;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  color: var(--brand-500);
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.375rem;
+}
+
+.shuffle-btn-icon:hover {
+  color: var(--brand-600);
+  background: rgba(255, 140, 66, 0.1);
+}
+
+.shuffle-btn-icon svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
 /* Practice button styling */
 .practice-btn-small {
   padding: 0.5rem 1rem;

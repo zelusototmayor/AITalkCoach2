@@ -11,11 +11,10 @@ import BottomNavigation from '../../components/BottomNavigation';
 import AnimatedBackground from '../../components/AnimatedBackground';
 import { COLORS, SPACING } from '../../constants/colors';
 import {
-  PRACTICE_PROMPTS,
   TIME_OPTIONS,
   MOCK_WEEKLY_FOCUS,
 } from '../../constants/practiceData';
-import { createSession, getProgressMetrics, getCoachRecommendations } from '../../services/api';
+import { createSession, getProgressMetrics, getCoachRecommendations, getDailyPrompt, shufflePrompt } from '../../services/api';
 import analytics from '../../services/analytics';
 import { useAuth } from '../../context/AuthContext';
 
@@ -42,8 +41,8 @@ export default function PracticeScreen({ navigation, route }) {
   } : null;
 
   // Prompt state
-  const [currentPromptIndex, setCurrentPromptIndex] = useState(0);
-  const currentPrompt = customPrompt || PRACTICE_PROMPTS[currentPromptIndex];
+  const [currentPrompt, setCurrentPrompt] = useState(customPrompt || null);
+  const [promptLoading, setPromptLoading] = useState(!customPrompt);
   const canShuffle = !customPrompt; // Disable shuffle when using custom prompt
 
   // Time selection state
@@ -106,6 +105,32 @@ export default function PracticeScreen({ navigation, route }) {
     };
   }, []);
 
+  // Fetch daily prompt on mount if not using custom prompt
+  useEffect(() => {
+    if (!customPrompt) {
+      const fetchDailyPrompt = async () => {
+        try {
+          setPromptLoading(true);
+          const prompt = await getDailyPrompt();
+          setCurrentPrompt(prompt);
+        } catch (error) {
+          console.error('Error fetching daily prompt:', error);
+          // Fallback to default prompt
+          setCurrentPrompt({
+            text: 'What did you enjoy most about last week and why?',
+            category: 'Reflection',
+            duration: 60,
+            identifier: 'fallback_default'
+          });
+        } finally {
+          setPromptLoading(false);
+        }
+      };
+
+      fetchDailyPrompt();
+    }
+  }, []);
+
   // Fetch average metrics on mount
   useEffect(() => {
     const fetchAverageMetrics = async () => {
@@ -117,7 +142,7 @@ export default function PracticeScreen({ navigation, route }) {
         console.error('Error fetching average metrics:', error);
         // Set empty object on error so we can show placeholder values
         setAverageMetrics({});
-      } finally {
+      } finally{
         setMetricsLoading(false);
       }
     };
@@ -172,16 +197,24 @@ export default function PracticeScreen({ navigation, route }) {
     }
   }, [shouldAutoStop, isRecording]);
 
-  const handleShuffle = () => {
+  const handleShuffle = async () => {
     // Only allow shuffle if not using a custom prompt
     if (canShuffle) {
-      const nextIndex = (currentPromptIndex + 1) % PRACTICE_PROMPTS.length;
-      setCurrentPromptIndex(nextIndex);
+      try {
+        setPromptLoading(true);
+        const newPrompt = await shufflePrompt();
+        setCurrentPrompt(newPrompt);
 
-      // Track prompt shuffle
-      analytics.track('Prompt Shuffled', {
-        new_prompt_category: PRACTICE_PROMPTS[nextIndex].category,
-      });
+        // Track prompt shuffle
+        analytics.track('Prompt Shuffled', {
+          new_prompt_category: newPrompt.category,
+        });
+      } catch (error) {
+        console.error('Error shuffling prompt:', error);
+        Alert.alert('Error', 'Failed to shuffle prompt. Please try again.');
+      } finally {
+        setPromptLoading(false);
+      }
     }
   };
 
@@ -345,10 +378,12 @@ export default function PracticeScreen({ navigation, route }) {
       const sessionTitle = originalTitle || `Practice Session - ${new Date().toLocaleDateString()}`;
       const sessionOptions = {
         title: sessionTitle,
+        prompt_text: currentPrompt?.text, // Actual prompt text for relevance checking
         target_seconds: selectedTime,
         language: user?.preferred_language || 'en',
         retake_count: retakeCount || 0,
         is_retake: isRetake || false,
+        prompt_identifier: currentPrompt?.identifier, // Track which prompt was used
       };
 
       console.log('Navigating to processing screen with audio file');

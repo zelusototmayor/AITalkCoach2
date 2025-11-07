@@ -18,6 +18,7 @@ export default class extends Controller {
     this.maxDurationTimer = null
     this.countdownTimer = null
     this.selectedDuration = 60 // Default duration
+    this.autoStopped = false // Track if recording stopped due to time limit
   }
 
   connect() {
@@ -96,8 +97,9 @@ export default class extends Controller {
       
       this.mediaRecorder.start()
       this.startTime = Date.now()
-      
+
       this.maxDurationTimer = setTimeout(() => {
+        this.autoStopped = true
         this.stopRecording()
       }, this.maxDurationSecValue * 1000)
       
@@ -217,10 +219,35 @@ export default class extends Controller {
         setTimeout(() => {
           this.submitRecording()
         }, 2000)
+      } else if (this.autoStopped) {
+        // Recording stopped due to time limit - auto-submit immediately
+        console.log('Recorder: Time limit reached, auto-submitting recording...')
+        this.updateUI("processing")
+        setTimeout(() => {
+          this.submitRecording()
+        }, 100) // Minimal delay for UI update
       } else if (this.isPracticeTimerMode) {
-        // In practice timer mode, let practice timer handle the UI
+        // In practice timer mode, check if timer completed
         console.log('Recorder: Recording complete in practice timer mode')
-        // Practice timer will show the new post-recording actions
+
+        // Check if the practice timer has completed its countdown
+        const practiceTimer = window.practiceTimerController
+        if (practiceTimer && practiceTimer.currentTime >= practiceTimer.selectedDuration) {
+          // Timer completed - auto-submit
+          console.log('Recorder: Practice timer completed, auto-submitting...', {
+            currentTime: practiceTimer.currentTime,
+            selectedDuration: practiceTimer.selectedDuration,
+            autoStopped: this.autoStopped
+          })
+          this.updateUI("processing")
+          setTimeout(() => {
+            this.submitRecording()
+          }, 100)
+        } else {
+          // Timer was manually stopped early - show choice interface
+          console.log('Recorder: Manual stop, showing choice interface')
+          this.showPostRecordingActions()
+        }
       } else {
         // For standalone recorder, show the new post-recording actions
         this.showPostRecordingActions()
@@ -667,6 +694,7 @@ export default class extends Controller {
     this.recordedChunks = []
     this.attachedBlob = null
     this.attachedFile = null
+    this.autoStopped = false
     this.releaseStream()
     this.updateUI("ready")
   }
@@ -1335,6 +1363,7 @@ export default class extends Controller {
     this.recordedChunks = []
     this.attachedBlob = null
     this.attachedFile = null
+    this.autoStopped = false
 
     // Clear file input
     if (this.hasFileInputTarget) {

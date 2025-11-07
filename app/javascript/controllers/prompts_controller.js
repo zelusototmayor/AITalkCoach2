@@ -29,6 +29,7 @@ export default class extends Controller {
     this.practiceTimer = null
     this.usedPrompts = new Set()
     this.visibleCountByCategory = {}
+    this.recentlyShownPrompts = [] // Track last 10 shown prompts to avoid repeats
   }
 
   connect() {
@@ -333,6 +334,53 @@ export default class extends Controller {
     }
   }
 
+  updateMobileCardDisplay(prompt) {
+    // Update the prompt card if it exists
+    const card = document.querySelector('.prompt-card[data-prompts-target="display"]')
+    if (!card) return
+
+    // Update prompt title
+    const titleElement = card.querySelector('.prompt-title-practice')
+    if (titleElement) {
+      titleElement.textContent = prompt.title || 'Practice Prompt'
+    }
+
+    // Update prompt text (the actual prompt text with orange border)
+    const textElement = card.querySelector('.prompt-text-practice')
+    if (textElement) {
+      textElement.textContent = prompt.text
+    }
+
+    // Update difficulty badge
+    const difficultyBadge = card.querySelector('.difficulty-badge')
+    if (difficultyBadge && prompt.difficulty) {
+      difficultyBadge.textContent = prompt.difficulty.charAt(0).toUpperCase() + prompt.difficulty.slice(1).toLowerCase()
+      difficultyBadge.className = `difficulty-badge difficulty-${prompt.difficulty.toLowerCase()}`
+    }
+
+    // Update duration text
+    const durationText = card.querySelector('.duration-text')
+    if (durationText) {
+      // Convert seconds to "less than a minute" or similar format
+      const seconds = prompt.estimatedTime
+      if (seconds < 60) {
+        durationText.textContent = 'less than a minute'
+      } else {
+        const minutes = Math.round(seconds / 60)
+        durationText.textContent = `${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`
+      }
+    }
+
+    // Update hidden prompt identifier field
+    const identifierField = card.querySelector('input[name="session[prompt_identifier]"]')
+    if (identifierField) {
+      identifierField.value = prompt.identifier
+    }
+
+    // Update data attribute on card
+    card.setAttribute('data-prompt-identifier', prompt.identifier)
+  }
+
   usePrompt(event) {
     const promptText = event.target.dataset.prompt
     if (!promptText) return
@@ -412,30 +460,138 @@ export default class extends Controller {
     }
   }
 
-  shufflePrompt() {
-    // For the new practice interface, shuffle from all available prompts
+  async shufflePrompt(event) {
+    console.log('Shuffle button clicked!')
+
+    // Prevent default if this is a form button
+    if (event) {
+      event.preventDefault()
+      event.stopPropagation()
+    }
+
+    try {
+      console.log('Fetching shuffled prompt from API...')
+
+      // Call backend API to get a shuffled prompt
+      const response = await fetch('/prompts/shuffle', {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content
+        }
+      })
+
+      console.log('Response status:', response.status)
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      console.log('Received data:', data)
+
+      const prompt = data.prompt
+
+      if (!prompt) {
+        console.warn('No prompt returned from API')
+        return
+      }
+
+      // Normalize the prompt object
+      const normalizedPrompt = {
+        id: Date.now(),
+        text: prompt.text || prompt.prompt,
+        title: prompt.title || 'Practice Prompt',
+        category: prompt.category || 'General',
+        difficulty: prompt.difficulty || 'intermediate',
+        estimatedTime: prompt.target_seconds || prompt.estimatedTime || 60,
+        identifier: prompt.identifier
+      }
+
+      console.log('Normalized prompt:', normalizedPrompt)
+
+      // Track this prompt as recently shown (keep last 10)
+      if (!this.recentlyShownPrompts) {
+        this.recentlyShownPrompts = []
+      }
+      this.recentlyShownPrompts.push(normalizedPrompt)
+      if (this.recentlyShownPrompts.length > 10) {
+        this.recentlyShownPrompts.shift()
+      }
+
+      this.selectedPromptValue = normalizedPrompt
+      this.updatePracticeDisplay()
+      this.updateMobileCardDisplay(normalizedPrompt)
+      this.autoGenerateSessionTitle(normalizedPrompt)
+
+      console.log('Card updated successfully')
+
+      this.dispatch('prompt-shuffled', {
+        detail: { prompt: normalizedPrompt },
+        bubbles: true
+      })
+    } catch (error) {
+      console.error('Error shuffling prompt:', error)
+      // Fallback to client-side shuffle if API fails
+      this.shufflePromptFallback()
+    }
+  }
+
+  shufflePromptFallback() {
+    console.log('Using fallback shuffle method')
+
+    // Fallback: shuffle from all available prompts client-side
     const allPrompts = this.getAllAvailablePrompts()
 
-    if (allPrompts.length === 0) {
+    if (!allPrompts || allPrompts.length === 0) {
       console.warn('No prompts available to shuffle')
       return
     }
 
-    const randomIndex = Math.floor(Math.random() * allPrompts.length)
-    const selectedPrompt = allPrompts[randomIndex]
+    // Initialize recentlyShownPrompts if needed
+    if (!this.recentlyShownPrompts) {
+      this.recentlyShownPrompts = []
+    }
+
+    // Filter out recently shown prompts to avoid repeats
+    let availablePrompts = allPrompts
+    if (this.recentlyShownPrompts.length > 0 && allPrompts.length > 10) {
+      availablePrompts = allPrompts.filter(p =>
+        !this.recentlyShownPrompts.some(recent =>
+          recent.text === (p.text || p.prompt)
+        )
+      )
+
+      // If we filtered out too many, just use all prompts
+      if (availablePrompts.length === 0) {
+        availablePrompts = allPrompts
+        this.recentlyShownPrompts = [] // Reset tracking
+      }
+    }
+
+    const randomIndex = Math.floor(Math.random() * availablePrompts.length)
+    const selectedPrompt = availablePrompts[randomIndex]
 
     // Create a normalized prompt object
     const prompt = {
       id: Date.now(),
-      text: selectedPrompt.text || selectedPrompt,
+      text: selectedPrompt.text || selectedPrompt.prompt || selectedPrompt,
       title: selectedPrompt.title || 'Random Prompt',
-      category: selectedPrompt.category || 'general',
+      category: selectedPrompt.category || 'General',
       difficulty: selectedPrompt.difficulty || 'intermediate',
-      estimatedTime: selectedPrompt.estimatedTime || 60
+      estimatedTime: selectedPrompt.estimatedTime || selectedPrompt.target_seconds || 60,
+      identifier: selectedPrompt.identifier || `shuffle_${Date.now()}`
+    }
+
+    // Track this prompt as recently shown (keep last 10)
+    this.recentlyShownPrompts.push(prompt)
+    if (this.recentlyShownPrompts.length > 10) {
+      this.recentlyShownPrompts.shift()
     }
 
     this.selectedPromptValue = prompt
     this.updatePracticeDisplay()
+    this.updateMobileCardDisplay(prompt)
     this.autoGenerateSessionTitle(prompt)
 
     this.dispatch('prompt-shuffled', {
@@ -451,12 +607,14 @@ export default class extends Controller {
     if (this.promptsValue && typeof this.promptsValue === 'object') {
       for (const [category, categoryPrompts] of Object.entries(this.promptsValue)) {
         if (Array.isArray(categoryPrompts)) {
-          categoryPrompts.forEach(prompt => {
+          categoryPrompts.forEach((prompt, index) => {
             prompts.push({
               text: typeof prompt === 'string' ? prompt : prompt.prompt || prompt.text,
+              title: typeof prompt === 'object' ? prompt.title : undefined,
               category: category,
-              difficulty: prompt.difficulty || 'intermediate',
-              estimatedTime: prompt.target_seconds || 60
+              difficulty: typeof prompt === 'object' ? prompt.difficulty : 'intermediate',
+              estimatedTime: typeof prompt === 'object' ? (prompt.target_seconds || 60) : 60,
+              identifier: `${category}_${index}`
             })
           })
         }
@@ -476,12 +634,13 @@ export default class extends Controller {
         "Describe a time you had to adapt quickly to change."
       ]
 
-      defaultPrompts.forEach(text => {
+      defaultPrompts.forEach((text, index) => {
         prompts.push({
           text: text,
-          category: 'general',
+          category: 'General',
           difficulty: 'intermediate',
-          estimatedTime: 60
+          estimatedTime: 60,
+          identifier: `default_${index}`
         })
       })
     }

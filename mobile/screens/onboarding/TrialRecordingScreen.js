@@ -121,6 +121,7 @@ export default function TrialRecordingScreen({ navigation }) {
         const trialOptions = {
           language: onboardingData.language || 'en',
           target_seconds: RECORDING_DURATION,
+          prompt_text: TRIAL_PROMPT,
         };
 
         // Navigate to processing screen IMMEDIATELY - let it handle the upload

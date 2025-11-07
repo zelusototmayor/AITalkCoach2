@@ -5,6 +5,7 @@ class User < ApplicationRecord
   has_many :weekly_focuses, dependent: :destroy, class_name: "WeeklyFocus"
   has_many :user_issue_embeddings, dependent: :destroy
   has_many :issues, through: :sessions
+  has_many :prompt_completions, dependent: :destroy
 
   validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :name, presence: true, length: { minimum: 2, maximum: 50 }

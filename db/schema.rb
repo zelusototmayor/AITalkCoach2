@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_11_06_172910) do
+ActiveRecord::Schema[8.0].define(version: 2025_11_06_214208) do
   create_table "action_text_rich_texts", force: :cascade do |t|
     t.string "name", null: false
     t.text "body"
@@ -97,6 +97,18 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_06_172910) do
     t.index ["session_id", "start_ms"], name: "index_issues_on_session_start_time"
     t.index ["session_id"], name: "index_issues_on_session_id"
     t.index ["severity"], name: "index_issues_on_severity"
+  end
+
+  create_table "prompt_completions", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.string "prompt_identifier", null: false
+    t.datetime "completed_at", null: false
+    t.integer "session_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["session_id"], name: "index_prompt_completions_on_session_id"
+    t.index ["user_id", "prompt_identifier"], name: "index_prompt_completions_on_user_id_and_prompt_identifier", unique: true
+    t.index ["user_id"], name: "index_prompt_completions_on_user_id"
   end
 
   create_table "sessions", force: :cascade do |t|
@@ -265,6 +277,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_06_172910) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "issues", "sessions"
+  add_foreign_key "prompt_completions", "sessions"
+  add_foreign_key "prompt_completions", "users"
   add_foreign_key "sessions", "users"
   add_foreign_key "sessions", "weekly_focuses", column: "weekly_focus_id"
   add_foreign_key "user_issue_embeddings", "sessions"

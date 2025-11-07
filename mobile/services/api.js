@@ -85,6 +85,14 @@ export async function createSession(audioFile, options = {}) {
     formData.append('session[is_retake]', options.is_retake);
   }
 
+  if (options.prompt_identifier) {
+    formData.append('session[prompt_identifier]', options.prompt_identifier);
+  }
+
+  if (options.prompt_text) {
+    formData.append('session[prompt_text]', options.prompt_text);
+  }
+
   try {
     const headers = await getAuthHeaders();
     // Don't set Content-Type for FormData - let browser set it with boundary
@@ -580,6 +588,96 @@ export async function continueSession(sessionId) {
     return data;
   } catch (error) {
     console.error('Error continuing session:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get daily recommended prompt based on user's weekly focus
+ * @returns {Promise<Object>} Prompt object with text, category, difficulty, duration, identifier
+ */
+export async function getDailyPrompt() {
+  try {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_BASE_URL}/api/v1/prompts/daily`, {
+      method: 'GET',
+      headers,
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to fetch daily prompt');
+    }
+
+    return data.prompt;
+  } catch (error) {
+    console.error('Error fetching daily prompt:', error);
+    // Fallback prompt if API fails
+    return {
+      identifier: 'fallback_default',
+      text: 'What did you enjoy most about last week and why?',
+      category: 'Reflection',
+      difficulty: 'intermediate',
+      duration: 60
+    };
+  }
+}
+
+/**
+ * Get a random shuffled prompt
+ * @returns {Promise<Object>} Prompt object with text, category, difficulty, duration, identifier
+ */
+export async function shufflePrompt() {
+  try {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_BASE_URL}/api/v1/prompts/shuffle`, {
+      method: 'GET',
+      headers,
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to shuffle prompt');
+    }
+
+    return data.prompt;
+  } catch (error) {
+    console.error('Error shuffling prompt:', error);
+    throw error;
+  }
+}
+
+/**
+ * Mark a prompt as completed
+ * @param {string} promptIdentifier - The unique identifier for the prompt
+ * @param {number} sessionId - The ID of the session where it was completed (optional)
+ * @returns {Promise<Object>} Success response
+ */
+export async function markPromptCompleted(promptIdentifier, sessionId = null) {
+  try {
+    const headers = await getAuthHeaders();
+    headers['Content-Type'] = 'application/json';
+
+    const response = await fetch(`${API_BASE_URL}/api/v1/prompts/complete`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        prompt_identifier: promptIdentifier,
+        session_id: sessionId
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to mark prompt as completed');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error marking prompt as completed:', error);
     throw error;
   }
 }

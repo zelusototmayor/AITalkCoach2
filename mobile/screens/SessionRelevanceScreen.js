@@ -20,6 +20,7 @@ export default function SessionRelevanceScreen() {
       navigation.replace('Practice', {
         isRetake: true,
         originalTitle: response.title,
+        promptText: response.prompt_text,
         targetSeconds: response.target_seconds,
         retakeCount: (response.retake_count || 0) + 1,
         relevanceFeedback: response.relevance_feedback,

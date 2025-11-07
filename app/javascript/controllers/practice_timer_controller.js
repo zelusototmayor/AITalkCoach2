@@ -118,8 +118,22 @@ export default class extends Controller {
   }
 
   completeSession() {
+    console.log('Practice timer: Timer completed', {
+      currentTime: this.currentTime,
+      selectedDuration: this.selectedDuration
+    })
+
     this.stopTimer()
     this.isRunning = false
+
+    // Set the recorder's autoStopped flag before stopping recording
+    const recorderController = this.getRecorderController()
+    if (recorderController) {
+      console.log('Practice timer: Setting recorder autoStopped flag to true')
+      recorderController.autoStopped = true
+    } else {
+      console.warn('Practice timer: Could not find recorder controller to set autoStopped flag')
+    }
 
     // Automatically stop recording when timer completes
     this.stopRecording()
@@ -134,8 +148,8 @@ export default class extends Controller {
     // Show completion message
     this.showTimerCompletionNotification()
 
-    // Show audio preview with choice buttons (not auto-submit)
-    this.showRecordingChoiceInterface()
+    // Don't show choice interface - let recorder auto-submit when time limit is reached
+    // The recorder's processRecording will handle auto-submission based on autoStopped flag
   }
 
   forceStop() {

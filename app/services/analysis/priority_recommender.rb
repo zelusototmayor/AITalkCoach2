@@ -519,7 +519,7 @@ module Analysis
 
     # Issue extraction methods
     def extract_filler_issues
-      @issues.where(category: "filler_words").limit(3).pluck(:text, :start_ms, :tip)
+      @issues.where(category: "filler_words").limit(3).pluck(:coaching_note, :text, :start_ms, :tip)
     end
 
     def extract_pace_issues
@@ -590,11 +590,28 @@ module Analysis
 
       case area[:type]
       when "improve_pace"
+        # Check if this session was a regression
+        # For pace, regression depends on whether baseline is too slow or too fast
+        regression = if rolling_avg < 110
+          # Baseline too slow - regression means even slower
+          current_session < (rolling_avg * 0.85)  # 15% slower than average
+        else
+          # Baseline too fast - regression means even faster
+          current_session > (rolling_avg * 1.15)  # 15% faster than average
+        end
+
         if achieved
           {
             badge: "GREAT SESSION 🎉",
             title: "Amazing pace this session!",
             body: "You hit #{current_session.round} WPM this session - #{current_session < 110 ? 'great improvement' : 'excellent control'}! Your 5-session average is #{rolling_avg.round} WPM. Keep practicing to make #{target.round}+ WPM your consistent baseline."
+          }
+        elsif regression
+          pace_direction = rolling_avg < 110 ? "slower" : "faster"
+          {
+            badge: "SETBACK 😔",
+            title: "Pace needs attention",
+            body: "This session you spoke at #{current_session.round} WPM - #{pace_direction} than your #{rolling_avg.round} WPM average. Try practicing with a metronome to maintain a steadier #{target.round} WPM pace."
           }
         elsif close_to_target
           {
@@ -611,11 +628,20 @@ module Analysis
         end
 
       when "reduce_fillers"
+        # Check if this session was a regression (significantly worse than average)
+        regression = current_session > (rolling_avg * 1.15)  # 15% worse than average
+
         if achieved
           {
             badge: "GREAT SESSION 🎉",
             title: "Clean speech this session!",
             body: "Only #{(current_session * 100).round(1)}% filler words - excellent! Your 5-session average is #{(rolling_avg * 100).round(1)}%. Keep it up to reach #{(target * 100).round(1)}% consistently."
+          }
+        elsif regression
+          {
+            badge: "SETBACK 😔",
+            title: "Higher filler rate this session",
+            body: "This session had #{(current_session * 100).round(1)}% fillers - above your #{(rolling_avg * 100).round(1)}% average. Don't worry, slip-ups happen. Refocus on pausing instead of saying 'um' or 'uh', and you'll get back to your #{(target * 100).round(1)}% goal."
           }
         elsif close_to_target
           {
@@ -632,11 +658,20 @@ module Analysis
         end
 
       when "enhance_clarity"
+        # Check if this session was a regression (significantly worse than average)
+        regression = current_session < (rolling_avg * 0.85)  # 15% worse than average
+
         if achieved
           {
             badge: "GREAT SESSION 🎉",
             title: "Crystal clear this session!",
             body: "#{(current_session * 100).round}% clarity score - excellent articulation! Your 5-session average is #{(rolling_avg * 100).round}%. Keep practicing to maintain #{(target * 100).round}%+ consistently."
+          }
+        elsif regression
+          {
+            badge: "SETBACK 😔",
+            title: "Clarity dropped this session",
+            body: "This session scored #{(current_session * 100).round}% clarity - below your #{(rolling_avg * 100).round}% average. Focus on enunciating clearly and maintaining steady pace to get back to your #{(target * 100).round}% goal."
           }
         elsif close_to_target
           {
@@ -653,11 +688,20 @@ module Analysis
         end
 
       when "boost_engagement"
+        # Check if this session was a regression (significantly worse than average)
+        regression = current_session < (rolling_avg * 0.85)  # 15% worse than average
+
         if achieved
           {
             badge: "GREAT SESSION 🎉",
             title: "Energetic delivery this session!",
             body: "#{(current_session * 100).round}% engagement score - great vocal variety! Your 5-session average is #{(rolling_avg * 100).round}%. Keep it up to maintain #{(target * 100).round}%+ energy."
+          }
+        elsif regression
+          {
+            badge: "SETBACK 😔",
+            title: "Lower energy this session",
+            body: "This session scored #{(current_session * 100).round}% engagement - below your #{(rolling_avg * 100).round}% average. Try adding more vocal variety and energy to reach your #{(target * 100).round}% goal."
           }
         elsif close_to_target
           {
@@ -674,11 +718,20 @@ module Analysis
         end
 
       when "increase_fluency"
+        # Check if this session was a regression (significantly worse than average)
+        regression = current_session < (rolling_avg * 0.85)  # 15% worse than average
+
         if achieved
           {
             badge: "GREAT SESSION 🎉",
             title: "Smooth delivery this session!",
             body: "#{(current_session * 100).round}% fluency score - very smooth! Your 5-session average is #{(rolling_avg * 100).round}%. Keep practicing to maintain #{(target * 100).round}%+ fluency."
+          }
+        elsif regression
+          {
+            badge: "SETBACK 😔",
+            title: "Fluency dipped this session",
+            body: "This session scored #{(current_session * 100).round}% fluency - below your #{(rolling_avg * 100).round}% average. Practice smoother transitions and reducing hesitations to get back to your #{(target * 100).round}% goal."
           }
         elsif close_to_target
           {
@@ -738,11 +791,13 @@ module Analysis
         # Within 10% of target range
         (current_session - target).abs <= (target * threshold)
       when "reduce_fillers"
-        # Within threshold (e.g., 10%) for rates
-        (current_session - target).abs <= threshold
+        # Close = within 20% above target (e.g., 2.0% target → 2.4% is close)
+        # Must be above target but not too far
+        current_session > target && current_session <= (target * 1.2)
       when "enhance_clarity", "boost_engagement", "increase_fluency"
-        # Within threshold (e.g., 10%) for scores
-        (current_session - target).abs <= threshold
+        # Close = within 10% below target (e.g., 0.85 target → 0.765 is close)
+        # Must be below target but not too far
+        current_session < target && current_session >= (target * (1 - threshold))
       else
         false
       end
