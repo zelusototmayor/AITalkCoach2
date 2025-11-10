@@ -37,3 +37,7 @@
 # Ignore SSL certificates for local development
 /config/ssl/*.key
 /config/ssl/*.crt
+
+# Ignore macOS system files
+.DS_Store
+**/.DS_Store
