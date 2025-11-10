@@ -245,6 +245,31 @@ class Api::V1::AuthController < Api::V1::BaseController
     end
   end
 
+  # DELETE /api/v1/auth/account
+  def delete_account
+    user_id = current_user.id
+    user_email = current_user.email
+
+    begin
+      # Delete the user and all associated data
+      # The User model has dependent: :destroy on all associations, so they will be deleted automatically
+      current_user.destroy!
+
+      Rails.logger.info "User account deleted: ID #{user_id}, Email: #{user_email}"
+
+      render json: {
+        success: true,
+        message: "Account deleted successfully"
+      }
+    rescue => e
+      Rails.logger.error "Failed to delete user account #{user_id}: #{e.message}"
+      render json: {
+        success: false,
+        error: "Failed to delete account. Please try again or contact support."
+      }, status: :unprocessable_entity
+    end
+  end
+
   private
 
   def user_params

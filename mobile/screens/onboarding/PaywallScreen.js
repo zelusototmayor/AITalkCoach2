@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Alert, ActivityIndicator, Linking } from 'react-native';
 import Button from '../../components/Button';
 import PricingCard from '../../components/PricingCard';
 import AnimatedBackground from '../../components/AnimatedBackground';
@@ -239,6 +239,25 @@ export default function PaywallScreen({ navigation }) {
             : "Cancel anytime during your trial. Subscription auto-renews after 3 days."}
         </Text>
 
+        {/* Terms and Privacy Policy Links */}
+        <Text style={styles.finePrint}>
+          By subscribing, you agree to our{' '}
+          <Text
+            style={styles.linkText}
+            onPress={() => Linking.openURL('https://aitalkcoach.com/terms')}
+          >
+            Terms of Use
+          </Text>
+          {' '}and{' '}
+          <Text
+            style={styles.linkText}
+            onPress={() => Linking.openURL('https://aitalkcoach.com/privacy')}
+          >
+            Privacy Policy
+          </Text>
+          .
+        </Text>
+
         {/* Restore Purchases Link */}
         <Text style={styles.restoreText} onPress={handleRestore}>
           Already subscribed? Restore purchases
@@ -394,6 +413,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: SPACING.lg,
     marginBottom: SPACING.sm,
+  },
+  linkText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: COLORS.primary,
+    textDecorationLine: 'underline',
   },
   restoreText: {
     fontSize: 14,

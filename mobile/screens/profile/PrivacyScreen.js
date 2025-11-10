@@ -4,14 +4,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AnimatedBackground from '../../components/AnimatedBackground';
 import { COLORS, SPACING, TYPOGRAPHY } from '../../constants/colors';
+import { useAuth } from '../../context/AuthContext';
 
 export default function PrivacyScreen({ navigation }) {
+  const { deleteAccount } = useAuth();
   const [exporting, setExporting] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   const handleOpenPrivacyPolicy = () => {
-    // TODO: Replace with actual privacy policy URL
-    Linking.openURL('https://example.com/privacy-policy');
+    Linking.openURL('https://aitalkcoach.com/privacy');
   };
 
   const handleExportData = async () => {
@@ -66,7 +67,7 @@ export default function PrivacyScreen({ navigation }) {
   const confirmDeleteAccount = () => {
     Alert.alert(
       'Final Confirmation',
-      'This is your last chance to cancel. Type DELETE in the confirmation dialog to proceed.',
+      'This is your last chance to cancel. Are you absolutely sure you want to permanently delete your account?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -75,28 +76,29 @@ export default function PrivacyScreen({ navigation }) {
           onPress: async () => {
             setDeleting(true);
             try {
-              // TODO: Implement actual delete API call
-              // await deleteUserAccount(userId);
+              // Call the delete account API
+              const result = await deleteAccount();
 
-              // Simulate deletion
-              await new Promise(resolve => setTimeout(resolve, 2000));
-
-              Alert.alert(
-                'Account Deleted',
-                'Your account has been permanently deleted. You will be logged out.',
-                [
-                  {
-                    text: 'OK',
-                    onPress: () => {
-                      // TODO: Navigate to login screen and clear auth
-                      navigation.reset({
-                        index: 0,
-                        routes: [{ name: 'Welcome' }],
-                      });
+              if (result.success) {
+                Alert.alert(
+                  'Account Deleted',
+                  'Your account has been permanently deleted.',
+                  [
+                    {
+                      text: 'OK',
+                      onPress: () => {
+                        // AuthContext already handled logout, just navigate to welcome
+                        navigation.reset({
+                          index: 0,
+                          routes: [{ name: 'Welcome' }],
+                        });
+                      },
                     },
-                  },
-                ]
-              );
+                  ]
+                );
+              } else {
+                Alert.alert('Error', result.error || 'Failed to delete account. Please try again or contact support.');
+              }
             } catch (error) {
               console.error('Error deleting account:', error);
               Alert.alert('Error', 'Failed to delete account. Please try again or contact support.');

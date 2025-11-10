@@ -26,6 +26,7 @@ Rails.application.routes.draw do
       post 'auth/complete_onboarding', to: 'auth#complete_onboarding'
       patch 'auth/update_profile', to: 'auth#update_profile'
       patch 'auth/update_language', to: 'auth#update_language'
+      delete 'auth/account', to: 'auth#delete_account'
 
       # Sessions
       resources :sessions, only: [:index, :show, :create, :destroy] do

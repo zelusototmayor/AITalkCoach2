@@ -334,6 +334,47 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const deleteAccount = async () => {
+    try {
+      // Track account deletion before clearing user data
+      analytics.track('Account Deleted', {
+        user_id: user?.id,
+      });
+
+      // Call delete account API
+      const token = await getAccessToken();
+      if (!token) {
+        throw new Error('No access token found');
+      }
+
+      const response = await authService.deleteAccount(token);
+
+      if (response.success) {
+        // Log out from RevenueCat
+        await subscriptionService.logoutUser();
+
+        // Reset analytics (clears user identification)
+        analytics.reset();
+
+        // Clear local auth state
+        await clearAuth();
+
+        return { success: true };
+      } else {
+        return {
+          success: false,
+          error: response.error || 'Failed to delete account'
+        };
+      }
+    } catch (error) {
+      console.error('Delete account error:', error);
+      return {
+        success: false,
+        error: error.message || 'Failed to delete account'
+      };
+    }
+  };
+
   const value = {
     user,
     isLoading,
@@ -346,6 +387,7 @@ export const AuthProvider = ({ children }) => {
     forgotPassword,
     resetPassword,
     completeOnboarding,
+    deleteAccount,
     tryRefreshToken,
   };
 
