@@ -75,16 +75,14 @@ class Api::V1::CoachController < Api::V1::BaseController
 
     today = Date.current
 
-    # Sessions completed today for this weekly focus
+    # Sessions completed today (all completed sessions, not filtered by focus)
     sessions_today = current_user.sessions
-                                 .where(weekly_focus_id: weekly_focus.id)
                                  .where(completed: true)
                                  .where("DATE(created_at) = ?", today)
                                  .count
 
-    # Sessions completed this week for this weekly focus
+    # Sessions completed this week (all completed sessions, not filtered by focus)
     sessions_this_week = current_user.sessions
-                                     .where(weekly_focus_id: weekly_focus.id)
                                      .where(completed: true)
                                      .where("created_at >= ?", weekly_focus.week_start)
                                      .count
@@ -107,9 +105,7 @@ class Api::V1::CoachController < Api::V1::BaseController
 
   def calculate_focus_streak(weekly_focus)
     sessions = current_user.sessions
-                          .where(weekly_focus_id: weekly_focus.id)
                           .where(completed: true)
-                          .where("created_at >= ?", weekly_focus.week_start)
                           .order(created_at: :desc)
 
     return 0 if sessions.empty?

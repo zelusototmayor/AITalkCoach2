@@ -75,6 +75,28 @@ class UserMailer < ApplicationMailer
     )
   end
 
+  def account_credentials(user, password)
+    @user = user
+    @password = password
+    @app_url = build_app_url
+    @reset_password_url = "#{build_app_url}/auth/password/new"
+
+    mail(
+      to: @user.email,
+      subject: "Your AI Talk Coach Account Credentials"
+    )
+  end
+
+  def link_correction(user)
+    @user = user
+    @app_url = build_app_url
+
+    mail(
+      to: @user.email,
+      subject: "Correction: AI Talk Coach Login Link"
+    )
+  end
+
   private
 
   def format_currency(cents)

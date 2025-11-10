@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f8fafc;
+      margin: 0;
+      padding: 0;
+    }
+    .email-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #ffffff;
+    }
+    .header {
+      background: linear-gradient(135deg, #FF8C42 0%, #FF6B35 100%);
+      padding: 40px 20px;
+      text-align: center;
+    }
+    .header h1 {
+      color: #ffffff;
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0;
+    }
+    .content {
+      padding: 40px 30px;
+    }
+    .greeting {
+      font-size: 18px;
+      color: #0F172A;
+      margin: 0 0 20px 0;
+    }
+    .text-block {
+      font-size: 16px;
+      line-height: 1.6;
+      color: #475569;
+      margin: 0 0 20px 0;
+    }
+    .highlight-box {
+      background: linear-gradient(135deg, #FFF5EB 0%, #FFE8D6 100%);
+      border-left: 4px solid #FF8C42;
+      border-radius: 8px;
+      padding: 24px;
+      margin: 30px 0;
+    }
+    .highlight-box h2 {
+      color: #FF6B35;
+      font-size: 20px;
+      margin: 0 0 12px 0;
+    }
+    .highlight-box p {
+      color: #0F172A;
+      font-size: 16px;
+      margin: 0;
+      line-height: 1.5;
+    }
+    .cta-button {
+      display: inline-block;
+      background: linear-gradient(135deg, #FF8C42 0%, #FF6B35 100%);
+      color: #ffffff !important;
+      text-decoration: none;
+      padding: 14px 28px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 15px;
+      margin: 10px 0;
+    }
+    .footer {
+      background-color: #f8fafc;
+      padding: 30px;
+      text-align: center;
+      border-top: 1px solid #e2e8f0;
+    }
+    .footer p {
+      font-size: 14px;
+      color: #64748B;
+      margin: 0 0 8px 0;
+    }
+    ul {
+      color: #475569;
+      line-height: 1.8;
+      margin: 20px 0;
+    }
+    ul li {
+      margin-bottom: 8px;
+    }
+    .application-summary {
+      background: #f8fafc;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    .application-summary p {
+      margin: 8px 0;
+      color: #475569;
+      font-size: 14px;
+    }
+    .application-summary strong {
+      color: #0F172A;
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <!-- Header -->
+    <div class="header">
+      <h1>Application Received!</h1>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+      <p class="greeting">Hi <%= @partner_application.name %>!</p>
+
+      <p class="text-block">
+        Thank you for your interest in joining the AI Talk Coach Partner Program! We've received your application and are excited to review it.
+      </p>
+
+      <!-- Application Summary -->
+      <div class="application-summary">
+        <p><strong>Your Application Details:</strong></p>
+        <p><strong>Name:</strong> <%= @partner_application.name %></p>
+        <p><strong>Email:</strong> <%= @partner_application.email %></p>
+        <p><strong>Partner Type:</strong> <%= @partner_application.partner_type %></p>
+        <% if @partner_application.message.present? %>
+          <p><strong>Message:</strong> <%= @partner_application.message %></p>
+        <% end %>
+      </div>
+
+      <!-- Highlight Box -->
+      <div class="highlight-box">
+        <h2>What's Next?</h2>
+        <p>
+          Our team will review your application within the next 3-5 business days. We'll reach out via email with next steps and information about setting up your partner account.
+        </p>
+      </div>
+
+      <p class="text-block">
+        <strong>While You Wait:</strong>
+      </p>
+      <ul>
+        <li>Learn more about our platform at <%= @partners_url %></li>
+        <li>Think about how you'd like to integrate AI Talk Coach with your audience</li>
+        <li>Prepare any questions you have about the program</li>
+        <li>Consider what promotional materials would work best for your community</li>
+      </ul>
+
+      <p class="text-block">
+        We're building something special together—a platform that helps people genuinely improve their communication skills. As a partner, you'll be helping your audience unlock their full potential while earning a sustainable income.
+      </p>
+
+      <center>
+        <a href="<%= @partners_url %>" class="cta-button">Learn More About the Program</a>
+      </center>
+
+      <p class="text-block" style="margin-top: 30px;">
+        If you have any questions in the meantime, don't hesitate to reach out. We're here to help!
+      </p>
+
+      <p class="text-block">
+        Looking forward to partnering with you!<br>
+        <strong>The AI Talk Coach Team</strong>
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>Questions? Email us at partners@aitalkcoach.com</p>
+      <p style="color: #94A3B8; font-size: 12px; margin-top: 16px;">
+        AI Talk Coach | Partner Program
+      </p>
+    </div>
+  </div>
+</body>
+</html>

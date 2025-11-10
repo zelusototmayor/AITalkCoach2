@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIn
 import { Audio } from 'expo-av';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PromptCard from '../../components/PromptCard';
+import DrillPromptCard from '../../components/DrillPromptCard';
 import PillButton from '../../components/PillButton';
 import RecordButton from '../../components/RecordButton';
 import MetricCard from '../../components/MetricCard';
@@ -27,6 +28,10 @@ export default function PracticeScreen({ navigation, route }) {
     promptText,
     promptTitle,
     drillTitle,
+    drillDescription,
+    drillReasoning,
+    isDrillMode,
+    weeklyFocusId,
     isRetake,
     originalTitle,
     retakeCount,
@@ -34,8 +39,9 @@ export default function PracticeScreen({ navigation, route }) {
   } = params;
 
   // Check if we have a custom prompt from navigation params
-  const customPrompt = (promptText || drillTitle || originalTitle) ? {
-    text: promptText || drillTitle || originalTitle,
+  // NOTE: In drill mode, we fetch a prompt instead of using drillTitle
+  const customPrompt = (promptText || (originalTitle && !isDrillMode)) ? {
+    text: promptText || originalTitle,
     category: promptTitle || 'Practice',
     duration: presetDuration || 60,
   } : null;
@@ -375,7 +381,7 @@ export default function PracticeScreen({ navigation, route }) {
         type: 'audio/m4a',
       };
 
-      const sessionTitle = originalTitle || `Practice Session - ${new Date().toLocaleDateString()}`;
+      const sessionTitle = originalTitle || (isDrillMode ? drillTitle : `Practice Session - ${new Date().toLocaleDateString()}`);
       const sessionOptions = {
         title: sessionTitle,
         prompt_text: currentPrompt?.text, // Actual prompt text for relevance checking
@@ -384,6 +390,7 @@ export default function PracticeScreen({ navigation, route }) {
         retake_count: retakeCount || 0,
         is_retake: isRetake || false,
         prompt_identifier: currentPrompt?.identifier, // Track which prompt was used
+        weekly_focus_id: weeklyFocusId || null, // Link to weekly focus when from drill
       };
 
       console.log('Navigating to processing screen with audio file');
@@ -438,8 +445,19 @@ export default function PracticeScreen({ navigation, route }) {
           </View>
         )}
 
-        {/* Recommended Prompt Card */}
-        <PromptCard prompt={currentPrompt} onShuffle={handleShuffle} canShuffle={canShuffle} />
+        {/* Recommended Prompt Card or Drill Prompt Card */}
+        {isDrillMode ? (
+          <DrillPromptCard
+            drillTitle={drillTitle}
+            drillDescription={drillDescription}
+            drillReasoning={drillReasoning}
+            prompt={currentPrompt}
+            onShuffle={handleShuffle}
+            canShuffle={canShuffle}
+          />
+        ) : (
+          <PromptCard prompt={currentPrompt} onShuffle={handleShuffle} canShuffle={canShuffle} />
+        )}
 
         {/* Time Selection Pills - Side by side */}
         <View style={styles.timePillsContainer}>

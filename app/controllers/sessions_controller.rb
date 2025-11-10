@@ -1504,21 +1504,19 @@ class SessionsController < ApplicationController
     today = Date.current
     user = weekly_focus.user
 
-    # Sessions completed today for this weekly focus
+    # Sessions completed today (all completed sessions, not filtered by focus)
     sessions_today = user.sessions
-                                  .where(weekly_focus_id: weekly_focus.id)
                                   .where(completed: true)
                                   .where("DATE(created_at) = ?", today)
                                   .count
 
-    # Sessions completed this week for this weekly focus
+    # Sessions completed this week (all completed sessions, not filtered by focus)
     sessions_this_week = user.sessions
-                                     .where(weekly_focus_id: weekly_focus.id)
                                      .where(completed: true)
                                      .where("created_at >= ?", weekly_focus.week_start)
                                      .count
 
-    # Calculate streak (consecutive days with completed sessions for this focus)
+    # Calculate streak (consecutive days with completed sessions)
     streak = calculate_focus_streak(weekly_focus)
 
     # Target sessions per day (approximately)
@@ -1535,11 +1533,9 @@ class SessionsController < ApplicationController
   end
 
   def calculate_focus_streak(weekly_focus)
-    # Get all completed sessions for this weekly focus, ordered by date
+    # Get all completed sessions (not filtered by focus), ordered by date
     sessions = weekly_focus.user.sessions
-                           .where(weekly_focus_id: weekly_focus.id)
                            .where(completed: true)
-                           .where("created_at >= ?", weekly_focus.week_start)
                            .order(created_at: :desc)
 
     return 0 if sessions.empty?

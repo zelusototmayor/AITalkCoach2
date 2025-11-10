@@ -1,0 +1,655 @@
+<% content_for :title, "Partner Program - AI Talk Coach" %>
+
+<div class="landing-page">
+  <!-- Hero Section -->
+  <section class="partners-hero">
+    <div class="hero-container">
+      <div class="hero-content">
+        <div class="hero-badge">
+          <span class="badge-icon"><%= icon_svg(:briefcase, css_class: 'icon-inline') %></span>
+          PARTNER PROGRAM
+        </div>
+
+        <h1 class="hero-title">
+          Empower Your Audience.<br>
+          <span class="grad-text">Earn Lifetime Commissions.</span>
+        </h1>
+
+        <p class="hero-description">
+          Join AI Talk Coach's Partner Program and help people improve their communication skills while earning <strong>30% lifetime commission</strong> on every subscription you refer.
+        </p>
+
+        <div class="hero-actions">
+          <a href="#apply" class="btn btn-primary">Apply to Partner Program</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Benefits Section -->
+  <section class="partners-benefits">
+    <div class="section-container">
+      <h2 class="section-title">Why Partner With Us</h2>
+
+      <div class="benefits-grid">
+        <div class="benefit-card">
+          <div class="benefit-icon">
+            <%= icon_svg(:trending_up, css_class: 'icon-lg') %>
+          </div>
+          <h3>Lifetime Commission</h3>
+          <p>Earn 30% recurring commission for as long as your referrals stay subscribed. Build sustainable, passive income that grows with your audience.</p>
+        </div>
+
+        <div class="benefit-card">
+          <div class="benefit-icon">
+            <%= icon_svg(:target, css_class: 'icon-lg') %>
+          </div>
+          <h3>Empower Your Audience</h3>
+          <p>Give your students and followers a powerful tool to track their speaking progress with palpable metrics. They'll see real improvement as they apply the communication techniques you teach, building credibility for both them and you.</p>
+        </div>
+
+        <div class="benefit-card">
+          <div class="benefit-icon">
+            <%= icon_svg(:rocket, css_class: 'icon-lg') %>
+          </div>
+          <h3>Easy to Share</h3>
+          <p>Simple affiliate link, tracking dashboard, and support to help you get started quickly.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="rule-grad mx-auto" style="max-width: 1200px;"></div>
+
+  <!-- Application Form Section -->
+  <section class="partners-apply" id="apply">
+    <div class="section-container">
+      <h2 class="section-title">Apply to Become a Partner</h2>
+      <p class="section-subtitle">Join our growing community of partners and start earning today</p>
+
+      <div class="apply-form-wrapper">
+        <%= form_with model: @partner_application, url: partners_path, class: "partners-form", local: true do |f| %>
+          <div class="form-group">
+            <%= f.label :name, "Full Name *", class: "form-label" %>
+            <%= f.text_field :name, class: "form-input", required: true, placeholder: "Your full name" %>
+          </div>
+
+          <div class="form-group">
+            <%= f.label :email, "Email Address *", class: "form-label" %>
+            <%= f.email_field :email, class: "form-input", required: true, placeholder: "your.email@example.com" %>
+          </div>
+
+          <div class="form-group">
+            <%= f.label :partner_type, "I am a... *", class: "form-label" %>
+            <%= f.select :partner_type,
+                options_for_select(PartnerApplication::PARTNER_TYPES),
+                { prompt: "Select your partner type" },
+                { class: "form-select", required: true } %>
+          </div>
+
+          <div class="form-group">
+            <%= f.label :message, "Why would you like to partner with us? (Optional)", class: "form-label" %>
+            <%= f.text_area :message, class: "form-textarea", rows: 4, placeholder: "Tell us about your audience, platform, or why you're interested in partnering..." %>
+          </div>
+
+          <div class="form-actions">
+            <%= f.submit "Submit Application", class: "btn btn-primary" %>
+          </div>
+        <% end %>
+
+        <!-- Success/Error Messages -->
+        <div class="form-message" style="display: none;"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="rule-grad mx-auto" style="max-width: 1200px;"></div>
+
+  <!-- Perfect For Section -->
+  <section class="partners-who">
+    <div class="section-container">
+      <h2 class="section-title">Perfect For</h2>
+      <p class="section-subtitle">Content creators, educators, and coaches who care about communication</p>
+
+      <div class="who-grid">
+        <div class="who-card">
+          <div class="who-icon">
+            <%= icon_svg(:mic, css_class: 'icon-xl') %>
+          </div>
+          <h3>Speech Coaches</h3>
+          <p>You already help clients improve their speaking. AI Talk Coach is the perfect supplement for daily practice between sessions.</p>
+        </div>
+
+        <div class="who-card">
+          <div class="who-icon">
+            <%= icon_svg(:star, css_class: 'icon-xl') %>
+          </div>
+          <h3>Content Creators</h3>
+          <p>If your audience values self-improvement, communication skills, or professional development, AI Talk Coach is a natural fit.</p>
+        </div>
+
+        <div class="who-card">
+          <div class="who-icon">
+            <%= icon_svg(:book, css_class: 'icon-xl') %>
+          </div>
+          <h3>Educators</h3>
+          <p>Teachers, professors, and course creators: give your students a way to practice speaking outside the classroom.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="partners-cta">
+    <div class="section-container">
+      <div class="cta-content">
+        <h2>Ready to Start Earning?</h2>
+        <p>Join AI Talk Coach's Partner Program today and start building recurring revenue while helping people improve their communication skills.</p>
+        <a href="#apply" class="btn btn-primary">Apply Now</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="landing-footer">
+    <%= link_to "Privacy", privacy_policy_path %> •
+    <%= link_to "Terms", terms_of_service_path %> •
+    <%= link_to "Contact", contact_path %>
+    <p style="margin-top: 1rem; color: #64748B;">© <%= Time.current.year %> AI Talk Coach. All rights reserved.</p>
+  </footer>
+</div>
+
+<!-- JavaScript for Form Handling -->
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.querySelector('.partners-form');
+    const messageEl = document.querySelector('.form-message');
+
+    if (!form || !messageEl) return;
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const submitButton = form.querySelector('input[type="submit"]');
+      const originalText = submitButton.value;
+
+      // Disable submit button
+      submitButton.disabled = true;
+      submitButton.value = "Submitting...";
+
+      const data = {
+        secret: 'aitalk-affiliates-2025',
+        name: form.querySelector('[name="partner_application[name]"]').value,
+        email: form.querySelector('[name="partner_application[email]"]').value,
+        type: form.querySelector('[name="partner_application[partner_type]"]').value,
+        reason: form.querySelector('[name="partner_application[message]"]').value
+      };
+
+      try {
+        const res = await fetch('https://script.google.com/macros/s/AKfycbwYJT1PXIRwEPI79PAePHUOB0-DjLWds8jNBaTQN_kWJSOlJZtT6HzFxIPhslnXwzA1Wg/exec', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        const result = await res.json();
+
+        if (result.ok) {
+          // Show success message
+          messageEl.textContent = 'Thank you! We\'ve received your application and will be in touch soon.';
+          messageEl.className = 'form-message success';
+          messageEl.style.display = 'block';
+          form.reset();
+
+          // Scroll to message
+          messageEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+          // Auto-hide after 10 seconds
+          setTimeout(() => {
+            messageEl.style.display = 'none';
+          }, 10000);
+        } else {
+          // Show error message
+          messageEl.textContent = 'Error: ' + (result.error || 'Please try again.');
+          messageEl.className = 'form-message error';
+          messageEl.style.display = 'block';
+        }
+      } catch (err) {
+        // Show error message
+        messageEl.textContent = 'Failed to submit: ' + err.message;
+        messageEl.className = 'form-message error';
+        messageEl.style.display = 'block';
+      } finally {
+        // Re-enable submit button
+        submitButton.disabled = false;
+        submitButton.value = originalText;
+      }
+    });
+  });
+</script>
+
+<style>
+  /* Partners Page Styles */
+  .partners-hero {
+    background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+    padding: 6rem 2rem 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .partners-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 30% 50%, rgba(255, 140, 66, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .partners-hero .hero-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    display: block !important;
+    grid-template-columns: none !important;
+    padding: 0 2rem;
+  }
+
+  .partners-hero .hero-content {
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255, 140, 66, 0.15);
+    border: 1px solid rgba(255, 140, 66, 0.3);
+    padding: 0.5rem 1rem;
+    border-radius: 100px;
+    color: #FFB366;
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    margin-bottom: 2rem;
+  }
+
+  .badge-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .hero-title {
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 800;
+    line-height: 1.1;
+    color: #ffffff;
+    margin: 0 0 1.5rem 0;
+  }
+
+  .hero-description {
+    font-size: 1.25rem;
+    line-height: 1.6;
+    color: #CBD5E1;
+    max-width: 700px;
+    margin: 0 auto 2.5rem;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  /* Benefits Section */
+  .partners-benefits {
+    padding: 5rem 2rem;
+  }
+
+  .section-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    text-align: center;
+    color: #0F172A;
+    margin: 0 0 1rem 0;
+  }
+
+  .section-subtitle {
+    font-size: 1.125rem;
+    text-align: center;
+    color: #64748B;
+    margin: 0 0 3rem 0;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-top: 3rem;
+  }
+
+  @media (max-width: 968px) {
+    .benefits-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .benefit-card {
+    background: var(--card);
+    border: 1px solid #E5E7EB;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .benefit-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.1);
+  }
+
+  .benefit-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #FFF5EB 0%, #FFE8D6 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+  }
+
+  .benefit-icon svg {
+    width: 24px;
+    height: 24px;
+    color: var(--brand-500);
+  }
+
+  .benefit-card h3 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #0F172A;
+    margin: 0 0 0.75rem 0;
+  }
+
+  .benefit-card p {
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: #64748B;
+    margin: 0;
+  }
+
+  /* How It Works Section */
+  .partners-how-it-works {
+    padding: 5rem 2rem;
+  }
+
+  .steps-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 3rem;
+  }
+
+  .step-item {
+    flex: 1;
+    min-width: 250px;
+    max-width: 320px;
+    text-align: center;
+  }
+
+  .step-number {
+    width: 64px;
+    height: 64px;
+    background: var(--gradient-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: white;
+    margin: 0 auto 1.5rem;
+  }
+
+  .step-content h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #0F172A;
+    margin: 0 0 0.75rem 0;
+  }
+
+  .step-content p {
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: #64748B;
+    margin: 0;
+  }
+
+  .step-arrow {
+    flex: 0 0 auto;
+    color: var(--brand-500);
+  }
+
+  .step-arrow svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  @media (max-width: 768px) {
+    .step-arrow {
+      display: none;
+    }
+  }
+
+  /* Who Section */
+  .partners-who {
+    padding: 5rem 2rem;
+  }
+
+  .who-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    margin-top: 3rem;
+  }
+
+  .who-card {
+    background: var(--card);
+    border: 1px solid #E5E7EB;
+    border-radius: 16px;
+    padding: 2.5rem;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+  }
+
+  .who-icon {
+    width: 80px;
+    height: 80px;
+    background: var(--gradient-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+  }
+
+  .who-icon svg {
+    width: 40px;
+    height: 40px;
+    color: white;
+  }
+
+  .who-card h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #0F172A;
+    margin: 0 0 1rem 0;
+  }
+
+  .who-card p {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #64748B;
+    margin: 0;
+  }
+
+  /* Application Section */
+  .partners-apply {
+    padding: 5rem 2rem;
+    background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
+  }
+
+  .apply-form-wrapper {
+    background: var(--card);
+    border: 1px solid #E5E7EB;
+    border-radius: 16px;
+    padding: 2.5rem;
+    box-shadow: 0 4px 6px rgba(15, 23, 42, 0.05);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .partners-form .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .partners-form .form-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #374151;
+    font-size: 0.9375rem;
+  }
+
+  .partners-form .form-input,
+  .partners-form .form-select,
+  .partners-form .form-textarea {
+    width: 100%;
+    padding: 0.875rem;
+    border: 1px solid #D1D5DB;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .partners-form .form-input:focus,
+  .partners-form .form-select:focus,
+  .partners-form .form-textarea:focus {
+    outline: none;
+    border-color: var(--brand-500);
+    box-shadow: 0 0 0 3px rgba(255, 140, 66, 0.1);
+  }
+
+  .partners-form .form-textarea {
+    resize: vertical;
+    font-family: inherit;
+  }
+
+  .partners-form .form-actions {
+    margin-top: 2rem;
+  }
+
+  .partners-form .btn {
+    width: 100%;
+  }
+
+  .form-message {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    border-radius: 8px;
+    font-size: 0.9375rem;
+  }
+
+  .form-message.success {
+    background: #D1FAE5;
+    border: 1px solid #10B981;
+    color: #065F46;
+  }
+
+  .form-message.error {
+    background: #FEE2E2;
+    border: 1px solid #EF4444;
+    color: #991B1B;
+  }
+
+  /* CTA Section */
+  .partners-cta {
+    padding: 5rem 2rem;
+    background: linear-gradient(135deg, #FF8C42 0%, #FF6B35 100%);
+  }
+
+  .cta-content {
+    text-align: center;
+    color: white;
+  }
+
+  .cta-content h2 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin: 0 0 1rem 0;
+  }
+
+  .cta-content p {
+    font-size: 1.125rem;
+    margin: 0 0 2rem 0;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    opacity: 0.95;
+  }
+
+  .cta-content .btn {
+    background: white;
+    color: var(--brand-600);
+  }
+
+  .cta-content .btn:hover {
+    background: #F8FAFC;
+  }
+
+  /* Footer */
+  .landing-footer {
+    padding: 3rem 2rem;
+    text-align: center;
+    background: #0F172A;
+    color: #94A3B8;
+  }
+
+  .landing-footer a {
+    color: #CBD5E1;
+    text-decoration: none;
+  }
+
+  .landing-footer a:hover {
+    color: var(--brand-400);
+  }
+
+  /* Utility Classes */
+  .icon-inline svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .icon-lg svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .icon-xl svg {
+    width: 40px;
+    height: 40px;
+  }
+</style>

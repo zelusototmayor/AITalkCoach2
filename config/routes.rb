@@ -102,6 +102,10 @@ Rails.application.routes.draw do
     # Pricing page
     get "pricing", to: "pricing#index"
 
+    # Partners program
+    get "partners", to: "partners#index"
+    post "partners", to: "partners#create"
+
     # Practice route for trial mode (public demo)
     get "practice", to: "sessions#index"
 

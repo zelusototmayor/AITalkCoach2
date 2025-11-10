@@ -72,7 +72,10 @@ export default function CoachScreen({ navigation }) {
     navigation.navigate('Practice', {
       presetDuration: drill.duration_seconds,
       drillTitle: drill.title,
+      drillDescription: drill.description,
+      drillReasoning: drill.reasoning,
       weeklyFocusId: weeklyFocus?.id,
+      isDrillMode: true,
     });
   };
 

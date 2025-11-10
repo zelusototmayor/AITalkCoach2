@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_11_06_214208) do
+ActiveRecord::Schema[8.0].define(version: 2025_11_09_200750) do
   create_table "action_text_rich_texts", force: :cascade do |t|
     t.string "name", null: false
     t.text "body"
@@ -97,6 +97,18 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_06_214208) do
     t.index ["session_id", "start_ms"], name: "index_issues_on_session_start_time"
     t.index ["session_id"], name: "index_issues_on_session_id"
     t.index ["severity"], name: "index_issues_on_severity"
+  end
+
+  create_table "partner_applications", force: :cascade do |t|
+    t.string "name"
+    t.string "email"
+    t.string "partner_type"
+    t.text "message"
+    t.string "status", default: "pending"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["email"], name: "index_partner_applications_on_email"
+    t.index ["status"], name: "index_partner_applications_on_status"
   end
 
   create_table "prompt_completions", force: :cascade do |t|

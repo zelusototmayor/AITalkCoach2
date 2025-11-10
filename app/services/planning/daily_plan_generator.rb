@@ -5,7 +5,7 @@ module Planning
       "reduce_fillers" => [
         {
           title: "60s Filler Pause Drill",
-          description: "Speak on any prompt. Insert a deliberate 0.5s pause where you feel a filler coming.",
+          description: "Speak about the prompt topic for 60 seconds. Whenever you feel the urge to say 'um', 'uh', or 'like', PAUSE for 1-2 seconds instead. Focus on replacing fillers with intentional silence.",
           duration_seconds: 60,
           drill_type: "pause_practice",
           icon: "🎤",
@@ -13,7 +13,7 @@ module Planning
         },
         {
           title: "Guided 2-min Practice",
-          description: "Practice with structured prompts designed to trigger common filler situations.",
+          description: "Record yourself for 2 minutes. In the first minute, speak naturally. In the second minute, actively monitor for filler words and pause whenever you catch yourself about to use one. Compare your filler usage between the two halves.",
           duration_seconds: 120,
           drill_type: "guided_practice",
           icon: "⭐",
@@ -21,7 +21,7 @@ module Planning
         },
         {
           title: "Filler Awareness Exercise",
-          description: "Record yourself and count fillers. Aim to reduce by 50% in next recording.",
+          description: "Record yourself for 90 seconds. Listen back and count every filler word ('um', 'uh', 'like', 'you know'). Write down your count. Record again with the goal of reducing fillers by at least 50%.",
           duration_seconds: 90,
           drill_type: "awareness",
           icon: "🎯",
@@ -31,7 +31,7 @@ module Planning
       "improve_pace" => [
         {
           title: "60s Pace Drill @150 WPM",
-          description: "Read a short paragraph with a metronome at 150 WPM.",
+          description: "Speak about the prompt topic for 60 seconds. Aim for 140-160 words per minute (roughly 2.5 words per second). Count to yourself: '1-2-3' between sentences to maintain steady pacing. Focus on consistency.",
           duration_seconds: 60,
           drill_type: "metronome_practice",
           icon: "⏱️",
@@ -39,7 +39,7 @@ module Planning
         },
         {
           title: "Pace Variation Exercise",
-          description: "Practice speaking the same content at different speeds (slow/medium/fast).",
+          description: "Speak about the prompt topic for 90 seconds total: First 30 seconds at SLOW pace (100 WPM), next 30 seconds at NORMAL pace (140-150 WPM), final 30 seconds at FAST pace (170-180 WPM). Notice how each speed feels.",
           duration_seconds: 90,
           drill_type: "variation_practice",
           icon: "🎵",
@@ -47,7 +47,7 @@ module Planning
         },
         {
           title: "Natural Pace Recording",
-          description: "Speak naturally on a familiar topic and track your WPM.",
+          description: "Speak naturally about the prompt for 2 minutes. After recording, count the total words you spoke. Divide by 2 to get your WPM. Ideal range: 130-170 WPM. Adjust in your next practice.",
           duration_seconds: 120,
           drill_type: "natural_practice",
           icon: "🗣️",
@@ -57,7 +57,7 @@ module Planning
       "enhance_clarity" => [
         {
           title: "Articulation Warm-up",
-          description: "Practice tongue twisters and enunciation exercises for 60 seconds.",
+          description: "Spend 20 seconds saying tongue twisters (e.g., 'She sells seashells'). Then speak about the prompt for 40 seconds, focusing on enunciating EVERY consonant clearly, especially at word endings (e.g., 'important' not 'importan').",
           duration_seconds: 60,
           drill_type: "articulation",
           icon: "👄",
@@ -65,7 +65,7 @@ module Planning
         },
         {
           title: "Clarity Recording Check",
-          description: "Record yourself explaining a complex topic clearly and concisely.",
+          description: "Record yourself for 2 minutes explaining the prompt topic as if to someone who knows nothing about it. Speak 20% SLOWER than normal. Over-enunciate every word. Imagine you're speaking to someone across a noisy room.",
           duration_seconds: 120,
           drill_type: "clarity_check",
           icon: "🔍",
@@ -73,7 +73,7 @@ module Planning
         },
         {
           title: "Word Emphasis Exercise",
-          description: "Practice emphasizing key words in sentences for better clarity.",
+          description: "Speak about the prompt for 90 seconds. In EVERY sentence, identify the 2-3 most important words and emphasize them by speaking louder and clearer. Example: 'The PROJECT needs IMMEDIATE attention.' Feel the emphasis.",
           duration_seconds: 90,
           drill_type: "emphasis",
           icon: "💡",
@@ -83,7 +83,7 @@ module Planning
       "boost_engagement" => [
         {
           title: "Energy & Tone Drill",
-          description: "Practice varying your vocal energy and tone to maintain engagement.",
+          description: "Speak about the prompt for 60 seconds. Vary your pitch: raise it for questions and exciting points, lower it for serious points. Vary your volume: louder for emphasis, softer for intimacy. Never use the same tone for more than 10 seconds.",
           duration_seconds: 60,
           drill_type: "energy_practice",
           icon: "⚡",
@@ -91,7 +91,7 @@ module Planning
         },
         {
           title: "Story Telling Practice",
-          description: "Tell an engaging story with strategic pauses and vocal variety.",
+          description: "Tell a story related to the prompt for 2 minutes. Use: 1) A dramatic opening, 2) Strategic 2-3 second pauses before key reveals, 3) Varied pacing (slow for tension, fast for excitement), 4) An emotional ending. Make it captivating!",
           duration_seconds: 120,
           drill_type: "storytelling",
           icon: "📖",
@@ -99,7 +99,7 @@ module Planning
         },
         {
           title: "Question Engagement",
-          description: "Practice engaging delivery by asking rhetorical questions.",
+          description: "Speak about the prompt for 90 seconds. Ask at least 3 rhetorical questions with rising intonation: 'What does this mean?' or 'Why is this important?' Pause 2 seconds after each question before answering it yourself.",
           duration_seconds: 90,
           drill_type: "engagement",
           icon: "❓",
@@ -109,7 +109,7 @@ module Planning
       "increase_fluency" => [
         {
           title: "Impromptu Speaking Drill",
-          description: "Speak for 60 seconds on a random topic without preparation.",
+          description: "Start speaking about the prompt IMMEDIATELY without planning. Speak for 60 seconds without stopping, even if you make mistakes. Don't restart sentences—keep pushing forward. The goal is continuous flow, not perfection.",
           duration_seconds: 60,
           drill_type: "impromptu",
           icon: "🎲",
@@ -117,7 +117,7 @@ module Planning
         },
         {
           title: "Smooth Transitions Practice",
-          description: "Practice connecting ideas smoothly without hesitation.",
+          description: "Speak for 2 minutes about the prompt. Make 5 distinct points. Connect each point with transition phrases: 'Building on that...', 'Similarly...', 'On the other hand...', 'This leads to...'. Practice seamless idea flow.",
           duration_seconds: 120,
           drill_type: "transitions",
           icon: "🔗",
@@ -125,7 +125,7 @@ module Planning
         },
         {
           title: "Fluency Flow Exercise",
-          description: "Speak continuously on a familiar topic maintaining smooth flow.",
+          description: "Speak about the prompt for 90 seconds without ANY pauses longer than 2 seconds. If you lose your train of thought, use bridge phrases: 'What I mean is...', 'In other words...', 'The key point is...'. Never stop completely.",
           duration_seconds: 90,
           drill_type: "flow",
           icon: "🌊",
@@ -135,7 +135,7 @@ module Planning
       "fix_long_pauses" => [
         {
           title: "Prepared Speaking Drill",
-          description: "Prepare key points and practice speaking without long pauses.",
+          description: "Before recording, write down 3-5 key points about the prompt. Then speak for 60 seconds using only your key points as reference. If you pause, glance at your notes and keep going. Limit pauses to maximum 2 seconds.",
           duration_seconds: 60,
           drill_type: "prepared",
           icon: "📝",
@@ -143,7 +143,7 @@ module Planning
         },
         {
           title: "Bridging Phrases Practice",
-          description: "Use transition phrases to fill natural gaps smoothly.",
+          description: "Speak for 90 seconds. Whenever you feel a pause coming, use a bridge phrase: 'So...', 'Well...', 'You see...', 'The thing is...', 'Essentially...'. These buy you thinking time without awkward silence. Use at least 5 bridges.",
           duration_seconds: 90,
           drill_type: "bridging",
           icon: "🌉",
@@ -151,7 +151,7 @@ module Planning
         },
         {
           title: "Outline-Based Recording",
-          description: "Speak from an outline, focusing on connecting ideas smoothly.",
+          description: "Create a simple outline: 1) Opening statement, 2) Three supporting points, 3) Conclusion. Speak for 2 minutes following this structure. Move from section to section without pausing longer than 2 seconds. Structure prevents pauses.",
           duration_seconds: 120,
           drill_type: "outline",
           icon: "📋",
@@ -161,7 +161,7 @@ module Planning
       "professional_language" => [
         {
           title: "Professional Vocabulary Drill",
-          description: "Replace casual words with professional alternatives in your speech.",
+          description: "Speak for 60 seconds about the prompt. Replace casual words: 'stuff' → 'matters', 'things' → 'elements', 'like' → 'such as', 'really' → 'significantly', 'get' → 'obtain/achieve'. Avoid contractions (say 'cannot' not 'can't').",
           duration_seconds: 60,
           drill_type: "vocabulary",
           icon: "💼",
@@ -169,7 +169,7 @@ module Planning
         },
         {
           title: "Business Presentation Practice",
-          description: "Record a formal presentation on a professional topic.",
+          description: "Speak for 2 minutes as if presenting to executives. Start with: 'Today I'll discuss...'. Use formal phrases: 'I'd like to highlight...', 'The data indicates...', 'In conclusion...'. Maintain professional tone throughout. No slang.",
           duration_seconds: 120,
           drill_type: "presentation",
           icon: "📊",
@@ -177,7 +177,7 @@ module Planning
         },
         {
           title: "Formal Language Exercise",
-          description: "Practice using formal speech patterns and professional tone.",
+          description: "Speak about the prompt for 90 seconds using complete sentences. Avoid: 'kinda', 'sorta', 'yeah', 'you know'. Instead use: 'somewhat', 'yes', 'as you're aware'. Pretend you're being recorded for a documentary. Be articulate.",
           duration_seconds: 90,
           drill_type: "formal",
           icon: "🎓",
