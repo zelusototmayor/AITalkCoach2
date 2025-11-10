@@ -15,6 +15,7 @@ class Auth::SessionsController < ApplicationController
       # since they're grandfathered and don't need to go through it
       if user.subscription_lifetime? && !user.onboarding_completed?
         user.update_column(:onboarding_completed_at, Time.current)
+        user.reload # Reload to pick up the updated onboarding_completed_at value
         Rails.logger.info "Auto-completed onboarding for grandfathered user: #{user.email}"
       end
 

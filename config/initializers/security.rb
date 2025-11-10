@@ -1,68 +1,69 @@
 # Security configurations and hardening
 
 # Content Security Policy
-if Rails.env.production? || Rails.env.staging?
-  Rails.application.configure do
-    config.content_security_policy do |policy|
-      # Allow 'self' for most resources
-      policy.default_src :self, :https
+Rails.application.configure do
+  config.content_security_policy do |policy|
+    # Allow 'self' for most resources
+    policy.default_src :self, :https
 
-      # Allow specific script sources (Google Analytics requires unsafe-inline)
-      policy.script_src :self, :unsafe_inline, "https://cdn.jsdelivr.net", "https://unpkg.com", "https://www.googletagmanager.com", "https://www.google-analytics.com", "https://ssl.google-analytics.com", "https://js.stripe.com"
+    # Allow specific script sources (Google Analytics requires unsafe-inline)
+    policy.script_src :self, :unsafe_inline, "https://cdn.jsdelivr.net", "https://unpkg.com", "https://www.googletagmanager.com", "https://www.google-analytics.com", "https://ssl.google-analytics.com", "https://js.stripe.com", "https://cdn.mxpnl.com"
 
-      # Allow specific style sources
-      policy.style_src :self, :unsafe_inline, "https://fonts.googleapis.com"
+    # Allow specific style sources
+    policy.style_src :self, :unsafe_inline, "https://fonts.googleapis.com"
 
-      # Allow images from self, data URLs, and Google Analytics tracking pixels
-      policy.img_src :self, :data, :https, "https://www.google-analytics.com", "https://www.googletagmanager.com"
+    # Allow images from self, data URLs, and Google Analytics tracking pixels
+    policy.img_src :self, :data, :https, "https://www.google-analytics.com", "https://www.googletagmanager.com"
 
-      # Allow fonts from Google Fonts
-      policy.font_src :self, "https://fonts.gstatic.com"
+    # Allow fonts from Google Fonts
+    policy.font_src :self, "https://fonts.gstatic.com"
 
-      # Allow connections to specific hosts
-      policy.connect_src :self, "https://api.openai.com", "https://api.deepgram.com", "https://api.stripe.com", "https://www.google-analytics.com", "https://region1.google-analytics.com", "https://analytics.google.com", "https://stats.g.doubleclick.net", "https://www.googletagmanager.com"
+    # Allow connections to specific hosts (including Google Apps Script for partner form)
+    policy.connect_src :self, "https://api.openai.com", "https://api.deepgram.com", "https://api.stripe.com", "https://www.google-analytics.com", "https://region1.google-analytics.com", "https://analytics.google.com", "https://stats.g.doubleclick.net", "https://www.googletagmanager.com", "https://script.google.com", "https://script.googleusercontent.com", "https://cdn.jsdelivr.net", "https://cdn.mxpnl.com", "https://api-eu.mixpanel.com"
 
-      # Media sources for audio/video
-      policy.media_src :self, :blob
+    # Media sources for audio/video
+    policy.media_src :self, :blob
 
-      # Object sources
-      policy.object_src :none
+    # Frame sources (for Stripe payment elements)
+    policy.frame_src :self, "https://js.stripe.com"
 
-      # Base URI
-      policy.base_uri :self
+    # Object sources
+    policy.object_src :none
 
-      # Form action
-      policy.form_action :self
+    # Base URI
+    policy.base_uri :self
 
-      # Frame ancestors (prevent clickjacking)
-      policy.frame_ancestors :none
+    # Form action
+    policy.form_action :self
 
-      # Worker sources for web workers
-      policy.worker_src :self, :blob
+    # Frame ancestors (prevent clickjacking)
+    policy.frame_ancestors :none
 
-      # Child sources for frames and workers
-      policy.child_src :self
+    # Worker sources for web workers
+    policy.worker_src :self, :blob
 
-      # Upgrade insecure requests
-      policy.upgrade_insecure_requests true
+    # Child sources for frames and workers
+    policy.child_src :self
 
-      # Report violations (in production, set up a reporting endpoint)
-      if Rails.env.production? && ENV["CSP_REPORT_URI"].present?
-        policy.report_uri ENV["CSP_REPORT_URI"]
-      end
+    # Upgrade insecure requests (only in production/staging)
+    policy.upgrade_insecure_requests true if Rails.env.production? || Rails.env.staging?
+
+    # Report violations (in production, set up a reporting endpoint)
+    if Rails.env.production? && ENV["CSP_REPORT_URI"].present?
+      policy.report_uri ENV["CSP_REPORT_URI"]
     end
-
-    # CSP reporting only mode (remove in production after testing)
-    if ENV["CSP_REPORT_ONLY"] == "true"
-      config.content_security_policy_report_only = true
-    end
-
-    # Disable nonce generation to ensure unsafe-inline works for Google Analytics
-    # config.content_security_policy_nonce_generator = ->(_request) { SecureRandom.base64(16) }
-
-    # No nonce directives - relying on unsafe-inline for Google Analytics compatibility
-    # config.content_security_policy_nonce_directives = %w[]
   end
+
+  # CSP reporting only mode (remove in production after testing)
+  if ENV["CSP_REPORT_ONLY"] == "true"
+    config.content_security_policy_report_only = true
+  end
+
+  # Disable nonce generation to ensure unsafe-inline works for Google Analytics
+  # config.content_security_policy_nonce_generator = ->(_request) { SecureRandom.base64(16) }
+
+  # No nonce directives - relying on unsafe-inline for Google Analytics compatibility
+  # config.content_security_policy_nonce_directives = %w[]
 end
 
 # Security Headers

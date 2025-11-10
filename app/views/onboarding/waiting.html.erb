@@ -135,16 +135,16 @@
 
 <script>
   // Poll for completion status
-  const trialSessionId = <%= @trial_session&.id || 'null' %>;
+  const trialSessionToken = <%= @trial_session&.token ? "'#{@trial_session.token}'" : 'null' %>;
   let pollCount = 0;
   const maxPolls = 60; // 60 polls × 2 seconds = 2 minutes max wait
 
   // Debug logging
-  console.log('Waiting page loaded, trial session ID:', trialSessionId);
+  console.log('Waiting page loaded, trial session token:', trialSessionToken);
 
-  // Check if we have a valid trial session ID
-  if (!trialSessionId) {
-    console.error('No trial session ID found!');
+  // Check if we have a valid trial session token
+  if (!trialSessionToken) {
+    console.error('No trial session token found!');
     document.querySelector('.onboarding-subtitle').textContent = 'Error: No recording session found. Redirecting...';
     setTimeout(() => {
       window.location.href = '<%= onboarding_test_path %>';
@@ -184,7 +184,7 @@
 
   function checkStatus() {
     pollCount++;
-    console.log(`Polling attempt ${pollCount}/${maxPolls} for trial session ${trialSessionId}`);
+    console.log(`Polling attempt ${pollCount}/${maxPolls} for trial session ${trialSessionToken}`);
 
     if (pollCount > maxPolls) {
       // Timeout - show error
@@ -195,7 +195,7 @@
       return;
     }
 
-    fetch(`/api/trial_sessions/${trialSessionId}/status`, {
+    fetch(`/api/trial_sessions/${trialSessionToken}/status`, {
       headers: {
         'Accept': 'application/json',
         'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
@@ -247,11 +247,11 @@
     });
   }
 
-  // Start polling after a brief delay (only if we have a valid session ID)
-  if (trialSessionId) {
+  // Start polling after a brief delay (only if we have a valid session token)
+  if (trialSessionToken) {
     console.log('Starting polling in 1 second...');
     setTimeout(checkStatus, 1000);
   } else {
-    console.error('Cannot start polling: no trial session ID');
+    console.error('Cannot start polling: no trial session token');
   }
 </script>

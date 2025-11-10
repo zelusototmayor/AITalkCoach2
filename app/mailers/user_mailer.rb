@@ -97,6 +97,17 @@ class UserMailer < ApplicationMailer
     )
   end
 
+  def third_time_charm(user, password = nil)
+    @user = user
+    @password = password
+    @login_url = "https://app.aitalkcoach.com/login"
+
+    mail(
+      to: @user.email,
+      subject: "Third time is the charm"
+    )
+  end
+
   private
 
   def format_currency(cents)
