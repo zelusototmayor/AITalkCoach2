@@ -172,7 +172,7 @@ module Sessions
 
       transcription_options = {
         language: @trial_session.language,
-        model: "nova", # Use basic model for trials
+        model: "nova-3", # Use nova-3 model for multi-language support
         punctuate: true,
         diarize: false,
         timestamps: true
