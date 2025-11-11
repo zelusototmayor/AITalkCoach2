@@ -66,7 +66,7 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body data-controller="accessibility analytics feedback-menu" data-analytics-enabled-value="<%= Rails.env.production? %>" data-analytics-debug-value="<%= !Rails.env.production? %>" data-user-id="<%= current_user&.id %>" data-user-email="<%= current_user&.email %>" data-user-name="<%= current_user&.name %>">
+  <body data-controller="accessibility analytics feedback-menu" data-analytics-enabled-value="<%= Rails.env.production? %>" data-analytics-debug-value="<%= !Rails.env.production? %>" data-user-id="<%= current_user ? current_user.id : '' %>" data-user-email="<%= current_user ? current_user.email : '' %>" data-user-name="<%= current_user ? current_user.name : '' %>">
     <!-- Animated Background -->
     <div class="animated-background">
       <div class="wave-layer"></div>
@@ -145,10 +145,10 @@
               accept="image/*"
               multiple
               class="file-input" />
-            <div class="file-input-label">
+            <label for="feedback-images" class="file-input-label" data-feedback-menu-target="fileInputLabel">
               <span class="file-icon">📎</span>
               <span data-feedback-menu-target="fileLabel">Choose images (max 5)</span>
-            </div>
+            </label>
             <div class="image-previews" data-feedback-menu-target="imagePreviews"></div>
           </div>
 

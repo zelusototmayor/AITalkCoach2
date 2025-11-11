@@ -7,8 +7,59 @@
       <span class="quit-icon">×</span>
     <% end %>
 
-    <!-- Report Section -->
-    <div class="report-section">
+    <% if @trial_session && !@trial_session.completed? %>
+      <!-- Processing State - Show loading -->
+      <div class="processing-container" id="processingContainer">
+        <div class="processing-content">
+          <div class="processing-spinner"></div>
+          <h1 class="processing-title">Analyzing Your Speech...</h1>
+          <p class="processing-subtitle">This usually takes 10-20 seconds</p>
+        </div>
+      </div>
+
+      <script>
+        (function() {
+          const trialSessionToken = '<%= @trial_session.token %>';
+          let pollCount = 0;
+          const maxPolls = 60; // 2 minutes max
+
+          function pollStatus() {
+            if (pollCount >= maxPolls) {
+              console.error('Polling timeout - max attempts reached');
+              return;
+            }
+
+            pollCount++;
+
+            fetch(`/api/trial_sessions/${trialSessionToken}/status`, {
+              headers: {
+                'Accept': 'application/json',
+                'Cache-Control': 'no-cache'
+              }
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.completed) {
+                // Reload page to show results
+                window.location.reload();
+              } else {
+                // Continue polling
+                setTimeout(pollStatus, 2000);
+              }
+            })
+            .catch(error => {
+              console.error('Polling error:', error);
+              setTimeout(pollStatus, 2000);
+            });
+          }
+
+          // Start polling after 1 second
+          setTimeout(pollStatus, 1000);
+        })();
+      </script>
+    <% else %>
+      <!-- Report Section - Show results when completed -->
+      <div class="report-section">
       <% if @trial_session&.title&.include?("Mock Data") %>
         <!-- Mock Data Notice -->
         <div class="mock-data-notice">
@@ -202,10 +253,51 @@
         <div class="progress-dot"></div>
       </div>
     </div>
+    <% end %>
   </div>
 </div>
 
 <style>
+  /* Processing Container */
+  .processing-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .processing-content {
+    text-align: center;
+    max-width: 400px;
+  }
+
+  .processing-spinner {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 2rem;
+    border: 4px solid #e5e7eb;
+    border-top-color: #FF8C42;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .processing-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+  }
+
+  .processing-subtitle {
+    font-size: 1rem;
+    color: #64748b;
+  }
+
   /* Container */
   .onboarding-container {
     min-height: 100vh;

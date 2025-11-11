@@ -9571,6 +9571,12 @@ textarea:focus {
   background: #f0f0ff;
 }
 
+.file-input-label.drag-over {
+  border-color: var(--brand-600);
+  background: #e8e8ff;
+  transform: scale(1.02);
+}
+
 .file-icon {
   font-size: 1.25rem;
 }

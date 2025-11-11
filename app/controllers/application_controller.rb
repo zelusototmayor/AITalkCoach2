@@ -210,6 +210,7 @@ class ApplicationController < ActionController::Base
     # - Authentication controllers (login, signup, password reset)
     # - Marketing site controllers (landing, pricing, blog)
     # - Onboarding controllers (to avoid redirect loop)
+    # - Feedback controller (allow feedback from any state)
     # - Webhook endpoints
     # - API health checks
     # - Admin routes (for admin users)
@@ -219,6 +220,7 @@ class ApplicationController < ActionController::Base
     controller_name == "blog_posts" ||
     controller_name == "trial_sessions" ||
     controller_path.starts_with?("onboarding/") ||
+    controller_name == "feedback" ||
     controller_name == "webhooks" ||
     controller_path.starts_with?("admin/")
   end

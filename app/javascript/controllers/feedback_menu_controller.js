@@ -8,6 +8,7 @@ export default class extends Controller {
     "charCount",
     "imageInput",
     "fileLabel",
+    "fileInputLabel",
     "imagePreviews",
     "form",
     "submitBtn",
@@ -24,6 +25,16 @@ export default class extends Controller {
     // Listen for character count updates
     if (this.hasFeedbackTextTarget) {
       this.feedbackTextTarget.addEventListener('input', this.updateCharCount.bind(this))
+    }
+
+    // Setup drag-and-drop listeners for file upload
+    if (this.hasFileInputLabelTarget) {
+      const label = this.fileInputLabelTarget
+
+      label.addEventListener('dragover', this.handleDragOver.bind(this))
+      label.addEventListener('dragenter', this.handleDragEnter.bind(this))
+      label.addEventListener('dragleave', this.handleDragLeave.bind(this))
+      label.addEventListener('drop', this.handleDrop.bind(this))
     }
   }
 
@@ -145,6 +156,58 @@ export default class extends Controller {
     this.handleImageChange({ target: this.imageInputTarget })
   }
 
+  handleDragOver(event) {
+    event.preventDefault()
+    event.stopPropagation()
+    event.dataTransfer.dropEffect = 'copy'
+  }
+
+  handleDragEnter(event) {
+    event.preventDefault()
+    event.stopPropagation()
+    this.fileInputLabelTarget.classList.add('drag-over')
+  }
+
+  handleDragLeave(event) {
+    event.preventDefault()
+    event.stopPropagation()
+    // Only remove if leaving the label itself (not child elements)
+    if (event.target === this.fileInputLabelTarget) {
+      this.fileInputLabelTarget.classList.remove('drag-over')
+    }
+  }
+
+  handleDrop(event) {
+    event.preventDefault()
+    event.stopPropagation()
+    this.fileInputLabelTarget.classList.remove('drag-over')
+
+    const files = event.dataTransfer.files
+
+    if (files.length > 0) {
+      // Filter to only allow image files
+      const imageFiles = Array.from(files).filter(file => file.type.startsWith('image/'))
+
+      if (imageFiles.length === 0) {
+        alert('Please drop only image files')
+        return
+      }
+
+      if (imageFiles.length > 5) {
+        alert('Maximum 5 images allowed')
+        return
+      }
+
+      // Create a DataTransfer object to set the files on the input
+      const dt = new DataTransfer()
+      imageFiles.forEach(file => dt.items.add(file))
+      this.imageInputTarget.files = dt.files
+
+      // Trigger change event to update previews
+      this.handleImageChange({ target: this.imageInputTarget })
+    }
+  }
+
   async submitFeedback(event) {
     event.preventDefault()
 
@@ -162,6 +225,12 @@ export default class extends Controller {
       const formData = new FormData()
       formData.append('feedback_text', feedbackText)
 
+      // Add CSRF token to form data
+      const csrfToken = document.querySelector('[name="csrf-token"]')?.content
+      if (csrfToken) {
+        formData.append('authenticity_token', csrfToken)
+      }
+
       // Add images
       const files = Array.from(this.imageInputTarget.files)
       files.forEach((file, index) => {
@@ -172,9 +241,17 @@ export default class extends Controller {
         method: 'POST',
         body: formData,
         headers: {
-          'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
+          'X-CSRF-Token': csrfToken
         }
       })
+
+      // Check if response is JSON
+      const contentType = response.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        const responseText = await response.text()
+        console.error('Non-JSON response:', responseText)
+        throw new Error('Server returned an unexpected response. Please check the console for details.')
+      }
 
       const data = await response.json()
 

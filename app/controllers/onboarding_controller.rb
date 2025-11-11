@@ -1,6 +1,7 @@
 class OnboardingController < ApplicationController
   before_action :require_login
   skip_before_action :require_onboarding
+  before_action :redirect_lifetime_users
   before_action :redirect_if_completed, except: [ :complete ]
 
   # Screen 0: Splash screen with animated logo
@@ -111,12 +112,12 @@ class OnboardingController < ApplicationController
           current_user.update(onboarding_demo_session_id: trial_session.id)
           cookies[:demo_trial_token] = { value: trial_session.token, expires: 1.hour.from_now }
 
-          # Return JSON for AJAX submission - redirect to waiting page
+          # Return JSON for AJAX submission - redirect to report page
           render json: {
             success: true,
             message: "Recording uploaded successfully",
             trial_token: trial_session.token,
-            redirect_url: onboarding_waiting_path
+            redirect_url: onboarding_report_path
           }
         rescue => e
           Rails.logger.error "Onboarding trial recording error: #{e.message}"
@@ -163,7 +164,7 @@ class OnboardingController < ApplicationController
     end
   end
 
-  # Screen 4.5: Show report results (if trial session was completed)
+  # Screen 4.5: Show report results (with polling if not yet completed)
   def report
     # Find the trial session linked to this user
     if current_user.onboarding_demo_session_id.present?
@@ -171,18 +172,15 @@ class OnboardingController < ApplicationController
 
       Rails.logger.info "Onboarding report: trial_session_id=#{current_user.onboarding_demo_session_id}, found=#{@trial_session.present?}, completed=#{@trial_session&.completed?}"
 
-      # If no trial session or not completed, redirect to pricing
+      # If no trial session, redirect to pricing
       if @trial_session.nil?
         Rails.logger.warn "Onboarding report: Trial session not found, redirecting to pricing"
         redirect_to onboarding_pricing_path
         return
-      elsif !@trial_session.completed?
-        Rails.logger.warn "Onboarding report: Trial session not completed (state: #{@trial_session.processing_state}), redirecting to pricing"
-        redirect_to onboarding_pricing_path
-        return
       end
 
-      Rails.logger.info "Onboarding report: Showing report for trial session #{@trial_session.id}"
+      # Allow rendering even if not completed - view will handle polling
+      Rails.logger.info "Onboarding report: Showing report for trial session #{@trial_session.id}, state: #{@trial_session.processing_state}"
     else
       # No trial session, skip to pricing
       Rails.logger.warn "Onboarding report: No trial session ID on user, redirecting to pricing"
@@ -325,6 +323,12 @@ class OnboardingController < ApplicationController
   def redirect_if_completed
     if current_user.onboarding_completed?
       redirect_to app_root_path, notice: "You've already completed onboarding"
+    end
+  end
+
+  def redirect_lifetime_users
+    if current_user.subscription_lifetime?
+      redirect_to practice_path, notice: "Welcome! You have lifetime access."
     end
   end
 

@@ -68,7 +68,7 @@
       <p class="section-subtitle">Join our growing community of partners and start earning today</p>
 
       <div class="apply-form-wrapper">
-        <%= form_with model: @partner_application, url: partners_path, class: "partners-form", local: true do |f| %>
+        <%= form_with model: @partner_application, url: partners_path, class: "partners-form", local: false do |f| %>
           <div class="form-group">
             <%= f.label :name, "Full Name *", class: "form-label" %>
             <%= f.text_field :name, class: "form-input", required: true, placeholder: "Your full name" %>
@@ -159,7 +159,6 @@
   </footer>
 </div>
 
-<!-- JavaScript for Form Handling -->
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     const form = document.querySelector('.partners-form');
@@ -167,63 +166,41 @@
 
     if (!form || !messageEl) return;
 
-    form.addEventListener('submit', async (event) => {
-      event.preventDefault();
+    form.addEventListener('ajax:success', (event) => {
+      const [data, status, xhr] = event.detail;
 
-      const submitButton = form.querySelector('input[type="submit"]');
-      const originalText = submitButton.value;
+      // Show success message
+      messageEl.textContent = data.message || "Thank you! We've received your application and will be in touch soon.";
+      messageEl.className = 'form-message success';
+      messageEl.style.display = 'block';
 
-      // Disable submit button
-      submitButton.disabled = true;
-      submitButton.value = "Submitting...";
+      // Reset form
+      form.reset();
 
-      const data = {
-        secret: 'aitalk-affiliates-2025',
-        name: form.querySelector('[name="partner_application[name]"]').value,
-        email: form.querySelector('[name="partner_application[email]"]').value,
-        type: form.querySelector('[name="partner_application[partner_type]"]').value,
-        reason: form.querySelector('[name="partner_application[message]"]').value
-      };
+      // Scroll to message
+      messageEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
-      try {
-        const res = await fetch('https://script.google.com/macros/s/AKfycbwYJT1PXIRwEPI79PAePHUOB0-DjLWds8jNBaTQN_kWJSOlJZtT6HzFxIPhslnXwzA1Wg/exec', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        });
+      // Auto-hide after 10 seconds
+      setTimeout(() => {
+        messageEl.style.display = 'none';
+      }, 10000);
+    });
 
-        const result = await res.json();
+    form.addEventListener('ajax:error', (event) => {
+      const [data, status, xhr] = event.detail;
 
-        if (result.ok) {
-          // Show success message
-          messageEl.textContent = 'Thank you! We\'ve received your application and will be in touch soon.';
-          messageEl.className = 'form-message success';
-          messageEl.style.display = 'block';
-          form.reset();
-
-          // Scroll to message
-          messageEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
-          // Auto-hide after 10 seconds
-          setTimeout(() => {
-            messageEl.style.display = 'none';
-          }, 10000);
-        } else {
-          // Show error message
-          messageEl.textContent = 'Error: ' + (result.error || 'Please try again.');
-          messageEl.className = 'form-message error';
-          messageEl.style.display = 'block';
-        }
-      } catch (err) {
-        // Show error message
-        messageEl.textContent = 'Failed to submit: ' + err.message;
-        messageEl.className = 'form-message error';
-        messageEl.style.display = 'block';
-      } finally {
-        // Re-enable submit button
-        submitButton.disabled = false;
-        submitButton.value = originalText;
+      let errorMessage = 'Something went wrong. Please try again.';
+      if (data && data.errors) {
+        errorMessage = data.errors.join(', ');
       }
+
+      // Show error message
+      messageEl.textContent = errorMessage;
+      messageEl.className = 'form-message error';
+      messageEl.style.display = 'block';
+
+      // Scroll to message
+      messageEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     });
   });
 </script>

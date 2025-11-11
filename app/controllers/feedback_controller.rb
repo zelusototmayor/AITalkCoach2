@@ -1,5 +1,9 @@
 class FeedbackController < ApplicationController
+  # Skip CSRF verification for JSON API endpoint - we're handling it manually in FormData
+  skip_before_action :verify_authenticity_token, only: [:create]
+
   def create
+    Rails.logger.info "Feedback submission started - params: #{params.keys}"
     feedback_text = params[:feedback_text]
     images = params[:images] || []
 
