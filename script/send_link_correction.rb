@@ -1,5 +1,19 @@
 #!/usr/bin/env ruby
+
+# Force production environment
+ENV['RAILS_ENV'] = 'production'
 require_relative '../config/environment'
+
+# Safety confirmation
+puts "⚠️  WARNING: This script will send emails from PRODUCTION!"
+puts "=" * 80
+print "Type 'yes' to continue: "
+confirmation = STDIN.gets.chomp.downcase
+unless confirmation == 'yes'
+  puts "Cancelled."
+  exit
+end
+puts
 
 # Beta testers who received the incorrect link
 beta_testers = [

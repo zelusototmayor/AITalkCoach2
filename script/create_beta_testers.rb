@@ -1,16 +1,31 @@
 #!/usr/bin/env ruby
+
+# Force production environment
+ENV['RAILS_ENV'] = 'production'
 require_relative '../config/environment'
+
+# Safety confirmation
+puts "⚠️  WARNING: This script will create users in PRODUCTION!"
+puts "=" * 80
+
+if ENV["CONFIRM"] == "yes"
+  puts "Auto-confirming due to CONFIRM=yes environment variable"
+  puts
+else
+  print "Type 'yes' to continue: "
+  confirmation = STDIN.gets.chomp.downcase
+  unless confirmation == 'yes'
+    puts "Cancelled."
+    exit
+  end
+  puts
+end
 
 # Beta testers to create with lifetime access
 beta_testers = [
-  { first_name: "Chelsea", last_name: "Nwakibu", email: "c.nwakibu@gmail.com" },
-  { first_name: "Aron", last_name: "Melton", email: "Gerezgiher94@gmail.com" },
-  { first_name: "Sanjay", last_name: "Hallan", email: "sanjay_hallan@yahoo.co.uk" },
-  { first_name: "Cassandra", last_name: "Thomas", email: "cassandithomas@icloud.com" },
-  { first_name: "Vesta", last_name: "T", email: "mundifamily@yahoo.com" },
-  { first_name: "MOHAMED", last_name: "Ahamed", email: "ahamed67y@gmail.com" },
-  { first_name: "Mirela", last_name: "Bace", email: "dea.bace@yahoo.com" },
-  { first_name: "Nicholas", last_name: "Belgrave", email: "n_belgrave@hotmail.com" }
+  { first_name: "Karolis", last_name: "Miskinis", email: "carlos@rankunlimitedseo.com" },
+  { first_name: "Jamal", last_name: "Kayed", email: "jkayed0@gmail.com" },
+  { first_name: "Vesta", last_name: "T", email: "mundifamily@yahoo.com" }
 ]
 
 puts "Creating #{beta_testers.length} beta tester accounts with lifetime access..."
