@@ -129,7 +129,11 @@ export async function pollSessionStatus(sessionId, onProgress = null, pollInterv
       try {
         const headers = await getAuthHeaders();
         const response = await fetch(`${API_BASE_URL}/api/v1/sessions/${sessionId}/status`, {
-          headers: headers,
+          headers: {
+            ...headers,
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+          },
         });
 
         if (!response.ok) {
@@ -266,6 +270,8 @@ export async function pollTrialSessionStatus(trialToken, onProgress = null, poll
         const response = await fetch(`${API_BASE_URL}/api/trial_sessions/${trialToken}/status`, {
           headers: {
             'Accept': 'application/json',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
           },
         });
 

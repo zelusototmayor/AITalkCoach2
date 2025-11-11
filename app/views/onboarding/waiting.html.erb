@@ -135,7 +135,7 @@
 
 <script>
   // Poll for completion status
-  const trialSessionToken = <%= @trial_session&.token ? "'#{@trial_session.token}'" : 'null' %>;
+  const trialSessionToken = <%= @trial_session ? "'#{@trial_session.token}'" : 'null' %>;
   let pollCount = 0;
   const maxPolls = 60; // 60 polls × 2 seconds = 2 minutes max wait
 
@@ -198,7 +198,9 @@
     fetch(`/api/trial_sessions/${trialSessionToken}/status`, {
       headers: {
         'Accept': 'application/json',
-        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache'
       }
     })
     .then(response => {

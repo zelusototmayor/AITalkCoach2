@@ -76,6 +76,11 @@ class Api::TrialSessionsController < Api::V1::BaseController
   end
 
   def status
+    # Prevent caching of status responses
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+
     # Get processing stage from analysis_data if available
     processing_stage = @trial_session.analysis_data&.dig("processing_stage")
     incomplete_reason = @trial_session.incomplete_reason
