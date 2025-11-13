@@ -2,7 +2,7 @@ export default {
   expo: {
     name: "AI Talk Coach",
     slug: "ai-talk-coach",
-    version: "1.0.0",
+    version: "1.0.1",
     orientation: "portrait",
     icon: "./assets/logo.png",
     userInterfaceStyle: "light",
@@ -14,7 +14,7 @@ export default {
     },
     ios: {
       bundleIdentifier: "com.aitalkcoach.app",
-      buildNumber: "2",
+      buildNumber: "4",
       supportsTablet: false,
       infoPlist: {
         NSMicrophoneUsageDescription: "AI Talk Coach needs access to your microphone to record and analyze your speech patterns for providing personalized feedback.",
@@ -27,7 +27,7 @@ export default {
     },
     android: {
       package: "com.aitalkcoach.app",
-      versionCode: 1,
+      versionCode: 2,
       adaptiveIcon: {
         foregroundImage: "./assets/adaptive-icon.png",
         backgroundColor: "#ffffff"
