@@ -38,6 +38,13 @@ export default function PaywallScreen({ navigation }) {
       console.log('🚀 PaywallScreen: RevenueCat initialization result:', initResult);
 
       console.log('🚀 PaywallScreen: Fetching offerings...');
+
+      // Validate configuration in development
+      if (__DEV__) {
+        const diagnostics = await subscriptionService.validateRevenueCatConfig();
+        console.log('📊 RevenueCat diagnostics:', diagnostics);
+      }
+
       const availableOfferings = await subscriptionService.getOfferings();
       console.log('🚀 PaywallScreen: Received offerings:', availableOfferings.length, 'packages');
 
@@ -45,9 +52,33 @@ export default function PaywallScreen({ navigation }) {
 
       if (availableOfferings.length === 0) {
         console.warn('⚠️ PaywallScreen: No offerings received. Check RevenueCat dashboard.');
+
+        // More detailed error message for debugging
+        const diagnostics = await subscriptionService.validateRevenueCatConfig();
+        const errorDetails = [
+          'Subscription options are not available.',
+          '',
+          'Diagnostics:',
+          `- Environment: ${diagnostics.environment}`,
+          `- TestFlight: ${diagnostics.isTestFlight}`,
+          `- Initialized: ${diagnostics.initialized}`,
+          `- Has Offerings: ${diagnostics.hasOfferings}`,
+          `- Products Found: ${diagnostics.offeringsCount}`,
+          '',
+          'Check RevenueCat dashboard:',
+          '1. Create products (IDs: 04, 05)',
+          '2. Create an offering with both packages',
+          '3. Set it as "Current Offering"',
+          '4. Ensure API key is correct',
+        ];
+
+        if (diagnostics.errors.length > 0) {
+          errorDetails.push('', 'Errors:', ...diagnostics.errors.map(e => `- ${e}`));
+        }
+
         Alert.alert(
           'Configuration Issue',
-          'Subscription options are not available. Please check RevenueCat dashboard configuration:\n\n1. Create products (IDs: 02, 03)\n2. Create an offering with both packages\n3. Set it as "Current Offering"\n4. Create and link entitlements'
+          errorDetails.join('\n')
         );
       }
     } catch (error) {
@@ -70,7 +101,7 @@ export default function PaywallScreen({ navigation }) {
 
       // Find the selected package
       const selectedPackage = offerings.find(
-        offering => offering.productId === (selectedPlan === 'monthly' ? '02' : '03')
+        offering => offering.productId === (selectedPlan === 'monthly' ? '04' : '05')
       );
 
       if (!selectedPackage) {
@@ -100,12 +131,55 @@ export default function PaywallScreen({ navigation }) {
         // User cancelled, do nothing
         console.log('User cancelled purchase');
       } else {
-        // Error occurred
-        Alert.alert('Purchase Failed', result.error || 'Please try again.');
+        // Error occurred - show appropriate message with retry option
+        const errorTitle = result.isRecoverable ? 'Purchase Temporarily Failed' : 'Purchase Failed';
+        const errorMessage = result.error || 'Please try again.';
+
+        // Show technical details in development
+        if (__DEV__ && result.technicalDetails) {
+          console.log('Technical error details:', result.technicalDetails);
+        }
+
+        // Show alert with retry option for recoverable errors
+        if (result.isRecoverable) {
+          Alert.alert(
+            errorTitle,
+            `${errorMessage}\n\nThis is a temporary issue. Would you like to try again?`,
+            [
+              { text: 'Cancel', style: 'cancel' },
+              {
+                text: 'Try Again',
+                onPress: () => {
+                  // Retry after a short delay
+                  setTimeout(() => handleStartTrial(), 500);
+                }
+              },
+            ]
+          );
+        } else {
+          Alert.alert(
+            errorTitle,
+            errorMessage,
+            [
+              { text: 'OK', style: 'default' },
+              {
+                text: 'Restore Purchases',
+                onPress: handleRestore,
+                style: 'default'
+              },
+            ]
+          );
+        }
       }
     } catch (error) {
       console.error('Error during purchase:', error);
-      Alert.alert('Error', 'Failed to process purchase. Please try again.');
+      Alert.alert(
+        'Unexpected Error',
+        'Failed to process purchase. Please restart the app and try again.',
+        [
+          { text: 'OK', style: 'default' },
+        ]
+      );
     } finally {
       setIsPurchasing(false);
     }

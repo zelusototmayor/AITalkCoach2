@@ -29,8 +29,8 @@ const REVENUECAT_API_KEYS = {
 
 // Product IDs from App Store Connect
 export const PRODUCT_IDS = {
-  MONTHLY: '02',
-  YEARLY: '03',
+  MONTHLY: '04',
+  YEARLY: '05',
 };
 
 // Get the appropriate API key for the current platform
