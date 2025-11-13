@@ -216,9 +216,9 @@ export default function CinematicScreen({ navigation }) {
     <View style={styles.container}>
       <AnimatedBackground />
       <QuitOnboardingButton />
-      {/* Skip button */}
+      {/* Continue button */}
       <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
-        <Text style={styles.skipText}>Skip</Text>
+        <Text style={styles.skipText}>Continue</Text>
       </TouchableOpacity>
 
       {/* Animated messages */}
