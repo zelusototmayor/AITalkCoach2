@@ -14,7 +14,7 @@ export default {
     },
     ios: {
       bundleIdentifier: "com.aitalkcoach.app",
-      buildNumber: "4",
+      buildNumber: "5",
       supportsTablet: false,
       infoPlist: {
         NSMicrophoneUsageDescription: "AI Talk Coach needs access to your microphone to record and analyze your speech patterns for providing personalized feedback.",
