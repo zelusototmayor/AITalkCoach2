@@ -7,7 +7,7 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
 // Detect if we're in TestFlight/App Store Review (production build but sandbox environment)
-const isTestFlight = () => {
+export const isTestFlight = () => {
   // In TestFlight or App Store Review, the receipt URL will be sandbox
   // This is a production build but uses sandbox purchases
   const isProduction = Constants.expoConfig?.extra?.environment === 'production';

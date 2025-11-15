@@ -18,15 +18,18 @@ export default function PaywallScreen({ navigation }) {
   const [offerings, setOfferings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isPurchasing, setIsPurchasing] = useState(false);
+  const [loadError, setLoadError] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   // Load offerings from RevenueCat
   useEffect(() => {
     loadOfferings();
   }, []);
 
-  const loadOfferings = async () => {
+  const loadOfferings = async (isRetry = false) => {
     try {
       setIsLoading(true);
+      setLoadError(null);
 
       // Initialize RevenueCat with user ID or anonymous ID
       // During onboarding, user is logged in, so we have user.id
@@ -36,6 +39,10 @@ export default function PaywallScreen({ navigation }) {
 
       const initResult = await subscriptionService.initializePurchases(userId);
       console.log('🚀 PaywallScreen: RevenueCat initialization result:', initResult);
+
+      if (!initResult) {
+        throw new Error('Failed to initialize RevenueCat SDK');
+      }
 
       console.log('🚀 PaywallScreen: Fetching offerings...');
 
@@ -53,40 +60,47 @@ export default function PaywallScreen({ navigation }) {
       if (availableOfferings.length === 0) {
         console.warn('⚠️ PaywallScreen: No offerings received. Check RevenueCat dashboard.');
 
-        // More detailed error message for debugging
-        const diagnostics = await subscriptionService.validateRevenueCatConfig();
-        const errorDetails = [
-          'Subscription options are not available.',
-          '',
-          'Diagnostics:',
-          `- Environment: ${diagnostics.environment}`,
-          `- TestFlight: ${diagnostics.isTestFlight}`,
-          `- Initialized: ${diagnostics.initialized}`,
-          `- Has Offerings: ${diagnostics.hasOfferings}`,
-          `- Products Found: ${diagnostics.offeringsCount}`,
-          '',
-          'Check RevenueCat dashboard:',
-          '1. Create products (IDs: 04, 05)',
-          '2. Create an offering with both packages',
-          '3. Set it as "Current Offering"',
-          '4. Ensure API key is correct',
-        ];
-
-        if (diagnostics.errors.length > 0) {
-          errorDetails.push('', 'Errors:', ...diagnostics.errors.map(e => `- ${e}`));
+        // Auto-retry once after a delay for network issues
+        if (!isRetry && retryCount === 0) {
+          console.log('🔄 Auto-retrying in 2 seconds...');
+          setTimeout(() => {
+            setRetryCount(1);
+            loadOfferings(true);
+          }, 2000);
+          return;
         }
 
-        Alert.alert(
-          'Configuration Issue',
-          errorDetails.join('\n')
-        );
+        // Set error state if auto-retry also failed
+        setLoadError('no_offerings');
       }
     } catch (error) {
       console.error('❌ PaywallScreen: Error loading offerings:', error);
-      Alert.alert('Error', 'Failed to load subscription options. Please try again.');
+      console.error('Error details:', {
+        message: error.message,
+        code: error.code,
+        stack: error.stack,
+      });
+
+      // Auto-retry once after a delay for network issues
+      if (!isRetry && retryCount === 0) {
+        console.log('🔄 Auto-retrying after error in 2 seconds...');
+        setTimeout(() => {
+          setRetryCount(1);
+          loadOfferings(true);
+        }, 2000);
+        return;
+      }
+
+      // Set error state for graceful handling
+      setLoadError('network_error');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleRetry = () => {
+    setRetryCount(prev => prev + 1);
+    loadOfferings(true);
   };
 
   const handlePlanSelect = (planId) => {
@@ -110,7 +124,8 @@ export default function PaywallScreen({ navigation }) {
       }
 
       // Purchase the package via RevenueCat
-      const result = await subscriptionService.purchasePackage(selectedPackage.product);
+      // Use the original RevenueCat package object (rcPackage)
+      const result = await subscriptionService.purchasePackage(selectedPackage.rcPackage);
 
       if (result.success) {
         // Purchase successful
@@ -224,7 +239,41 @@ export default function PaywallScreen({ navigation }) {
         <AnimatedBackground />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={COLORS.primary} />
-          <Text style={styles.loadingText}>Loading subscription options...</Text>
+          <Text style={styles.loadingText}>
+            {retryCount > 0 ? 'Retrying...' : 'Loading subscription options...'}
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  // Show error state with retry option
+  if (loadError) {
+    return (
+      <View style={styles.container}>
+        <AnimatedBackground />
+        <QuitOnboardingButton />
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorIcon}>⚠️</Text>
+          <Text style={styles.errorTitle}>
+            {loadError === 'no_offerings'
+              ? 'Subscription Plans Unavailable'
+              : 'Connection Issue'}
+          </Text>
+          <Text style={styles.errorMessage}>
+            {loadError === 'no_offerings'
+              ? 'We\'re having trouble loading subscription plans. This may be temporary.'
+              : 'Unable to connect to the subscription service. Please check your internet connection.'}
+          </Text>
+          <Button
+            title="Try Again"
+            onPress={handleRetry}
+            variant="primary"
+            style={styles.retryButton}
+          />
+          <Text style={styles.errorHint}>
+            If the problem persists, please try again later or contact support.
+          </Text>
         </View>
       </View>
     );
@@ -514,6 +563,42 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     marginTop: SPACING.md,
     textAlign: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.xl,
+  },
+  errorIcon: {
+    fontSize: 64,
+    marginBottom: SPACING.lg,
+  },
+  errorTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: COLORS.text,
+    textAlign: 'center',
+    marginBottom: SPACING.md,
+  },
+  errorMessage: {
+    fontSize: 16,
+    fontWeight: '400',
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    marginBottom: SPACING.xl,
+    lineHeight: 24,
+  },
+  retryButton: {
+    width: '100%',
+    marginBottom: SPACING.md,
+  },
+  errorHint: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: COLORS.textMuted,
+    textAlign: 'center',
+    marginTop: SPACING.sm,
   },
   buttonContainer: {
     position: 'absolute',
