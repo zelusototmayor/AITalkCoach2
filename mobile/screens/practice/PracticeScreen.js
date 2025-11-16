@@ -435,7 +435,7 @@ export default function PracticeScreen({ navigation, route }) {
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <AnimatedBackground />
 
-      <View style={styles.content}>
+      <ScrollView style={styles.content}>
         {/* Retake Banner */}
         {isRetake && relevanceFeedback && (
           <View style={styles.retakeBanner}>
@@ -527,7 +527,7 @@ export default function PracticeScreen({ navigation, route }) {
             <WeeklyFocusCard focus={weeklyFocus} />
           </View>
         )}
-      </View>
+      </ScrollView>
 
       {/* Bottom Navigation */}
       <BottomNavigation activeScreen="practice" />
@@ -541,6 +541,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   content: {
+    flex: 1,
     paddingHorizontal: SPACING.lg,
     paddingTop: 4,
     paddingBottom: 100, // Add space for floating navigation bar

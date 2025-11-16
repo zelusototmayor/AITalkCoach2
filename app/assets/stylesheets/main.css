@@ -293,6 +293,37 @@ body {
   border-color: var(--brand-600);
 }
 
+/* Mobile Touch Target Sizes (minimum 44x44px for iOS HIG) */
+@media (max-width: 768px) {
+  .btn,
+  .btn-primary,
+  .primary-btn,
+  .btn-secondary {
+    min-height: 44px;
+    padding: 0.75rem 1.5rem;
+  }
+
+  .btn-large {
+    min-height: 48px;
+    padding: 1rem 2rem;
+  }
+
+  /* Ensure interactive elements have proper spacing */
+  button,
+  a.btn,
+  input[type="submit"],
+  input[type="button"] {
+    min-height: 44px;
+  }
+
+  /* Navigation links */
+  .sidebar-nav-link,
+  .nav-link {
+    min-height: 44px;
+    padding: 0.75rem 1rem;
+  }
+}
+
 .btn-secondary-outline {
   background: transparent;
   color: #374151;
@@ -1452,6 +1483,19 @@ h4 { font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem; }
   min-height: calc(100vh - 70px);
 }
 
+/* Better mobile spacing */
+@media (max-width: 768px) {
+  .main-content {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .main-content {
+    padding: 1.25rem;
+  }
+}
+
 /* Header & Navigation */
 .main-header {
   position: sticky;
@@ -1759,6 +1803,16 @@ h4 { font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem; }
   border: 1px solid #d1d5db;
   border-radius: 0.5rem;
   font-size: 1rem;
+}
+
+/* Better mobile input sizing */
+@media (max-width: 768px) {
+  .form-input,
+  .form-select {
+    padding: 0.875rem 1rem;
+    font-size: 16px; /* Prevents zoom on iOS */
+    border-radius: 0.75rem;
+  }
 }
 
 .form-input:focus,
@@ -7165,7 +7219,7 @@ textarea:focus {
 }
 
 .hero-title {
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: 900;
   line-height: 1.1;
   letter-spacing: -0.025em;
@@ -7174,7 +7228,7 @@ textarea:focus {
 
 @media (min-width: 640px) {
   .hero-title {
-    font-size: 3rem;
+    font-size: 2.75rem;
   }
 }
 
@@ -7197,12 +7251,20 @@ textarea:focus {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 1.5rem;
+  justify-content: center;
+}
+
+@media (min-width: 1024px) {
+  .hero-actions {
+    justify-content: flex-start;
+  }
 }
 
 .hero-features {
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   color: #6b7280;
+  line-height: 1.6;
 }
 
 /* Hero Demo Section */
@@ -10157,16 +10219,37 @@ textarea:focus {
 
   /* Mobile menu toggle button */
   .sidebar-mobile-toggle {
+    display: none; /* Hidden by default, only shown on mobile */
     position: fixed;
     top: 16px;
     left: 16px;
-    z-index: 999;
+    z-index: 1001;
     background: white;
     border: 1px solid #e5e7eb;
     border-radius: 8px;
-    padding: 10px;
+    padding: 12px;
     cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+  }
+
+  @media (max-width: 768px) {
+    .sidebar-mobile-toggle {
+      display: flex;
+    }
+  }
+
+  .sidebar-mobile-toggle:hover {
+    background: #f9fafb;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .sidebar-mobile-toggle:active {
+    transform: scale(0.95);
   }
 
   .sidebar-mobile-toggle span {
@@ -10174,8 +10257,35 @@ textarea:focus {
     width: 20px;
     height: 2px;
     background: #374151;
-    margin: 4px 0;
-    transition: 0.3s;
+    position: absolute;
+    transition: all 0.3s ease;
+  }
+
+  .sidebar-mobile-toggle span:nth-child(1) {
+    top: 14px;
+  }
+
+  .sidebar-mobile-toggle span:nth-child(2) {
+    top: 21px;
+  }
+
+  .sidebar-mobile-toggle span:nth-child(3) {
+    top: 28px;
+  }
+
+  /* Animated hamburger to X when active */
+  .sidebar-mobile-toggle.active span:nth-child(1) {
+    top: 21px;
+    transform: rotate(45deg);
+  }
+
+  .sidebar-mobile-toggle.active span:nth-child(2) {
+    opacity: 0;
+  }
+
+  .sidebar-mobile-toggle.active span:nth-child(3) {
+    top: 21px;
+    transform: rotate(-45deg);
   }
 }
 
@@ -10532,6 +10642,42 @@ textarea:focus {
   color: var(--muted);
   text-align: center;
   margin-bottom: 2.5rem;
+}
+
+/* Keyboard-Safe Floating Button Container */
+.floating-button-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1.25rem 1.5rem;
+  padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  z-index: 50;
+  pointer-events: none;
+  transition: transform 0.3s ease;
+}
+
+/* Add extra padding on mobile to avoid keyboard overlap */
+@media (max-width: 768px) {
+  .floating-button-container {
+    padding: 1rem;
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  }
+
+  /* When input is focused, add extra bottom margin to content */
+  body:has(input:focus, textarea:focus, select:focus) .floating-button-container {
+    transform: translateY(-50px);
+  }
+
+  /* Ensure form sections have extra bottom padding for keyboard */
+  .onboarding-form-section {
+    padding-bottom: 8rem !important;
+  }
 }
 
 /* Goal Cards */
@@ -10984,6 +11130,12 @@ textarea:focus {
   animation: spin 1s linear infinite;
 }
 
+.spinner-small {
+  width: 20px;
+  height: 20px;
+  border-width: 2px;
+}
+
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
@@ -10992,6 +11144,80 @@ textarea:focus {
   font-size: 1rem;
   color: var(--muted);
   margin-top: 1rem;
+}
+
+/* Loading States for Buttons and Forms */
+.btn-loading,
+.primary-btn[disabled],
+.btn[disabled] {
+  position: relative;
+  color: transparent !important;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.btn-loading::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  top: 50%;
+  left: 50%;
+  margin-left: -8px;
+  margin-top: -8px;
+  border: 2px solid #ffffff;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+/* Loading overlay for sections */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 1rem;
+  z-index: 100;
+}
+
+.loading-overlay.dark {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* Loading skeleton for content */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton-text {
+  height: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.skeleton-title {
+  height: 1.5rem;
+  width: 60%;
+  margin-bottom: 1rem;
+}
+
+.skeleton-card {
+  height: 120px;
+  border-radius: 12px;
 }
 
 /* Test Skip Section */
@@ -11996,8 +12222,8 @@ textarea:focus {
   max-width: 1400px;
   margin: 0 auto;
   padding: 0 1rem;
-  display: grid;
-  grid-template-columns: 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 2rem;
   align-items: center;
   position: relative;
@@ -12006,8 +12232,6 @@ textarea:focus {
 
 @media (min-width: 768px) {
   .hero-container {
-    grid-template-columns: 1fr 1fr;
-    gap: 3rem;
     padding: 0 2rem;
   }
 }
@@ -12015,7 +12239,30 @@ textarea:focus {
 @media (min-width: 1024px) {
   .hero-container {
     padding: 0 3rem;
+    align-items: flex-start;
   }
+}
+
+/* Hero Content - Always centered on mobile, left-aligned on desktop */
+.hero-content {
+  width: 100%;
+  text-align: center;
+  max-width: 600px;
+  order: 1; /* Always show content FIRST */
+}
+
+@media (min-width: 1024px) {
+  .hero-content {
+    text-align: left;
+    max-width: 700px;
+  }
+}
+
+/* Hero Demo - Always show AFTER content */
+.hero-demo,
+.hero-demo-compressed {
+  order: 2; /* Always show images SECOND */
+  width: 100%;
 }
 
 /* Device Mockups Container */
@@ -12204,6 +12451,157 @@ textarea:focus {
 .placeholder-image small {
   font-size: 0.75rem;
   color: #9ca3af;
+}
+
+/* =====================================
+   COMPRESSED DEVICE MOCKUPS (Mobile-First)
+   ===================================== */
+
+/* Container for compressed mockups - ALWAYS SIDE BY SIDE */
+.device-mockups-compressed {
+  display: flex;
+  flex-direction: row !important; /* Side-by-side on ALL screens */
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 2rem;
+  width: 100%;
+}
+
+/* Compressed Desktop Browser Mockup */
+.desktop-mockup-compressed {
+  width: 120px; /* Smaller on mobile */
+  max-width: 120px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.browser-frame-compact {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+}
+
+.browser-chrome-compact {
+  background: #f3f4f6;
+  padding: 0.25rem 0.5rem;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.browser-dots-compact {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.dot-compact {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.browser-content-compact {
+  background: #f9fafb;
+  overflow: hidden;
+  position: relative;
+  min-height: 100px;
+}
+
+.desktop-screenshot-compact {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+  object-position: top center;
+}
+
+/* Compressed iPhone Mockup */
+.iphone-mockup-compressed {
+  width: 70px; /* Smaller on mobile */
+  flex-shrink: 0;
+  position: relative;
+}
+
+.iphone-frame-compact {
+  background: #1f2937;
+  border-radius: 18px;
+  padding: 4px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  border: 2px solid #111827;
+  position: relative;
+}
+
+.iphone-dynamic-island-compact {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 12px;
+  background: #000000;
+  border-radius: 8px;
+  z-index: 10;
+}
+
+.iphone-screen-compact {
+  background: #f9fafb;
+  border-radius: 15px;
+  aspect-ratio: 9 / 19.5;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-screenshot-compact {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+
+/* On larger screens, slightly bigger but still compact */
+@media (min-width: 640px) {
+  .device-mockups-compressed {
+    gap: 0.75rem;
+  }
+
+  .desktop-mockup-compressed {
+    width: 160px;
+    max-width: 160px;
+  }
+
+  .iphone-mockup-compressed {
+    width: 90px;
+  }
+}
+
+/* Desktop - position on right side */
+@media (min-width: 1024px) {
+  .hero-demo-compressed {
+    position: absolute;
+    right: 2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    max-width: 280px;
+  }
+
+  .device-mockups-compressed {
+    margin-top: 0;
+    gap: 1rem;
+  }
+
+  .desktop-mockup-compressed {
+    width: 200px;
+    max-width: 200px;
+  }
+
+  .iphone-mockup-compressed {
+    width: 110px;
+  }
 }
 
 /* =====================================

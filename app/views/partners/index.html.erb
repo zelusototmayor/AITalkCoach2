@@ -68,7 +68,7 @@
       <p class="section-subtitle">Join our growing community of partners and start earning today</p>
 
       <div class="apply-form-wrapper">
-        <%= form_with model: @partner_application, url: partners_path, class: "partners-form", local: false do |f| %>
+        <%= form_with model: @partner_application, url: partners_path, class: "partners-form", data: { turbo: false } do |f| %>
           <div class="form-group">
             <%= f.label :name, "Full Name *", class: "form-label" %>
             <%= f.text_field :name, class: "form-input", required: true, placeholder: "Your full name" %>
@@ -163,44 +163,77 @@
   document.addEventListener('DOMContentLoaded', () => {
     const form = document.querySelector('.partners-form');
     const messageEl = document.querySelector('.form-message');
+    const submitBtn = form?.querySelector('[type="submit"]');
 
     if (!form || !messageEl) return;
 
-    form.addEventListener('ajax:success', (event) => {
-      const [data, status, xhr] = event.detail;
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
 
-      // Show success message
-      messageEl.textContent = data.message || "Thank you! We've received your application and will be in touch soon.";
-      messageEl.className = 'form-message success';
-      messageEl.style.display = 'block';
-
-      // Reset form
-      form.reset();
-
-      // Scroll to message
-      messageEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
-      // Auto-hide after 10 seconds
-      setTimeout(() => {
-        messageEl.style.display = 'none';
-      }, 10000);
-    });
-
-    form.addEventListener('ajax:error', (event) => {
-      const [data, status, xhr] = event.detail;
-
-      let errorMessage = 'Something went wrong. Please try again.';
-      if (data && data.errors) {
-        errorMessage = data.errors.join(', ');
+      // Disable submit button
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting...';
       }
 
-      // Show error message
-      messageEl.textContent = errorMessage;
-      messageEl.className = 'form-message error';
-      messageEl.style.display = 'block';
+      // Get form data
+      const formData = new FormData(form);
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
 
-      // Scroll to message
-      messageEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      try {
+        const response = await fetch(form.action, {
+          method: 'POST',
+          headers: {
+            'X-CSRF-Token': csrfToken,
+            'Accept': 'application/json'
+          },
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          // Show success message
+          messageEl.textContent = data.message || "Thank you! We've received your application and will be in touch soon.";
+          messageEl.className = 'form-message success';
+          messageEl.style.display = 'block';
+
+          // Reset form
+          form.reset();
+
+          // Scroll to message
+          messageEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+          // Auto-hide after 10 seconds
+          setTimeout(() => {
+            messageEl.style.display = 'none';
+          }, 10000);
+        } else {
+          // Show error message
+          let errorMessage = 'Something went wrong. Please try again.';
+          if (data.errors) {
+            errorMessage = data.errors.join(', ');
+          }
+
+          messageEl.textContent = errorMessage;
+          messageEl.className = 'form-message error';
+          messageEl.style.display = 'block';
+
+          // Scroll to message
+          messageEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      } catch (error) {
+        console.error('Form submission error:', error);
+        messageEl.textContent = 'Something went wrong. Please try again.';
+        messageEl.className = 'form-message error';
+        messageEl.style.display = 'block';
+      } finally {
+        // Re-enable submit button
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit Application';
+        }
+      }
     });
   });
 </script>

@@ -197,7 +197,22 @@
         </main>
       <% else %>
         <!-- Dashboard Layout with Sidebar (for logged-in users on app subdomain) -->
-        <div class="app-layout-with-sidebar">
+        <div class="app-layout-with-sidebar" data-controller="sidebar">
+          <!-- Mobile Sidebar Toggle Button -->
+          <button type="button"
+                  class="sidebar-mobile-toggle"
+                  aria-label="Toggle sidebar navigation"
+                  aria-expanded="false"
+                  data-action="click->sidebar#toggle"
+                  data-sidebar-target="toggleButton">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+          </button>
+
+          <!-- Sidebar Overlay (for closing sidebar when clicking outside on mobile) -->
+          <div class="sidebar-overlay" data-action="click->sidebar#close" data-sidebar-target="overlay"></div>
+
           <%= render 'shared/sidebar' %>
           <%= render 'shared/flash_messages' %>
 

@@ -4,6 +4,7 @@
   <!-- Hero Section -->
   <section class="hero-section">
     <div class="hero-container">
+      <!-- Hero Content - Always First -->
       <div class="hero-content">
         <div class="hero-badge">
           <span class="badge-icon"><%= icon_svg(:sparkles, css_class: 'icon-inline') %></span>
@@ -49,37 +50,31 @@
         <p class="hero-features">Practice takes seconds • See progress instantly • Your data, your control</p>
       </div>
 
-      <!-- Device Mockups -->
-      <div class="hero-demo">
-        <div class="device-mockups-v2">
-          <!-- Desktop Browser Mockup -->
-          <div class="desktop-mockup-v2">
-            <div class="browser-frame">
-              <div class="browser-chrome">
-                <div class="browser-dots">
-                  <span class="dot dot-red"></span>
-                  <span class="dot dot-yellow"></span>
-                  <span class="dot dot-green"></span>
+      <!-- Compressed Device Mockups - Shown After Content -->
+      <div class="hero-demo hero-demo-compressed">
+        <div class="device-mockups-compressed">
+          <!-- Compact Desktop Browser Mockup -->
+          <div class="desktop-mockup-compressed">
+            <div class="browser-frame-compact">
+              <div class="browser-chrome-compact">
+                <div class="browser-dots-compact">
+                  <span class="dot-compact dot-red"></span>
+                  <span class="dot-compact dot-yellow"></span>
+                  <span class="dot-compact dot-green"></span>
                 </div>
-                <div class="browser-url">app.aitalkcoach.com</div>
-                <div class="browser-actions"></div>
               </div>
-              <div class="browser-content">
-                <%= image_tag "desktop-app-screenshot.png", alt: "AI Talk Coach Desktop Dashboard", class: "desktop-screenshot" %>
+              <div class="browser-content-compact">
+                <%= image_tag "desktop-app-screenshot.png", alt: "AI Talk Coach Desktop Dashboard", class: "desktop-screenshot-compact" %>
               </div>
             </div>
           </div>
 
-          <!-- iPhone 15 Pro Mockup -->
-          <div class="iphone-mockup-v2">
-            <div class="iphone-frame">
-              <div class="iphone-dynamic-island"></div>
-              <div class="iphone-screen">
-                <%= image_tag "mobile-app-screenshot.png", alt: "AI Talk Coach Mobile App", class: "mobile-screenshot" %>
-              </div>
-              <div class="iphone-buttons">
-                <div class="button-power"></div>
-                <div class="button-volume"></div>
+          <!-- Compact iPhone Mockup -->
+          <div class="iphone-mockup-compressed">
+            <div class="iphone-frame-compact">
+              <div class="iphone-dynamic-island-compact"></div>
+              <div class="iphone-screen-compact">
+                <%= image_tag "mobile-app-screenshot.png", alt: "AI Talk Coach Mobile App", class: "mobile-screenshot-compact" %>
               </div>
             </div>
           </div>
