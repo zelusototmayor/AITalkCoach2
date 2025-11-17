@@ -33,15 +33,16 @@ if ENV["RAILS_ENV"] == "production"
   port ENV.fetch("PORT", 3000)
 else
   # In development, use HTTPS for secure features (getUserMedia, etc.)
+  # HTTPS on port 3001 for web browsers (aitalkcoach.local)
   ssl_bind "0.0.0.0", ENV.fetch("SSL_PORT", 3001),
     key: File.expand_path("../ssl/aitalkcoach.key", __FILE__),
     cert: File.expand_path("../ssl/aitalkcoach.crt", __FILE__),
     verify_mode: "none"
 
-  # Also bind HTTP for mobile app compatibility (React Native/Expo)
-  # Mobile apps may reject self-signed SSL certificates
-  port ENV.fetch("HTTP_PORT", 3002)
-  bind "tcp://0.0.0.0:#{ENV.fetch('HTTP_PORT', 3002)}"
+  # Also bind HTTP on port 3003 for mobile app (React Native can't use self-signed certs)
+  # Note: Expo dev server runs on 3002
+  port ENV.fetch("HTTP_PORT", 3003)
+  bind "tcp://0.0.0.0:#{ENV.fetch('HTTP_PORT', 3003)}"
 end
 
 # Allow puma to be restarted by `bin/rails restart` command.

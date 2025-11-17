@@ -264,14 +264,14 @@ export default function CoachScreen({ navigation }) {
         <Text style={styles.title}>Your Coach</Text>
 
         {/* Single Column Layout */}
-        {/* 1. Last Session Insight */}
-        {renderLastSessionInsight()}
+        {/* 1. Weekly Goal */}
+        {renderWeeklyFocus()}
 
         {/* 2. Today's Focus (Daily Plan) */}
         {renderDailyPlan()}
 
-        {/* 3. Weekly Goal */}
-        {renderWeeklyFocus()}
+        {/* 3. Last Session Insight */}
+        {renderLastSessionInsight()}
 
         {/* 4. Practice Calendar */}
         <View style={styles.calendarSection}>

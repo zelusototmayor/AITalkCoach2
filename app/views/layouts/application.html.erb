@@ -35,6 +35,7 @@
         autocapture: true,
         record_sessions_percent: 100,
         api_host: 'https://api-eu.mixpanel.com',
+        batch_requests: true,
         debug: <%= is_debug %>,
         verbose: <%= is_debug %>,
         loaded: function(mixpanel) {
@@ -44,6 +45,9 @@
           console.error('❌ Mixpanel error:', msg, item);
         }
       })
+
+      // Start sending batched events
+      mixpanel.start_batch_senders();
 
       console.log('🔧 Mixpanel initialization started', {
         environment: '<%= Rails.env %>',
