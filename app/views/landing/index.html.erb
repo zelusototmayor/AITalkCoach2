@@ -50,31 +50,43 @@
         <p class="hero-features">Practice takes seconds • See progress instantly • Your data, your control</p>
       </div>
 
-      <!-- Compressed Device Mockups - Shown After Content -->
-      <div class="hero-demo hero-demo-compressed">
-        <div class="device-mockups-compressed">
-          <!-- Compact Desktop Browser Mockup -->
-          <div class="desktop-mockup-compressed">
-            <div class="browser-frame-compact">
-              <div class="browser-chrome-compact">
-                <div class="browser-dots-compact">
-                  <span class="dot-compact dot-red"></span>
-                  <span class="dot-compact dot-yellow"></span>
-                  <span class="dot-compact dot-green"></span>
+      <!-- Mobile-Only: Small Phone Mockup -->
+      <div class="hero-demo-mobile">
+        <div class="iphone-mockup-mobile-only">
+          <div class="iphone-frame-mobile">
+            <div class="iphone-dynamic-island-mobile"></div>
+            <div class="iphone-screen-mobile">
+              <%= image_tag "mobile-app-screenshot.png", alt: "AI Talk Coach Mobile App", class: "mobile-screenshot-mobile" %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Desktop-Only: Larger Overlapping Mockups -->
+      <div class="hero-demo-desktop">
+        <div class="device-mockups-desktop">
+          <!-- Desktop Browser Mockup -->
+          <div class="desktop-mockup-desktop">
+            <div class="browser-frame-desktop">
+              <div class="browser-chrome-desktop">
+                <div class="browser-dots-desktop">
+                  <span class="dot-desktop dot-red"></span>
+                  <span class="dot-desktop dot-yellow"></span>
+                  <span class="dot-desktop dot-green"></span>
                 </div>
               </div>
-              <div class="browser-content-compact">
-                <%= image_tag "desktop-app-screenshot.png", alt: "AI Talk Coach Desktop Dashboard", class: "desktop-screenshot-compact" %>
+              <div class="browser-content-desktop">
+                <%= image_tag "desktop-app-screenshot.png", alt: "AI Talk Coach Desktop Dashboard", class: "desktop-screenshot-desktop" %>
               </div>
             </div>
           </div>
 
-          <!-- Compact iPhone Mockup -->
-          <div class="iphone-mockup-compressed">
-            <div class="iphone-frame-compact">
-              <div class="iphone-dynamic-island-compact"></div>
-              <div class="iphone-screen-compact">
-                <%= image_tag "mobile-app-screenshot.png", alt: "AI Talk Coach Mobile App", class: "mobile-screenshot-compact" %>
+          <!-- iPhone Mockup (Overlapping) -->
+          <div class="iphone-mockup-desktop">
+            <div class="iphone-frame-desktop">
+              <div class="iphone-dynamic-island-desktop"></div>
+              <div class="iphone-screen-desktop">
+                <%= image_tag "mobile-app-screenshot.png", alt: "AI Talk Coach Mobile App", class: "mobile-screenshot-desktop" %>
               </div>
             </div>
           </div>

@@ -12454,153 +12454,232 @@ textarea:focus {
 }
 
 /* =====================================
-   COMPRESSED DEVICE MOCKUPS (Mobile-First)
+   RESPONSIVE DEVICE MOCKUPS
    ===================================== */
 
-/* Container for compressed mockups - ALWAYS SIDE BY SIDE */
-.device-mockups-compressed {
-  display: flex;
-  flex-direction: row !important; /* Side-by-side on ALL screens */
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  margin-top: 2rem;
-  width: 100%;
-}
-
-/* Compressed Desktop Browser Mockup */
-.desktop-mockup-compressed {
-  width: 120px; /* Smaller on mobile */
-  max-width: 120px;
-  position: relative;
-  flex-shrink: 0;
-}
-
-.browser-frame-compact {
-  background: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  border: 1px solid #e5e7eb;
-}
-
-.browser-chrome-compact {
-  background: #f3f4f6;
-  padding: 0.25rem 0.5rem;
-  display: flex;
-  align-items: center;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.browser-dots-compact {
-  display: flex;
-  gap: 0.25rem;
-}
-
-.dot-compact {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-}
-
-.browser-content-compact {
-  background: #f9fafb;
-  overflow: hidden;
-  position: relative;
-  min-height: 100px;
-}
-
-.desktop-screenshot-compact {
-  width: 100%;
-  height: auto;
+/* Mobile-Only Hero Demo - Show only on mobile */
+.hero-demo-mobile {
   display: block;
-  object-fit: contain;
-  object-position: top center;
+  order: 2;
+  width: 100%;
+  margin-top: 2rem;
 }
 
-/* Compressed iPhone Mockup */
-.iphone-mockup-compressed {
-  width: 70px; /* Smaller on mobile */
-  flex-shrink: 0;
-  position: relative;
+/* Desktop-Only Hero Demo - Hide on mobile */
+.hero-demo-desktop {
+  display: none;
 }
 
-.iphone-frame-compact {
+/* Mobile: Small Phone Mockup Only */
+.iphone-mockup-mobile-only {
+  width: 120px;
+  margin: 0 auto;
+}
+
+.iphone-frame-mobile {
   background: #1f2937;
-  border-radius: 18px;
-  padding: 4px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-  border: 2px solid #111827;
+  border-radius: 20px;
+  padding: 8px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
   position: relative;
 }
 
-.iphone-dynamic-island-compact {
+.iphone-dynamic-island-mobile {
   position: absolute;
-  top: 8px;
+  top: 16px;
   left: 50%;
   transform: translateX(-50%);
-  width: 40px;
+  width: 45%;
   height: 12px;
-  background: #000000;
-  border-radius: 8px;
-  z-index: 10;
+  background: #000;
+  border-radius: 12px;
+  z-index: 2;
 }
 
-.iphone-screen-compact {
-  background: #f9fafb;
-  border-radius: 15px;
-  aspect-ratio: 9 / 19.5;
+.iphone-screen-mobile {
+  background: white;
+  border-radius: 16px;
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  aspect-ratio: 9 / 19.5;
+  position: relative;
 }
 
-.mobile-screenshot-compact {
+.mobile-screenshot-mobile {
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: top center;
 }
 
-/* On larger screens, slightly bigger but still compact */
-@media (min-width: 640px) {
-  .device-mockups-compressed {
-    gap: 0.75rem;
+/* Desktop Breakpoint - Switch to larger overlapping mockups */
+@media (min-width: 768px) {
+  /* Hide mobile version, show desktop version */
+  .hero-demo-mobile {
+    display: none;
   }
 
-  .desktop-mockup-compressed {
-    width: 160px;
-    max-width: 160px;
+  .hero-demo-desktop {
+    display: block;
+    position: absolute;
+    right: 1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 420px;
+    max-width: 40%;
   }
 
-  .iphone-mockup-compressed {
-    width: 90px;
+  /* Desktop Device Mockups Container */
+  .device-mockups-desktop {
+    position: relative;
+    width: 100%;
+    height: 280px;
+  }
+
+  /* Desktop Browser Mockup */
+  .desktop-mockup-desktop {
+    position: absolute;
+    top: 20px;
+    left: 0;
+    width: 320px;
+    z-index: 1;
+  }
+
+  .browser-frame-desktop {
+    background: #ffffff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+    border: 1px solid #e5e7eb;
+  }
+
+  .browser-chrome-desktop {
+    background: #f3f4f6;
+    padding: 0.5rem 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .browser-dots-desktop {
+    display: flex;
+    gap: 0.3rem;
+  }
+
+  .dot-desktop {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+  }
+
+  .dot-desktop.dot-red { background: #ef4444; }
+  .dot-desktop.dot-yellow { background: #f59e0b; }
+  .dot-desktop.dot-green { background: #10b981; }
+
+  .browser-content-desktop {
+    background: white;
+    aspect-ratio: 16 / 10;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .desktop-screenshot-desktop {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top left;
+  }
+
+  /* Desktop iPhone Mockup - Overlapping */
+  .iphone-mockup-desktop {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 130px;
+    z-index: 2;
+  }
+
+  .iphone-frame-desktop {
+    background: #1f2937;
+    border-radius: 22px;
+    padding: 6px;
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
+    position: relative;
+    border: 2px solid #111827;
+  }
+
+  .iphone-dynamic-island-desktop {
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40%;
+    height: 11px;
+    background: #000;
+    border-radius: 11px;
+    z-index: 2;
+  }
+
+  .iphone-screen-desktop {
+    background: white;
+    border-radius: 18px;
+    overflow: hidden;
+    aspect-ratio: 9 / 19.5;
+    position: relative;
+  }
+
+  .mobile-screenshot-desktop {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
   }
 }
 
-/* Desktop - position on right side */
+/* Larger desktop - increase size moderately */
 @media (min-width: 1024px) {
-  .hero-demo-compressed {
-    position: absolute;
+  .hero-demo-desktop {
+    width: 500px;
+    max-width: 42%;
     right: 2rem;
-    top: 50%;
-    transform: translateY(-50%);
-    max-width: 280px;
   }
 
-  .device-mockups-compressed {
-    margin-top: 0;
-    gap: 1rem;
+  .device-mockups-desktop {
+    height: 320px;
   }
 
-  .desktop-mockup-compressed {
-    width: 200px;
-    max-width: 200px;
+  .desktop-mockup-desktop {
+    width: 380px;
+    top: 15px;
   }
 
-  .iphone-mockup-compressed {
-    width: 110px;
+  .iphone-mockup-desktop {
+    width: 150px;
+    bottom: 5px;
+    right: 15px;
+  }
+}
+
+/* Extra large desktop */
+@media (min-width: 1280px) {
+  .hero-demo-desktop {
+    width: 580px;
+    max-width: 45%;
+  }
+
+  .device-mockups-desktop {
+    height: 360px;
+  }
+
+  .desktop-mockup-desktop {
+    width: 440px;
+    top: 10px;
+  }
+
+  .iphone-mockup-desktop {
+    width: 170px;
+    bottom: 0px;
+    right: 20px;
   }
 }
 
