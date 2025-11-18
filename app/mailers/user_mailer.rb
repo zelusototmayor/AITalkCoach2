@@ -80,6 +80,7 @@ class UserMailer < ApplicationMailer
     @password = password
     @app_url = build_app_url
     @reset_password_url = "#{build_app_url}/auth/password/new"
+    @app_store_url = "https://apps.apple.com/us/app/ai-talk-coach/id6754871317"
 
     mail(
       to: @user.email,
@@ -105,6 +106,29 @@ class UserMailer < ApplicationMailer
     mail(
       to: @user.email,
       subject: "Third time is the charm"
+    )
+  end
+
+  def app_store_launch(user)
+    @user = user
+    @app_url = build_app_url
+    @app_store_url = "https://apps.apple.com/us/app/ai-talk-coach/id6754871317"
+
+    # Create mailto link with pre-filled subject and body for feedback
+    feedback_subject = "AI Talk Coach Mobile App Feedback"
+    feedback_body = "Hi Jose,\n\n" \
+                    "I've been testing the AI Talk Coach mobile app and wanted to share my feedback:\n\n" \
+                    "What I love about the mobile version:\n\n\n" \
+                    "Issues or bugs I encountered:\n\n\n" \
+                    "Features I'd like to see on mobile:\n\n\n" \
+                    "How the mobile app compares to the web version:\n\n\n" \
+                    "Best,\n#{@user.name}"
+
+    @feedback_url = "mailto:zsottomayor@gmail.com?subject=#{ERB::Util.url_encode(feedback_subject)}&body=#{ERB::Util.url_encode(feedback_body)}"
+
+    mail(
+      to: @user.email,
+      subject: "AI Talk Coach is now on the App Store!"
     )
   end
 
