@@ -2,7 +2,7 @@
   "expo": {
     "name": "AI Talk Coach",
     "slug": "ai-talk-coach",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/logo.png",
     "userInterfaceStyle": "light",
@@ -14,7 +14,7 @@
     },
     "ios": {
       "bundleIdentifier": "com.aitalkcoach.app",
-      "buildNumber": "1",
+      "buildNumber": "3",
       "supportsTablet": true,
       "infoPlist": {
         "NSMicrophoneUsageDescription": "AI Talk Coach needs access to your microphone to record and analyze your speech patterns for providing personalized feedback.",
