@@ -469,6 +469,15 @@ export default class extends Controller {
       event.stopPropagation()
     }
 
+    // Track shuffle button click
+    const previousPromptId = this.selectedPromptValue?.identifier || null
+    const source = window.location.pathname.includes('/practice') ? 'practice_page' : 'prompts_page'
+
+    mixpanel.track('Shuffle Prompt Clicked', {
+      previous_prompt_id: previousPromptId,
+      source: source
+    })
+
     try {
       console.log('Fetching shuffled prompt from API...')
 
@@ -525,6 +534,15 @@ export default class extends Controller {
       this.autoGenerateSessionTitle(normalizedPrompt)
 
       console.log('Card updated successfully')
+
+      // Track the prompt selection result
+      mixpanel.track('Prompt Selected', {
+        prompt_id: normalizedPrompt.identifier,
+        category: normalizedPrompt.category,
+        difficulty: normalizedPrompt.difficulty,
+        source: 'shuffle',
+        previous_prompt_id: previousPromptId
+      })
 
       this.dispatch('prompt-shuffled', {
         detail: { prompt: normalizedPrompt },
@@ -1217,6 +1235,21 @@ export default class extends Controller {
       const visibleCards = section.querySelectorAll('.prompt-card[style=""], .prompt-card:not([style*="display: none"])')
       section.style.display = visibleCards.length > 0 ? '' : 'none'
     })
+
+    // Track filter application (only if filters are actually applied)
+    if (selectedDifficulties.length > 0 || selectedDurations.length > 0 ||
+        selectedCategories.length > 0 || selectedFocusAreas.length > 0 ||
+        searchTerm || this.showFavoritesOnly) {
+      mixpanel.track('Prompts Filtered', {
+        difficulty: selectedDifficulties,
+        category: selectedCategories,
+        duration: selectedDurations,
+        focus_areas: selectedFocusAreas,
+        search_term: searchTerm || null,
+        favorites_only: this.showFavoritesOnly || false,
+        results_count: visibleCount
+      })
+    }
   }
 
   toggleFavorites() {
@@ -1246,10 +1279,22 @@ export default class extends Controller {
   }
 
   startRandomPractice() {
+    // Track random button click
+    mixpanel.track('Random Prompt Clicked', {
+      source: 'prompts_page',
+      action: 'random'
+    })
+
     this.shufflePrompt()
   }
 
   startDailyPractice() {
+    // Track daily button click
+    mixpanel.track('Daily Prompt Clicked', {
+      source: 'prompts_page',
+      action: 'daily'
+    })
+
     // Placeholder for daily practice
     console.log('Starting daily practice')
   }

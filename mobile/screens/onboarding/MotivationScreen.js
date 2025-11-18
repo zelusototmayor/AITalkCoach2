@@ -1,11 +1,61 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, Image } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withDelay
+} from 'react-native-reanimated';
 import OnboardingNavigation from '../../components/OnboardingNavigation';
 import AnimatedBackground from '../../components/AnimatedBackground';
 import QuitOnboardingButton from '../../components/QuitOnboardingButton';
 import { COLORS, SPACING } from '../../constants/colors';
 import { MOTIVATION_TIPS, MOTIVATION_STATS } from '../../constants/onboardingData';
 import { useOnboarding } from '../../context/OnboardingContext';
+import { springConfigs, staggerDelays, animationValues } from '../../utils/animationConfigs';
+
+// Animated card component with stacking effect (slide up + scale)
+function AnimatedMotivationCard({ icon, title, description, index }) {
+  const translateY = useSharedValue(100);
+  const opacity = useSharedValue(0);
+  const scale = useSharedValue(animationValues.scaleStart);
+
+  useEffect(() => {
+    // Quick stagger (60ms) for fast "stacking" feel
+    const delay = index * staggerDelays.quick;
+
+    translateY.value = withDelay(
+      delay,
+      withSpring(0, springConfigs.gentle)
+    );
+
+    opacity.value = withDelay(
+      delay,
+      withSpring(1, springConfigs.gentle)
+    );
+
+    scale.value = withDelay(
+      delay,
+      withSpring(animationValues.scaleEnd, springConfigs.gentle)
+    );
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateY: translateY.value },
+      { scale: scale.value }
+    ],
+    opacity: opacity.value,
+  }));
+
+  return (
+    <Animated.View style={[styles.card, animatedStyle]}>
+      <Image source={icon} style={styles.cardIcon} resizeMode="contain" />
+      <Text style={styles.cardTitle}>{title}</Text>
+      <Text style={styles.cardDescription}>{description}</Text>
+    </Animated.View>
+  );
+}
 
 export default function MotivationScreen({ navigation }) {
   const { onboardingData } = useOnboarding();
@@ -25,19 +75,22 @@ export default function MotivationScreen({ navigation }) {
         <Text style={styles.header}>You're Not Alone</Text>
 
         {/* Primary motivation card based on goal */}
-        <View style={styles.card}>
-          <Text style={styles.cardIcon}>💪</Text>
-          <Text style={styles.cardTitle}>{motivationTip.title}</Text>
-          <Text style={styles.cardDescription}>{motivationTip.description}</Text>
-        </View>
+        <AnimatedMotivationCard
+          icon={require('../../assets/icons/strong.png')}
+          title={motivationTip.title}
+          description={motivationTip.description}
+          index={0}
+        />
 
         {/* Additional motivation stats */}
         {MOTIVATION_STATS.map((stat, index) => (
-          <View key={index} style={styles.card}>
-            <Text style={styles.cardIcon}>{stat.icon}</Text>
-            <Text style={styles.cardTitle}>{stat.title}</Text>
-            <Text style={styles.cardDescription}>{stat.description}</Text>
-          </View>
+          <AnimatedMotivationCard
+            key={index}
+            icon={stat.icon}
+            title={stat.title}
+            description={stat.description}
+            index={index + 1}
+          />
         ))}
       </ScrollView>
 
@@ -87,7 +140,8 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   cardIcon: {
-    fontSize: 36,
+    width: 56,
+    height: 56,
     marginBottom: SPACING.sm,
   },
   cardTitle: {

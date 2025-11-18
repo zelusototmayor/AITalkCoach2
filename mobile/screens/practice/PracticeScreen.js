@@ -18,9 +18,11 @@ import {
 import { createSession, getProgressMetrics, getCoachRecommendations, getDailyPrompt, shufflePrompt } from '../../services/api';
 import analytics from '../../services/analytics';
 import { useAuth } from '../../context/AuthContext';
+import { useHaptics } from '../../hooks/useHaptics';
 
 export default function PracticeScreen({ navigation, route }) {
   const { user } = useAuth();
+  const haptics = useHaptics();
   // Extract route params
   const params = route?.params || {};
   const {
@@ -290,6 +292,7 @@ export default function PracticeScreen({ navigation, route }) {
               clearInterval(intervalRef.current);
               intervalRef.current = null;
             }
+            haptics.success(); // Success haptic on session completion
             setShouldAutoStop(true); // Trigger auto-stop via useEffect
           }
 

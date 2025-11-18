@@ -47,6 +47,21 @@
           <% end %>
         </div>
 
+        <!-- App Store Download Section -->
+        <div class="hero-app-download">
+          <p class="app-download-label">Also available on:</p>
+          <%= link_to "https://apps.apple.com/us/app/ai-talk-coach/id6754871317",
+                target: "_blank",
+                rel: "noopener noreferrer",
+                class: "app-store-badge-link",
+                data: {
+                  action: "click->analytics#handleAppStoreClick",
+                  source: "hero_section"
+                } do %>
+            <%= image_tag "app-store-badge-cropped.png", alt: "Download on the App Store", class: "app-store-badge" %>
+          <% end %>
+        </div>
+
         <p class="hero-features">Practice takes seconds • See progress instantly • Your data, your control</p>
       </div>
 

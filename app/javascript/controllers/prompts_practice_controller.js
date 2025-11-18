@@ -42,6 +42,20 @@ export default class extends Controller {
     const button = event.currentTarget
     const promptText = button.dataset.promptText
     const targetSeconds = button.dataset.targetSeconds
+    const promptId = button.dataset.promptId
+
+    // Find the parent card to get category and difficulty
+    const card = button.closest('[data-category]')
+    const category = card?.dataset.category || 'unknown'
+    const difficulty = card?.dataset.difficulty || 'unknown'
+
+    // Track prompt selection
+    mixpanel.track('Prompt Selected', {
+      prompt_id: promptId,
+      category: category,
+      difficulty: difficulty,
+      source: 'practice_sidebar'
+    })
 
     // Find the prompt input field and set it
     const promptInput = document.querySelector('[data-practice-timer-target="promptInput"]')

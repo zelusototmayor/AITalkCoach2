@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING } from '../constants/colors';
+import { useHaptics } from '../hooks/useHaptics';
 
 export default function SessionListCard({
   session,
@@ -9,6 +10,17 @@ export default function SessionListCard({
   onDelete,
   style
 }) {
+  const haptics = useHaptics();
+
+  const handleViewDetails = () => {
+    haptics.medium();
+    onViewDetails();
+  };
+
+  const handleDelete = () => {
+    haptics.medium();
+    onDelete();
+  };
   const getStatusBadgeStyle = (status) => {
     switch (status) {
       case 'completed':
@@ -96,7 +108,7 @@ export default function SessionListCard({
         {session.completed && (
           <TouchableOpacity
             style={styles.actionButton}
-            onPress={onViewDetails}
+            onPress={handleViewDetails}
             activeOpacity={0.7}
           >
             <Text style={styles.actionButtonText}>View Details</Text>
@@ -105,7 +117,7 @@ export default function SessionListCard({
         {onDelete && (
           <TouchableOpacity
             style={[styles.actionButton, styles.deleteButton]}
-            onPress={onDelete}
+            onPress={handleDelete}
             activeOpacity={0.7}
           >
             <Ionicons name="trash-outline" size={16} color={COLORS.danger} />

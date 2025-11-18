@@ -1,8 +1,16 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { COLORS, SPACING } from '../constants/colors';
+import { useHaptics } from '../hooks/useHaptics';
 
 export default function PillButton({ label, isSelected, onPress, style }) {
+  const haptics = useHaptics();
+
+  const handlePress = () => {
+    haptics.selection();
+    onPress();
+  };
+
   return (
     <TouchableOpacity
       style={[
@@ -10,7 +18,7 @@ export default function PillButton({ label, isSelected, onPress, style }) {
         isSelected && styles.selectedButton,
         style,
       ]}
-      onPress={onPress}
+      onPress={handlePress}
       activeOpacity={0.7}
     >
       <Text style={[

@@ -7,8 +7,11 @@ import BottomNavigation from '../../components/BottomNavigation';
 import PromptListCard from '../../components/PromptListCard';
 import { COLORS, SPACING, TYPOGRAPHY } from '../../constants/colors';
 import { getPrompts } from '../../services/api';
+import { useHaptics } from '../../hooks/useHaptics';
 
 export default function PromptsScreen({ navigation }) {
+  const haptics = useHaptics();
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedDifficulty, setSelectedDifficulty] = useState('all');
@@ -17,6 +20,23 @@ export default function PromptsScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
+
+  // Haptic wrapper functions
+  const handleCategorySelect = (category) => {
+    haptics.light();
+    setSelectedCategory(category);
+  };
+
+  const handleDifficultyFilterPress = () => {
+    haptics.light();
+    setShowDifficultyModal(true);
+  };
+
+  const handleDifficultySelect = (difficulty) => {
+    haptics.light();
+    setSelectedDifficulty(difficulty);
+    setShowDifficultyModal(false);
+  };
 
   useEffect(() => {
     loadPrompts();
@@ -130,7 +150,7 @@ export default function PromptsScreen({ navigation }) {
         {/* Difficulty Filter */}
         <TouchableOpacity
           style={styles.difficultyFilterButton}
-          onPress={() => setShowDifficultyModal(true)}
+          onPress={handleDifficultyFilterPress}
           activeOpacity={0.7}
         >
           <Ionicons name="options-outline" size={18} color={COLORS.primary} />
@@ -154,7 +174,7 @@ export default function PromptsScreen({ navigation }) {
                 styles.categoryChip,
                 selectedCategory === category && styles.categoryChipSelected,
               ]}
-              onPress={() => setSelectedCategory(category)}
+              onPress={() => handleCategorySelect(category)}
               activeOpacity={0.7}
             >
               <Text
@@ -246,10 +266,7 @@ export default function PromptsScreen({ navigation }) {
                     styles.difficultyOption,
                     selectedDifficulty === option.value && styles.difficultyOptionSelected
                   ]}
-                  onPress={() => {
-                    setSelectedDifficulty(option.value);
-                    setShowDifficultyModal(false);
-                  }}
+                  onPress={() => handleDifficultySelect(option.value)}
                   activeOpacity={0.7}
                 >
                   <View style={styles.difficultyOptionLeft}>

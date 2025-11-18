@@ -1,10 +1,58 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, Image } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withDelay
+} from 'react-native-reanimated';
 import OnboardingNavigation from '../../components/OnboardingNavigation';
 import AnimatedBackground from '../../components/AnimatedBackground';
 import QuitOnboardingButton from '../../components/QuitOnboardingButton';
 import { COLORS, SPACING, TYPOGRAPHY } from '../../constants/colors';
 import { VALUE_PROPS } from '../../constants/onboardingData';
+import { springConfigs, staggerDelays, entrancePresets } from '../../utils/animationConfigs';
+
+// Animated card component
+function AnimatedCard({ prop, index }) {
+  // Determine direction: left cards (0,2) come from left, right cards (1,3) come from right
+  const isLeftCard = index % 2 === 0;
+
+  const translateX = useSharedValue(
+    isLeftCard ? entrancePresets.fadeSlideLeft.initialTranslateX : entrancePresets.fadeSlideRight.initialTranslateX
+  );
+  const opacity = useSharedValue(0);
+
+  useEffect(() => {
+    // Base delay of 400ms before first card, then stagger each card by 150ms
+    const baseDelay = 400;
+    const delay = baseDelay + (index * 150);
+
+    translateX.value = withDelay(
+      delay,
+      withSpring(0, springConfigs.moderate)
+    );
+
+    opacity.value = withDelay(
+      delay,
+      withSpring(1, springConfigs.moderate)
+    );
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+    opacity: opacity.value,
+  }));
+
+  return (
+    <Animated.View style={[styles.card, animatedStyle]}>
+      <Image source={prop.icon} style={styles.cardIcon} resizeMode="contain" />
+      <Text style={styles.cardTitle}>{prop.title}</Text>
+      <Text style={styles.cardDescription}>{prop.description}</Text>
+      <Text style={styles.cardSource}>{prop.source}</Text>
+    </Animated.View>
+  );
+}
 
 export default function ValuePropScreen({ navigation }) {
   return (
@@ -24,13 +72,8 @@ export default function ValuePropScreen({ navigation }) {
         </Text>
 
         <View style={styles.cardsContainer}>
-          {VALUE_PROPS.map((prop) => (
-            <View key={prop.id} style={styles.card}>
-              <Text style={styles.cardIcon}>{prop.icon}</Text>
-              <Text style={styles.cardTitle}>{prop.title}</Text>
-              <Text style={styles.cardDescription}>{prop.description}</Text>
-              <Text style={styles.cardSource}>{prop.source}</Text>
-            </View>
+          {VALUE_PROPS.map((prop, index) => (
+            <AnimatedCard key={prop.id} prop={prop} index={index} />
           ))}
         </View>
       </ScrollView>
@@ -97,7 +140,8 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   cardIcon: {
-    fontSize: 36,
+    width: 56,
+    height: 56,
     marginBottom: SPACING.sm,
   },
   cardTitle: {

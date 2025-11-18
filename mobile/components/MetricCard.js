@@ -1,11 +1,20 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Image } from 'react-native';
 import { COLORS, SPACING } from '../constants/colors';
 
 export default function MetricCard({ icon, label, value, subtitle, style }) {
+  // Support both emoji strings and image sources
+  const isImageSource = typeof icon === 'number' || (typeof icon === 'object' && icon !== null);
+
   return (
     <View style={[styles.card, style]}>
-      {icon && <Text style={styles.icon}>{icon}</Text>}
+      {icon && (
+        isImageSource ? (
+          <Image source={icon} style={styles.iconImage} resizeMode="contain" />
+        ) : (
+          <Text style={styles.icon}>{icon}</Text>
+        )
+      )}
       <Text style={styles.value}>{value}</Text>
       <Text style={styles.label}>{label}</Text>
       {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
@@ -35,6 +44,11 @@ const styles = StyleSheet.create({
   },
   icon: {
     fontSize: 24,
+    marginBottom: SPACING.xs,
+  },
+  iconImage: {
+    width: 24,
+    height: 24,
     marginBottom: SPACING.xs,
   },
   value: {

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f8fafc;
+      margin: 0;
+      padding: 0;
+    }
+    .email-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #ffffff;
+    }
+    .header {
+      background: linear-gradient(135deg, #FF8C42 0%, #FF6B35 100%);
+      padding: 40px 20px;
+      text-align: center;
+    }
+    .header h1 {
+      color: #ffffff;
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0;
+    }
+    .header p {
+      color: #ffffff;
+      font-size: 16px;
+      margin: 10px 0 0 0;
+      opacity: 0.95;
+    }
+    .content {
+      padding: 40px 30px;
+    }
+    .greeting {
+      font-size: 18px;
+      color: #0F172A;
+      margin: 0 0 20px 0;
+    }
+    .text-block {
+      font-size: 16px;
+      line-height: 1.6;
+      color: #475569;
+      margin: 0 0 20px 0;
+    }
+    .highlight-box {
+      background: linear-gradient(135deg, #FFF5EB 0%, #FFE8D6 100%);
+      border-left: 4px solid #FF8C42;
+      border-radius: 8px;
+      padding: 24px;
+      margin: 30px 0;
+    }
+    .highlight-box h2 {
+      color: #FF6B35;
+      font-size: 20px;
+      margin: 0 0 12px 0;
+    }
+    .highlight-box p {
+      color: #0F172A;
+      font-size: 16px;
+      margin: 0;
+      line-height: 1.5;
+    }
+    .app-icon {
+      background: #000000;
+      border-radius: 22%;
+      width: 80px;
+      height: 80px;
+      margin: 20px auto;
+      display: block;
+      font-size: 40px;
+      line-height: 80px;
+      text-align: center;
+    }
+    .cta-button {
+      display: inline-block;
+      background: linear-gradient(135deg, #FF8C42 0%, #FF6B35 100%);
+      color: #ffffff !important;
+      text-decoration: none;
+      padding: 14px 28px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 15px;
+      margin: 10px 10px 10px 0;
+    }
+    .cta-button.secondary {
+      background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+    }
+    .footer {
+      background-color: #f8fafc;
+      padding: 30px;
+      text-align: center;
+      border-top: 1px solid #e2e8f0;
+    }
+    .footer p {
+      font-size: 14px;
+      color: #64748B;
+      margin: 0 0 8px 0;
+    }
+    ul {
+      color: #475569;
+      line-height: 1.8;
+      margin: 20px 0;
+    }
+    ul li {
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <!-- Header -->
+    <div class="header">
+      <h1>We're Live on the App Store!</h1>
+      <p>Practice your communication skills on the go</p>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+      <p class="greeting">Hi <%= @user.name %>!</p>
+
+      <p class="text-block">
+        Exciting news! AI Talk Coach is now officially available on the <strong>Apple App Store</strong>. You can now practice your communication skills anytime, anywhere, right from your iPhone or iPad.
+      </p>
+
+      <!-- Highlight Box -->
+      <div class="highlight-box">
+        <h2>Why You'll Love the Mobile App</h2>
+        <p>
+          Get the same powerful AI-powered coaching you know and love, now optimized for mobile. Practice on your commute, during breaks, or whenever inspiration strikes.
+        </p>
+      </div>
+
+      <p class="text-block">
+        <strong>What's Available on Mobile:</strong>
+      </p>
+      <ul>
+        <li>Full access to all practice sessions and AI feedback</li>
+        <li>Mobile-optimized interface for easy one-handed use</li>
+        <li>Practice anywhere with offline-ready features</li>
+        <li>Seamless sync with your web account</li>
+        <li>Native iOS performance and design</li>
+      </ul>
+
+      <center>
+        <a href="<%= @app_store_url %>" class="cta-button">Download from App Store</a>
+      </center>
+
+      <p class="text-block" style="margin-top: 30px;">
+        <strong>We Need Your Feedback!</strong><br>
+        As one of our valued users, your feedback on the mobile experience is incredibly valuable to us. After trying the app, please let us know:
+      </p>
+      <ul>
+        <li>What you love about the mobile version</li>
+        <li>Any issues or bugs you encounter</li>
+        <li>Features you'd like to see on mobile</li>
+        <li>How it compares to the web version</li>
+      </ul>
+
+      <center>
+        <a href="<%= @feedback_url %>" class="cta-button secondary">Share Your Feedback</a>
+      </center>
+
+      <p class="text-block" style="margin-top: 30px;">
+        Thank you for being part of the AI Talk Coach community. Your support and feedback help us build a better product for everyone.
+      </p>
+
+      <p class="text-block">
+        Happy practicing!<br>
+        <strong>Jose & The AI Talk Coach Team</strong>
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>Questions? Email us at support@aitalkcoach.com</p>
+      <p style="color: #94A3B8; font-size: 12px; margin-top: 16px;">
+        AI Talk Coach | Your Communication Partner
+      </p>
+    </div>
+  </div>
+</body>
+</html>

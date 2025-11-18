@@ -1,8 +1,11 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, Image } from 'react-native';
 import { COLORS, SPACING } from '../constants/colors';
 
 export default function SelectionButton({ icon, title, isSelected, onPress, style }) {
+  // Check if icon is an image (number from require) or emoji (string)
+  const isImage = typeof icon === 'number';
+
   return (
     <TouchableOpacity
       style={[
@@ -13,7 +16,13 @@ export default function SelectionButton({ icon, title, isSelected, onPress, styl
       onPress={onPress}
       activeOpacity={0.7}
     >
-      {icon && <Text style={styles.icon}>{icon}</Text>}
+      {icon && (
+        isImage ? (
+          <Image source={icon} style={styles.iconImage} resizeMode="contain" />
+        ) : (
+          <Text style={styles.icon}>{icon}</Text>
+        )
+      )}
       <Text style={[
         styles.title,
         isSelected && styles.selectedTitle,
@@ -56,6 +65,11 @@ const styles = StyleSheet.create({
   },
   icon: {
     fontSize: 28,
+    marginBottom: SPACING.xs,
+  },
+  iconImage: {
+    width: 48,
+    height: 48,
     marginBottom: SPACING.xs,
   },
   title: {

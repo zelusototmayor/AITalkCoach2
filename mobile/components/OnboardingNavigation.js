@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
 import Button from './Button';
 import { COLORS, SPACING } from '../constants/colors';
+import { useHaptics } from '../hooks/useHaptics';
 
 export default function OnboardingNavigation({
   currentStep,
@@ -10,12 +11,19 @@ export default function OnboardingNavigation({
   continueDisabled = false,
   continueText = 'Continue →',
 }) {
+  const haptics = useHaptics();
+
+  const handleContinue = () => {
+    haptics.light();
+    onContinue();
+  };
+
   return (
     <View style={styles.navigationContainer}>
       {/* Continue Button */}
       <Button
         title={continueText}
-        onPress={onContinue}
+        onPress={handleContinue}
         variant="primary"
         disabled={continueDisabled}
         style={styles.continueButton}

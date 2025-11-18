@@ -63,7 +63,8 @@
 
                 <div class="prompt-footer-right">
                   <%= link_to practice_path(adaptive_prompt: true, category: category, index: index),
-                        class: "btn btn-primary practice-btn" do %>
+                        class: "btn btn-primary practice-btn",
+                        onclick: "mixpanel.track('Prompt Selected', { prompt_id: 'adaptive_#{category}_#{index}', category: '#{category}', difficulty: '#{prompt['difficulty']}', source: 'recommended' });" do %>
                     Practice <span class="chevron">›</span>
                   <% end %>
                 </div>
@@ -232,7 +233,8 @@
 
                 <div class="prompt-footer-right">
                   <%= link_to practice_path(prompt_id: "#{category}_#{index}"),
-                        class: "btn btn-primary practice-btn" do %>
+                        class: "btn btn-primary practice-btn",
+                        onclick: "mixpanel.track('Prompt Selected', { prompt_id: '#{category}_#{index}', category: '#{category}', difficulty: '#{prompt['difficulty']}', source: 'prompts_page' });" do %>
                     Practice <span class="chevron">›</span>
                   <% end %>
                 </div>
@@ -330,3 +332,7 @@
     </div>
   </div>
 </div>
+
+<script>
+  mixpanel.track("Page Viewed", { page: "prompts" });
+</script>

@@ -9,6 +9,7 @@ import TimeRangeSelector from '../../components/TimeRangeSelector';
 import CalendarView from '../../components/CalendarView';
 import { COLORS, SPACING, TYPOGRAPHY } from '../../constants/colors';
 import { getProgressMetrics, getSessions } from '../../services/api';
+import { useHaptics } from '../../hooks/useHaptics';
 
 const METRIC_CONFIG = {
   overall: { label: 'Overall', unit: '', key: 'overall_score', chartKey: 'overall_score_data', isPercentage: true },
@@ -22,6 +23,7 @@ const METRIC_CONFIG = {
 
 export default function ProgressScreen({ navigation }) {
   const userId = 'test-user'; // TODO: Get from auth context
+  const haptics = useHaptics();
 
   const [selectedMetric, setSelectedMetric] = useState('overall');
   const [timeRange, setTimeRange] = useState('10_sessions');
@@ -94,6 +96,7 @@ export default function ProgressScreen({ navigation }) {
   };
 
   const handleRefresh = () => {
+    haptics.light();
     setRefreshing(true);
     loadData();
   };

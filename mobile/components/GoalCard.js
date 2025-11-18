@@ -1,18 +1,26 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, Image } from 'react-native';
 import { COLORS, SPACING } from '../constants/colors';
+import { useHaptics } from '../hooks/useHaptics';
 
 export default function GoalCard({ goal, isSelected, onPress }) {
+  const haptics = useHaptics();
+
+  const handlePress = () => {
+    haptics.selection();
+    onPress();
+  };
+
   return (
     <TouchableOpacity
       style={[
         styles.card,
         isSelected && styles.selectedCard,
       ]}
-      onPress={onPress}
+      onPress={handlePress}
       activeOpacity={0.7}
     >
-      <Text style={styles.icon}>{goal.icon}</Text>
+      <Image source={goal.icon} style={styles.icon} resizeMode="contain" />
       <Text style={[
         styles.title,
         isSelected && styles.selectedTitle,
@@ -25,7 +33,7 @@ export default function GoalCard({ goal, isSelected, onPress }) {
 
 const styles = StyleSheet.create({
   card: {
-    width: '48%',
+    width: '100%',
     backgroundColor: COLORS.cardBackground,
     borderRadius: 16,
     padding: SPACING.md,
@@ -54,7 +62,8 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   icon: {
-    fontSize: 32,
+    width: 48,
+    height: 48,
     marginBottom: SPACING.xs,
   },
   title: {

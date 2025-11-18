@@ -9,9 +9,11 @@ import ProgressStatsRow from '../../components/ProgressStatsRow';
 import CalendarView from '../../components/CalendarView';
 import { COLORS, SPACING, TYPOGRAPHY } from '../../constants/colors';
 import { getCoachRecommendations, getSessions } from '../../services/api';
+import { useHaptics } from '../../hooks/useHaptics';
 
 export default function CoachScreen({ navigation }) {
   const userId = 'test-user'; // TODO: Get from auth context
+  const haptics = useHaptics();
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -62,6 +64,7 @@ export default function CoachScreen({ navigation }) {
   };
 
   const handleRefresh = () => {
+    haptics.light();
     setRefreshing(true);
     loadData();
   };

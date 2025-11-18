@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import * as StoreReview from 'expo-store-review';
 import Button from '../../components/Button';
 import MetricCard from '../../components/MetricCard';
 import AnimatedBackground from '../../components/AnimatedBackground';
@@ -8,6 +9,7 @@ import { COLORS, SPACING } from '../../constants/colors';
 import { UNLOCK_FEATURES } from '../../constants/onboardingData';
 import { useOnboarding } from '../../context/OnboardingContext';
 import { getTrialSessionResults } from '../../services/api';
+import { useHaptics } from '../../hooks/useHaptics';
 
 // Helper function to calculate metrics and generate recommendations
 function calculateMetrics(results) {
@@ -69,6 +71,7 @@ function calculateMetrics(results) {
 
 export default function ResultsScreen({ navigation }) {
   const { onboardingData, updateOnboardingData } = useOnboarding();
+  const haptics = useHaptics();
   const [showTranscript, setShowTranscript] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -116,7 +119,24 @@ export default function ResultsScreen({ navigation }) {
   // Calculate metrics with recommendations
   const metrics = calculateMetrics(results);
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
+    // Request App Store rating
+    try {
+      const isAvailable = await StoreReview.isAvailableAsync();
+      if (isAvailable) {
+        haptics.light(); // Subtle haptic feedback when showing rating
+        await StoreReview.requestReview();
+
+        // Wait 2 seconds to give user time to interact with the review prompt
+        // before showing the Cinematic screen (iOS API doesn't wait for user action)
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+    } catch (error) {
+      console.log('Error requesting review:', error);
+      // Continue regardless of rating prompt error
+    }
+
+    // Navigate to next screen (only after review interaction or timeout)
     navigation.navigate('Cinematic');
   };
 

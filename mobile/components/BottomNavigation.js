@@ -3,9 +3,12 @@ import { View, TouchableOpacity, Text, StyleSheet, Platform } from 'react-native
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING } from '../constants/colors';
 import { useAppNavigation } from '../hooks/useAppNavigation';
+import { useHaptics } from '../hooks/useHaptics';
 
 export default function BottomNavigation({ activeScreen }) {
   const { navigateToScreen, getCurrentScreen } = useAppNavigation();
+  const haptics = useHaptics();
+
   const navItems = [
     { id: 'progress', icon: 'trending-up', label: 'Progress' },
     { id: 'coach', icon: 'school-outline', label: 'Coach' },
@@ -13,6 +16,14 @@ export default function BottomNavigation({ activeScreen }) {
     { id: 'prompts', icon: 'bulb-outline', label: 'Prompts' },
     { id: 'profile', icon: 'person-outline', label: 'Profile' },
   ];
+
+  const handleNavigation = (screenId) => {
+    // Only trigger haptic if switching to a different screen
+    if (screenId !== activeScreen) {
+      haptics.medium();
+    }
+    navigateToScreen(screenId);
+  };
 
   return (
     <View style={styles.container}>
@@ -25,7 +36,7 @@ export default function BottomNavigation({ activeScreen }) {
             <TouchableOpacity
               key={item.id}
               style={styles.centerButton}
-              onPress={() => navigateToScreen(item.id)}
+              onPress={() => handleNavigation(item.id)}
               activeOpacity={0.8}
             >
               <View style={styles.centerButtonCircle}>
@@ -43,7 +54,7 @@ export default function BottomNavigation({ activeScreen }) {
           <TouchableOpacity
             key={item.id}
             style={styles.navItem}
-            onPress={() => navigateToScreen(item.id)}
+            onPress={() => handleNavigation(item.id)}
             activeOpacity={0.7}
           >
             <Ionicons

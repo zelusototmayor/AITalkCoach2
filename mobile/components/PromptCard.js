@@ -2,8 +2,16 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING } from '../constants/colors';
+import { useHaptics } from '../hooks/useHaptics';
 
 export default function PromptCard({ prompt, onShuffle, canShuffle = true }) {
+  const haptics = useHaptics();
+
+  const handleShuffle = () => {
+    haptics.light();
+    onShuffle();
+  };
+
   const getDifficultyColors = (diff) => {
     const colors = {
       'beginner': {
@@ -30,7 +38,7 @@ export default function PromptCard({ prompt, onShuffle, canShuffle = true }) {
           <Text style={styles.label}>Loading prompt...</Text>
           {canShuffle && (
             <TouchableOpacity
-              onPress={onShuffle}
+              onPress={handleShuffle}
               style={styles.shuffleButton}
               activeOpacity={0.7}
             >
@@ -58,7 +66,7 @@ export default function PromptCard({ prompt, onShuffle, canShuffle = true }) {
         </View>
         {canShuffle && (
           <TouchableOpacity
-            onPress={onShuffle}
+            onPress={handleShuffle}
             style={styles.shuffleButton}
             activeOpacity={0.7}
           >

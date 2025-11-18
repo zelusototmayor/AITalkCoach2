@@ -9,12 +9,16 @@ import { TRIAL_PROMPT, MOCK_TRIAL_RESULTS } from '../../constants/onboardingData
 import { useOnboarding } from '../../context/OnboardingContext';
 import { createTrialSession } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { useHaptics } from '../../hooks/useHaptics';
+import { useOnboardingMusicControl } from '../../context/OnboardingMusicContext';
 
 const RECORDING_DURATION = 30; // 30 seconds
 
 export default function TrialRecordingScreen({ navigation }) {
   const { updateOnboardingData, onboardingData } = useOnboarding();
   const { getAccessToken } = useAuth();
+  const haptics = useHaptics();
+  const { pause: pauseMusic, resume: resumeMusic } = useOnboardingMusicControl();
 
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -76,6 +80,9 @@ export default function TrialRecordingScreen({ navigation }) {
       setRecordingTime(0);
       setProgress(0);
 
+      // Pause background music while recording
+      await pauseMusic();
+
       // Start timer
       intervalRef.current = setInterval(() => {
         setRecordingTime((prevTime) => {
@@ -84,6 +91,7 @@ export default function TrialRecordingScreen({ navigation }) {
 
           // Auto-stop at 30 seconds
           if (newTime >= RECORDING_DURATION) {
+            haptics.success(); // Success haptic on trial completion
             stopRecording();
           }
 
@@ -107,6 +115,9 @@ export default function TrialRecordingScreen({ navigation }) {
 
         await recordingRef.current.stopAndUnloadAsync();
         const uri = recordingRef.current.getURI();
+
+        // Resume background music after recording stops
+        await resumeMusic();
 
         console.log('Recording saved at:', uri);
         console.log('Navigating to processing screen immediately');

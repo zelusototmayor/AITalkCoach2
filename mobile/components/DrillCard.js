@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING } from '../constants/colors';
+import { useHaptics } from '../hooks/useHaptics';
 
 export default function DrillCard({
   order,
@@ -12,6 +13,13 @@ export default function DrillCard({
   onStart,
   style
 }) {
+  const haptics = useHaptics();
+
+  const handleStart = () => {
+    haptics.medium();
+    onStart();
+  };
+
   const formatDuration = (seconds) => {
     if (seconds < 60) return `${seconds}s`;
     return `${Math.floor(seconds / 60)}m`;
@@ -49,7 +57,7 @@ export default function DrillCard({
       {/* Start Button */}
       <TouchableOpacity
         style={styles.startButton}
-        onPress={onStart}
+        onPress={handleStart}
         activeOpacity={0.8}
       >
         <Text style={styles.startButtonText}>Start Practice</Text>

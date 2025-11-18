@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { COLORS, SPACING } from '../constants/colors';
+import { useHaptics } from '../hooks/useHaptics';
 
 export default function PricingCard({
   title,
@@ -12,6 +13,13 @@ export default function PricingCard({
   onPress,
   style
 }) {
+  const haptics = useHaptics();
+
+  const handlePress = () => {
+    haptics.selection();
+    onPress();
+  };
+
   return (
     <TouchableOpacity
       style={[
@@ -19,7 +27,7 @@ export default function PricingCard({
         isSelected && styles.selectedCard,
         style,
       ]}
-      onPress={onPress}
+      onPress={handlePress}
       activeOpacity={0.7}
     >
       {badge && (

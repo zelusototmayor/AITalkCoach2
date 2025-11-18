@@ -4,28 +4,28 @@ export const VALUE_PROPS = [
     title: '85% of career success',
     description: 'comes from strong communication skills',
     source: 'Harvard Business Review',
-    icon: '🎯',
+    icon: require('../assets/icons/career-success.png'),
   },
   {
     id: 2,
     title: '40% higher earnings',
     description: 'for those with excellent communication',
     source: 'National Association of Colleges',
-    icon: '📈',
+    icon: require('../assets/icons/higher-earnings.png'),
   },
   {
     id: 3,
     title: '1.9M job postings',
     description: 'requiring strong communication skills',
     source: 'LinkedIn, 2023',
-    icon: '💼',
+    icon: require('../assets/icons/job-posting.png'),
   },
   {
     id: 4,
     title: 'Predicts relationship happiness',
     description: 'stronger connections & satisfaction',
     source: 'BioMed Central',
-    icon: '✨',
+    icon: require('../assets/icons/relationship.png'),
   },
 ];
 
@@ -33,42 +33,42 @@ export const SPEAKING_GOALS = [
   {
     id: 1,
     title: 'Public Speaking',
-    icon: '🎤',
+    icon: require('../assets/icons/public-speaking.png'),
   },
   {
     id: 2,
     title: 'Acing Interviews',
-    icon: '💼',
+    icon: require('../assets/icons/interview.png'),
   },
   {
     id: 3,
     title: 'Sales & Pitching',
-    icon: '💰',
+    icon: require('../assets/icons/sales.png'),
   },
   {
     id: 4,
     title: 'Podcasting/Content',
-    icon: '🎙️',
+    icon: require('../assets/icons/podcasting.png'),
   },
   {
     id: 5,
     title: 'Social Skills',
-    icon: '🤝',
+    icon: require('../assets/icons/social-skills.png'),
   },
   {
     id: 6,
     title: 'Acting/Performance',
-    icon: '🎭',
+    icon: require('../assets/icons/acting.png'),
   },
   {
     id: 7,
     title: 'Leadership',
-    icon: '👔',
+    icon: require('../assets/icons/leadership.png'),
   },
   {
     id: 8,
     title: 'Other',
-    icon: '📝',
+    icon: require('../assets/icons/other.png'),
   },
 ];
 
@@ -125,13 +125,13 @@ export const MOTIVATION_STATS = [
   {
     title: '1% daily improvement',
     description: 'compounds to 37x better in a year. Small steps lead to massive growth.',
-    icon: '📈',
+    icon: require('../assets/icons/higher-earnings.png'),
     source: 'Atomic Habits',
   },
   {
     title: 'Practice makes permanent',
     description: 'Your brain rewires itself with each practice session. Consistency is key.',
-    icon: '🧠',
+    icon: require('../assets/icons/brain.png'),
     source: 'Neuroscience Studies',
   },
 ];
@@ -141,22 +141,22 @@ export const COMMUNICATION_STYLES = [
   {
     id: 'introvert',
     title: 'Introvert',
-    icon: '🤫',
+    icon: require('../assets/icons/introvert.png'),
   },
   {
     id: 'extrovert',
     title: 'Extrovert',
-    icon: '🗣️',
+    icon: require('../assets/icons/extrovert.png'),
   },
   {
     id: 'ambivert',
     title: 'Ambivert',
-    icon: '⚖️',
+    icon: require('../assets/icons/ambivert.png'),
   },
   {
     id: 'not_sure',
     title: 'Not Sure',
-    icon: '🤔',
+    icon: require('../assets/icons/not-sure.png'),
   },
 ];
 
