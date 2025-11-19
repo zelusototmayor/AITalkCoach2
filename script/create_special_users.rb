@@ -23,8 +23,12 @@ end
 
 # Users to create with lifetime access
 users_to_create = [
-  { first_name: "Anne", last_name: "Ricketts", email: "anne@lhctraining.com" },
-  { first_name: "Amit", last_name: "Mondal", email: "mamit517@gmail.com" }
+  { first_name: "Tuna", last_name: "", email: "antonioaccsousacardoso@gmail.com" },
+  { first_name: "Xico", last_name: "", email: "francisco-abf@hotmail.com" },
+  { first_name: "Victor", last_name: "", email: "victor.kzam@gmail.com" },
+  { first_name: "Gabi", last_name: "", email: "tenure_84labs@icloud.com" },
+  { first_name: "Timo", last_name: "", email: "tospe.ami@gmail.com" },
+  { first_name: "Paul", last_name: "Chung", email: "cehyun91@gmail.com" }
 ]
 
 puts "Creating #{users_to_create.length} user account(s) with lifetime access..."
@@ -34,7 +38,7 @@ created_count = 0
 failed_count = 0
 
 users_to_create.each do |user_data|
-  full_name = "#{user_data[:first_name]} #{user_data[:last_name]}"
+  full_name = user_data[:last_name].to_s.empty? ? user_data[:first_name] : "#{user_data[:first_name]} #{user_data[:last_name]}"
   password = "#{user_data[:first_name]}2025"
 
   begin
