@@ -58,7 +58,7 @@
                   action: "click->analytics#handleAppStoreClick",
                   source: "hero_section"
                 } do %>
-            <%= image_tag "app-store-badge-cropped.png", alt: "Download on the App Store", class: "app-store-badge" %>
+            <%= image_tag "app-store-badge-official.svg", alt: "Download on the App Store", class: "app-store-badge" %>
           <% end %>
         </div>
 
@@ -407,7 +407,16 @@
   <!-- Footer -->
   <footer class="landing-footer">
     <div class="footer-container">
-      <div>© <%= Date.current.year %> AI Talk Coach.</div>
+      <div class="footer-content">
+        <div>© <%= Date.current.year %> AI Talk Coach.</div>
+        <div class="footer-badge">
+          <%= link_to "https://startupfa.me", target: "_blank", rel: "noopener noreferrer", class: "startup-fame-badge" do %>
+            <span class="badge-text">Featured on</span>
+            <span class="badge-flame">🔥</span>
+            <span class="badge-brand">Startup Fame</span>
+          <% end %>
+        </div>
+      </div>
       <div class="footer-links">
         <%= link_to "Privacy", privacy_policy_path, aria: { label: "Privacy Policy" } %>
         <%= link_to "Terms", terms_of_service_path, aria: { label: "Terms of Service" } %>
