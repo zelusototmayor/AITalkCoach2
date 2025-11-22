@@ -23,12 +23,7 @@ end
 
 # Users to create with lifetime access
 users_to_create = [
-  { first_name: "Tuna", last_name: "", email: "antonioaccsousacardoso@gmail.com" },
-  { first_name: "Xico", last_name: "", email: "francisco-abf@hotmail.com" },
-  { first_name: "Victor", last_name: "", email: "victor.kzam@gmail.com" },
-  { first_name: "Gabi", last_name: "", email: "tenure_84labs@icloud.com" },
-  { first_name: "Timo", last_name: "", email: "tospe.ami@gmail.com" },
-  { first_name: "Paul", last_name: "Chung", email: "cehyun91@gmail.com" }
+  { first_name: "babygirl", last_name: "", email: "Tymeishanevins@gmail.com" }
 ]
 
 puts "Creating #{users_to_create.length} user account(s) with lifetime access..."

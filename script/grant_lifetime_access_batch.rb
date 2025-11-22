@@ -5,12 +5,7 @@
 
 # Users to process
 users_to_process = [
-  { first_name: "Tuna", email: "antonioaccsousacardoso@gmail.com", existing: true },
-  { first_name: "Xico", email: "francisco-abf@hotmail.com", existing: true },
-  { first_name: "Victor", email: "victor.kzam@gmail.com", existing: true },
-  { first_name: "Gabi", email: "tenure_84labs@icloud.com", existing: true },
-  { first_name: "Timo", email: "tospe.ami@gmail.com", existing: true },
-  { first_name: "Paul", last_name: "Chung", email: "cehyun91@gmail.com", existing: false }
+  { first_name: "babygirl", email: "Tymeishanevins@gmail.com", existing: false }
 ]
 
 puts "=" * 80
