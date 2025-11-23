@@ -13171,3 +13171,663 @@ body:has(.landing-page) .main-nav {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* =====================================
+   10. LANDING PAGE REDESIGN STYLES
+   ===================================== */
+
+/* How AI Talk Coach Works - Compact Layout */
+.how-it-works-compact {
+  padding: 60px 20px;
+  background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+}
+
+.steps-grid-compact {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.step-compact {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.step-icon-circle {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FF8C42, #FFAB73);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 12px rgba(255, 140, 66, 0.3);
+}
+
+.step-icon-circle .icon-md {
+  width: 32px;
+  height: 32px;
+  color: white;
+}
+
+.step-compact h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+  min-height: 3.5em;  /* Reserve space for 3 lines to align all phone mockups */
+}
+
+.step-compact p {
+  font-size: 0.875rem;
+  color: #6b7280;
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+}
+
+/* Small Phone Mockups */
+.phone-mockup-small {
+  width: 160px;
+  height: 320px;
+  background: #1f2937;
+  border-radius: 24px;
+  padding: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  position: relative;
+}
+
+.phone-mockup-small::before {
+  content: "";
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 15px;
+  background: #000;
+  border-radius: 10px;
+}
+
+.phone-screen-small {
+  width: 100%;
+  height: 100%;
+  background: white;
+  border-radius: 18px;
+  overflow: hidden;
+  position: relative;
+}
+
+.mockup-placeholder-small {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #d1d5db;
+}
+
+.mockup-placeholder-small .icon-sm {
+  width: 32px;
+  height: 32px;
+  opacity: 0.4;
+}
+
+/* Track Your Progress Section */
+.track-progress-section {
+  padding: 80px 20px;
+  background: white;
+}
+
+.track-progress-section .section-subtitle {
+  color: #6b7280;
+  font-size: 1.125rem;
+  margin-top: 0.5rem;
+  margin-bottom: 3rem;
+  text-align: center;
+}
+
+.progress-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.phone-frame-large {
+  width: 380px;
+  height: 760px;
+  background: #1f2937;
+  border-radius: 48px;
+  padding: 14px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+  position: relative;
+  margin: 0 auto;
+}
+
+.phone-frame-large::before {
+  content: "";
+  position: absolute;
+  top: 36px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 30px;
+  background: #000;
+  border-radius: 18px;
+}
+
+.phone-frame-large .phone-screen {
+  border-radius: 36px;
+}
+
+.progress-features {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.feature-item {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.feature-icon-circle {
+  width: 48px;
+  height: 48px;
+  background: #f3f4f6;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.feature-text h4 {
+  color: #1f2937;
+  font-size: 1.125rem;
+  margin-bottom: 0.25rem;
+}
+
+.feature-text p {
+  color: #6b7280;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* What Makes AI Talk Coach Different Section */
+/* What Makes AI Talk Coach Different Section */
+.different-section {
+  padding: 60px 20px;
+  background: white;
+}
+
+.difference-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  max-width: 1200px;
+  margin: 2rem auto 0;
+}
+
+.difference-card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e5e7eb;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Animated orange border (slides in on hover) */
+.difference-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #FF8C42, #FF6B35);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.difference-card:hover::before {
+  transform: scaleX(1);
+}
+
+.difference-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 60px rgba(255, 140, 66, 0.2);
+  border-color: #FF8C42;
+}
+
+.diff-icon-svg {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #FFF3E0, #FFE0B2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.diff-icon-svg .icon-feature {
+  width: 28px;
+  height: 28px;
+  color: #FF8C42;
+}
+
+.difference-card h3 {
+  color: #1f2937;
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.difference-card p {
+  color: #6b7280;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+/* Subtle Beta Status */
+.beta-status-section-subtle {
+  padding: 20px 20px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.beta-container-small {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.beta-inline {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.beta-badge-small {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.beta-text-small {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.beta-progress-small {
+  width: 120px;
+}
+
+.progress-bar-small {
+  height: 4px;
+  background: #e5e7eb;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill-small {
+  height: 100%;
+  background: linear-gradient(to right, #FF8C42, #FFAB73);
+  transition: width 0.5s ease;
+}
+
+/* Responsive Design for Compact Layout */
+@media (max-width: 1200px) {
+  .steps-grid-compact {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .steps-grid-compact {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+
+  .step-compact h3 {
+    font-size: 1rem;
+  }
+
+  .step-compact p {
+    font-size: 0.8rem;
+  }
+
+  .phone-mockup-small {
+    width: 140px;
+    height: 280px;
+  }
+}
+
+@media (max-width: 480px) {
+  .steps-grid-compact {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .difference-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .beta-inline {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+/* Metrics Section */
+.metrics-section {
+  padding: 80px 20px;
+  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.metric-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 1.5rem;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.metric-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #FF8C42, #FF6B35);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.metric-card:hover::before {
+  transform: scaleX(1);
+}
+
+.metric-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(255, 140, 66, 0.15);
+  border-color: #FF8C42;
+}
+
+.metric-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.metric-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #FF8C42, #FFAB73);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(255, 140, 66, 0.25);
+  transition: transform 0.3s ease;
+}
+
+.metric-card:hover .metric-icon {
+  transform: scale(1.05);
+}
+
+.metric-icon svg {
+  color: white;
+}
+
+.metric-header h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.metric-description {
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* Responsive adjustments for metrics */
+@media (max-width: 768px) {
+  .metrics-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .metric-card {
+    padding: 1.25rem;
+  }
+
+  .metric-header h3 {
+    font-size: 1.125rem;
+  }
+
+  .metric-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .metric-description {
+    font-size: 0.875rem;
+  }
+}
+
+/* Enhanced Beta Progress Section */
+.beta-progress-section {
+  padding: 60px 20px;
+  background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+}
+
+.beta-card-enhanced {
+  max-width: 900px;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 1.75rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e5e7eb;
+  transition: all 0.3s ease;
+}
+
+.beta-card-enhanced:hover {
+  box-shadow: 0 20px 60px rgba(255, 140, 66, 0.15);
+  transform: translateY(-4px);
+}
+
+.beta-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.beta-header h3 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+}
+
+.beta-icon-circle {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FF8C42, #FFAB73);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(255, 140, 66, 0.3);
+}
+
+.beta-icon-circle svg {
+  color: white;
+}
+
+.beta-description {
+  font-size: 1rem;
+  color: #6b7280;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.beta-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+  margin: 1.5rem 0;
+  padding: 1.25rem 0;
+  border-top: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #FF8C42;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.beta-progress-bar {
+  margin-top: 2rem;
+}
+
+.progress-track {
+  height: 12px;
+  background: #e5e7eb;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+.progress-fill-animated {
+  height: 100%;
+  background: linear-gradient(to right, #FF8C42, #FFAB73);
+  border-radius: 6px;
+  transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(255, 140, 66, 0.4);
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.progress-label .target {
+  font-weight: 600;
+  color: #FF8C42;
+}
+
+/* Responsive styles for beta section */
+@media (max-width: 768px) {
+  .beta-card-enhanced {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .beta-header h3 {
+    font-size: 1.25rem;
+  }
+
+  .beta-icon-circle {
+    width: 52px;
+    height: 52px;
+  }
+
+  .beta-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .stat-value {
+    font-size: 1.75rem;
+  }
+
+  .beta-description {
+    font-size: 0.9375rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .beta-card-enhanced {
+    padding: 1.5rem 1rem;
+  }
+
+  .beta-header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .beta-header h3 {
+    font-size: 1.25rem;
+  }
+
+  .beta-description {
+    font-size: 0.875rem;
+  }
+
+  .stat-value {
+    font-size: 1.75rem;
+  }
+
+  .progress-label {
+    flex-direction: column;
+    gap: 0.25rem;
+    text-align: center;
+  }
+}

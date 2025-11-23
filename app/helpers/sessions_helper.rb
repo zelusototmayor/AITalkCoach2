@@ -7,7 +7,8 @@ module SessionsHelper
     when "enhance_clarity" then "clarity"
     when "boost_engagement" then "engagement"
     when "increase_fluency" then "fluency"
-    when "fix_long_pauses", "professional_language" then "pace_consistency"
+    when "fix_long_pauses" then "pace_consistency"
+    when "improve_sentence_structure" then "clarity"
     else nil
     end
   end
@@ -69,6 +70,18 @@ module SessionsHelper
         "Progress update: #{sessions_completed}/#{total_sessions} sessions done. Moving from #{current_percent}% to #{target_percent}% #{improvement_area}."
       else
         "Strong work! #{sessions_completed}/#{total_sessions} complete. Almost at your #{target_percent}% #{improvement_area} goal."
+      end
+
+    when "improve_sentence_structure"
+      issue_count = current_value.to_i
+      target_count = target_value.to_i
+
+      if sessions_completed == 0
+        "You have #{issue_count} sentence structure issues on average. Let's reduce them to #{target_count} through #{total_sessions} practice sessions."
+      elsif sessions_completed < total_sessions / 2
+        "#{sessions_completed}/#{total_sessions} sessions done. Keep working on clear sentence structure to reach your target of #{target_count} issues or fewer."
+      else
+        "Great progress! #{sessions_completed}/#{total_sessions} sessions complete. You're improving your sentence structure consistency."
       end
 
     else

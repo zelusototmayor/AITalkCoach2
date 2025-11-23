@@ -11,6 +11,7 @@ class User < ApplicationRecord
   validates :name, presence: true, length: { minimum: 2, maximum: 50 }
   validates :password, length: { minimum: 6 }, if: -> { new_record? || !password.nil? }
   validates :preferred_language, inclusion: { in: -> (_) { LanguageService.supported_language_codes } }, allow_blank: false
+  validates :target_wpm, numericality: { only_integer: true, greater_than_or_equal_to: 60, less_than_or_equal_to: 240 }, allow_nil: true
 
   # Serialize speaking_goal as JSON array
   serialize :speaking_goal, coder: JSON
@@ -85,6 +86,66 @@ class User < ApplicationRecord
   # Get human-readable language name
   def language_display_name
     LanguageService.native_language_name(preferred_language)
+  end
+
+  # ============================================================================
+  # SPEAKING PACE PREFERENCE METHODS
+  # ============================================================================
+
+  # Default WPM values
+  DEFAULT_TARGET_WPM = 140
+  DEFAULT_OPTIMAL_WPM_MIN = 130
+  DEFAULT_OPTIMAL_WPM_MAX = 150
+  DEFAULT_ACCEPTABLE_WPM_MIN = 110
+  DEFAULT_ACCEPTABLE_WPM_MAX = 170
+
+  # Deltas for calculating ranges from target
+  OPTIMAL_WPM_DELTA = 10
+  ACCEPTABLE_WPM_DELTA = 30
+
+  # Get the target WPM or default
+  def target_wpm_or_default
+    target_wpm || DEFAULT_TARGET_WPM
+  end
+
+  # Get the optimal WPM range (target ± 10 WPM)
+  # Returns a Range object
+  def optimal_wpm_range
+    if target_wpm.present?
+      (target_wpm - OPTIMAL_WPM_DELTA)..(target_wpm + OPTIMAL_WPM_DELTA)
+    else
+      DEFAULT_OPTIMAL_WPM_MIN..DEFAULT_OPTIMAL_WPM_MAX
+    end
+  end
+
+  # Get the acceptable WPM range (target ± 30 WPM)
+  # Returns a Range object
+  def acceptable_wpm_range
+    if target_wpm.present?
+      (target_wpm - ACCEPTABLE_WPM_DELTA)..(target_wpm + ACCEPTABLE_WPM_DELTA)
+    else
+      DEFAULT_ACCEPTABLE_WPM_MIN..DEFAULT_ACCEPTABLE_WPM_MAX
+    end
+  end
+
+  # Get optimal WPM minimum
+  def optimal_wpm_min
+    optimal_wpm_range.min
+  end
+
+  # Get optimal WPM maximum
+  def optimal_wpm_max
+    optimal_wpm_range.max
+  end
+
+  # Get acceptable WPM minimum
+  def acceptable_wpm_min
+    acceptable_wpm_range.min
+  end
+
+  # Get acceptable WPM maximum
+  def acceptable_wpm_max
+    acceptable_wpm_range.max
   end
 
   # ============================================================================

@@ -2,11 +2,18 @@ module Analysis
   class Metrics
     class MetricsError < StandardError; end
 
-    # Standard speech rate ranges (words per minute)
-    OPTIMAL_WPM_RANGE = (130..150).freeze
-    ACCEPTABLE_WPM_RANGE = (110..170).freeze
-    SLOW_WPM_THRESHOLD = 110
-    FAST_WPM_THRESHOLD = 170
+    # DEFAULT speech rate ranges (words per minute)
+    # Used when user has no custom target_wpm set
+    DEFAULT_OPTIMAL_WPM_RANGE = (130..150).freeze
+    DEFAULT_ACCEPTABLE_WPM_RANGE = (110..170).freeze
+    DEFAULT_SLOW_WPM_THRESHOLD = 110
+    DEFAULT_FAST_WPM_THRESHOLD = 170
+
+    # Legacy constants for backwards compatibility
+    OPTIMAL_WPM_RANGE = DEFAULT_OPTIMAL_WPM_RANGE
+    ACCEPTABLE_WPM_RANGE = DEFAULT_ACCEPTABLE_WPM_RANGE
+    SLOW_WPM_THRESHOLD = DEFAULT_SLOW_WPM_THRESHOLD
+    FAST_WPM_THRESHOLD = DEFAULT_FAST_WPM_THRESHOLD
 
     # Clarity scoring weights
     CLARITY_WEIGHTS = {
@@ -26,6 +33,7 @@ module Analysis
       @audio_file = options[:audio_file]
       @ai_detected_fillers = options[:ai_detected_fillers] || []
       @amplitude_data = options[:amplitude_data] || []
+      @user = options[:user] # User for personalized WPM preferences
     end
 
     def calculate_all_metrics
@@ -205,6 +213,24 @@ module Analysis
     end
 
     private
+
+    # User WPM preference helpers
+
+    def optimal_wpm_range
+      @user&.optimal_wpm_range || DEFAULT_OPTIMAL_WPM_RANGE
+    end
+
+    def acceptable_wpm_range
+      @user&.acceptable_wpm_range || DEFAULT_ACCEPTABLE_WPM_RANGE
+    end
+
+    def slow_wpm_threshold
+      @user&.acceptable_wpm_min || DEFAULT_SLOW_WPM_THRESHOLD
+    end
+
+    def fast_wpm_threshold
+      @user&.acceptable_wpm_max || DEFAULT_FAST_WPM_THRESHOLD
+    end
 
     # Coaching insights extraction methods
 
@@ -484,14 +510,18 @@ module Analysis
     end
 
     def assess_speaking_rate(wpm)
+      optimal_range = optimal_wpm_range
+      slow_threshold = slow_wpm_threshold
+      fast_threshold = fast_wpm_threshold
+
       case wpm
-      when 0..SLOW_WPM_THRESHOLD
+      when 0..slow_threshold
         "too_slow"
-      when SLOW_WPM_THRESHOLD..OPTIMAL_WPM_RANGE.min
+      when slow_threshold..optimal_range.min
         "slow"
-      when OPTIMAL_WPM_RANGE
+      when optimal_range
         "optimal"
-      when OPTIMAL_WPM_RANGE.max..FAST_WPM_THRESHOLD
+      when optimal_range.max..fast_threshold
         "fast"
       else
         "too_fast"
@@ -1140,9 +1170,11 @@ module Analysis
     def calculate_overall_engagement_score
       energy = calculate_energy_level
       variation = calculate_pace_variation_score
+      inflection = calculate_inflection_score
       emphasis = detect_emphasis_patterns.values.sum
 
-      base_score = (energy + variation) / 2
+      # Weighted engagement: 70% pace variation, 20% energy, 10% inflection
+      base_score = (variation * 0.7) + (energy * 0.2) + (inflection * 0.1)
       emphasis_bonus = [ emphasis * 2, 20 ].min # Cap emphasis bonus at 20 points
 
       [ base_score + emphasis_bonus, 100 ].min.round(1)
@@ -1154,11 +1186,16 @@ module Analysis
     end
 
     def score_speaking_pace(wpm)
+      optimal_range = optimal_wpm_range
+      acceptable_range = acceptable_wpm_range
+      slow_threshold = slow_wpm_threshold
+      fast_threshold = fast_wpm_threshold
+
       case wpm
-      when OPTIMAL_WPM_RANGE then 100
-      when ACCEPTABLE_WPM_RANGE then 85
-      when 90..SLOW_WPM_THRESHOLD then 70
-      when FAST_WPM_THRESHOLD..190 then 70
+      when optimal_range then 100
+      when acceptable_range then 85
+      when 90..slow_threshold then 70
+      when fast_threshold..190 then 70
       when 70..90 then 50
       when 190..240 then 50
       else 30

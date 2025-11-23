@@ -133,7 +133,7 @@ module Ai
             "clarity_score": 85,
             "confidence_score": 78,
             "engagement_score": 92,
-            "professionalism_score": 88,
+            "sentence_structure_score": 88,
             "overall_score": 86
           },
           "strengths": [
@@ -601,12 +601,12 @@ module Ai
         properties: {
           overall_assessment: {
             type: "object",
-            required: %w[clarity_score confidence_score engagement_score professionalism_score overall_score],
+            required: %w[clarity_score confidence_score engagement_score sentence_structure_score overall_score],
             properties: {
               clarity_score: { type: "integer", minimum: 0, maximum: 100 },
               confidence_score: { type: "integer", minimum: 0, maximum: 100 },
               engagement_score: { type: "integer", minimum: 0, maximum: 100 },
-              professionalism_score: { type: "integer", minimum: 0, maximum: 100 },
+              sentence_structure_score: { type: "integer", minimum: 0, maximum: 100 },
               overall_score: { type: "integer", minimum: 0, maximum: 100 }
             }
           },
@@ -985,15 +985,15 @@ module Ai
           ],
           "validated_issues": [
             {
-              "original_detection": "professionalism",
+              "original_detection": "sentence_structure",
               "validation": "confirmed",
               "confidence": 0.85,
               "severity": "medium",
-              "impact_description": "Casual language reduces professional tone",
-              "coaching_recommendation": "Replace casual phrases with formal alternatives",
+              "impact_description": "Incomplete thought leaves listener confused",
+              "coaching_recommendation": "Complete sentences fully before moving to next idea",
               "priority": "medium",
-              "practice_exercise": "Record yourself reading professional texts",
-              "context_text": "yeah, we should probably do that"
+              "practice_exercise": "Practice speaking in complete sentences with clear subject-verb structure",
+              "context_text": "We should probably... and then maybe..."
             }
           ],
           "false_positives": [

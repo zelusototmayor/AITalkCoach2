@@ -6,7 +6,7 @@ class WeeklyFocus < ApplicationRecord
 
   # Validations
   validates :focus_type, presence: true, inclusion: {
-    in: %w[reduce_fillers improve_pace enhance_clarity boost_engagement increase_fluency fix_long_pauses professional_language],
+    in: %w[reduce_fillers improve_pace enhance_clarity boost_engagement increase_fluency fix_long_pauses improve_sentence_structure],
     message: "%{value} is not a valid focus type"
   }
   validates :target_value, presence: true, numericality: { greater_than: 0 }
@@ -96,7 +96,7 @@ class WeeklyFocus < ApplicationRecord
     when "boost_engagement" then "Boost Engagement"
     when "increase_fluency" then "Increase Fluency"
     when "fix_long_pauses" then "Fix Long Pauses"
-    when "professional_language" then "Use Professional Language"
+    when "improve_sentence_structure" then "Improve Sentence Structure"
     else focus_type.humanize
     end
   end

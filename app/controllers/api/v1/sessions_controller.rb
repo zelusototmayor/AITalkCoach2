@@ -274,6 +274,16 @@ class Api::V1::SessionsController < Api::V1::BaseController
     }
 
     if include_details
+      # Get audio URL from first media file if available
+      audio_url = nil
+      if session.media_files.attached? && session.media_files.first.present?
+        begin
+          audio_url = Rails.application.routes.url_helpers.rails_blob_url(session.media_files.first, host: request.base_url)
+        rescue => e
+          Rails.logger.error "Error generating audio URL: #{e.message}"
+        end
+      end
+
       json.merge!({
         analysis_data: session.analysis_data,
         speech_context: session.speech_context,
@@ -281,7 +291,8 @@ class Api::V1::SessionsController < Api::V1::BaseController
         pace_consistency: session.analysis_data&.dig("pace_consistency"),
         fluency_score: session.analysis_data&.dig("fluency_score"),
         engagement_score: session.analysis_data&.dig("engagement_score"),
-        micro_tips: session.micro_tips
+        micro_tips: session.micro_tips,
+        audio_url: audio_url
       })
     end
 

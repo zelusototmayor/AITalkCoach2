@@ -34,21 +34,19 @@ en:
       description: 'Multiple uncertainty markers weaken your message'
       tip: 'Choose one way to express uncertainty, or better yet, state your point confidently.'
       
-  professional_issues:
-    - pattern: '\b(yeah|yep|nope|nah)\b'
+  sentence_structure_issues:
+    # NOTE: Most sentence structure issues are detected by AI for context-aware accuracy
+    # These regex patterns catch only obvious structural problems
+
+    - pattern: '\b(and|but|so|because)\s*[.!?]'
+      severity: 'medium'
+      description: 'Sentence ends with a conjunction - incomplete thought'
+      tip: 'Complete your sentence before ending it. What comes after "and", "but", or "so"?'
+
+    - pattern: '([.!?])\s*([a-z])'
       severity: 'low'
-      description: 'Very casual responses in professional contexts'
-      tip: 'Use "yes", "no", "certainly", or "absolutely" for more professional communication.'
-      
-    - pattern: '\b(awesome|cool|sick|sweet)\b'
-      severity: 'low'
-      description: 'Very casual positive expressions'
-      tip: 'Try "excellent", "outstanding", "impressive", or "remarkable" for professional settings.'
-      
-    - pattern: '\b(totally|super|really really)\b'
-      severity: 'low'
-      description: 'Intensifiers that may sound unprofessional'
-      tip: 'Use more precise adverbs or let your words speak for themselves.'
+      description: 'New sentence not capitalized - may indicate run-on thought'
+      tip: 'Start new sentences with capital letters to maintain clear sentence boundaries.'
       
   articulation_issues:
     - pattern: '\b(dis|dat|dese|dose)\b'

@@ -9,8 +9,14 @@ import { COLORS, SPACING } from '../constants/colors';
  * @param {boolean} visible - Whether modal is visible
  * @param {string} metricType - Type of metric ('overall', 'clarity', 'filler', 'wpm')
  * @param {function} onClose - Callback when modal is closed
+ * @param {object} userWpmSettings - User's WPM settings (optimal_range, acceptable_range)
  */
-export default function MetricInfoModal({ visible, metricType, onClose }) {
+export default function MetricInfoModal({ visible, metricType, onClose, userWpmSettings }) {
+  // Get user's optimal WPM range or use defaults
+  const optimalMin = userWpmSettings?.optimal_range?.min || 130;
+  const optimalMax = userWpmSettings?.optimal_range?.max || 150;
+  const wpmRangeText = `${optimalMin}-${optimalMax} WPM`;
+  const isCustomRange = userWpmSettings?.optimal_range?.min !== 130 || userWpmSettings?.optimal_range?.max !== 150;
   // Define metric information
   const metricInfo = {
     overall: {
@@ -78,11 +84,11 @@ export default function MetricInfoModal({ visible, metricType, onClose }) {
         'Time between words',
         'Overall tempo',
       ],
-      idealRange: '130-170 WPM (Natural)',
+      idealRange: `${wpmRangeText}${isCustomRange ? ' (Your Target)' : ' (Natural)'}`,
       howToImprove: [
         'Practice speaking at different speeds',
         'Use a metronome to maintain consistent pace',
-        'Read aloud at your target WPM',
+        `Read aloud at your target WPM (${optimalMin + (optimalMax - optimalMin) / 2} WPM)`,
         'Vary your pace for emphasis and engagement',
       ],
     },

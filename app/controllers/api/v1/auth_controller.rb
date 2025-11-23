@@ -245,6 +245,61 @@ class Api::V1::AuthController < Api::V1::BaseController
     end
   end
 
+  # PATCH /api/v1/auth/update_target_wpm
+  def update_target_wpm
+    target_wpm = params[:target_wpm]&.to_i
+
+    # Allow nil to reset to defaults
+    if target_wpm.nil? || target_wpm == 0
+      if current_user.update(target_wpm: nil)
+        render json: {
+          success: true,
+          user: user_json(current_user),
+          message: "Target WPM reset to default (#{User::DEFAULT_TARGET_WPM} WPM)"
+        }
+      else
+        render json: {
+          success: false,
+          errors: current_user.errors.full_messages
+        }, status: :unprocessable_entity
+      end
+      return
+    end
+
+    # Validate WPM range
+    unless target_wpm.between?(60, 240)
+      render json: {
+        success: false,
+        error: "Target WPM must be between 60 and 240"
+      }, status: :unprocessable_entity
+      return
+    end
+
+    if current_user.update(target_wpm: target_wpm)
+      render json: {
+        success: true,
+        user: user_json(current_user),
+        message: "Target WPM updated to #{target_wpm} WPM (optimal range: #{current_user.optimal_wpm_min}-#{current_user.optimal_wpm_max} WPM)",
+        wpm_settings: {
+          target_wpm: current_user.target_wpm,
+          optimal_range: {
+            min: current_user.optimal_wpm_min,
+            max: current_user.optimal_wpm_max
+          },
+          acceptable_range: {
+            min: current_user.acceptable_wpm_min,
+            max: current_user.acceptable_wpm_max
+          }
+        }
+      }
+    else
+      render json: {
+        success: false,
+        errors: current_user.errors.full_messages
+      }, status: :unprocessable_entity
+    end
+  end
+
   # DELETE /api/v1/auth/account
   def delete_account
     user_id = current_user.id
@@ -295,6 +350,17 @@ class Api::V1::AuthController < Api::V1::BaseController
       language_display_name: user.language_display_name,
       speaking_style: user.speaking_style,
       age_range: user.age_range,
+      target_wpm: user.target_wpm,
+      wpm_settings: {
+        optimal_range: {
+          min: user.optimal_wpm_min,
+          max: user.optimal_wpm_max
+        },
+        acceptable_range: {
+          min: user.acceptable_wpm_min,
+          max: user.acceptable_wpm_max
+        }
+      },
       created_at: user.created_at
     }
   end

@@ -7,7 +7,7 @@ import * as SecureStore from 'expo-secure-store';
 // For development: use your local IP or ngrok URL
 // For production: use your production domain
 const API_BASE_URL = __DEV__
-  ? 'http://192.168.100.2:3003' // Local IP for development (port 3003 for HTTP API)
+  ? 'http://192.168.100.2:3002' // Local IP for development (iOS simulator needs actual IP)
   : 'https://app.aitalkcoach.com';
 
 /**
@@ -534,6 +534,37 @@ export async function updateLanguage(languageCode) {
     return data;
   } catch (error) {
     console.error('Error updating language:', error);
+    throw error;
+  }
+}
+
+/**
+ * Update user's target speaking pace (WPM)
+ * @param {number|null} targetWpm - Target words per minute (60-240), or null to reset to default
+ * @returns {Promise<Object>} Updated user object with WPM settings
+ */
+export async function updateTargetWPM(targetWpm) {
+  try {
+    const headers = await getAuthHeaders();
+
+    const response = await fetch(`${API_BASE_URL}/api/v1/auth/update_target_wpm`, {
+      method: 'PATCH',
+      headers: {
+        ...headers,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ target_wpm: targetWpm }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to update target WPM');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error updating target WPM:', error);
     throw error;
   }
 }

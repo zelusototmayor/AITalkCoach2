@@ -119,8 +119,7 @@ class LandingController < ApplicationController
                .distinct
                .count
 
-    # Add some base numbers to make it look more impressive
-    count + 150
+    count
   end
 
   def get_sample_session_data

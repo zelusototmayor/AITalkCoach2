@@ -6,13 +6,8 @@
     <div class="hero-container">
       <!-- Hero Content - Always First -->
       <div class="hero-content">
-        <div class="hero-badge">
-          <span class="badge-icon"><%= icon_svg(:sparkles, css_class: 'icon-inline') %></span>
-          CONSISTENCY
-        </div>
-
         <h1 class="hero-title">
-          Improve your speech, one day at a time!
+          Improve your communication, one day at a time!
         </h1>
 
         <p class="hero-description">
@@ -111,91 +106,173 @@
     <div class="rule-grad mx-auto" style="max-width: 1200px;"></div>
   </section>
 
-  <!-- Proof Strip Section -->
-  <section class="proof-strip-section">
-    <div class="proof-container">
-      <div class="proof-badge">
-        <div class="proof-key">#1 skill</div>
-        <div class="proof-text">Communication is consistently ranked a top in‑demand job skill (LinkedIn, 2024).</div>
-      </div>
-      <div class="proof-badge">
-        <div class="proof-key">44% change</div>
-        <div class="proof-text">Share of core skills expected to change within 5 years (World Economic Forum, 2025).</div>
-      </div>
-      <div class="proof-badge">
-        <div class="proof-key">Human edge</div>
-        <div class="proof-text">Leaders prioritize human skills—communication, storytelling, presence—even as AI adoption grows.</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Why Now Section -->
-  <section class="why-now-section">
-    <div class="why-now-container">
-      <div>
-        <h3>Why communication matters more in the AI era</h3>
-        <ul>
-          <li>• Communication ranks among the <b>most in‑demand job skills</b> on LinkedIn's 2024 report.</li>
-          <li>• The World Economic Forum projects <b>44% of core skills</b> will change within five years; human skills remain decisive.</li>
-          <li>• Leaders prioritize <b>storytelling, clarity, and presence</b> alongside AI fluency.</li>
-        </ul>
-        <p style="font-size: 0.75rem; color: #6b7280; margin-top: 0.75rem;">We'll link to source notes in the blog; phrasing here stays concise for the page.</p>
-      </div>
-      <blockquote class="why-now-quote">
-        <div class="quote-header">
-          <%= icon_svg(:message, css_class: 'icon-inline') %> Coach's take
-        </div>
-        <p class="quote-text">AI accelerates content. Humans win with clarity, structure, and presence. Short, consistent reps beat long, rare practices.</p>
-      </blockquote>
-    </div>
-  </section>
-
-  <!-- Beta Status Section -->
-  <section class="beta-status-section">
-    <div class="beta-container">
-      <div class="beta-card">
-        <div class="beta-icon">🧪</div>
-        <div class="beta-content">
-          <h3>Early Beta: Help Us Reach 1K Minutes</h3>
-          <p>Join our growing community of speakers improving their communication skills. Currently tested: <strong><%= @total_practice_minutes %>+ minutes</strong></p>
-          <div class="beta-progress">
-            <div class="progress-bar">
-              <div class="progress-fill" style="width: <%= [(@total_practice_minutes.to_i / 1000.0 * 100), 100].min %>%"></div>
-            </div>
-            <div class="progress-text"><%= @total_practice_minutes %>+ / 1K minutes</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- How It Works -->
-  <section id="how-it-works" class="how-it-works">
+  <!-- How AI Talk Coach Works -->
+  <section id="how-it-works" class="how-it-works-compact">
     <div class="section-container">
-      <h2 class="section-title">How it works</h2>
-      <div class="steps-grid">
-        <div class="step-card">
-          <div class="step-icon">
-            <span><%= icon_svg(:clock, css_class: 'icon-lg') %></span>
+      <h2 class="section-title">How AI Talk Coach Works</h2>
+
+      <div class="steps-grid-compact">
+        <!-- Step 1: Record & Analyze -->
+        <div class="step-compact">
+          <div class="step-icon-circle">
+            <%= icon_svg(:mic, css_class: 'icon-md') %>
           </div>
-          <h3>Pick your focus</h3>
-          <p>Choose 30–180 second practice sessions. Select from interview prep, presentation skills, or conversation practice.</p>
+          <h3>Record & Analyze</h3>
+          <p>Record 30-180 second sessions. Get AI analysis instantly.</p>
+          <div class="phone-mockup-small">
+            <div class="phone-screen-small">
+              <div class="mockup-placeholder-small">
+                <%= icon_svg(:mic, css_class: 'icon-sm') %>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div class="step-card">
-          <div class="step-icon">
-            <span><%= icon_svg(:mic, css_class: 'icon-lg') %></span>
+        <!-- Step 2: See Metrics -->
+        <div class="step-compact">
+          <div class="step-icon-circle">
+            <%= icon_svg(:chart, css_class: 'icon-md') %>
           </div>
-          <h3>Record & speak</h3>
-          <p>Practice in your browser with real-time guidance. No downloads, no setup—just click and start speaking.</p>
+          <h3>See Detailed Metrics</h3>
+          <p>Track 7 key metrics: clarity, fillers, pace, fluency, engagement.</p>
+          <div class="phone-mockup-small">
+            <div class="phone-screen-small">
+              <div class="mockup-placeholder-small">
+                <%= icon_svg(:chart, css_class: 'icon-sm') %>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div class="step-card">
-          <div class="step-icon">
-            <span><%= icon_svg(:chart, css_class: 'icon-lg') %></span>
+        <!-- Step 3: AI Coaching -->
+        <div class="step-compact">
+          <div class="step-icon-circle">
+            <%= icon_svg(:target, css_class: 'icon-md') %>
           </div>
-          <h3>Get AI feedback</h3>
-          <p>Instant analysis of pace, clarity, filler words, and engagement with specific improvement suggestions.</p>
+          <h3>Get AI Coaching</h3>
+          <p>Receive ONE focused recommendation based on your last 5 sessions.</p>
+          <div class="phone-mockup-small">
+            <div class="phone-screen-small">
+              <div class="mockup-placeholder-small">
+                <%= icon_svg(:target, css_class: 'icon-sm') %>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4: Track Progress -->
+        <div class="step-compact">
+          <div class="step-icon-circle">
+            <%= icon_svg(:trending_up, css_class: 'icon-md') %>
+          </div>
+          <h3>Track Progress</h3>
+          <p>Watch improvement over time with charts, streaks, and achievements.</p>
+          <div class="phone-mockup-small">
+            <div class="phone-screen-small">
+              <div class="mockup-placeholder-small">
+                <%= icon_svg(:trending_up, css_class: 'icon-sm') %>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 5: Choose Prompts -->
+        <div class="step-compact">
+          <div class="step-icon-circle">
+            <%= icon_svg(:clipboard, css_class: 'icon-md') %>
+          </div>
+          <h3>Choose Prompts</h3>
+          <p>Select from 8 curated prompts or speak freely on any topic.</p>
+          <div class="phone-mockup-small">
+            <div class="phone-screen-small">
+              <div class="mockup-placeholder-small">
+                <%= icon_svg(:clipboard, css_class: 'icon-sm') %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- What Makes AI Talk Coach Different Section -->
+  <section class="different-section">
+    <div class="section-container">
+      <h2 class="section-title">What Makes AI Talk Coach Different</h2>
+
+      <div class="difference-grid">
+        <div class="difference-card">
+          <div class="diff-icon-svg">
+            <%= icon_svg(:target, css_class: 'icon-feature') %>
+          </div>
+          <h3>Personalized Pace Targets</h3>
+          <p>Set YOUR ideal speaking speed (60-240 WPM). We adapt to you, not vice versa.</p>
+        </div>
+
+        <div class="difference-card">
+          <div class="diff-icon-svg">
+            <%= icon_svg(:bridge, css_class: 'icon-feature') %>
+          </div>
+          <h3>True Multilingual Support</h3>
+          <p>AI-powered filler detection in 11 languages including English, Portuguese, Spanish, French, German, Italian, Dutch, Swedish, Danish, Norwegian, and Turkish.</p>
+        </div>
+
+        <div class="difference-card">
+          <div class="diff-icon-svg">
+            <%= icon_svg(:clock, css_class: 'icon-feature') %>
+          </div>
+          <h3>Flexible Session Length</h3>
+          <p>Practice in 30 to 180-second sessions. Perfect for busy schedules—improve in bite-sized increments.</p>
+        </div>
+
+        <div class="difference-card">
+          <div class="diff-icon-svg">
+            <%= icon_svg(:lock, css_class: 'icon-feature') %>
+          </div>
+          <h3>Privacy First</h3>
+          <p>Your data, your control. Delete sessions anytime. No account required to try.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Beta Progress Section (Enhanced) -->
+  <section class="beta-progress-section">
+    <div class="section-container">
+      <div class="beta-card-enhanced">
+        <div class="beta-header">
+          <div class="beta-icon-circle">
+            <%= icon_svg(:rocket, css_class: 'icon-lg') %>
+          </div>
+          <h3>Early Beta: Help Us Reach 1K Minutes</h3>
+        </div>
+
+        <p class="beta-description">
+          Every practice session helps us build better features.
+        </p>
+
+        <div class="beta-stats-grid">
+          <div class="stat-item">
+            <div class="stat-value"><%= @total_practice_minutes %>+</div>
+            <div class="stat-label">Minutes Practiced</div>
+          </div>
+
+          <div class="stat-item">
+            <div class="stat-value"><%= @active_users %>+</div>
+            <div class="stat-label">Users</div>
+          </div>
+        </div>
+
+        <div class="beta-progress-bar">
+          <div class="progress-track">
+            <div class="progress-fill-animated"
+                 style="width: <%= [(@total_practice_minutes.to_i / 1000.0 * 100), 100].min %>%">
+            </div>
+          </div>
+          <div class="progress-label">
+            <span><%= @total_practice_minutes %>+ minutes</span>
+            <span class="target">Goal: 1,000 minutes</span>
+          </div>
         </div>
       </div>
     </div>
@@ -257,57 +334,102 @@
     </div>
   </section>
 
-  <!-- Features -->
-  <section class="features-section">
+  <!-- Metrics Section -->
+  <section class="metrics-section">
     <div class="section-container">
-      <h2 class="section-title">What you'll improve</h2>
-      <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon">
-            <span><%= icon_svg(:target, css_class: 'icon-lg') %></span>
+      <h2 class="section-title">Metrics We Track</h2>
+      <p class="section-subtitle">Seven key metrics powered by AI to give you actionable feedback</p>
+
+      <div class="metrics-grid">
+        <!-- Metric 1: Overall Score -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <div class="metric-icon">
+              <%= icon_svg(:star, css_class: 'icon-md') %>
+            </div>
+            <h3>Overall Score</h3>
           </div>
-          <h3>AI clarity coaching</h3>
-          <p>Get specific suggestions to remove filler words, improve pacing, and make your message more direct and engaging.</p>
+          <p class="metric-description">
+            Your main speaking score from 0-100. Combines clarity, pace, fluency, and engagement—with clarity weighted most heavily. When this score is low, check which of the four components needs the most work.
+          </p>
         </div>
 
-        <div class="feature-card">
-          <div class="feature-icon">
-            <span><%= icon_svg(:lightning, css_class: 'icon-lg') %></span>
+        <!-- Metric 2: Clarity Score -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <div class="metric-icon">
+              <%= icon_svg(:target, css_class: 'icon-md') %>
+            </div>
+            <h3>Clarity Score</h3>
           </div>
-          <h3>Real-time detection</h3>
-          <p>Automatic identification of "um," "uh," pace issues, and long pauses with timestamps for focused improvement.</p>
+          <p class="metric-description">
+            How well your message comes through to listeners. Looks at filler words, pace steadiness, pauses, articulation, and vocal variety. Lower scores mean your ideas aren't landing clearly.
+          </p>
         </div>
 
-        <div class="feature-card">
-          <div class="feature-icon">
-            <span><%= icon_svg(:book, css_class: 'icon-lg') %></span>
+        <!-- Metric 3: Filler Rate -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <div class="metric-icon">
+              <%= icon_svg(:alert, css_class: 'icon-md') %>
+            </div>
+            <h3>Filler Rate</h3>
           </div>
-          <h3>Practice library</h3>
-          <p>Curated scenarios for interviews, pitches, storytelling, and professional conversations.</p>
+          <p class="metric-description">
+            Percentage of filler words in your speech—"um," "uh," "like," and equivalents across 11 languages. Under 2% is excellent. Higher rates make you sound less confident and distract listeners.
+          </p>
         </div>
 
-        <div class="feature-card">
-          <div class="feature-icon">
-            <span><%= icon_svg(:trending_up, css_class: 'icon-lg') %></span>
+        <!-- Metric 4: Speaking Pace -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <div class="metric-icon">
+              <%= icon_svg(:activity, css_class: 'icon-md') %>
+            </div>
+            <h3>Speaking Pace</h3>
           </div>
-          <h3>Progress tracking</h3>
-          <p>Monitor your improvement over time with detailed analytics and personalized coaching insights.</p>
+          <p class="metric-description">
+            Your speaking speed in words per minute. Default target is 130-150 WPM, but you can set your own ideal range. Too fast sounds rushed; too slow loses attention.
+          </p>
         </div>
 
-        <div class="feature-card">
-          <div class="feature-icon">
-            <span><%= icon_svg(:activity, css_class: 'icon-lg') %></span>
+        <!-- Metric 5: Fluency Score -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <div class="metric-icon">
+              <%= icon_svg(:shuffle, css_class: 'icon-md') %>
+            </div>
+            <h3>Fluency Score</h3>
           </div>
-          <h3>Web-first platform</h3>
-          <p>No apps to install. Practice anywhere with just a browser and microphone. Works on all devices.</p>
+          <p class="metric-description">
+            Measures speech smoothness by detecting hesitations, false starts, and incomplete sentences. Lower scores indicate choppy delivery that breaks listener focus.
+          </p>
         </div>
 
-        <div class="feature-card">
-          <div class="feature-icon">
-            <span><%= icon_svg(:lock, css_class: 'icon-lg') %></span>
+        <!-- Metric 6: Engagement Score -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <div class="metric-icon">
+              <%= icon_svg(:fire, css_class: 'icon-md') %>
+            </div>
+            <h3>Engagement Score</h3>
           </div>
-          <h3>Privacy focused</h3>
-          <p>Your recordings stay private. Delete any session anytime. Full control over your practice data.</p>
+          <p class="metric-description">
+            Reflects your energy and expressiveness. Looks for vocal variety, emphasis, and dynamic pacing. Low scores suggest monotone delivery that doesn't hold attention.
+          </p>
+        </div>
+
+        <!-- Metric 7: Pace Consistency -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <div class="metric-icon">
+              <%= icon_svg(:trending_up, css_class: 'icon-md') %>
+            </div>
+            <h3>Pace Consistency</h3>
+          </div>
+          <p class="metric-description">
+            How steady your speaking speed stays throughout your session. High scores mean even pacing; low scores show you're speeding up when nervous or dragging when uncertain.
+          </p>
         </div>
       </div>
     </div>
@@ -320,7 +442,7 @@
       <div class="faq-grid">
         <div class="faq-item">
           <h3>What platforms are supported?</h3>
-          <p>AI Talk Coach works in any modern web browser on desktop, tablet, or mobile. No apps to download—just visit our website and start practicing.</p>
+          <p>AI Talk Coach works in any modern web browser on desktop, tablet, or mobile. Plus, we have an iOS app available on the App Store.</p>
         </div>
 
         <div class="faq-item">
@@ -329,18 +451,8 @@
         </div>
 
         <div class="faq-item">
-          <h3>Do you store my recordings?</h3>
-          <p>Your recordings are temporarily processed for analysis, then you can choose to save them in your account or delete them immediately. You have full control over your data.</p>
-        </div>
-
-        <div class="faq-item">
           <h3>Is there a free version?</h3>
           <p>Yes! Start practicing immediately with our free tier. Get instant feedback on your speaking and track your progress over time.</p>
-        </div>
-
-        <div class="faq-item">
-          <h3>What languages are supported?</h3>
-          <p>Currently supporting English, Portuguese, and Spanish with high accuracy. More languages coming based on user demand.</p>
         </div>
 
         <div class="faq-item">
@@ -404,6 +516,7 @@
     </div>
   </section>
 
+
   <!-- Footer -->
   <footer class="landing-footer">
     <div class="footer-container">
@@ -415,6 +528,12 @@
             <span class="badge-flame">🔥</span>
             <span class="badge-brand">Startup Fame</span>
           <% end %>
+          <a href="https://fazier.com/launches/aitalkcoach.com" target="_blank">
+            <img src="https://fazier.com/api/v1//public/badges/launch_badges.svg?badge_type=featured&theme=light" width="250" alt="Fazier badge" />
+          </a>
+          <a href="https://twelve.tools" target="_blank">
+            <img src="https://twelve.tools/badge0-white.svg" alt="Featured on Twelve Tools" width="200" height="54" />
+          </a>
         </div>
       </div>
       <div class="footer-links">

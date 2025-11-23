@@ -273,7 +273,8 @@ module Sessions
     def analyze_with_rules(transcript_data)
       rule_detector = Analysis::RuleDetector.new(
         transcript_data,
-        language: @session.language
+        language: @session.language,
+        user: @session.user
       )
 
       begin
@@ -347,7 +348,8 @@ module Sessions
         language: @session.language,
         ai_detected_fillers: ai_detected_fillers,
         audio_file: media_data&.[](:file_path),
-        amplitude_data: amplitude_data
+        amplitude_data: amplitude_data,
+        user: @session.user
       )
 
       begin
@@ -461,7 +463,8 @@ module Sessions
           language: @session.language,
           ai_detected_fillers: ai_detected_fillers,
           audio_file: media_data&.[](:file_path),
-          amplitude_data: amplitude_data
+          amplitude_data: amplitude_data,
+          user: @session.user
         )
         coaching_insights = metrics_calculator.extract_coaching_insights
 

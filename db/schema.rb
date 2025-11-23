@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_11_09_200750) do
+ActiveRecord::Schema[8.0].define(version: 2025_11_20_232305) do
   create_table "action_text_rich_texts", force: :cascade do |t|
     t.string "name", null: false
     t.text "body"
@@ -258,6 +258,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_09_200750) do
     t.string "apple_subscription_id"
     t.string "revenuecat_customer_id"
     t.string "subscription_platform"
+    t.integer "target_wpm"
     t.index ["apple_subscription_id"], name: "index_users_on_apple_subscription_id"
     t.index ["preferred_language"], name: "index_users_on_preferred_language"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true

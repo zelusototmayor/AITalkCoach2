@@ -10,13 +10,16 @@ import IssuesListContent from '../../components/IssuesListContent';
 import SecondaryMetricsContent from '../../components/SecondaryMetricsContent';
 import TranscriptContent from '../../components/TranscriptContent';
 import MetricInfoModal from '../../components/MetricInfoModal';
+import AudioPlayer from '../../components/AudioPlayer';
 import BottomNavigation from '../../components/BottomNavigation';
 import { COLORS, SPACING } from '../../constants/colors';
 import { getSessionReport } from '../../services/api';
 import { PRACTICE_PROMPTS } from '../../constants/practiceData';
+import { useAuth } from '../../context/AuthContext';
 
 export default function SessionReportScreen({ route, navigation }) {
   const { sessionId, sessionData: initialData } = route.params;
+  const { user } = useAuth();
 
   // State
   const [sessionData, setSessionData] = useState(initialData || null);
@@ -27,9 +30,8 @@ export default function SessionReportScreen({ route, navigation }) {
   const [loading, setLoading] = useState(!initialData);
   const [selectedMetric, setSelectedMetric] = useState(null);
 
-  // Audio player
-  const [sound, setSound] = useState(null);
-  const [audioUri, setAudioUri] = useState(null);
+  // Audio player ref
+  const audioPlayerRef = useRef(null);
 
   // Fetch session data if not provided
   useEffect(() => {
@@ -64,27 +66,18 @@ export default function SessionReportScreen({ route, navigation }) {
     };
 
     fetchData();
-
-    return () => {
-      // Cleanup audio on unmount
-      if (sound) {
-        sound.unloadAsync();
-      }
-    };
   }, [sessionId]);
 
   // Handle seeking audio to specific timestamp
   const seekToTimestamp = async (timestampMs) => {
     try {
-      if (!sound) {
-        // Load audio if not already loaded
-        // TODO: Get audio URI from session data
-        Alert.alert('Audio Player', 'Audio playback feature coming soon!');
+      if (!audioPlayerRef.current) {
         return;
       }
 
-      await sound.setPositionAsync(timestampMs);
-      await sound.playAsync();
+      // Seek to the timestamp and start playing
+      await audioPlayerRef.current.seekTo(timestampMs);
+      await audioPlayerRef.current.play();
     } catch (error) {
       console.error('Error seeking audio:', error);
     }
@@ -194,9 +187,13 @@ export default function SessionReportScreen({ route, navigation }) {
   };
 
   const getPaceStatus = (wpm) => {
-    if (wpm >= 130 && wpm <= 170) return 'Natural range';
-    if (wpm < 130) return 'A bit slow';
-    return 'A bit fast';
+    // Use user's custom WPM settings or defaults
+    const optimalMin = user?.wpm_settings?.optimal_range?.min || 130;
+    const optimalMax = user?.wpm_settings?.optimal_range?.max || 150;
+
+    if (wpm >= optimalMin && wpm <= optimalMax) return 'Your target range';
+    if (wpm < optimalMin) return 'Below your target';
+    return 'Above your target';
   };
 
   if (loading || !sessionData || !sessionData.analysis_data) {
@@ -243,11 +240,10 @@ export default function SessionReportScreen({ route, navigation }) {
         </Text>
 
         {/* Audio Player */}
-        {/* TODO: Implement audio player component */}
-        <View style={styles.audioPlayerPlaceholder}>
-          <Text style={styles.audioPlayerText}>🎵 Audio Player</Text>
-          <Text style={styles.audioPlayerSubtext}>Coming soon</Text>
-        </View>
+        <AudioPlayer
+          ref={audioPlayerRef}
+          audioUrl={sessionData.audio_url}
+        />
 
         {/* Metric Scorecards */}
         <View style={styles.metricsRow}>
@@ -339,6 +335,7 @@ export default function SessionReportScreen({ route, navigation }) {
         visible={selectedMetric !== null}
         metricType={selectedMetric}
         onClose={() => setSelectedMetric(null)}
+        userWpmSettings={user?.wpm_settings}
       />
     </SafeAreaView>
   );
@@ -393,23 +390,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLORS.text,
     marginBottom: SPACING.md,
-  },
-  audioPlayerPlaceholder: {
-    backgroundColor: COLORS.cardBackground,
-    borderRadius: 16,
-    padding: SPACING.lg,
-    alignItems: 'center',
-    marginBottom: SPACING.md,
-  },
-  audioPlayerText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: 4,
-  },
-  audioPlayerSubtext: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
   },
   metricsRow: {
     flexDirection: 'row',

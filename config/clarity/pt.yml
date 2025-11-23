@@ -34,21 +34,19 @@ pt:
       description: 'Múltiplos marcadores de incerteza enfraquecem sua mensagem'
       tip: 'Escolha uma forma de expressar incerteza, ou melhor ainda, declare seu ponto com confiança.'
       
-  professional_issues:
-    - pattern: '\b(beleza|massa|show|maneiro)\b'
-      severity: 'low'
-      description: 'Expressões muito casuais em contextos profissionais'
-      tip: 'Use "certamente", "excelente", "perfeito", ou "ótimo" para comunicação mais profissional.'
-      
-    - pattern: '\b(cara|mano|véi|brother)\b'
+  sentence_structure_issues:
+    # NOTA: A maioria dos problemas de estrutura de frase são detectados por IA
+    # Estes padrões regex capturam apenas problemas estruturais óbvios
+
+    - pattern: '\b(e|mas|então|porque)\s*[.!?]'
       severity: 'medium'
-      description: 'Formas de tratamento muito casuais'
-      tip: 'Use nomes próprios, "colega", ou formas de tratamento mais formais em ambiente profissional.'
-      
-    - pattern: '\b(super|mega|hiper|ultra)\b'
+      description: 'Frase termina com uma conjunção - pensamento incompleto'
+      tip: 'Complete sua frase antes de terminá-la. O que vem depois de "e", "mas" ou "então"?'
+
+    - pattern: '([.!?])\s*([a-z])'
       severity: 'low'
-      description: 'Intensificadores que podem soar pouco profissionais'
-      tip: 'Use advérbios mais precisos ou deixe suas palavras falarem por si mesmas.'
+      description: 'Nova frase não começa com maiúscula - pode indicar pensamento contínuo'
+      tip: 'Comece novas frases com letra maiúscula para manter limites claros de frase.'
       
   articulation_issues:
     - pattern: '\b(mermo|mesmo assim|vorta|volta)\b'

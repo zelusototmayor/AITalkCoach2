@@ -29,8 +29,42 @@
       </div>
 
       <div class="settings-card">
-        <h2>Additional Settings</h2>
-        <p class="muted-text">More settings options coming soon...</p>
+        <h2>Speaking Pace Preferences</h2>
+
+        <%= form_with model: @user, url: settings_path, method: :patch, local: true, class: "settings-form" do |f| %>
+          <div class="form-group">
+            <%= f.label :target_wpm, "Target Speaking Pace (WPM)", class: "form-label" %>
+            <p class="form-hint">Set your ideal speaking pace. Your optimal range will be ±10 WPM from your target.</p>
+
+            <div class="wpm-display">
+              <span class="wpm-value" id="wpm-value"><%= @user.target_wpm || 140 %></span>
+              <span class="wpm-label">WPM</span>
+            </div>
+
+            <%= f.range_field :target_wpm,
+                min: 60,
+                max: 240,
+                step: 5,
+                value: @user.target_wpm || 140,
+                class: "wpm-slider",
+                oninput: "document.getElementById('wpm-value').textContent = this.value; updateWpmRanges(this.value);" %>
+
+            <div class="wpm-range-labels">
+              <span>60 (Slow)</span>
+              <span>140 (Default)</span>
+              <span>240 (Fast)</span>
+            </div>
+
+            <div class="wpm-info-box" id="wpm-info">
+              <p><strong>Your optimal range:</strong> <span id="optimal-range"><%= (@user.target_wpm || 140) - 10 %>-<%= (@user.target_wpm || 140) + 10 %> WPM</span></p>
+              <p><strong>Acceptable range:</strong> <span id="acceptable-range"><%= (@user.target_wpm || 140) - 30 %>-<%= (@user.target_wpm || 140) + 30 %> WPM</span></p>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <%= f.submit "Update Target Pace", class: "btn btn-primary" %>
+          </div>
+        <% end %>
       </div>
     </div>
   </div>
@@ -129,6 +163,105 @@
   font-size: 0.875rem;
 }
 
+.form-hint {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-top: -0.25rem;
+  margin-bottom: 1rem;
+  font-style: italic;
+}
+
+.wpm-display {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 1.5rem 0;
+}
+
+.wpm-value {
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--brand-500);
+}
+
+.wpm-label {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.wpm-slider {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: #e5e7eb;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.wpm-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--brand-500);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.wpm-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+}
+
+.wpm-slider::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--brand-500);
+  cursor: pointer;
+  border: none;
+  transition: transform 0.2s;
+}
+
+.wpm-slider::-moz-range-thumb:hover {
+  transform: scale(1.1);
+}
+
+.wpm-range-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.wpm-info-box {
+  background: rgba(116, 102, 255, 0.05);
+  border: 1px solid rgba(116, 102, 255, 0.2);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.wpm-info-box p {
+  margin: 0.5rem 0;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.wpm-info-box p:first-child {
+  margin-top: 0;
+}
+
+.wpm-info-box p:last-child {
+  margin-bottom: 0;
+}
+
 @media (max-width: 768px) {
   .settings-page {
     padding: 1rem;
@@ -141,9 +274,25 @@
   .settings-header h1 {
     font-size: 1.5rem;
   }
+
+  .wpm-value {
+    font-size: 2.5rem;
+  }
 }
 </style>
 
 <script>
   mixpanel.track("Page Viewed", { page: "settings" });
+
+  // Update WPM range displays as slider moves
+  function updateWpmRanges(targetWpm) {
+    const target = parseInt(targetWpm);
+    const optimalMin = target - 10;
+    const optimalMax = target + 10;
+    const acceptableMin = target - 30;
+    const acceptableMax = target + 30;
+
+    document.getElementById('optimal-range').textContent = `${optimalMin}-${optimalMax} WPM`;
+    document.getElementById('acceptable-range').textContent = `${acceptableMin}-${acceptableMax} WPM`;
+  }
 </script>

@@ -96,7 +96,7 @@ export default function CoachRecommendationCard({
       boost_engagement: 'Boost Engagement',
       increase_fluency: 'Increase Fluency',
       fix_long_pauses: 'Fix Long Pauses',
-      professional_language: 'Use Professional Language',
+      improve_sentence_structure: 'Improve Sentence Structure',
     };
     return names[type] || type;
   };

@@ -48,7 +48,7 @@ export default function IssuesListContent({ issues = [], onTimestampPress }) {
       pace_issues: '#4ECDC4',
       clarity_issues: '#FFB347',
       long_pause: '#95A5A6',
-      unprofessional_language: '#9B59B6',
+      sentence_structure_issues: '#9B59B6',
     };
     return colors[category] || COLORS.textSecondary;
   };

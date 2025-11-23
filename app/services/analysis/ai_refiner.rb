@@ -352,8 +352,8 @@ module Analysis
       case kind.to_s
       when /filler/
         "filler_words"
-      when /professional/, /professionalism/
-        "professional_issues"
+      when /sentence.*structure/, /grammar/, /incomplete.*thought/, /run.*on/
+        "sentence_structure_issues"
       when /pace/
         "pace_issues"
       when /clarity/
@@ -1269,7 +1269,10 @@ module Analysis
       # Pace opportunities
       if coaching_insights["pace_patterns"].present?
         pace = coaching_insights["pace_patterns"]
-        if pace["average_wpm"] && pace["average_wpm"].between?(130, 150)
+        # Use user's optimal WPM range or defaults
+        optimal_min = @session.user.optimal_wpm_min
+        optimal_max = @session.user.optimal_wpm_max
+        if pace["average_wpm"] && pace["average_wpm"].between?(optimal_min, optimal_max)
           opportunities << {
             type: "pace_strength",
             insight: "Natural conversational pace",

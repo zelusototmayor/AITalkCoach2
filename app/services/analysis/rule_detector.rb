@@ -2,9 +2,10 @@ module Analysis
   class RuleDetector
     class DetectionError < StandardError; end
 
-    def initialize(transcript_data, language: "en")
+    def initialize(transcript_data, language: "en", user: nil)
       @transcript_data = transcript_data
       @language = language
+      @user = user # User for personalized WPM preferences
       @rules = Rulepacks.load_rules(language)
       @detected_issues = []
 
@@ -139,8 +140,9 @@ module Analysis
       words = extract_words
       duration_ms = @transcript_data[:metadata][:duration] * 1000
       speaking_rate = calculate_speaking_rate(words, duration_ms)
+      slow_threshold = @user&.acceptable_wpm_min || Analysis::Metrics::DEFAULT_SLOW_WPM_THRESHOLD
 
-      if speaking_rate < Analysis::Metrics::SLOW_WPM_THRESHOLD
+      if speaking_rate < slow_threshold
         [ {
           kind: "pace_too_slow",
           start_ms: 0,
@@ -162,8 +164,9 @@ module Analysis
       words = extract_words
       duration_ms = @transcript_data[:metadata][:duration] * 1000
       speaking_rate = calculate_speaking_rate(words, duration_ms)
+      fast_threshold = @user&.acceptable_wpm_max || Analysis::Metrics::DEFAULT_FAST_WPM_THRESHOLD
 
-      if speaking_rate > Analysis::Metrics::FAST_WPM_THRESHOLD
+      if speaking_rate > fast_threshold
         [ {
           kind: "pace_too_fast",
           start_ms: 0,
@@ -258,8 +261,8 @@ module Analysis
         "pace_issue"
       when "clarity_issues"
         "clarity_issue"
-      when "professional_issues"
-        "professionalism"
+      when "sentence_structure_issues"
+        "sentence_structure"
       when "articulation_issues"
         "articulation"
       when "repetition_issues"

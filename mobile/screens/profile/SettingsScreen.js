@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Slider from '@react-native-community/slider';
 import { Ionicons } from '@expo/vector-icons';
 import AnimatedBackground from '../../components/AnimatedBackground';
 import { COLORS, SPACING, TYPOGRAPHY } from '../../constants/colors';
 import { LANGUAGES } from '../../constants/onboardingData';
 import { useAuth } from '../../context/AuthContext';
-import { updateLanguage } from '../../services/api';
+import { updateLanguage, updateTargetWPM } from '../../services/api';
 
 export default function SettingsScreen({ navigation }) {
   const { user, updateUserData } = useAuth();
@@ -16,8 +17,10 @@ export default function SettingsScreen({ navigation }) {
     email: user?.email || 'user@example.com',
   });
   const [selectedLanguage, setSelectedLanguage] = useState(user?.preferred_language || 'en');
+  const [targetWPM, setTargetWPM] = useState(user?.target_wpm || 140); // Default to 140 WPM
   const [saving, setSaving] = useState(false);
   const [languageUpdating, setLanguageUpdating] = useState(false);
+  const [wpmUpdating, setWpmUpdating] = useState(false);
 
   // Update form data when user changes
   useEffect(() => {
@@ -27,6 +30,7 @@ export default function SettingsScreen({ navigation }) {
         email: user.email,
       });
       setSelectedLanguage(user.preferred_language || 'en');
+      setTargetWPM(user.target_wpm || 140);
     }
   }, [user]);
 
@@ -59,6 +63,44 @@ export default function SettingsScreen({ navigation }) {
       Alert.alert('Error', 'Failed to update language preference. Please try again.');
     } finally {
       setLanguageUpdating(false);
+    }
+  };
+
+  const handleWPMChange = async (wpm) => {
+    const roundedWPM = Math.round(wpm);
+    setTargetWPM(roundedWPM);
+
+    // Debounce API calls - only update when user releases slider
+    // The actual update happens in handleWPMSave
+  };
+
+  const handleWPMSave = async () => {
+    setWpmUpdating(true);
+
+    try {
+      const response = await updateTargetWPM(targetWPM);
+
+      // Update the AuthContext's cached user object
+      if (updateUserData && response.user) {
+        updateUserData({
+          target_wpm: response.user.target_wpm,
+          wpm_settings: response.user.wpm_settings
+        });
+        console.log('Updated cached user target WPM to:', targetWPM);
+      }
+
+      const optimalRange = response.wpm_settings?.optimal_range;
+      const rangeText = optimalRange ? `${optimalRange.min}-${optimalRange.max} WPM` : `${targetWPM - 10}-${targetWPM + 10} WPM`;
+
+      Alert.alert(
+        'Target Pace Updated',
+        `Your target speaking pace has been set to ${targetWPM} WPM.\n\nOptimal range: ${rangeText}\n\nFuture practice sessions will use this custom target.`
+      );
+    } catch (error) {
+      console.error('Error updating target WPM:', error);
+      Alert.alert('Error', 'Failed to update target pace. Please try again.');
+    } finally {
+      setWpmUpdating(false);
     }
   };
 
@@ -190,6 +232,61 @@ export default function SettingsScreen({ navigation }) {
                 <Text style={styles.updatingText}>Updating language...</Text>
               </View>
             )}
+          </View>
+
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Speaking Pace Target</Text>
+            <Text style={styles.languageHint}>
+              Set your ideal speaking pace. Your optimal range will be ±10 WPM from your target.
+            </Text>
+
+            <View style={styles.wpmContainer}>
+              <View style={styles.wpmValueContainer}>
+                <Text style={styles.wpmValue}>{targetWPM}</Text>
+                <Text style={styles.wpmLabel}>WPM</Text>
+              </View>
+
+              <Slider
+                style={styles.slider}
+                minimumValue={60}
+                maximumValue={240}
+                step={5}
+                value={targetWPM}
+                onValueChange={handleWPMChange}
+                minimumTrackTintColor={COLORS.primary}
+                maximumTrackTintColor={COLORS.border}
+                thumbTintColor={COLORS.primary}
+                disabled={wpmUpdating}
+              />
+
+              <View style={styles.wpmRangeLabels}>
+                <Text style={styles.wpmRangeLabel}>60 (Slow)</Text>
+                <Text style={styles.wpmRangeLabel}>140 (Default)</Text>
+                <Text style={styles.wpmRangeLabel}>240 (Fast)</Text>
+              </View>
+
+              <View style={styles.wpmInfoBox}>
+                <Text style={styles.wpmInfoText}>
+                  Your optimal range: {targetWPM - 10}-{targetWPM + 10} WPM
+                </Text>
+                <Text style={styles.wpmInfoSubtext}>
+                  Acceptable range: {targetWPM - 30}-{targetWPM + 30} WPM
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                style={[styles.wpmSaveButton, wpmUpdating && styles.wpmSaveButtonDisabled]}
+                onPress={handleWPMSave}
+                activeOpacity={0.8}
+                disabled={wpmUpdating}
+              >
+                {wpmUpdating ? (
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                ) : (
+                  <Text style={styles.wpmSaveButtonText}>Update Target Pace</Text>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
@@ -355,5 +452,70 @@ const styles = StyleSheet.create({
     ...TYPOGRAPHY.body,
     color: COLORS.textSecondary,
     marginLeft: SPACING.sm,
+  },
+  wpmContainer: {
+    marginTop: SPACING.md,
+  },
+  wpmValueContainer: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'center',
+    marginBottom: SPACING.md,
+  },
+  wpmValue: {
+    fontSize: 48,
+    fontWeight: '700',
+    color: COLORS.primary,
+  },
+  wpmLabel: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+    marginLeft: SPACING.xs,
+  },
+  slider: {
+    width: '100%',
+    height: 40,
+  },
+  wpmRangeLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: SPACING.xs,
+    paddingHorizontal: SPACING.xs,
+  },
+  wpmRangeLabel: {
+    ...TYPOGRAPHY.caption,
+    color: COLORS.textSecondary,
+  },
+  wpmInfoBox: {
+    backgroundColor: `${COLORS.primary}10`,
+    borderRadius: 12,
+    padding: SPACING.md,
+    marginTop: SPACING.md,
+  },
+  wpmInfoText: {
+    ...TYPOGRAPHY.body,
+    color: COLORS.text,
+    fontWeight: '600',
+    marginBottom: SPACING.xs,
+  },
+  wpmInfoSubtext: {
+    ...TYPOGRAPHY.caption,
+    color: COLORS.textSecondary,
+  },
+  wpmSaveButton: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 12,
+    padding: SPACING.md,
+    alignItems: 'center',
+    marginTop: SPACING.md,
+  },
+  wpmSaveButtonDisabled: {
+    opacity: 0.5,
+  },
+  wpmSaveButtonText: {
+    ...TYPOGRAPHY.body,
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
 });

@@ -16,7 +16,7 @@ module Analysis
       "boost_engagement" => 3,    # Hard - requires energy and variety
       "increase_fluency" => 4,    # Very hard - requires extensive practice
       "fix_long_pauses" => 2,     # Moderate - awareness and preparation help
-      "professional_language" => 1 # Easy - vocabulary substitution
+      "improve_sentence_structure" => 2 # Moderate - requires awareness of grammar and flow
     }.freeze
 
     def initialize(session, user_context = {})
@@ -26,6 +26,7 @@ module Analysis
       @total_sessions_count = user_context[:total_sessions_count] || @historical_sessions.count
       @analysis_data = session.analysis_data
       @issues = session.issues.includes(:session)
+      @user = session.user # Get user for personalized WPM preferences
     end
 
     def generate_priority_recommendations
@@ -86,6 +87,36 @@ module Analysis
 
     private
 
+    # User WPM preference helpers
+
+    def optimal_wpm_min
+      @user&.optimal_wpm_min || User::DEFAULT_OPTIMAL_WPM_MIN
+    end
+
+    def optimal_wpm_max
+      @user&.optimal_wpm_max || User::DEFAULT_OPTIMAL_WPM_MAX
+    end
+
+    def acceptable_wpm_min
+      @user&.acceptable_wpm_min || User::DEFAULT_ACCEPTABLE_WPM_MIN
+    end
+
+    def acceptable_wpm_max
+      @user&.acceptable_wpm_max || User::DEFAULT_ACCEPTABLE_WPM_MAX
+    end
+
+    def target_wpm_or_default
+      @user&.target_wpm_or_default || User::DEFAULT_TARGET_WPM
+    end
+
+    def optimal_wpm_range
+      @user&.optimal_wpm_range || (User::DEFAULT_OPTIMAL_WPM_MIN..User::DEFAULT_OPTIMAL_WPM_MAX)
+    end
+
+    def acceptable_wpm_range
+      @user&.acceptable_wpm_range || (User::DEFAULT_ACCEPTABLE_WPM_MIN..User::DEFAULT_ACCEPTABLE_WPM_MAX)
+    end
+
     def identify_improvement_areas
       areas = []
 
@@ -139,11 +170,14 @@ module Analysis
         areas << area
       end
 
-      # Pace analysis (optimal range: 130-150 WPM, acceptable: 110-170 WPM)
+      # Pace analysis (using user's custom WPM preferences or defaults)
       wpm = current_metrics[:wpm]
-      if wpm < 110 || wpm > 170
-        # Only recommend improvement if outside acceptable range
-        target_wpm = wpm < 110 ? 135 : 145
+      min_acceptable = acceptable_wpm_min
+      max_acceptable = acceptable_wpm_max
+
+      if wpm < min_acceptable || wpm > max_acceptable
+        # Only recommend improvement if outside user's acceptable range
+        target_wpm = wpm < min_acceptable ? target_wpm_or_default : target_wpm_or_default
 
         area = {
           type: "improve_pace",
@@ -151,7 +185,7 @@ module Analysis
           current_session_value: session_metrics[:wpm],
           target_value: target_wpm,
           potential_improvement: calculate_pace_improvement_impact(wpm, target_wpm),
-          severity: wpm < 90 || wpm > 190 ? "high" : "medium",
+          severity: wpm < (min_acceptable - 20) || wpm > (max_acceptable + 20) ? "high" : "medium",
           specific_issues: extract_pace_issues
         }
 
@@ -221,16 +255,16 @@ module Analysis
         }
       end
 
-      # Professional language analysis
-      unprofessional_issues = @issues.where(category: "professional_issues").count
-      if unprofessional_issues > 3
+      # Sentence structure analysis
+      structure_issues = @issues.where(category: "sentence_structure_issues").count
+      if structure_issues > 3
         areas << {
-          type: "professional_language",
-          current_value: unprofessional_issues,
+          type: "improve_sentence_structure",
+          current_value: structure_issues,
           target_value: 1,
-          potential_improvement: calculate_professionalism_improvement_impact(unprofessional_issues),
-          severity: unprofessional_issues > 6 ? "high" : "low",
-          specific_issues: extract_professional_issues
+          potential_improvement: calculate_structure_improvement_impact(structure_issues),
+          severity: structure_issues > 6 ? "high" : "low",
+          specific_issues: extract_structure_issues
         }
       end
 
@@ -273,7 +307,7 @@ module Analysis
       when "enhance_clarity" then 0.9   # Helps with everything
       when "improve_pace" then 0.7      # Helps with engagement and clarity
       when "increase_fluency" then 0.6  # Helps with clarity and engagement
-      when "professional_language" then 0.5 # Mainly helps with professionalism
+      when "improve_sentence_structure" then 0.7 # Helps with clarity, fluency, and overall communication
       when "boost_engagement" then 0.6  # Helps with overall impression
       when "fix_long_pauses" then 0.4   # Mainly helps with fluency
       else 0.5
@@ -286,21 +320,21 @@ module Analysis
 
       relevance_map = {
         "interview" => {
-          "professional_language" => 1.0,
+          "improve_sentence_structure" => 0.9,
           "reduce_fillers" => 0.9,
           "enhance_clarity" => 0.8,
+          "increase_fluency" => 0.8,
           "fix_long_pauses" => 0.7,
           "improve_pace" => 0.6,
-          "boost_engagement" => 0.5,
-          "increase_fluency" => 0.8
+          "boost_engagement" => 0.5
         },
         "presentation" => {
           "boost_engagement" => 1.0,
           "enhance_clarity" => 0.9,
           "improve_pace" => 0.8,
-          "reduce_fillers" => 0.7,
-          "professional_language" => 0.6,
           "increase_fluency" => 0.8,
+          "reduce_fillers" => 0.7,
+          "improve_sentence_structure" => 0.6,
           "fix_long_pauses" => 0.5
         },
         "general" => {
@@ -309,7 +343,7 @@ module Analysis
           "improve_pace" => 0.7,
           "boost_engagement" => 0.7,
           "increase_fluency" => 0.7,
-          "professional_language" => 0.6,
+          "improve_sentence_structure" => 0.7,
           "fix_long_pauses" => 0.6
         }
       }
@@ -398,17 +432,20 @@ module Analysis
       improvement_ratio * 0.10
     end
 
-    def calculate_professionalism_improvement_impact(unprofessional_count)
-      # Professional language mainly affects perception
-      improvement_ratio = [ unprofessional_count - 1, 0 ].max / unprofessional_count.to_f
-      improvement_ratio * 0.05
+    def calculate_structure_improvement_impact(structure_issue_count)
+      # Sentence structure affects clarity and fluency
+      improvement_ratio = [ structure_issue_count - 1, 0 ].max / structure_issue_count.to_f
+      improvement_ratio * 0.08
     end
 
     def calculate_wpm_score(wpm)
+      optimal_range = optimal_wpm_range
+      acceptable_range = acceptable_wpm_range
+
       case wpm
-      when 130..150 then 1.0
-      when 110..170 then 0.85
-      when 90..110, 170..190 then 0.70
+      when optimal_range then 1.0
+      when acceptable_range then 0.85
+      when 90..acceptable_wpm_min, acceptable_wpm_max..190 then 0.70
       when 70..90, 190..240 then 0.50
       else 0.30
       end
@@ -448,17 +485,18 @@ module Analysis
       when "improve_pace"
         current_wpm = area[:current_value].round
         target_wpm = area[:target_value].round
+        optimal_range_text = "#{optimal_wpm_min}-#{optimal_wpm_max} WPM"
 
-        if current_wpm < 110
+        if current_wpm < acceptable_wpm_min
           [
-            "Your current pace is #{current_wpm} WPM. Let's increase it to #{target_wpm} WPM (optimal range: 130-150 WPM).",
+            "Your current pace is #{current_wpm} WPM. Let's increase it to #{target_wpm} WPM (optimal range: #{optimal_range_text}).",
             "Practice with a metronome set to #{target_wpm} beats per minute (1 word per beat).",
             "Read aloud for 5 minutes daily, gradually increasing speed while maintaining clarity.",
             "Record yourself and check your WPM after each session to track improvement."
           ]
         else
           [
-            "Your pace is #{current_wpm} WPM—too fast. Let's bring it down to #{target_wpm} WPM (optimal range: 130-150 WPM).",
+            "Your pace is #{current_wpm} WPM—too fast. Let's bring it down to #{target_wpm} WPM (optimal range: #{optimal_range_text}).",
             "Practice deliberate pausing for 2-3 seconds between key points.",
             "Focus on emphasizing important words by slowing down slightly on them.",
             "Practice breathing techniques: inhale for 4 counts, exhale slowly while speaking."
@@ -503,14 +541,15 @@ module Analysis
           "Practice bridging phrases: 'What I mean by that is...', 'In other words...'",
           "Keep brief notes nearby during practice to glance at without losing momentum."
         ]
-      when "professional_language"
+      when "improve_sentence_structure"
         issue_count = area[:current_value].to_i
 
         [
-          "You used #{issue_count} casual phrases that could be more professional.",
-          "Replace casual words: 'stuff' → 'matters', 'things' → 'items', 'like' → 'such as'.",
-          "Practice formal speech patterns: avoid contractions, use complete sentences.",
-          "Record yourself giving a mock business presentation and review for informal language."
+          "You had #{issue_count} instances of unclear sentence structure in recent sessions.",
+          "Practice completing thoughts: avoid trailing off mid-sentence or switching topics abruptly.",
+          "Focus on clear subject-verb agreement and logical sentence flow.",
+          "Record yourself and review for run-on sentences, fragments, or unclear pronouns.",
+          "Before speaking, briefly outline your main points to maintain structure."
         ]
       else
         [ "Practice specific exercises for this area", "Track progress daily", "Record and review regularly" ]
@@ -544,8 +583,8 @@ module Analysis
       @issues.where("rationale LIKE ?", "%pause%").limit(3).pluck(:text, :start_ms, :tip)
     end
 
-    def extract_professional_issues
-      @issues.where(category: "professional_issues").limit(3).pluck(:text, :start_ms, :tip)
+    def extract_structure_issues
+      @issues.where(category: "sentence_structure_issues").limit(3).pluck(:text, :start_ms, :tip)
     end
 
     # Historical analysis methods
@@ -592,7 +631,8 @@ module Analysis
       when "improve_pace"
         # Check if this session was a regression
         # For pace, regression depends on whether baseline is too slow or too fast
-        regression = if rolling_avg < 110
+        min_acceptable = acceptable_wpm_min
+        regression = if rolling_avg < min_acceptable
           # Baseline too slow - regression means even slower
           current_session < (rolling_avg * 0.85)  # 15% slower than average
         else
@@ -604,10 +644,10 @@ module Analysis
           {
             badge: "GREAT SESSION 🎉",
             title: "Amazing pace this session!",
-            body: "You hit #{current_session.round} WPM this session - #{current_session < 110 ? 'great improvement' : 'excellent control'}! Your 5-session average is #{rolling_avg.round} WPM. Keep practicing to make #{target.round}+ WPM your consistent baseline."
+            body: "You hit #{current_session.round} WPM this session - #{current_session < min_acceptable ? 'great improvement' : 'excellent control'}! Your 5-session average is #{rolling_avg.round} WPM. Keep practicing to make #{target.round}+ WPM your consistent baseline."
           }
         elsif regression
-          pace_direction = rolling_avg < 110 ? "slower" : "faster"
+          pace_direction = rolling_avg < min_acceptable ? "slower" : "faster"
           {
             badge: "SETBACK 😔",
             title: "Pace needs attention",
@@ -623,7 +663,7 @@ module Analysis
           {
             badge: "KEEP GOING 💪",
             title: "Improve Speaking Pace",
-            body: "Your average pace is #{rolling_avg.round} WPM. Let's #{rolling_avg < 110 ? 'increase' : 'adjust'} it to #{target.round} WPM gradually through consistent practice."
+            body: "Your average pace is #{rolling_avg.round} WPM. Let's #{rolling_avg < min_acceptable ? 'increase' : 'adjust'} it to #{target.round} WPM gradually through consistent practice."
           }
         end
 
@@ -766,8 +806,8 @@ module Analysis
 
       case area[:type]
       when "improve_pace"
-        # Achieved if within optimal range (110-170 WPM)
-        current_session.round.between?(110, 170)
+        # Achieved if within acceptable range (user's custom range or defaults)
+        current_session.round.between?(acceptable_wpm_min, acceptable_wpm_max)
       when "reduce_fillers"
         # Achieved if at or below target
         current_session <= target
