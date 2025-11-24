@@ -96,8 +96,8 @@ export default function MotivationScreen({ navigation }) {
 
       <OnboardingNavigation
         currentStep={2}
-        totalSteps={8}
-        onContinue={() => navigation.navigate('Profile')}
+        totalSteps={12}
+        onContinue={() => navigation.navigate('MetricsIntro')}
       />
     </View>
   );

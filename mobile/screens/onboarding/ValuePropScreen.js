@@ -80,7 +80,7 @@ export default function ValuePropScreen({ navigation }) {
 
       <OnboardingNavigation
         currentStep={0}
-        totalSteps={8}
+        totalSteps={12}
         onContinue={() => navigation.navigate('Goals')}
       />
     </View>

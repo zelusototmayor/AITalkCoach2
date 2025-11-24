@@ -124,8 +124,8 @@ export default function ProfileScreen({ navigation }) {
       </ScrollView>
 
       <OnboardingNavigation
-        currentStep={3}
-        totalSteps={8}
+        currentStep={7}
+        totalSteps={12}
         onContinue={handleContinue}
         continueDisabled={!isFormValid}
       />

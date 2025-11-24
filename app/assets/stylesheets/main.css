@@ -13276,6 +13276,14 @@ body:has(.landing-page) .main-nav {
   opacity: 0.4;
 }
 
+/* Screenshot styling for phone mockups */
+.mockup-screenshot {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 /* Track Your Progress Section */
 .track-progress-section {
   padding: 80px 20px;

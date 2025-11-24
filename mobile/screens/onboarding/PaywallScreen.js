@@ -288,10 +288,18 @@ export default function PaywallScreen({ navigation }) {
         showsVerticalScrollIndicator={false}
       >
         <Text style={styles.header}>Choose Your Plan</Text>
+
+        {/* Free Trial Badge - Only show when not in free forever mode */}
+        {!SHOW_FREE_FOREVER && (
+          <View style={styles.trialBadge}>
+            <Text style={styles.trialBadgeText}>3 DAYS FREE</Text>
+          </View>
+        )}
+
         <Text style={styles.subheader}>
           {SHOW_FREE_FOREVER
             ? "Practice daily and stay 100% free forever"
-            : "Start your 3-day free trial"}
+            : "Then just $3.99/month if you continue"}
         </Text>
 
         {/* How It Works Card - Only show if feature flag enabled */}
@@ -389,7 +397,7 @@ export default function PaywallScreen({ navigation }) {
 
       <View style={styles.buttonContainer}>
         <Button
-          title={isPurchasing ? "Processing..." : "Start Free Trial"}
+          title={isPurchasing ? "Processing..." : "Start 3-Day Free Trial"}
           onPress={handleStartTrial}
           variant="primary"
           style={styles.button}
@@ -416,11 +424,33 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: COLORS.text,
     textAlign: 'center',
-    marginBottom: SPACING.sm,
+    marginBottom: SPACING.md,
     lineHeight: 36,
   },
-  subheader: {
+  trialBadge: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+    borderRadius: 20,
+    alignSelf: 'center',
+    marginBottom: SPACING.md,
+    shadowColor: COLORS.primary,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  trialBadgeText: {
     fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    letterSpacing: 1,
+  },
+  subheader: {
+    fontSize: 15,
     fontWeight: '500',
     color: COLORS.textSecondary,
     textAlign: 'center',

@@ -96,7 +96,7 @@ export default function GoalsScreen({ navigation }) {
 
       <OnboardingNavigation
         currentStep={1}
-        totalSteps={8}
+        totalSteps={12}
         onContinue={handleContinue}
         continueDisabled={selectedGoals.length === 0}
       />
