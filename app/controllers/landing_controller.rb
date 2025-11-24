@@ -113,11 +113,8 @@ class LandingController < ApplicationController
   end
 
   def calculate_active_users
-    # Users who have created a session in the last 30 days
-    count = User.joins(:sessions)
-               .where(sessions: { created_at: 30.days.ago.. })
-               .distinct
-               .count
+    # Total registered users (accounts ever created)
+    count = User.count
 
     count
   end
