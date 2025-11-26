@@ -4,6 +4,13 @@
 <% end %>
 
 <div class="cinematic-container">
+  <!-- Back Button - Top Left -->
+  <%= link_to onboarding_report_path, class: 'back-btn-cinematic' do %>
+    <svg xmlns="http://www.w3.org/2000/svg" class="back-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19 12H5M12 19l-7-7 7-7"/>
+    </svg>
+  <% end %>
+
   <!-- Continue Button -->
   <%= link_to onboarding_pricing_path, class: 'skip-btn', data: { turbo: false } do %>
     Continue
@@ -51,6 +58,38 @@
     justify-content: center;
     overflow: hidden;
     z-index: 9999;
+  }
+
+  /* Back Button */
+  .back-btn-cinematic {
+    position: absolute;
+    top: 1.5rem;
+    left: 1.5rem;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    z-index: 100;
+  }
+
+  .back-btn-cinematic:hover {
+    background-color: #ffffff;
+    transform: translateX(-2px);
+  }
+
+  .back-btn-cinematic .back-arrow {
+    width: 20px;
+    height: 20px;
+    color: #64748b;
+  }
+
+  .back-btn-cinematic:hover .back-arrow {
+    color: #1e293b;
   }
 
   /* Skip Button */

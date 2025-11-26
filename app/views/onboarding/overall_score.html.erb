@@ -1,0 +1,368 @@
+<% content_for :title, "Your Most Important Metric - AI Talk Coach" %>
+
+<div class="onboarding-container">
+  <div class="onboarding-content">
+    <!-- Quit Button - Top Right -->
+    <%= link_to logout_path, class: 'quit-btn-top-right', data: { turbo: false, turbo_confirm: "Are you sure you want to quit? You'll need to start over." } do %>
+      <span class="quit-icon">×</span>
+    <% end %>
+
+    <!-- Back Button - Top Left -->
+    <%= render 'onboarding/back_button', back_path: onboarding_metrics_intro_path %>
+
+    <!-- Overall Score Section -->
+    <div class="overall-score-section">
+      <h1 class="section-title">Your Most Important Metric</h1>
+
+      <div class="overall-score-intro">
+        <h2 class="score-label">Overall Score</h2>
+        <p class="score-description">One number for your overall speaking performance</p>
+      </div>
+
+      <!-- Metric Weights Card -->
+      <div class="weights-card">
+        <h3 class="card-title">How It's Calculated</h3>
+        <div class="metric-weights">
+          <div class="weight-row">
+            <span class="metric-label">Clarity</span>
+            <span class="metric-weight">25%</span>
+          </div>
+          <div class="weight-row">
+            <span class="metric-label">Filler Words</span>
+            <span class="metric-weight">20%</span>
+          </div>
+          <div class="weight-row">
+            <span class="metric-label">Speaking Pace</span>
+            <span class="metric-weight">20%</span>
+          </div>
+          <div class="weight-row">
+            <span class="metric-label">Fluency</span>
+            <span class="metric-weight">15%</span>
+          </div>
+          <div class="weight-row">
+            <span class="metric-label">Engagement</span>
+            <span class="metric-weight">12%</span>
+          </div>
+          <div class="weight-row">
+            <span class="metric-label">Pause Quality</span>
+            <span class="metric-weight">8%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grade Scale Card -->
+      <div class="grade-card">
+        <h3 class="card-title">Letter Grade Scale</h3>
+        <div class="grade-pills">
+          <div class="grade-pill grade-a-plus">
+            <div class="grade-letter">A+</div>
+            <div class="grade-range">97-100%</div>
+          </div>
+          <div class="grade-pill grade-a">
+            <div class="grade-letter">A</div>
+            <div class="grade-range">93-96%</div>
+          </div>
+          <div class="grade-pill grade-a-minus">
+            <div class="grade-letter">A-</div>
+            <div class="grade-range">90-92%</div>
+          </div>
+          <div class="grade-pill grade-b">
+            <div class="grade-letter">B</div>
+            <div class="grade-range">80-89%</div>
+          </div>
+          <div class="grade-pill grade-c">
+            <div class="grade-letter">C</div>
+            <div class="grade-range">70-79%</div>
+          </div>
+          <div class="grade-pill grade-d">
+            <div class="grade-letter">D</div>
+            <div class="grade-range">Below 70%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating Continue Button -->
+    <div class="floating-button-container">
+      <%= link_to onboarding_coach_intro_path, class: 'primary-btn btn-large' do %>
+        Continue
+        <span aria-hidden="true">→</span>
+      <% end %>
+
+      <!-- Progress Dots -->
+      <div class="progress-dots">
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot active"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Container */
+  .onboarding-container {
+    min-height: 100vh;
+    position: relative;
+    background-color: #F8FAFC;
+  }
+
+  .onboarding-content {
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* Quit Button - Top Right Corner */
+  .quit-btn-top-right {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f1f5f9;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    z-index: 100;
+  }
+
+  .quit-btn-top-right:hover {
+    background-color: #e2e8f0;
+  }
+
+  .quit-btn-top-right .quit-icon {
+    font-size: 20px;
+    color: #64748b;
+    line-height: 1;
+  }
+
+  /* Overall Score Section */
+  .overall-score-section {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 7rem 1.5rem;
+  }
+
+  .section-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1e293b;
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .overall-score-intro {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  .score-label {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #FF8C42;
+    margin-bottom: 0.5rem;
+  }
+
+  .score-description {
+    font-size: 0.95rem;
+    color: #64748b;
+  }
+
+  /* Weights Card */
+  .weights-card {
+    background: #ffffff;
+    border: 2px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .card-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+
+  .metric-weights {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .weight-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  .weight-row:last-child {
+    border-bottom: none;
+  }
+
+  .metric-label {
+    font-size: 1rem;
+    color: #1e293b;
+    font-weight: 500;
+  }
+
+  .metric-weight {
+    font-size: 1rem;
+    color: #FF8C42;
+    font-weight: 700;
+  }
+
+  /* Grade Card */
+  .grade-card {
+    background: #ffffff;
+    border: 2px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 2rem;
+  }
+
+  .grade-pills {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  .grade-pill {
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+    transition: all 0.2s ease;
+  }
+
+  .grade-pill:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .grade-a-plus, .grade-a, .grade-a-minus {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+  }
+
+  .grade-b {
+    background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+    color: white;
+  }
+
+  .grade-c {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+  }
+
+  .grade-d {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+  }
+
+  .grade-letter {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+  }
+
+  .grade-range {
+    font-size: 0.85rem;
+    opacity: 0.9;
+  }
+
+  /* Floating Button Container with Progress Dots */
+  .floating-button-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1.25rem 1.5rem;
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    z-index: 50;
+    pointer-events: none;
+  }
+
+  /* Progress Dots */
+  .progress-dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .progress-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 4px;
+    background-color: #cbd5e1;
+    transition: all 0.3s ease;
+  }
+
+  .progress-dot.active {
+    width: 24px;
+    background-color: #FF8C42;
+  }
+
+  .primary-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, #FF8C42 0%, #FF7028 100%);
+    color: white;
+    padding: 0.875rem 2rem;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.3);
+    pointer-events: auto;
+  }
+
+  .primary-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255, 140, 66, 0.4);
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .section-title {
+      font-size: 1.75rem;
+    }
+
+    .score-label {
+      font-size: 1.25rem;
+    }
+
+    .weights-card, .grade-card {
+      padding: 1.5rem;
+    }
+
+    .grade-pills {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .floating-button-container {
+      padding: 1rem;
+    }
+  }
+</style>

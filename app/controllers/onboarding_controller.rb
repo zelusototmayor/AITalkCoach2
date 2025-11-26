@@ -41,7 +41,27 @@ class OnboardingController < ApplicationController
     # Informational page - auto-advances or has continue button
   end
 
-  # Screen 3: Style + demographics + pronouns
+  # Screen 3: Metrics intro - explain key metrics
+  def metrics_intro
+    # Informational page - introduces clarity, filler words, speaking pace
+  end
+
+  # Screen 4: Overall score explanation
+  def overall_score
+    # Informational page - explains how overall score is calculated
+  end
+
+  # Screen 5: Coach intro - AI coaching features
+  def coach_intro
+    # Informational page - introduces AI coach features
+  end
+
+  # Screen 6: Progress tracking intro
+  def progress_intro
+    # Informational page - explains progress tracking capabilities
+  end
+
+  # Screen 7: Style + demographics + pronouns
   def demographics
     if request.post?
       demographics_params = params.permit(:speaking_style, :age_range, :profession, :preferred_pronouns, :preferred_language)

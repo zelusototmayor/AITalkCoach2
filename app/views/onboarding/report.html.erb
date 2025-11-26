@@ -7,6 +7,9 @@
       <span class="quit-icon">×</span>
     <% end %>
 
+    <!-- Back Button - Top Left -->
+    <%= render 'onboarding/back_button', back_path: onboarding_test_path %>
+
     <% if @trial_session && !@trial_session.completed? %>
       <!-- Processing State - Show loading -->
       <div class="processing-container" id="processingContainer">
@@ -78,7 +81,9 @@
         <!-- Clarity Score -->
         <% if @trial_session&.clarity_score.present? %>
           <div class="metric-card">
-            <div class="metric-icon clarity-icon">✨</div>
+            <div class="metric-icon-container clarity-icon">
+              <%= image_tag 'icons/clarity.png', alt: 'Clarity', class: 'metric-icon-img' %>
+            </div>
             <div class="metric-value"><%= @trial_session.clarity_score.round %>%</div>
             <div class="metric-label">Clarity Score</div>
             <div class="metric-description">
@@ -97,7 +102,9 @@
         <!-- Filler Rate -->
         <% if @trial_session&.filler_rate.present? %>
           <div class="metric-card">
-            <div class="metric-icon filler-icon">🎯</div>
+            <div class="metric-icon-container filler-icon">
+              <%= image_tag 'icons/filler-words.png', alt: 'Filler Words', class: 'metric-icon-img' %>
+            </div>
             <div class="metric-value"><%= @trial_session.filler_rate.round(1) %>%</div>
             <div class="metric-label">Filler Words</div>
             <div class="metric-description">
@@ -113,7 +120,9 @@
         <!-- Pace (WPM) -->
         <% if @trial_session&.wpm.present? %>
           <div class="metric-card">
-            <div class="metric-icon pace-icon">⚡</div>
+            <div class="metric-icon-container pace-icon">
+              <%= image_tag 'icons/speaking-pace.png', alt: 'Speaking Pace', class: 'metric-icon-img' %>
+            </div>
             <div class="metric-value"><%= @trial_session.wpm.to_i %> <span class="unit">wpm</span></div>
             <div class="metric-label">Speaking Pace</div>
             <div class="metric-description">
@@ -182,54 +191,43 @@
 
       <!-- What You'll Unlock Section -->
       <div class="unlock-section">
-        <h2 class="unlock-title">What You'll Unlock with Full Access</h2>
+        <h2 class="unlock-title">What You'll Unlock</h2>
 
         <div class="unlock-grid">
           <div class="unlock-item">
-            <div class="unlock-icon">🎯</div>
+            <div class="unlock-icon-container">
+              <%= image_tag 'icons/ai-coach.png', alt: 'AI Coach', class: 'unlock-icon-img' %>
+            </div>
             <div class="unlock-text">
-              <div class="unlock-feature">Detailed Feedback</div>
-              <div class="unlock-description">Timestamped issues with actionable tips</div>
+              <div class="unlock-feature">AI Coach Recommendations</div>
             </div>
           </div>
 
           <div class="unlock-item">
-            <div class="unlock-icon">📊</div>
-            <div class="unlock-text">
-              <div class="unlock-feature">Progress Tracking</div>
-              <div class="unlock-description">See your improvement over time</div>
+            <div class="unlock-icon-container">
+              <%= image_tag 'icons/advanced-metrics.png', alt: 'Advanced Metrics', class: 'unlock-icon-img' %>
             </div>
-          </div>
-
-          <div class="unlock-item">
-            <div class="unlock-icon">🧠</div>
-            <div class="unlock-text">
-              <div class="unlock-feature">AI Coach</div>
-              <div class="unlock-description">Personalized weekly focus areas</div>
-            </div>
-          </div>
-
-          <div class="unlock-item">
-            <div class="unlock-icon">📝</div>
-            <div class="unlock-text">
-              <div class="unlock-feature">Full Transcript</div>
-              <div class="unlock-description">Highlighted fillers & clickable timestamps</div>
-            </div>
-          </div>
-
-          <div class="unlock-item">
-            <div class="unlock-icon">📈</div>
             <div class="unlock-text">
               <div class="unlock-feature">Advanced Metrics</div>
-              <div class="unlock-description">Fluency, engagement, pace consistency</div>
+              <div class="unlock-description">(pitch, energy, pauses)</div>
             </div>
           </div>
 
           <div class="unlock-item">
-            <div class="unlock-icon">🎤</div>
+            <div class="unlock-icon-container">
+              <%= image_tag 'icons/custom-plan.png', alt: 'Custom Plan', class: 'unlock-icon-img' %>
+            </div>
             <div class="unlock-text">
-              <div class="unlock-feature">Unlimited Sessions</div>
-              <div class="unlock-description">Practice as much as you want, daily</div>
+              <div class="unlock-feature">Custom Improvement Plan</div>
+            </div>
+          </div>
+
+          <div class="unlock-item">
+            <div class="unlock-icon-container">
+              <%= image_tag 'icons/progress-tracking.png', alt: 'Progress Tracking', class: 'unlock-icon-img' %>
+            </div>
+            <div class="unlock-text">
+              <div class="unlock-feature">Progress Tracking</div>
             </div>
           </div>
         </div>
@@ -245,6 +243,10 @@
 
       <!-- Progress Dots -->
       <div class="progress-dots">
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
         <div class="progress-dot"></div>
         <div class="progress-dot"></div>
         <div class="progress-dot"></div>
@@ -412,9 +414,19 @@
     transform: translateY(-2px);
   }
 
-  .metric-icon {
-    font-size: 2rem;
+  .metric-icon-container {
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     margin-bottom: 0.75rem;
+  }
+
+  .metric-icon-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
   }
 
   .metric-value {
@@ -547,10 +559,19 @@
     transform: translateY(-2px);
   }
 
-  .unlock-icon {
-    font-size: 1.5rem;
+  .unlock-icon-container {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
-    line-height: 1;
+  }
+
+  .unlock-icon-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
   }
 
   .unlock-text {

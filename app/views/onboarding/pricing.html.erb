@@ -12,6 +12,9 @@
       <span class="quit-icon">×</span>
     <% end %>
 
+    <!-- Back Button - Top Left -->
+    <%= render 'onboarding/back_button', back_path: onboarding_cinematic_path %>
+
     <!-- Pricing Section -->
     <div class="pricing-section" data-controller="onboarding-payment" data-onboarding-payment-setup-intent-value="<%= @setup_intent.client_secret %>">
       <h1 class="pricing-title">Choose Your Backup Plan</h1>
@@ -100,6 +103,10 @@
 
       <!-- Progress Dots -->
       <div class="progress-dots">
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
         <div class="progress-dot"></div>
         <div class="progress-dot"></div>
         <div class="progress-dot"></div>

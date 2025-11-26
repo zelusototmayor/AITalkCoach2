@@ -1,4 +1,4 @@
-<% content_for :title, "You're Not Alone - AI Talk Coach" %>
+<% content_for :title, "What You Will Improve - AI Talk Coach" %>
 
 <div class="onboarding-container">
   <div class="onboarding-content">
@@ -8,45 +8,57 @@
     <% end %>
 
     <!-- Back Button - Top Left -->
-    <%= render 'onboarding/back_button', back_path: onboarding_profile_path %>
+    <%= render 'onboarding/back_button', back_path: onboarding_motivation_path %>
 
-    <!-- Motivation Section -->
-    <div class="motivation-section">
-      <h1 class="motivation-title">You're Not Alone</h1>
+    <!-- Metrics Intro Section -->
+    <div class="metrics-intro-section">
+      <h1 class="section-title">What You Will Improve</h1>
+      <p class="section-subtitle">Track these key metrics to transform your speaking</p>
 
-      <!-- Motivation Cards Grid -->
-      <div class="motivation-cards-grid">
-        <!-- Primary Motivation Card -->
-        <div class="motivation-card primary-card">
-          <div class="card-icon-container">
-            <%= image_tag 'icons/strong.png', alt: 'Strength', class: 'card-icon-img' %>
+      <!-- Main Metrics Grid -->
+      <div class="main-metrics-grid">
+        <!-- Clarity Card -->
+        <div class="metric-card">
+          <div class="metric-icon-container">
+            <%= image_tag 'icons/clarity.png', alt: 'Clarity', class: 'metric-icon' %>
           </div>
-          <div class="card-title">78% of people</div>
-          <div class="card-description">fear public speaking more than death. You're not alone in this journey.</div>
+          <h3 class="metric-name">Clarity</h3>
+          <p class="metric-description">How clearly you articulate words</p>
         </div>
 
-        <!-- Additional Motivation Cards -->
-        <div class="motivation-card">
-          <div class="card-icon-container">
-            <%= image_tag 'icons/career-success.png', alt: 'Growth', class: 'card-icon-img' %>
+        <!-- Filler Words Card -->
+        <div class="metric-card">
+          <div class="metric-icon-container">
+            <%= image_tag 'icons/filler-words.png', alt: 'Filler Words', class: 'metric-icon' %>
           </div>
-          <div class="card-title">1% daily improvement</div>
-          <div class="card-description">compounds to 37x better in a year. Small steps lead to massive growth.</div>
+          <h3 class="metric-name">Filler Words</h3>
+          <p class="metric-description">Track 'um', 'uh', 'like'</p>
         </div>
 
-        <div class="motivation-card">
-          <div class="card-icon-container">
-            <%= image_tag 'icons/brain.png', alt: 'Practice', class: 'card-icon-img' %>
+        <!-- Speaking Pace Card -->
+        <div class="metric-card">
+          <div class="metric-icon-container">
+            <%= image_tag 'icons/speaking-pace.png', alt: 'Speaking Pace', class: 'metric-icon' %>
           </div>
-          <div class="card-title">Practice makes permanent</div>
-          <div class="card-description">Your brain rewires itself with each practice session. Consistency is key.</div>
+          <h3 class="metric-name">Speaking Pace</h3>
+          <p class="metric-description">Your optimal speaking speed</p>
+        </div>
+      </div>
+
+      <!-- Also Tracked Section -->
+      <div class="also-tracked-section">
+        <h3 class="also-tracked-title">Also Tracked</h3>
+        <div class="also-tracked-list">
+          <div class="tracked-item">Pace Consistency</div>
+          <div class="tracked-item">Fluency Score</div>
+          <div class="tracked-item">Engagement Score</div>
         </div>
       </div>
     </div>
 
     <!-- Floating Continue Button -->
     <div class="floating-button-container">
-      <%= link_to onboarding_metrics_intro_path, class: 'primary-btn btn-large' do %>
+      <%= link_to onboarding_overall_score_path, class: 'primary-btn btn-large' do %>
         Continue
         <span aria-hidden="true">→</span>
       <% end %>
@@ -54,8 +66,8 @@
       <!-- Progress Dots -->
       <div class="progress-dots">
         <div class="progress-dot"></div>
-        <div class="progress-dot active"></div>
         <div class="progress-dot"></div>
+        <div class="progress-dot active"></div>
         <div class="progress-dot"></div>
         <div class="progress-dot"></div>
         <div class="progress-dot"></div>
@@ -69,7 +81,7 @@
 </div>
 
 <style>
-  /* Remove default container padding */
+  /* Container */
   .onboarding-container {
     min-height: 100vh;
     position: relative;
@@ -108,34 +120,41 @@
     line-height: 1;
   }
 
-  /* Motivation Section */
-  .motivation-section {
+  /* Metrics Intro Section */
+  .metrics-intro-section {
     max-width: 1000px;
     margin: 0 auto;
     padding: 3rem 1.5rem 7rem 1.5rem;
   }
 
-  .motivation-title {
+  .section-title {
     font-size: 2rem;
     font-weight: 700;
     color: #1e293b;
     text-align: center;
-    margin-bottom: 2rem;
+    margin-bottom: 0.5rem;
   }
 
-  /* Motivation Cards Grid - Side by Side */
-  .motivation-cards-grid {
+  .section-subtitle {
+    font-size: 0.95rem;
+    color: #64748b;
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  /* Main Metrics Grid */
+  .main-metrics-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
+    gap: 1.5rem;
+    margin-bottom: 3rem;
   }
 
-  /* Motivation Cards */
-  .motivation-card {
+  .metric-card {
     background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    padding: 1.5rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 2rem 1.5rem;
     text-align: center;
     transition: all 0.2s ease;
     display: flex;
@@ -143,47 +162,70 @@
     align-items: center;
   }
 
-  .motivation-card:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  .metric-card:hover {
+    border-color: #FF8C42;
+    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.15);
     transform: translateY(-2px);
   }
 
-  .primary-card {
-    border-color: #FF8C42;
-    background: linear-gradient(135deg, #FFF4ED 0%, #ffffff 100%);
-  }
-
-  .card-icon-container {
-    width: 56px;
-    height: 56px;
+  .metric-icon-container {
+    width: 64px;
+    height: 64px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 0.75rem;
+    margin-bottom: 1rem;
   }
 
-  .card-icon-img {
+  .metric-icon {
     width: 100%;
     height: 100%;
     object-fit: contain;
   }
 
-  .card-title {
-    font-size: 1.1rem;
+  .metric-name {
+    font-size: 1.15rem;
     font-weight: 700;
     color: #1e293b;
     margin-bottom: 0.5rem;
-    white-space: normal;
-    word-wrap: break-word;
   }
 
-  .card-description {
+  .metric-description {
     font-size: 0.9rem;
     color: #64748b;
     line-height: 1.5;
-    white-space: normal;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
+  }
+
+  /* Also Tracked Section */
+  .also-tracked-section {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+
+  .also-tracked-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #64748b;
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+
+  .also-tracked-list {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .tracked-item {
+    font-size: 0.95rem;
+    color: #1e293b;
+    padding: 0.5rem 1rem;
+    background: #F8FAFC;
+    border-radius: 8px;
+    font-weight: 500;
   }
 
   /* Floating Button Container with Progress Dots */
@@ -249,30 +291,33 @@
 
   /* Responsive */
   @media (max-width: 768px) {
-    .motivation-cards-grid {
+    .main-metrics-grid {
       grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    .also-tracked-list {
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
     }
   }
 
   @media (max-width: 640px) {
-    .motivation-title {
+    .section-title {
       font-size: 1.75rem;
     }
 
-    .motivation-card {
-      padding: 1.5rem;
+    .section-subtitle {
+      font-size: 0.875rem;
     }
 
-    .card-title {
-      font-size: 1.1rem;
+    .metric-card {
+      padding: 1.5rem;
     }
 
     .floating-button-container {
       padding: 1rem;
-    }
-
-    .motivation-cards-grid {
-      grid-template-columns: 1fr;
     }
   }
 </style>

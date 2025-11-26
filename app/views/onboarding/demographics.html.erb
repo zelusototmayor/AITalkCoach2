@@ -7,6 +7,9 @@
       <span class="quit-icon">×</span>
     <% end %>
 
+    <!-- Back Button - Top Left -->
+    <%= render 'onboarding/back_button', back_path: onboarding_progress_intro_path %>
+
     <!-- Form Section -->
     <div class="onboarding-form-section">
       <h1 class="onboarding-title">Tell us about yourself</h1>
@@ -22,7 +25,9 @@
           <label class="style-card" tabindex="0">
             <%= radio_button_tag 'speaking_style', 'Introvert', user_style == 'Introvert', class: 'style-radio', id: 'style_introvert', required: true %>
             <div class="style-card-content">
-              <div class="style-icon">🤫</div>
+              <div class="style-icon-container">
+                <%= image_tag 'icons/introvert.png', alt: 'Introvert', class: 'style-icon-img' %>
+              </div>
               <div class="style-title">Introvert</div>
             </div>
           </label>
@@ -30,7 +35,9 @@
           <label class="style-card" tabindex="0">
             <%= radio_button_tag 'speaking_style', 'Extrovert', user_style == 'Extrovert', class: 'style-radio', id: 'style_extrovert' %>
             <div class="style-card-content">
-              <div class="style-icon">🗣️</div>
+              <div class="style-icon-container">
+                <%= image_tag 'icons/extrovert.png', alt: 'Extrovert', class: 'style-icon-img' %>
+              </div>
               <div class="style-title">Extrovert</div>
             </div>
           </label>
@@ -38,7 +45,9 @@
           <label class="style-card" tabindex="0">
             <%= radio_button_tag 'speaking_style', 'Ambivert', user_style == 'Ambivert', class: 'style-radio', id: 'style_ambivert' %>
             <div class="style-card-content">
-              <div class="style-icon">⚖️</div>
+              <div class="style-icon-container">
+                <%= image_tag 'icons/ambivert.png', alt: 'Ambivert', class: 'style-icon-img' %>
+              </div>
               <div class="style-title">Ambivert</div>
             </div>
           </label>
@@ -46,7 +55,9 @@
           <label class="style-card" tabindex="0">
             <%= radio_button_tag 'speaking_style', 'Not sure', user_style == 'Not sure', class: 'style-radio', id: 'style_unsure' %>
             <div class="style-card-content">
-              <div class="style-icon">🤔</div>
+              <div class="style-icon-container">
+                <%= image_tag 'icons/not-sure.png', alt: 'Not Sure', class: 'style-icon-img' %>
+              </div>
               <div class="style-title">Not Sure</div>
             </div>
           </label>
@@ -133,6 +144,10 @@
 
       <!-- Progress Dots -->
       <div class="progress-dots">
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
         <div class="progress-dot"></div>
         <div class="progress-dot"></div>
         <div class="progress-dot active"></div>
@@ -267,8 +282,18 @@
     gap: 0.5rem;
   }
 
-  .style-icon {
-    font-size: 2rem;
+  .style-icon-container {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .style-icon-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
   }
 
   .style-title {

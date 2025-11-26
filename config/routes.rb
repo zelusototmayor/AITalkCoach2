@@ -159,6 +159,10 @@ Rails.application.routes.draw do
       get :profile
       post :profile
       get :motivation
+      get :metrics_intro
+      get :overall_score
+      get :coach_intro
+      get :progress_intro
       get :demographics
       post :demographics
       get :test

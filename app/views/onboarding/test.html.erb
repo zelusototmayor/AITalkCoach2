@@ -7,6 +7,9 @@
       <span class="quit-icon">×</span>
     <% end %>
 
+    <!-- Back Button - Top Left -->
+    <%= render 'onboarding/back_button', back_path: onboarding_demographics_path %>
+
     <!-- Fresh Test Interface -->
     <div class="test-section"
          data-controller="recorder"
@@ -133,6 +136,10 @@
     <!-- Progress Dots (Fixed at bottom) -->
     <div class="progress-dots-container">
       <div class="progress-dots">
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
         <div class="progress-dot"></div>
         <div class="progress-dot"></div>
         <div class="progress-dot"></div>
@@ -333,6 +340,11 @@
     left: 50%;
     transform: translate(-50%, -50%);
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
   }
 
   .progress-percent {
@@ -340,14 +352,15 @@
     font-weight: 700;
     color: #1e293b;
     line-height: 1;
+    margin: 0;
   }
 
   .progress-status {
     font-size: 0.75rem;
     font-weight: 600;
     color: #64748b;
-    margin-top: 0.25rem;
     letter-spacing: 0.05em;
+    margin: 0.25rem 0 0 0;
   }
 
   /* Timer Display (Web App Style) */

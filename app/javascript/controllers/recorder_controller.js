@@ -563,7 +563,7 @@ export default class extends Controller {
       // Update SVG circular progress (onboarding)
       if (this.hasProgressCircleTarget) {
         const progress = (elapsed / this.maxDurationSecValue) * 100
-        const circumference = 2 * Math.PI * 36 // radius = 36
+        const circumference = 2 * Math.PI * 54 // radius = 54 (matches SVG)
         const offset = circumference - (progress / 100) * circumference
         this.progressCircleTarget.style.strokeDasharray = `${circumference} ${circumference}`
         this.progressCircleTarget.style.strokeDashoffset = offset

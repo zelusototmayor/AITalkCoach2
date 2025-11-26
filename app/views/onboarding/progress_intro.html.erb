@@ -1,0 +1,498 @@
+<% content_for :title, "Track Your Progress - AI Talk Coach" %>
+
+<div class="onboarding-container">
+  <div class="onboarding-content">
+    <!-- Quit Button - Top Right -->
+    <%= link_to logout_path, class: 'quit-btn-top-right', data: { turbo: false, turbo_confirm: "Are you sure you want to quit? You'll need to start over." } do %>
+      <span class="quit-icon">×</span>
+    <% end %>
+
+    <!-- Back Button - Top Left -->
+    <%= render 'onboarding/back_button', back_path: onboarding_coach_intro_path %>
+
+    <!-- Progress Intro Section -->
+    <div class="progress-intro-section">
+      <h1 class="section-title">Track Your Progress</h1>
+      <p class="section-subtitle">Watch yourself improve with detailed tracking and insights</p>
+
+      <!-- Chart Card -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="metric-info">
+            <div class="metric-label-text">Filler Words</div>
+            <div class="value-row">
+              <h3 class="metric-name">3.5%</h3>
+              <div class="trend-badge trend-down">
+                <span class="trend-arrow">↘</span>
+                <span class="trend-value">-4.7%</span>
+              </div>
+            </div>
+          </div>
+          <div class="current-value">
+            <span class="value-label">Best</span>
+            <span class="value-number">3.5%</span>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="progressChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Features List -->
+      <div class="features-list">
+        <div class="feature-item">
+          <div class="feature-icon-circle">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 3v18h18M7 16l4-4 4 4 6-6"/>
+            </svg>
+          </div>
+          <div class="feature-content">
+            <h4 class="feature-name">Track All Metrics</h4>
+            <p class="feature-description">Performance history for every metric</p>
+          </div>
+        </div>
+
+        <div class="feature-item">
+          <div class="feature-icon-circle">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+            </svg>
+          </div>
+          <div class="feature-content">
+            <h4 class="feature-name">See Improvement Trends</h4>
+            <p class="feature-description">Visualize progress with charts</p>
+          </div>
+        </div>
+
+        <div class="feature-item">
+          <div class="feature-icon-circle">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+              <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+            </svg>
+          </div>
+          <div class="feature-content">
+            <h4 class="feature-name">Compare to Your Best</h4>
+            <p class="feature-description">Know and beat your records</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating Continue Button -->
+    <div class="floating-button-container">
+      <%= link_to onboarding_demographics_path, class: 'primary-btn btn-large' do %>
+        Continue
+        <span aria-hidden="true">→</span>
+      <% end %>
+
+      <!-- Progress Dots -->
+      <div class="progress-dots">
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot active"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-dot"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('progressChart').getContext('2d');
+
+    const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+    gradient.addColorStop(0, 'rgba(255, 140, 66, 0.3)');
+    gradient.addColorStop(1, 'rgba(255, 140, 66, 0.01)');
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        datasets: [{
+          label: 'Filler Words',
+          data: [8.2, 7.5, 7.8, 6.2, 5.5, 4.8, 3.5],
+          borderColor: '#FF8C42',
+          backgroundColor: gradient,
+          borderWidth: 3,
+          fill: true,
+          tension: 0.4,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          pointBackgroundColor: '#ffffff',
+          pointBorderColor: '#FF8C42',
+          pointBorderWidth: 2,
+          pointHoverBackgroundColor: '#FF8C42',
+          pointHoverBorderColor: '#ffffff',
+          pointHoverBorderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            backgroundColor: '#1e293b',
+            titleColor: '#ffffff',
+            bodyColor: '#ffffff',
+            borderColor: '#FF8C42',
+            borderWidth: 1,
+            padding: 12,
+            displayColors: false,
+            callbacks: {
+              label: function(context) {
+                return context.parsed.y + '%';
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: {
+              display: false
+            },
+            ticks: {
+              color: '#64748b',
+              font: {
+                size: 12
+              }
+            }
+          },
+          y: {
+            beginAtZero: false,
+            min: 2,
+            max: 9,
+            ticks: {
+              color: '#64748b',
+              font: {
+                size: 12
+              },
+              callback: function(value) {
+                return value + '%';
+              }
+            },
+            grid: {
+              color: '#f1f5f9'
+            }
+          }
+        },
+        interaction: {
+          intersect: false,
+          mode: 'index'
+        }
+      }
+    });
+  });
+</script>
+
+<style>
+  /* Container */
+  .onboarding-container {
+    min-height: 100vh;
+    position: relative;
+    background-color: #F8FAFC;
+  }
+
+  .onboarding-content {
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* Quit Button - Top Right Corner */
+  .quit-btn-top-right {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f1f5f9;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    z-index: 100;
+  }
+
+  .quit-btn-top-right:hover {
+    background-color: #e2e8f0;
+  }
+
+  .quit-btn-top-right .quit-icon {
+    font-size: 20px;
+    color: #64748b;
+    line-height: 1;
+  }
+
+  /* Progress Intro Section */
+  .progress-intro-section {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 7rem 1.5rem;
+  }
+
+  .section-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1e293b;
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .section-subtitle {
+    font-size: 0.95rem;
+    color: #64748b;
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  /* Chart Card */
+  .chart-card {
+    background: #ffffff;
+    border: 2px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+  }
+
+  .metric-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .metric-label-text {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 0.25rem;
+  }
+
+  .value-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .metric-name {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+    line-height: 1;
+  }
+
+  .trend-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  .trend-down {
+    background: #dcfce7;
+    color: #16a34a;
+  }
+
+  .trend-arrow {
+    font-size: 0.875rem;
+  }
+
+  .current-value {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  .value-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #94a3b8;
+    margin-bottom: 0.125rem;
+  }
+
+  .value-number {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #FF8C42;
+    line-height: 1;
+  }
+
+  .chart-container {
+    height: 250px;
+  }
+
+  /* Features List */
+  .features-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .feature-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.25rem;
+    transition: all 0.2s ease;
+  }
+
+  .feature-item:hover {
+    border-color: #FF8C42;
+    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.1);
+    transform: translateX(4px);
+  }
+
+  .feature-icon-circle {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    background: #FFF4ED;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .icon {
+    width: 24px;
+    height: 24px;
+    color: #FF8C42;
+  }
+
+  .feature-content {
+    flex: 1;
+  }
+
+  .feature-name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 0.25rem 0;
+  }
+
+  .feature-description {
+    font-size: 0.9rem;
+    color: #64748b;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  /* Floating Button Container with Progress Dots */
+  .floating-button-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1.25rem 1.5rem;
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    z-index: 50;
+    pointer-events: none;
+  }
+
+  /* Progress Dots */
+  .progress-dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .progress-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 4px;
+    background-color: #cbd5e1;
+    transition: all 0.3s ease;
+  }
+
+  .progress-dot.active {
+    width: 24px;
+    background-color: #FF8C42;
+  }
+
+  .primary-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, #FF8C42 0%, #FF7028 100%);
+    color: white;
+    padding: 0.875rem 2rem;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.3);
+    pointer-events: auto;
+  }
+
+  .primary-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255, 140, 66, 0.4);
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .section-title {
+      font-size: 1.75rem;
+    }
+
+    .section-subtitle {
+      font-size: 0.875rem;
+    }
+
+    .chart-card {
+      padding: 1.5rem;
+    }
+
+    .chart-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+
+    .current-value {
+      align-items: flex-start;
+    }
+
+    .feature-item {
+      padding: 1rem;
+    }
+
+    .floating-button-container {
+      padding: 1rem;
+    }
+  }
+</style>
