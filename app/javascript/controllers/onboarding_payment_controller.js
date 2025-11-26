@@ -9,6 +9,19 @@ export default class extends Controller {
   connect() {
     // Wait for Stripe.js to be available before initializing
     this.waitForStripe()
+
+    // Track paywall viewed
+    this.trackPaywallViewed()
+  }
+
+  trackPaywallViewed() {
+    // Track via analytics controller if available
+    if (window.analyticsController) {
+      window.analyticsController.trackEvent('paywall_viewed', {
+        source: 'onboarding',
+        event_category: 'conversion'
+      })
+    }
   }
 
   async waitForStripe() {
@@ -159,6 +172,15 @@ export default class extends Controller {
       const card = radio.closest('.pricing-card-compact')
       if (radio.checked) {
         card.classList.add('selected')
+
+        // Track plan selection
+        if (window.analyticsController) {
+          window.analyticsController.trackEvent('plan_selected', {
+            plan_id: radio.value,
+            source: 'onboarding',
+            event_category: 'conversion'
+          })
+        }
       } else {
         card.classList.remove('selected')
       }
@@ -188,6 +210,15 @@ export default class extends Controller {
       return
     }
 
+    // Track purchase started
+    if (window.analyticsController) {
+      window.analyticsController.trackEvent('purchase_started', {
+        plan_id: selectedPlan,
+        source: 'onboarding',
+        event_category: 'conversion'
+      })
+    }
+
     try {
       // Confirm the SetupIntent with the card details
       const { setupIntent, error } = await this.stripe.confirmCardSetup(
@@ -200,6 +231,16 @@ export default class extends Controller {
       )
 
       if (error) {
+        // Track purchase failure
+        if (window.analyticsController) {
+          window.analyticsController.trackEvent('purchase_failed', {
+            plan_id: selectedPlan,
+            source: 'onboarding',
+            event_category: 'conversion',
+            error_message: error.message
+          })
+        }
+
         // Show error to customer
         this.showError(error.message)
         this.resetSubmitButton()
@@ -209,6 +250,17 @@ export default class extends Controller {
       }
     } catch (error) {
       console.error('Payment error:', error)
+
+      // Track purchase error
+      if (window.analyticsController) {
+        window.analyticsController.trackEvent('purchase_failed', {
+          plan_id: selectedPlan,
+          source: 'onboarding',
+          event_category: 'conversion',
+          error_message: error.message || 'Unknown error'
+        })
+      }
+
       this.showError('An unexpected error occurred. Please try again.')
       this.resetSubmitButton()
     }
@@ -232,16 +284,47 @@ export default class extends Controller {
       })
 
       if (response.ok || response.redirected) {
+        // Track purchase completion
+        if (window.analyticsController) {
+          window.analyticsController.trackEvent('purchase_completed', {
+            plan_id: selectedPlan,
+            source: 'onboarding',
+            event_category: 'conversion'
+          })
+        }
+
         // In development mode, server redirects to /onboarding/complete
         // Follow the redirect by navigating to the complete path
         window.location.href = '/onboarding/complete'
       } else {
         const data = await response.text()
+
+        // Track server error
+        if (window.analyticsController) {
+          window.analyticsController.trackEvent('purchase_failed', {
+            plan_id: selectedPlan,
+            source: 'onboarding',
+            event_category: 'conversion',
+            error_message: 'Server error during payment setup'
+          })
+        }
+
         this.showError('Payment setup failed. Please try again.')
         this.resetSubmitButton()
       }
     } catch (error) {
       console.error('Server error:', error)
+
+      // Track server error
+      if (window.analyticsController) {
+        window.analyticsController.trackEvent('purchase_failed', {
+          plan_id: selectedPlan,
+          source: 'onboarding',
+          event_category: 'conversion',
+          error_message: error.message || 'Unknown server error'
+        })
+      }
+
       this.showError('An error occurred. Please try again.')
       this.resetSubmitButton()
     }

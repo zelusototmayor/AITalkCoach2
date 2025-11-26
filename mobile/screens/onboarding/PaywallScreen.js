@@ -10,6 +10,7 @@ import { useOnboarding } from '../../context/OnboardingContext';
 import { useAuth } from '../../context/AuthContext';
 import { SHOW_FREE_FOREVER } from '../../config/features';
 import * as subscriptionService from '../../services/subscriptionService';
+import analytics from '../../services/analytics';
 
 export default function PaywallScreen({ navigation }) {
   const { updateOnboardingData, onboardingData } = useOnboarding();
@@ -24,6 +25,13 @@ export default function PaywallScreen({ navigation }) {
   // Load offerings from RevenueCat
   useEffect(() => {
     loadOfferings();
+
+    // Track paywall viewed
+    analytics.track('Paywall Viewed', {
+      source: 'onboarding',
+      plan_count: PRICING_PLANS.length,
+      free_forever_mode: SHOW_FREE_FOREVER,
+    });
   }, []);
 
   const loadOfferings = async (isRetry = false) => {
@@ -105,6 +113,12 @@ export default function PaywallScreen({ navigation }) {
 
   const handlePlanSelect = (planId) => {
     setSelectedPlan(planId);
+
+    // Track plan selection
+    analytics.track('Plan Selected', {
+      plan_id: planId,
+      source: 'onboarding',
+    });
   };
 
   const handleStartTrial = async () => {
@@ -123,11 +137,25 @@ export default function PaywallScreen({ navigation }) {
         return;
       }
 
+      // Track purchase started
+      analytics.track('Purchase Started', {
+        plan_id: selectedPlan,
+        product_id: selectedPackage.productId,
+        source: 'onboarding',
+      });
+
       // Purchase the package via RevenueCat
       // Use the original RevenueCat package object (rcPackage)
       const result = await subscriptionService.purchasePackage(selectedPackage.rcPackage);
 
       if (result.success) {
+        // Track purchase success
+        analytics.track('Purchase Completed', {
+          plan_id: selectedPlan,
+          product_id: selectedPackage.productId,
+          source: 'onboarding',
+        });
+
         // Purchase successful
         updateOnboardingData({
           selectedPlan,
@@ -143,9 +171,25 @@ export default function PaywallScreen({ navigation }) {
           Alert.alert('Error', 'Failed to complete onboarding. Please try again.');
         }
       } else if (result.cancelled) {
+        // Track purchase cancellation
+        analytics.track('Purchase Cancelled', {
+          plan_id: selectedPlan,
+          product_id: selectedPackage.productId,
+          source: 'onboarding',
+        });
+
         // User cancelled, do nothing
         console.log('User cancelled purchase');
       } else {
+        // Track purchase failure
+        analytics.track('Purchase Failed', {
+          plan_id: selectedPlan,
+          product_id: selectedPackage.productId,
+          source: 'onboarding',
+          error_message: result.error || 'Unknown error',
+          is_recoverable: result.isRecoverable,
+        });
+
         // Error occurred - show appropriate message with retry option
         const errorTitle = result.isRecoverable ? 'Purchase Temporarily Failed' : 'Purchase Failed';
         const errorMessage = result.error || 'Please try again.';
@@ -203,9 +247,20 @@ export default function PaywallScreen({ navigation }) {
   const handleRestore = async () => {
     try {
       setIsLoading(true);
+
+      // Track restore purchases clicked
+      analytics.track('Restore Purchases Clicked', {
+        source: 'onboarding',
+      });
+
       const result = await subscriptionService.restorePurchases();
 
       if (result.success && result.hasActiveSubscription) {
+        // Track restore success
+        analytics.track('Restore Purchases Succeeded', {
+          source: 'onboarding',
+        });
+
         Alert.alert(
           'Success',
           'Your subscription has been restored!',
@@ -222,10 +277,23 @@ export default function PaywallScreen({ navigation }) {
           ]
         );
       } else {
+        // Track restore failure (no subscription found)
+        analytics.track('Restore Purchases Failed', {
+          source: 'onboarding',
+          error_message: 'No active subscription found',
+        });
+
         Alert.alert('No Subscription Found', 'No active subscription found to restore.');
       }
     } catch (error) {
       console.error('Error restoring purchases:', error);
+
+      // Track restore error
+      analytics.track('Restore Purchases Failed', {
+        source: 'onboarding',
+        error_message: error.message || 'Unknown error',
+      });
+
       Alert.alert('Error', 'Failed to restore purchases. Please try again.');
     } finally {
       setIsLoading(false);
