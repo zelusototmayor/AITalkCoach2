@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { COLORS, SPACING } from '../constants/colors';
 
 /**
@@ -21,7 +21,7 @@ export default function MetricInfoModal({ visible, metricType, onClose, userWpmS
   const metricInfo = {
     overall: {
       title: 'Overall Score',
-      icon: '🎯',
+      icon: require('../assets/icons/clarity.png'),
       description: 'Your overall speaking performance score based on all metrics.',
       whatItMeasures: [
         'Clarity of speech',
@@ -40,7 +40,7 @@ export default function MetricInfoModal({ visible, metricType, onClose, userWpmS
     },
     clarity: {
       title: 'Clarity Score',
-      icon: '🔊',
+      icon: require('../assets/icons/clarity.png'),
       description: 'How clearly and understandably you speak.',
       whatItMeasures: [
         'Pronunciation quality',
@@ -58,7 +58,7 @@ export default function MetricInfoModal({ visible, metricType, onClose, userWpmS
     },
     filler: {
       title: 'Filler Percentage',
-      icon: '🚫',
+      icon: require('../assets/icons/filler-words.png'),
       description: 'Percentage of your speech that consists of filler words.',
       whatItMeasures: [
         'Frequency of "um", "uh", "like"',
@@ -76,7 +76,7 @@ export default function MetricInfoModal({ visible, metricType, onClose, userWpmS
     },
     wpm: {
       title: 'Words Per Minute',
-      icon: '⚡',
+      icon: require('../assets/icons/speaking-pace.png'),
       description: 'Your speaking pace measured in words per minute.',
       whatItMeasures: [
         'Speaking speed',
@@ -108,7 +108,7 @@ export default function MetricInfoModal({ visible, metricType, onClose, userWpmS
           {/* Header */}
           <View style={styles.header}>
             <View style={styles.headerLeft}>
-              <Text style={styles.icon}>{info.icon}</Text>
+              <Image source={info.icon} style={styles.iconImage} resizeMode="contain" />
               <Text style={styles.title}>{info.title}</Text>
             </View>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
@@ -194,6 +194,11 @@ const styles = StyleSheet.create({
   },
   icon: {
     fontSize: 32,
+    marginRight: SPACING.sm,
+  },
+  iconImage: {
+    width: 36,
+    height: 36,
     marginRight: SPACING.sm,
   },
   title: {

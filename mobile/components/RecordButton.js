@@ -19,7 +19,8 @@ export default function RecordButton({
   isRecording,
   onPress,
   progress = 0, // 0 to 1
-  disabled = false
+  disabled = false,
+  showCancelState = false // When true, shows red cancel styling while recording
 }) {
   const haptics = useHaptics();
 
@@ -118,7 +119,7 @@ export default function RecordButton({
             cx={svgSize / 2}
             cy={svgSize / 2}
             r={radius}
-            stroke="#FF6B35"
+            stroke={showCancelState ? "#FF3B30" : "#FF6B35"}
             strokeWidth={strokeWidth}
             fill="none"
             strokeDasharray={circumference}
@@ -131,19 +132,27 @@ export default function RecordButton({
       )}
 
       <TouchableWithoutFeedback onPress={handlePress} disabled={disabled}>
-        <Animated.View style={[styles.button, disabled && styles.buttonDisabled, buttonAnimatedStyle]}>
+        <Animated.View style={[
+          styles.button,
+          disabled && styles.buttonDisabled,
+          showCancelState && isRecording && styles.buttonCancel,
+          buttonAnimatedStyle
+        ]}>
           {/* Microphone icon */}
           <View style={[styles.iconContainer, isRecording && styles.iconContainerRecording]}>
             <Ionicons
-              name={isRecording ? "mic" : "mic-outline"}
+              name={showCancelState && isRecording ? "close-circle" : isRecording ? "mic" : "mic-outline"}
               size={64}
-              color={isRecording ? COLORS.primary : COLORS.text}
+              color={showCancelState && isRecording ? "#FF3B30" : isRecording ? COLORS.primary : COLORS.text}
             />
           </View>
 
           {/* Text */}
           {!isRecording && (
             <Text style={styles.text}>Tap to Start</Text>
+          )}
+          {isRecording && showCancelState && (
+            <Text style={[styles.text, styles.cancelText]}>Tap to Cancel</Text>
           )}
         </Animated.View>
       </TouchableWithoutFeedback>
@@ -194,6 +203,10 @@ const styles = StyleSheet.create({
   buttonDisabled: {
     opacity: 0.5,
   },
+  buttonCancel: {
+    borderColor: '#FF3B30',
+    borderWidth: 5,
+  },
   iconContainer: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -206,5 +219,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.text,
     marginTop: SPACING.sm,
+  },
+  cancelText: {
+    color: '#FF3B30',
   },
 });

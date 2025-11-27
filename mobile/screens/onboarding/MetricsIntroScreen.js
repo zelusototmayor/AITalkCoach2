@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, StyleSheet, ScrollView, Image } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -49,7 +48,7 @@ function AnimatedMetricCard({ icon, title, description, index }) {
   return (
     <Animated.View style={[styles.mainCard, animatedStyle]}>
       <View style={styles.iconContainer}>
-        <Ionicons name={icon} size={24} color={COLORS.primary} />
+        <Image source={icon} style={styles.iconImage} resizeMode="contain" />
       </View>
       <View style={styles.mainCardContent}>
         <Text style={styles.mainCardTitle}>{title}</Text>
@@ -95,17 +94,17 @@ function AnimatedSecondaryMetric({ title, tagline, index }) {
 export default function MetricsIntroScreen({ navigation }) {
   const mainMetrics = [
     {
-      icon: 'target-outline',
-      title: 'Clarity Score',
+      icon: require('../../assets/icons/clarity.png'),
+      title: 'Clarity',
       description: 'How clearly you articulate words'
     },
     {
-      icon: 'close-circle-outline',
+      icon: require('../../assets/icons/filler-words.png'),
       title: 'Filler Words',
       description: 'Track "um", "uh", "like"'
     },
     {
-      icon: 'speedometer-outline',
+      icon: require('../../assets/icons/speaking-pace.png'),
       title: 'Speaking Pace',
       description: 'Your optimal speaking speed'
     }
@@ -239,6 +238,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: SPACING.md,
+  },
+  iconImage: {
+    width: 40,
+    height: 40,
   },
   mainCardContent: {
     flex: 1,

@@ -105,14 +105,26 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const ctx = document.getElementById('progressChart').getContext('2d');
+  // Cleanup before Turbo caches the page to prevent duplicate charts
+  document.addEventListener('turbo:before-cache', function() {
+    if (window.progressChartInstance) {
+      window.progressChartInstance.destroy();
+      window.progressChartInstance = null;
+    }
+  });
+
+  // Initialize chart on page load (works for both direct loads and Turbo navigations)
+  document.addEventListener('turbo:load', function() {
+    const canvas = document.getElementById('progressChart');
+    if (!canvas) return; // Exit if we're not on the progress intro page
+
+    const ctx = canvas.getContext('2d');
 
     const gradient = ctx.createLinearGradient(0, 0, 0, 200);
     gradient.addColorStop(0, 'rgba(255, 140, 66, 0.3)');
     gradient.addColorStop(1, 'rgba(255, 140, 66, 0.01)');
 
-    new Chart(ctx, {
+    window.progressChartInstance = new Chart(ctx, {
       type: 'line',
       data: {
         labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],

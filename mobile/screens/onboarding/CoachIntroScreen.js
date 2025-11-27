@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, StyleSheet, ScrollView, Image } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -50,7 +49,7 @@ function AnimatedFeatureCard({ icon, title, description, mockPreview, index }) {
     <Animated.View style={[styles.featureCard, animatedStyle]}>
       <View style={styles.featureHeader}>
         <View style={styles.iconContainer}>
-          <Ionicons name={icon} size={24} color={COLORS.primary} />
+          <Image source={icon} style={styles.iconImage} resizeMode="contain" />
         </View>
         <View style={styles.featureHeaderText}>
           <Text style={styles.featureTitle}>{title}</Text>
@@ -164,19 +163,19 @@ function AnimatedClosingMessage() {
 export default function CoachIntroScreen({ navigation }) {
   const features = [
     {
-      icon: 'target-outline',
+      icon: require('../../assets/icons/session-recommendation.png'),
       title: 'Session Recommendations',
       description: 'After each practice session, get personalized insights based on your rolling 5-session average',
       mockPreview: <MockSessionRecommendation />
     },
     {
-      icon: 'calendar-outline',
+      icon: require('../../assets/icons/weekly-goal.png'),
       title: 'Weekly Goal',
       description: 'Stay focused on one key area each week with daily and weekly session targets',
       mockPreview: <MockWeeklyGoal />
     },
     {
-      icon: 'flash-outline',
+      icon: require('../../assets/icons/todays-focus.png'),
       title: 'Today\'s Focus',
       description: 'Get personalized daily drills tailored to your specific needs and progress',
       mockPreview: <MockDailyDrill />
@@ -274,6 +273,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: SPACING.md,
+  },
+  iconImage: {
+    width: 36,
+    height: 36,
   },
   featureHeaderText: {
     flex: 1,

@@ -201,42 +201,43 @@ export const UNLOCK_FEATURES = [
   {
     id: 1,
     title: 'AI Coach Recommendations',
-    icon: '🤖',
+    icon: require('../assets/icons/ai-coach.png'),
   },
   {
     id: 2,
     title: 'Advanced Metrics',
     subtitle: '(pitch, energy, pauses)',
-    icon: '📊',
+    icon: require('../assets/icons/advanced-metrics.png'),
   },
   {
     id: 3,
     title: 'Custom Improvement Plan',
-    icon: '📋',
+    icon: require('../assets/icons/custom-plan.png'),
   },
   {
     id: 4,
     title: 'Progress Tracking',
-    icon: '📈',
+    icon: require('../assets/icons/progress-tracking.png'),
   },
 ];
 
 // Pricing plans
 export const PRICING_PLANS = [
   {
+    id: 'yearly',
+    title: 'Yearly',
+    price: '$5.00',
+    period: '/mo',
+    badge: 'SAVE 50%',
+    savings: '$60.00 / year',
+  },
+  {
     id: 'monthly',
     title: 'Monthly',
     price: '$9.99',
-    period: '/month',
+    period: '/mo',
     badge: null,
-  },
-  {
-    id: 'yearly',
-    title: 'Yearly',
-    price: '$60',
-    period: '/year',
-    badge: 'Save 50%!',
-    savings: 'Just $5/month',
+    savings: '$9.99 / month',
   },
 ];
 

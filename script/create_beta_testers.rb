@@ -23,11 +23,7 @@ end
 
 # Beta testers to create with lifetime access
 beta_testers = [
-  { first_name: "Zeina", last_name: "Hamza", email: "zeina_hamza@icloud.com" },
-  { first_name: "Kenneth", last_name: "Glenn", email: "kennethwglenn@yahoo.com" },
-  { first_name: "Adam", last_name: "Werth", email: "Adam878@juno.com" },
-  { first_name: "Vedant", last_name: "Pophali", email: "officialvedantpophali2005@gmail.com" },
-  { first_name: "James", last_name: "Robinson", email: "graduate252@gmail.com" }
+  { first_name: "Julian", last_name: "Treasure", email: "jt@juliantreasure.com" }
 ]
 
 puts "Creating #{beta_testers.length} beta tester accounts with lifetime access..."

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert, ActivityIndicator, Linking } from 'react-native';
 import Button from '../../components/Button';
 import PricingCard from '../../components/PricingCard';
+import FeatureHighlightCard from '../../components/FeatureHighlightCard';
 import AnimatedBackground from '../../components/AnimatedBackground';
 import QuitOnboardingButton from '../../components/QuitOnboardingButton';
 import { COLORS, SPACING } from '../../constants/colors';
@@ -355,79 +356,75 @@ export default function PaywallScreen({ navigation }) {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.header}>Choose Your Plan</Text>
+        {/* Hero Section */}
+        <View style={styles.heroSection}>
+          <Text style={styles.heroText}>
+            Speak with{'\n'}
+            <Text style={styles.heroHighlight}>Unstoppable Confidence</Text>
+          </Text>
+          <Text style={styles.heroSubtext}>
+            Join top 1% of communicators practicing daily.
+          </Text>
+        </View>
 
-        {/* Free Trial Badge - Only show when not in free forever mode */}
-        {!SHOW_FREE_FOREVER && (
-          <View style={styles.trialBadge}>
-            <Text style={styles.trialBadgeText}>3 DAYS FREE</Text>
+        {/* Review Card */}
+        <View style={styles.reviewCard}>
+          <View style={styles.starsRow}>
+            <Text style={styles.starIcon}>⭐</Text>
+            <Text style={styles.starIcon}>⭐</Text>
+            <Text style={styles.starIcon}>⭐</Text>
+            <Text style={styles.starIcon}>⭐</Text>
+            <Text style={styles.starIcon}>⭐</Text>
           </View>
-        )}
-
-        <Text style={styles.subheader}>
-          {SHOW_FREE_FOREVER
-            ? "Practice daily and stay 100% free forever"
-            : "Then just $3.99/month if you continue"}
-        </Text>
-
-        {/* How It Works Card - Only show if feature flag enabled */}
-        {SHOW_FREE_FOREVER && (
-          <View style={styles.howItWorksCard}>
-            <Text style={styles.howItWorksTitle}>{HOW_IT_WORKS.title}</Text>
-            {HOW_IT_WORKS.steps.map((step, index) => (
-              <View key={index} style={styles.stepRow}>
-                <Text style={styles.stepBullet}>•</Text>
-                <Text style={styles.stepText}>{step}</Text>
-              </View>
-            ))}
-          </View>
-        )}
+          <Text style={styles.reviewText}>
+            "The real-time feedback is invaluable! I love the specific recommendations on speed, fluency, and fillers. This is a definite game-changer!"
+          </Text>
+          <Text style={styles.reviewAuthor}>— Cassandra Thomas, Pro90d Speech Course</Text>
+        </View>
 
         {/* Pricing Plans */}
-        <Text style={styles.sectionSubtitle}>
-          {SHOW_FREE_FOREVER
-            ? "Only charged if you miss a day"
-            : "Choose your subscription"}
-        </Text>
-
-        {/* Side-by-side plan cards */}
         <View style={styles.plansContainer}>
           {PRICING_PLANS.map((plan) => (
-            <View key={plan.id} style={styles.planWrapper}>
-              <PricingCard
-                title={plan.title}
-                price={plan.price}
-                period={plan.period}
-                badge={plan.badge}
-                savings={plan.savings}
-                isSelected={selectedPlan === plan.id}
-                onPress={() => handlePlanSelect(plan.id)}
-                style={styles.planCard}
-              />
-            </View>
+            <PricingCard
+              key={plan.id}
+              title={plan.title}
+              price={plan.price}
+              period={plan.period}
+              badge={plan.badge}
+              savings={plan.savings}
+              isSelected={selectedPlan === plan.id}
+              onPress={() => handlePlanSelect(plan.id)}
+              style={styles.planCard}
+              bestValue={plan.id === 'yearly'}
+            />
           ))}
         </View>
 
         {/* Benefits Section */}
         <View style={styles.benefitsSection}>
-          <Text style={styles.benefitsTitle}>What's Included</Text>
-          <View style={styles.benefitsList}>
-            <View style={styles.benefitRow}>
-              <Text style={styles.benefitIcon}>✓</Text>
-              <Text style={styles.benefitText}>Unlimited speech analysis sessions</Text>
+          <View style={styles.benefitRow}>
+            <View style={styles.checkmarkCircle}>
+              <Text style={styles.checkmark}>✓</Text>
             </View>
-            <View style={styles.benefitRow}>
-              <Text style={styles.benefitIcon}>✓</Text>
-              <Text style={styles.benefitText}>Advanced coaching insights</Text>
+            <Text style={styles.benefitText}>Unlimited AI Speech Analysis</Text>
+          </View>
+          <View style={styles.benefitRow}>
+            <View style={styles.checkmarkCircle}>
+              <Text style={styles.checkmark}>✓</Text>
             </View>
-            <View style={styles.benefitRow}>
-              <Text style={styles.benefitIcon}>✓</Text>
-              <Text style={styles.benefitText}>Progress tracking and analytics</Text>
+            <Text style={styles.benefitText}>Personalized Coaching Plan</Text>
+          </View>
+          <View style={styles.benefitRow}>
+            <View style={styles.checkmarkCircle}>
+              <Text style={styles.checkmark}>✓</Text>
             </View>
-            <View style={styles.benefitRow}>
-              <Text style={styles.benefitIcon}>✓</Text>
-              <Text style={styles.benefitText}>Dedicated support</Text>
+            <Text style={styles.benefitText}>Progress Tracking & Analytics</Text>
+          </View>
+          <View style={styles.benefitRow}>
+            <View style={styles.checkmarkCircle}>
+              <Text style={styles.checkmark}>✓</Text>
             </View>
+            <Text style={styles.benefitText}>Daily Practice Drills</Text>
           </View>
         </View>
 
@@ -485,50 +482,33 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: SPACING.lg,
     paddingTop: 60,
-    paddingBottom: 240, // Extra space for two buttons and gradient
+    paddingBottom: 240,
   },
-  header: {
-    fontSize: 28,
+  heroSection: {
+    marginBottom: SPACING.xl,
+    paddingTop: SPACING.md,
+  },
+  heroText: {
+    fontSize: 36,
     fontWeight: 'bold',
     color: COLORS.text,
     textAlign: 'center',
-    marginBottom: SPACING.md,
-    lineHeight: 36,
+    marginBottom: SPACING.sm,
+    lineHeight: 42,
   },
-  trialBadge: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.sm,
-    borderRadius: 20,
-    alignSelf: 'center',
-    marginBottom: SPACING.md,
-    shadowColor: COLORS.primary,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
+  heroHighlight: {
+    color: COLORS.primary,
   },
-  trialBadgeText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    letterSpacing: 1,
-  },
-  subheader: {
+  heroSubtext: {
     fontSize: 15,
-    fontWeight: '500',
+    fontWeight: '400',
     color: COLORS.textSecondary,
     textAlign: 'center',
-    marginBottom: SPACING.xl,
+    lineHeight: 22,
   },
-  howItWorksCard: {
+  reviewCard: {
     backgroundColor: COLORS.cardBackground,
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: COLORS.border,
     padding: SPACING.lg,
     marginBottom: SPACING.xl,
     shadowColor: COLORS.text,
@@ -536,96 +516,64 @@ const styles = StyleSheet.create({
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  howItWorksTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: COLORS.text,
-    textAlign: 'center',
-    marginBottom: SPACING.md,
-  },
-  stepRow: {
+  starsRow: {
     flexDirection: 'row',
     marginBottom: SPACING.sm,
-    paddingLeft: SPACING.sm,
+    gap: 4,
   },
-  stepBullet: {
+  starIcon: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: COLORS.primary,
-    marginRight: SPACING.sm,
   },
-  stepText: {
+  reviewText: {
     fontSize: 15,
-    fontWeight: '500',
+    fontWeight: '400',
     color: COLORS.text,
-    flex: 1,
     lineHeight: 22,
+    marginBottom: SPACING.sm,
+    fontStyle: 'italic',
   },
-  sectionSubtitle: {
+  reviewAuthor: {
     fontSize: 14,
     fontWeight: '600',
     color: COLORS.textSecondary,
-    marginBottom: SPACING.md,
-    textAlign: 'center',
-  },
-  plansContainer: {
-    flexDirection: 'row',
-    gap: SPACING.md,
-    marginBottom: SPACING.xl,
-  },
-  planWrapper: {
-    flex: 1,
-  },
-  planCard: {
-    marginBottom: 0,
   },
   benefitsSection: {
-    backgroundColor: COLORS.cardBackground,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    padding: SPACING.lg,
-    marginBottom: SPACING.lg,
-    shadowColor: COLORS.text,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  benefitsTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: COLORS.text,
-    marginBottom: SPACING.md,
-    textAlign: 'center',
-  },
-  benefitsList: {
-    gap: SPACING.sm,
+    marginBottom: SPACING.xl,
   },
   benefitRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
+    marginBottom: SPACING.md,
   },
-  benefitIcon: {
-    fontSize: 18,
+  checkmarkCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: COLORS.success,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: SPACING.md,
+  },
+  checkmark: {
+    fontSize: 16,
     fontWeight: 'bold',
-    color: COLORS.primary,
-    marginRight: SPACING.sm,
-    width: 24,
+    color: '#FFFFFF',
   },
   benefitText: {
-    fontSize: 15,
-    fontWeight: '500',
+    fontSize: 17,
+    fontWeight: '400',
     color: COLORS.text,
     flex: 1,
-    lineHeight: 22,
+  },
+  plansContainer: {
+    marginBottom: SPACING.xl,
+  },
+  planCard: {
+    marginBottom: SPACING.md,
   },
   finePrint: {
     fontSize: 12,

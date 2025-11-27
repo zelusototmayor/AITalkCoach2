@@ -7,7 +7,7 @@ import * as SecureStore from 'expo-secure-store';
 // For development: use your local IP or ngrok URL
 // For production: use your production domain
 const API_BASE_URL = __DEV__
-  ? 'http://192.168.100.2:3002' // Local IP for development (iOS simulator needs actual IP)
+  ? 'http://192.168.100.42:3002' // Local IP for development (iOS simulator needs actual IP)
   : 'https://app.aitalkcoach.com';
 
 /**
@@ -715,6 +715,52 @@ export async function markPromptCompleted(promptIdentifier, sessionId = null) {
     return data;
   } catch (error) {
     console.error('Error marking prompt as completed:', error);
+    throw error;
+  }
+}
+
+/**
+ * Submit feedback with optional images
+ * @param {string} feedbackText - Feedback text (max 5000 characters)
+ * @param {Array} images - Array of image objects with uri, name, type (max 5 images)
+ * @returns {Promise<Object>} Success response
+ */
+export async function submitFeedback(feedbackText, images = []) {
+  try {
+    const formData = new FormData();
+
+    // Add feedback text
+    formData.append('feedback_text', feedbackText);
+
+    // Add images if provided (max 5)
+    if (images && images.length > 0) {
+      images.slice(0, 5).forEach((image, index) => {
+        formData.append('images[]', {
+          uri: image.uri,
+          name: image.name || `image_${index}.jpg`,
+          type: image.type || 'image/jpeg',
+        });
+      });
+    }
+
+    const headers = await getAuthHeaders();
+    // Don't set Content-Type for FormData - let browser set it with boundary
+
+    const response = await fetch(`${API_BASE_URL}/feedback`, {
+      method: 'POST',
+      headers: headers,
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || data.errors?.join(', ') || 'Failed to submit feedback');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error submitting feedback:', error);
     throw error;
   }
 }

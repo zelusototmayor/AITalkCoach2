@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { Audio } from 'expo-av';
+import * as FileSystem from 'expo-file-system';
 import RecordButton from '../../components/RecordButton';
 import AnimatedBackground from '../../components/AnimatedBackground';
 import QuitOnboardingButton from '../../components/QuitOnboardingButton';
@@ -153,6 +154,51 @@ export default function TrialRecordingScreen({ navigation }) {
     }
   };
 
+  const cancelRecording = async () => {
+    try {
+      // Clear interval first
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+
+      if (!recordingRef.current) {
+        console.error('No recording reference found');
+        return;
+      }
+
+      // Get the recording URI before stopping
+      const uri = recordingRef.current.getURI();
+
+      // Stop and unload the recording
+      setIsRecording(false);
+      await recordingRef.current.stopAndUnloadAsync();
+
+      // Resume background music after cancelling
+      await resumeMusic();
+
+      // Delete the audio file from device
+      if (uri) {
+        try {
+          await FileSystem.deleteAsync(uri, { idempotent: true });
+          console.log('Cancelled recording file deleted:', uri);
+        } catch (deleteError) {
+          console.warn('Could not delete recording file:', deleteError);
+        }
+      }
+
+      // Reset recording state
+      setRecordingTime(0);
+      setProgress(0);
+
+      // Provide haptic feedback
+      haptics.light();
+    } catch (error) {
+      console.error('Failed to cancel recording:', error);
+      Alert.alert('Error', 'Failed to cancel recording. Please try again.');
+    }
+  };
+
   const handleRestart = async () => {
     try {
       // Stop and clean up current recording
@@ -177,7 +223,7 @@ export default function TrialRecordingScreen({ navigation }) {
 
   const handleRecordPress = () => {
     if (isRecording) {
-      stopRecording();
+      cancelRecording();
     } else {
       startRecording();
     }
@@ -231,6 +277,7 @@ export default function TrialRecordingScreen({ navigation }) {
             isRecording={isRecording}
             onPress={handleRecordPress}
             progress={progress}
+            showCancelState={true}
           />
 
           {/* Timer display */}

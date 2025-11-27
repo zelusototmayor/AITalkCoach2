@@ -21,6 +21,7 @@ import PromptsScreen from '../screens/prompts/PromptsScreen';
 import ProfileScreen from '../screens/profile/ProfileScreen';
 import SettingsScreen from '../screens/profile/SettingsScreen';
 import PrivacyScreen from '../screens/profile/PrivacyScreen';
+import LanguageScreen from '../screens/profile/LanguageScreen';
 
 const Stack = createStackNavigator();
 const AuthStack = createStackNavigator();
@@ -64,6 +65,7 @@ function AppStack() {
       <Stack.Screen name="SessionReport" component={SessionReportScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
       <Stack.Screen name="Privacy" component={PrivacyScreen} />
+      <Stack.Screen name="Language" component={LanguageScreen} />
     </Stack.Navigator>
   );
 }

@@ -47,9 +47,9 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xs,
   },
   iconImage: {
-    width: 24,
-    height: 24,
-    marginBottom: SPACING.xs,
+    width: 32,
+    height: 32,
+    marginBottom: 4,
   },
   value: {
     fontSize: 20,

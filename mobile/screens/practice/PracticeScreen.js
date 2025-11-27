@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { Audio } from 'expo-av';
+import * as FileSystem from 'expo-file-system';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PromptCard from '../../components/PromptCard';
 import DrillPromptCard from '../../components/DrillPromptCard';
@@ -416,9 +417,66 @@ export default function PracticeScreen({ navigation, route }) {
     }
   };
 
+  const cancelRecording = async () => {
+    try {
+      // Clear interval first
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+
+      if (!recordingRef.current) {
+        console.error('No recording reference found');
+        return;
+      }
+
+      // Get the recording URI before stopping
+      const uri = recordingRef.current.getURI();
+
+      // Stop and unload the recording
+      setIsRecording(false);
+      await recordingRef.current.stopAndUnloadAsync();
+
+      // Delete the audio file from device
+      if (uri) {
+        try {
+          await FileSystem.deleteAsync(uri, { idempotent: true });
+          console.log('Cancelled recording file deleted:', uri);
+        } catch (deleteError) {
+          console.warn('Could not delete recording file:', deleteError);
+        }
+      }
+
+      // Reset recording state
+      setRecordingTime(0);
+      setProgress(0);
+      recordingTimeRef.current = 0;
+
+      // Provide haptic feedback
+      haptics.light();
+
+      // Track recording cancelled
+      analytics.track('Recording Cancelled', {
+        cancelled_at_seconds: recordingTimeRef.current,
+        target_duration: selectedTime,
+        prompt_category: currentPrompt.category,
+      });
+    } catch (error) {
+      console.error('Failed to cancel recording:', error);
+
+      // Track recording error
+      analytics.track('Recording Error', {
+        error: error.message,
+        stage: 'cancel',
+      });
+
+      Alert.alert('Error', 'Failed to cancel recording. Please try again.');
+    }
+  };
+
   const handleRecordPress = () => {
     if (isRecording) {
-      stopRecording();
+      cancelRecording();
     } else {
       startRecording();
     }
@@ -482,6 +540,7 @@ export default function PracticeScreen({ navigation, route }) {
               isRecording={isRecording}
               onPress={handleRecordPress}
               progress={progress}
+              showCancelState={true}
             />
           </View>
 

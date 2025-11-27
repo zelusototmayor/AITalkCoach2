@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
 import * as StoreReview from 'expo-store-review';
 import Button from '../../components/Button';
 import MetricCard from '../../components/MetricCard';
@@ -177,19 +177,19 @@ export default function ResultsScreen({ navigation }) {
         {/* Metrics Grid */}
         <View style={styles.metricsContainer}>
           <MetricCard
-            icon="✨"
+            icon={require('../../assets/icons/clarity.png')}
             label="Clarity"
             value={`${metrics.clarity}%`}
             style={styles.metricCard}
           />
           <MetricCard
-            icon="🗣️"
+            icon={require('../../assets/icons/filler-words.png')}
             label="Filler Words"
             value={`${metrics.fillerPercentage}%`}
             style={styles.metricCard}
           />
           <MetricCard
-            icon="⚡"
+            icon={require('../../assets/icons/speaking-pace.png')}
             label="Pace"
             value={`${metrics.wordsPerMinute}`}
             subtitle="WPM"
@@ -251,7 +251,9 @@ export default function ResultsScreen({ navigation }) {
 
           {UNLOCK_FEATURES.map((feature) => (
             <View key={feature.id} style={styles.featureRow}>
-              <Text style={styles.featureIcon}>{feature.icon}</Text>
+              <View style={styles.featureIconContainer}>
+                <Image source={feature.icon} style={styles.featureIconImage} resizeMode="contain" />
+              </View>
               <View style={styles.featureTextContainer}>
                 <Text style={styles.featureTitle}>{feature.title}</Text>
                 {feature.subtitle && (
@@ -394,9 +396,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: SPACING.md,
   },
-  featureIcon: {
-    fontSize: 24,
+  featureIconContainer: {
+    width: 32,
+    height: 32,
     marginRight: SPACING.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  featureIconImage: {
+    width: 28,
+    height: 28,
   },
   featureTextContainer: {
     flex: 1,

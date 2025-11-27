@@ -5,9 +5,8 @@ import Slider from '@react-native-community/slider';
 import { Ionicons } from '@expo/vector-icons';
 import AnimatedBackground from '../../components/AnimatedBackground';
 import { COLORS, SPACING, TYPOGRAPHY } from '../../constants/colors';
-import { LANGUAGES } from '../../constants/onboardingData';
 import { useAuth } from '../../context/AuthContext';
-import { updateLanguage, updateTargetWPM } from '../../services/api';
+import { updateTargetWPM } from '../../services/api';
 
 export default function SettingsScreen({ navigation }) {
   const { user, updateUserData } = useAuth();
@@ -16,10 +15,8 @@ export default function SettingsScreen({ navigation }) {
     name: user?.name || 'User Name',
     email: user?.email || 'user@example.com',
   });
-  const [selectedLanguage, setSelectedLanguage] = useState(user?.preferred_language || 'en');
   const [targetWPM, setTargetWPM] = useState(user?.target_wpm || 140); // Default to 140 WPM
   const [saving, setSaving] = useState(false);
-  const [languageUpdating, setLanguageUpdating] = useState(false);
   const [wpmUpdating, setWpmUpdating] = useState(false);
 
   // Update form data when user changes
@@ -29,42 +26,9 @@ export default function SettingsScreen({ navigation }) {
         name: user.name,
         email: user.email,
       });
-      setSelectedLanguage(user.preferred_language || 'en');
       setTargetWPM(user.target_wpm || 140);
     }
   }, [user]);
-
-  const handleLanguageChange = async (languageCode) => {
-    if (languageCode === selectedLanguage) return;
-
-    setLanguageUpdating(true);
-
-    try {
-      const response = await updateLanguage(languageCode);
-      setSelectedLanguage(languageCode);
-
-      // CRITICAL: Update the AuthContext's cached user object immediately
-      // This ensures the app uses the new language for future sessions
-      if (updateUserData) {
-        updateUserData({
-          preferred_language: languageCode,
-          language_display_name: response.user?.language_display_name || languageCode
-        });
-        console.log('Updated cached user language to:', languageCode);
-      }
-
-      const languageName = LANGUAGES.find(l => l.id === languageCode)?.label || languageCode;
-      Alert.alert(
-        'Language Updated',
-        `Your preferred language has been changed to ${languageName}. Future recordings will be analyzed in this language.`
-      );
-    } catch (error) {
-      console.error('Error updating language:', error);
-      Alert.alert('Error', 'Failed to update language preference. Please try again.');
-    } finally {
-      setLanguageUpdating(false);
-    }
-  };
 
   const handleWPMChange = async (wpm) => {
     const roundedWPM = Math.round(wpm);
@@ -185,54 +149,6 @@ export default function SettingsScreen({ navigation }) {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Preferences</Text>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Language</Text>
-            <Text style={styles.languageHint}>
-              Choose the language you'll speak in during practice sessions
-            </Text>
-
-            <View style={styles.languageGrid}>
-              {LANGUAGES.map((language) => (
-                <TouchableOpacity
-                  key={language.id}
-                  style={[
-                    styles.languageOption,
-                    selectedLanguage === language.id && styles.languageOptionSelected,
-                    languageUpdating && styles.languageOptionDisabled,
-                  ]}
-                  onPress={() => handleLanguageChange(language.id)}
-                  activeOpacity={0.7}
-                  disabled={languageUpdating}
-                >
-                  <Text style={styles.languageIcon}>{language.icon}</Text>
-                  <Text
-                    style={[
-                      styles.languageLabel,
-                      selectedLanguage === language.id && styles.languageLabelSelected,
-                    ]}
-                  >
-                    {language.label}
-                  </Text>
-                  {selectedLanguage === language.id && (
-                    <Ionicons
-                      name="checkmark-circle"
-                      size={20}
-                      color={COLORS.primary}
-                      style={styles.languageCheck}
-                    />
-                  )}
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            {languageUpdating && (
-              <View style={styles.updatingContainer}>
-                <ActivityIndicator color={COLORS.primary} />
-                <Text style={styles.updatingText}>Updating language...</Text>
-              </View>
-            )}
-          </View>
 
           <View style={styles.formGroup}>
             <Text style={styles.label}>Speaking Pace Target</Text>
@@ -401,57 +317,6 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     marginBottom: SPACING.md,
     fontStyle: 'italic',
-  },
-  languageGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginHorizontal: -SPACING.xs,
-  },
-  languageOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.background,
-    borderRadius: 12,
-    padding: SPACING.sm,
-    margin: SPACING.xs,
-    borderWidth: 2,
-    borderColor: COLORS.border,
-    minWidth: '45%',
-  },
-  languageOptionSelected: {
-    borderColor: COLORS.primary,
-    backgroundColor: `${COLORS.primary}15`,
-  },
-  languageOptionDisabled: {
-    opacity: 0.5,
-  },
-  languageIcon: {
-    fontSize: 24,
-    marginRight: SPACING.xs,
-  },
-  languageLabel: {
-    ...TYPOGRAPHY.body,
-    color: COLORS.text,
-    flex: 1,
-  },
-  languageLabelSelected: {
-    color: COLORS.primary,
-    fontWeight: '600',
-  },
-  languageCheck: {
-    marginLeft: SPACING.xs,
-  },
-  updatingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: SPACING.md,
-    padding: SPACING.sm,
-  },
-  updatingText: {
-    ...TYPOGRAPHY.body,
-    color: COLORS.textSecondary,
-    marginLeft: SPACING.sm,
   },
   wpmContainer: {
     marginTop: SPACING.md,
