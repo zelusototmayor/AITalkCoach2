@@ -55,6 +55,9 @@ Rails.application.routes.draw do
       post 'subscriptions/sync', to: 'subscriptions#sync'
       post 'subscriptions/restore', to: 'subscriptions#restore'
     end
+
+    # Web-specific API routes (promo codes)
+    post 'validate_promo_code', to: 'promo_codes#validate'
   end
 
   # RevenueCat webhook (outside subdomain constraints, accepts any request)

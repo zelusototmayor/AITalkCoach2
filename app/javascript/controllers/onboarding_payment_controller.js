@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["submitBtn", "submitText", "submitLoader", "planRadio"]
+  static targets = ["submitBtn", "submitText", "submitLoader", "planRadio", "billingNote", "promoCodeContainer", "promoCodeField", "promoCodeStatus"]
   static values = {
     setupIntent: String
   }
@@ -167,6 +167,18 @@ export default class extends Controller {
   }
 
   selectPlan(event) {
+    // Get selected plan value
+    const selectedPlan = this.planRadioTargets.find(radio => radio.checked)?.value
+
+    // Update billing note text
+    if (this.hasBillingNoteTarget && selectedPlan) {
+      if (selectedPlan === 'monthly') {
+        this.billingNoteTarget.textContent = 'Then €9.99/month'
+      } else if (selectedPlan === 'yearly') {
+        this.billingNoteTarget.textContent = 'Then €60.00 billed annually'
+      }
+    }
+
     // Update UI to show selected plan
     this.planRadioTargets.forEach(radio => {
       const card = radio.closest('.pricing-card-compact')
@@ -185,6 +197,67 @@ export default class extends Controller {
         card.classList.remove('selected')
       }
     })
+  }
+
+  togglePromoCode(event) {
+    event.preventDefault()
+
+    if (this.hasPromoCodeContainerTarget) {
+      const isHidden = this.promoCodeContainerTarget.style.display === 'none'
+      this.promoCodeContainerTarget.style.display = isHidden ? 'block' : 'none'
+
+      if (isHidden && this.hasPromoCodeFieldTarget) {
+        // Focus on the input field when showing
+        setTimeout(() => this.promoCodeFieldTarget.focus(), 100)
+      }
+    }
+  }
+
+  async validatePromoCode(event) {
+    if (!this.hasPromoCodeFieldTarget || !this.hasPromoCodeStatusTarget) {
+      return
+    }
+
+    const code = this.promoCodeFieldTarget.value.trim()
+
+    if (!code) {
+      this.promoCodeStatusTarget.textContent = ''
+      this.promoCodeStatusTarget.className = 'promo-code-status'
+      return
+    }
+
+    // Show validating state
+    this.promoCodeStatusTarget.textContent = 'Validating...'
+    this.promoCodeStatusTarget.className = 'promo-code-status validating'
+    this.promoCodeFieldTarget.disabled = true
+
+    try {
+      const response = await fetch('/api/validate_promo_code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({ code })
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.valid) {
+        this.promoCodeStatusTarget.textContent = `✓ ${data.discount}`
+        this.promoCodeStatusTarget.className = 'promo-code-status success'
+        this.promoCodeFieldTarget.value = data.code // Ensure uppercase format
+      } else {
+        this.promoCodeStatusTarget.textContent = `✗ ${data.error || 'Invalid code'}`
+        this.promoCodeStatusTarget.className = 'promo-code-status error'
+      }
+    } catch (error) {
+      console.error('Promo code validation error:', error)
+      this.promoCodeStatusTarget.textContent = '✗ Unable to validate code'
+      this.promoCodeStatusTarget.className = 'promo-code-status error'
+    } finally {
+      this.promoCodeFieldTarget.disabled = false
+    }
   }
 
   async submitPayment(event) {
@@ -270,6 +343,16 @@ export default class extends Controller {
     const formData = new FormData()
     formData.append('setup_intent_id', setupIntentId)
     formData.append('selected_plan', selectedPlan)
+
+    // Add promo code if present and valid
+    if (this.hasPromoCodeFieldTarget && this.hasPromoCodeStatusTarget) {
+      const promoCode = this.promoCodeFieldTarget.value.trim()
+      const isValid = this.promoCodeStatusTarget.classList.contains('success')
+
+      if (promoCode && isValid) {
+        formData.append('promo_code', promoCode)
+      }
+    }
 
     // Get CSRF token
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content

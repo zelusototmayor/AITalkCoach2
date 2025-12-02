@@ -1,6 +1,7 @@
 <% content_for :title, "Choose Your Plan - AI Talk Coach" %>
 
 <% content_for :head do %>
+  <meta name="turbo-cache-control" content="no-cache">
   <script src="https://js.stripe.com/v3/"></script>
   <meta name="stripe-publishable-key" content="<%= Rails.configuration.stripe[:publishable_key] %>">
 <% end %>
@@ -149,6 +150,24 @@
         <div id="card-errors" class="card-errors"></div>
       </div>
 
+      <!-- Promo Code Section -->
+      <div class="promo-code-section">
+        <div class="promo-code-toggle">
+          <a href="#" data-action="click->onboarding-payment#togglePromoCode">
+            Have a promo code?
+          </a>
+        </div>
+        <div class="promo-code-input" data-onboarding-payment-target="promoCodeContainer" style="display: none;">
+          <input type="text"
+                 id="promo-code"
+                 class="promo-code-field"
+                 placeholder="Enter promo code"
+                 data-onboarding-payment-target="promoCodeField"
+                 data-action="blur->onboarding-payment#validatePromoCode">
+          <div class="promo-code-status" data-onboarding-payment-target="promoCodeStatus"></div>
+        </div>
+      </div>
+
       <% if flash[:alert] %>
         <div class="form-error">
           <%= flash[:alert] %>
@@ -182,7 +201,7 @@
       <span data-onboarding-payment-target="submitText">Start 3-Day Free Trial</span>
       <span data-onboarding-payment-target="submitLoader" class="btn-loader" style="display: none;"></span>
     </button>
-    <p class="continue-note">Then €60.00 billed annually</p>
+    <p class="continue-note" data-onboarding-payment-target="billingNote">Then €60.00 billed annually</p>
 
     <!-- Progress Dots -->
     <div class="progress-dots">
@@ -388,10 +407,6 @@
     box-shadow: 0 4px 12px rgba(255, 140, 66, 0.1);
   }
 
-  .plan-card.recommended {
-    border-color: #FF8C42;
-  }
-
   .plan-radio {
     position: absolute;
     opacity: 0;
@@ -594,6 +609,73 @@
     color: #c33;
     text-align: center;
     font-size: 0.8125rem;
+  }
+
+  /* Promo Code Section */
+  .promo-code-section {
+    margin-bottom: 1.25rem;
+  }
+
+  .promo-code-toggle {
+    text-align: center;
+    margin-bottom: 0.75rem;
+  }
+
+  .promo-code-toggle a {
+    font-size: 0.875rem;
+    color: #FF8C42;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s ease;
+  }
+
+  .promo-code-toggle a:hover {
+    color: #FF7028;
+    text-decoration: underline;
+  }
+
+  .promo-code-input {
+    margin-top: 0.75rem;
+  }
+
+  .promo-code-field {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+
+  .promo-code-field:focus {
+    outline: none;
+    border-color: #FF8C42;
+    box-shadow: 0 0 0 3px rgba(255, 140, 66, 0.1);
+  }
+
+  .promo-code-field:disabled {
+    background-color: #f1f5f9;
+    cursor: not-allowed;
+  }
+
+  .promo-code-status {
+    margin-top: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    min-height: 1.25rem;
+  }
+
+  .promo-code-status.success {
+    color: #10B981;
+  }
+
+  .promo-code-status.error {
+    color: #EF4444;
+  }
+
+  .promo-code-status.validating {
+    color: #64748b;
   }
 
   /* Guarantee Badge */

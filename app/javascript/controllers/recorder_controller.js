@@ -549,9 +549,9 @@ export default class extends Controller {
         this.countdownDisplayTarget.textContent = this.formatTime(remaining)
       }
 
-      // Update onboarding recording timer (countdown)
+      // Update onboarding recording timer (elapsed / total format)
       if (this.hasRecordingTimerTarget) {
-        this.recordingTimerTarget.textContent = this.formatTime(remaining)
+        this.recordingTimerTarget.textContent = `${elapsed}s / ${this.maxDurationSecValue}s`
       }
 
       // Update progress bar (countdown style)
@@ -563,7 +563,7 @@ export default class extends Controller {
       // Update SVG circular progress (onboarding)
       if (this.hasProgressCircleTarget) {
         const progress = (elapsed / this.maxDurationSecValue) * 100
-        const circumference = 2 * Math.PI * 54 // radius = 54 (matches SVG)
+        const circumference = 2 * Math.PI * 63 // radius = 63 (matches SVG)
         const offset = circumference - (progress / 100) * circumference
         this.progressCircleTarget.style.strokeDasharray = `${circumference} ${circumference}`
         this.progressCircleTarget.style.strokeDashoffset = offset

@@ -209,7 +209,7 @@ export default class extends Controller {
     this.updateChart()
   }
 
-  changeTimeRange(event) {
+  async changeTimeRange(event) {
     const range = event.currentTarget.dataset.range
     this.currentTimeRangeValue = range
 
@@ -219,13 +219,47 @@ export default class extends Controller {
     })
     event.currentTarget.classList.add('active')
 
-    // In a real implementation, you'd fetch new data here
-    // For now, we'll just re-render with existing data
-    // TODO: Fetch filtered data from server
     console.log(`Time range changed to: ${range}`)
 
-    // Update chart (for now with same data, but could filter client-side)
-    this.updateChart()
+    // Fetch new data from server with the selected time range
+    try {
+      const response = await fetch(`/progress.json?range=${range}`, {
+        headers: {
+          'Accept': 'application/json',
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+
+      console.log('Fetched new chart data:', data.chart_data)
+
+      // Update stored chart data with the new filtered data
+      if (data.chart_data) {
+        this.chartData.labels = data.chart_data.labels || []
+        this.chartData.overall_score = data.chart_data.overall_score_data || []
+        this.chartData.filler = data.chart_data.filler_data || []
+        this.chartData.pace = data.chart_data.pace_data || []
+        this.chartData.clarity = data.chart_data.clarity_data || []
+        this.chartData.pace_consistency = data.chart_data.pace_consistency_data || []
+        this.chartData.fluency = data.chart_data.fluency_data || []
+        this.chartData.engagement = data.chart_data.engagement_data || []
+
+        // Update chart labels
+        this.chart.data.labels = this.chartData.labels
+      }
+
+      // Update chart with filtered data
+      this.updateChart()
+    } catch (error) {
+      console.error('Error fetching progress data:', error)
+      // Fallback to updating with existing data
+      this.updateChart()
+    }
   }
 
   updateChart() {

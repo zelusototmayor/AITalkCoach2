@@ -1,5 +1,9 @@
 <% content_for :title, "AI Talk Coach" %>
 
+<% content_for :head do %>
+  <meta name="turbo-cache-control" content="no-cache">
+<% end %>
+
 <div class="splash-screen">
   <div class="splash-content">
     <p class="splash-welcome">welcome</p>
@@ -168,7 +172,22 @@
 
 <script>
   // Auto-advance to welcome page after 2.5 seconds
-  setTimeout(function() {
-    window.location.href = '<%= onboarding_welcome_path %>';
-  }, 2500);
+  (function() {
+    // Guard against multiple initializations (e.g., from Turbo cache)
+    if (window.splashRedirectInitialized) return;
+    window.splashRedirectInitialized = true;
+
+    var redirectTimer = setTimeout(function() {
+      if (typeof Turbo !== 'undefined') {
+        Turbo.visit('<%= onboarding_welcome_path %>');
+      } else {
+        window.location.href = '<%= onboarding_welcome_path %>';
+      }
+    }, 2500);
+
+    // Clean up timer if user navigates away before redirect
+    document.addEventListener('turbo:before-visit', function() {
+      clearTimeout(redirectTimer);
+    }, { once: true });
+  })();
 </script>

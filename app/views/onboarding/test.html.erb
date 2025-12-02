@@ -49,17 +49,16 @@
               </button>
 
               <div class="webapp-progress-circle">
-                <svg viewBox="0 0 120 120" class="progress-svg">
-                  <circle cx="60" cy="60" r="54" class="progress-bg"></circle>
-                  <circle cx="60" cy="60" r="54" class="progress-ring"></circle>
+                <svg viewBox="0 0 140 140" class="progress-svg">
+                  <circle cx="70" cy="70" r="63" class="progress-bg"></circle>
+                  <circle cx="70" cy="70" r="63" class="progress-ring"></circle>
                 </svg>
                 <div class="progress-content">
                   <div class="progress-percent">0%</div>
                   <div class="progress-status">READY</div>
+                  <div class="progress-timer">0s / 30s</div>
                 </div>
               </div>
-
-              <div class="webapp-timer">0s / 30s</div>
             </div>
             <p class="recording-tip">Speak naturally. Don't worry about perfection!</p>
             <div data-recorder-target="statusText" class="recording-status-text"></div>
@@ -75,17 +74,16 @@
               </button>
 
               <div class="webapp-progress-circle recording">
-                <svg viewBox="0 0 120 120" class="progress-svg">
-                  <circle cx="60" cy="60" r="54" class="progress-bg"></circle>
-                  <circle cx="60" cy="60" r="54" class="progress-ring" data-recorder-target="progressCircle"></circle>
+                <svg viewBox="0 0 140 140" class="progress-svg">
+                  <circle cx="70" cy="70" r="63" class="progress-bg"></circle>
+                  <circle cx="70" cy="70" r="63" class="progress-ring" data-recorder-target="progressCircle"></circle>
                 </svg>
                 <div class="progress-content">
                   <div class="progress-percent" data-recorder-target="percentage">0%</div>
                   <div class="progress-status">REC</div>
+                  <div class="progress-timer" data-recorder-target="recordingTimer">0s / 30s</div>
                 </div>
               </div>
-
-              <div class="webapp-timer" data-recorder-target="recordingTimer">0s / 30s</div>
             </div>
 
             <div class="recording-actions">
@@ -254,8 +252,10 @@
   /* Web App Style Recording UI */
   .webapp-recording-ui {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
+    gap: 1.5rem;
     max-width: 500px;
     margin: 0 auto 1.5rem auto;
   }
@@ -304,8 +304,8 @@
   /* Progress Circle (Web App Style) */
   .webapp-progress-circle {
     position: relative;
-    width: 120px;
-    height: 120px;
+    width: 160px;
+    height: 160px;
   }
 
   .progress-svg {
@@ -316,18 +316,18 @@
 
   .progress-bg {
     fill: none;
-    stroke: #e5e7eb;
-    stroke-width: 8;
+    stroke: #f1f5f9;
+    stroke-width: 10;
   }
 
   .progress-ring {
     fill: none;
-    stroke: #cbd5e1;
-    stroke-width: 8;
+    stroke: #FFD4B8;
+    stroke-width: 10;
     stroke-linecap: round;
-    stroke-dasharray: 339.292;
-    stroke-dashoffset: 339.292;
-    transition: stroke-dashoffset 0.3s ease, stroke 0.3s ease;
+    stroke-dasharray: 395.84;
+    stroke-dashoffset: 395.84;
+    transition: stroke-dashoffset 0.1s linear, stroke 0.3s ease;
   }
 
   .webapp-progress-circle.recording .progress-ring {
@@ -345,25 +345,36 @@
     align-items: center;
     justify-content: center;
     width: 100%;
+    height: 100%;
+    padding: 1rem;
   }
 
   .progress-percent {
-    font-size: 1.5rem;
+    font-size: 1.75rem;
     font-weight: 700;
     color: #1e293b;
-    line-height: 1;
-    margin: 0;
+    line-height: 1.1;
+    margin: 0 0 0.25rem 0;
   }
 
   .progress-status {
-    font-size: 0.75rem;
-    font-weight: 600;
+    font-size: 0.7rem;
+    font-weight: 700;
     color: #64748b;
-    letter-spacing: 0.05em;
-    margin: 0.25rem 0 0 0;
+    letter-spacing: 0.1em;
+    margin: 0 0 0.25rem 0;
+    text-transform: uppercase;
   }
 
-  /* Timer Display (Web App Style) */
+  .progress-timer {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #94a3b8;
+    line-height: 1.1;
+    margin: 0;
+  }
+
+  /* Timer Display (Web App Style) - Deprecated, now inside circle */
   .webapp-timer {
     font-size: 1.1rem;
     font-weight: 600;
@@ -534,8 +545,7 @@
     }
 
     .webapp-recording-ui {
-      flex-direction: column;
-      gap: 1.5rem;
+      gap: 1.25rem;
       max-width: 100%;
     }
 
@@ -544,63 +554,18 @@
       max-width: 200px;
     }
 
-    .webapp-timer {
-      min-width: 60px;
+    .webapp-progress-circle {
+      width: 140px;
+      height: 140px;
+    }
+
+    .progress-percent {
+      font-size: 1.75rem;
+    }
+
+    .progress-timer {
+      font-size: 0.85rem;
     }
   }
 </style>
 
-<script>
-  // Update timer and progress circle during recording
-  document.addEventListener('turbo:load', function() {
-    const recorder = document.querySelector('[data-controller="recorder"]');
-    if (!recorder) return;
-
-    // Timer element
-    const timerElement = recorder.querySelector('[data-recorder-target="recordingTimer"]');
-    const percentElement = recorder.querySelector('[data-recorder-target="percentage"]');
-    const progressCircle = recorder.querySelector('[data-recorder-target="progressCircle"]');
-
-    if (timerElement) {
-      // Format as "Xs / 60s" and update progress
-      const observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-          if (mutation.type === 'childList' || mutation.type === 'characterData') {
-            const text = timerElement.textContent;
-
-            // If it's in format "0:30", convert to "Xs / 60s"
-            if (text.includes(':')) {
-              const parts = text.split(':');
-              const minutes = parseInt(parts[0]);
-              const seconds = parseInt(parts[1]);
-              const totalSeconds = minutes * 60 + seconds;
-              const remaining = 30 - totalSeconds;
-              const elapsed = 30 - remaining;
-
-              timerElement.textContent = `${elapsed}s / 30s`;
-
-              // Update percentage
-              const percent = Math.round((elapsed / 30) * 100);
-              if (percentElement) {
-                percentElement.textContent = `${percent}%`;
-              }
-
-              // Update progress circle
-              if (progressCircle) {
-                const circumference = 2 * Math.PI * 54; // r=54
-                const offset = circumference - (elapsed / 30) * circumference;
-                progressCircle.style.strokeDashoffset = offset;
-              }
-            }
-          }
-        });
-      });
-
-      observer.observe(timerElement, {
-        childList: true,
-        characterData: true,
-        subtree: true
-      });
-    }
-  });
-</script>

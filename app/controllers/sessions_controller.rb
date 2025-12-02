@@ -258,7 +258,7 @@ class SessionsController < ApplicationController
     @weekly_focus = WeeklyFocus.current_for_user(user)
 
     # Prepare chart data for frontend with time range
-    @time_range = params[:range] || params[:time_range] || "7"
+    @time_range = params[:range] || params[:time_range] || "10_sessions"
     @chart_data = prepare_progress_chart_data(@recent_sessions, @time_range)
 
     # Prepare skill snapshot data (current vs previous session)
@@ -1364,19 +1364,23 @@ class SessionsController < ApplicationController
     transcript.scan(filler_pattern).length
   end
 
-  def prepare_progress_chart_data(sessions, time_range = "7")
+  def prepare_progress_chart_data(sessions, time_range = "10_sessions")
     return {} if sessions.empty?
 
     # Filter sessions based on time range
     chart_sessions = case time_range
     when "7"
       sessions.last(7)
+    when "10_sessions"
+      sessions.last(10)
+    when "10_days"
+      sessions.last(10)
     when "30"
       sessions.last(30)
     when "lifetime"
       sessions
     else
-      sessions.last(7)
+      sessions.last(10)
     end
 
     # For lifetime view with many sessions, use session numbers
