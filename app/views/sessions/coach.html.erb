@@ -202,6 +202,8 @@
                   weekly_focus_id: drill[:weekly_focus_id],
                   is_planned_session: true,
                   drill_title: drill[:title],
+                  drill_description: drill[:description],
+                  drill_reasoning: drill[:reasoning],
                   target_seconds: drill[:duration_seconds]
                 ), class: "btn-drill" do %>
                   <%= icon_svg(:play, css_class: 'icon-xs') %> Start

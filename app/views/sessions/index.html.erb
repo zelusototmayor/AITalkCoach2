@@ -23,33 +23,71 @@
 
       <!-- Current Prompt Display - Library Style -->
       <div class="prompt-card practice-prompt-card" data-prompts-target="display" data-prompt-identifier="<%= @default_prompt_data[:identifier] %>">
-        <div class="prompt-header">
-          <!-- Title and Badges Row -->
-          <div class="prompt-title-row">
-            <h3 class="prompt-title-practice" data-prompts-target="title"><%= @default_prompt_data[:title] || "Practice Prompt" %></h3>
-            <div class="prompt-badges-practice">
-              <% if @default_prompt_data[:difficulty] %>
-                <span class="difficulty-badge difficulty-<%= @default_prompt_data[:difficulty].downcase %>">
-                  <%= @default_prompt_data[:difficulty].capitalize %>
-                </span>
-              <% end %>
+        <% if params[:drill_title].present? && params[:drill_description].present? %>
+          <!-- Drill Mode - Enriched Display -->
+          <div class="prompt-header">
+            <div class="prompt-title-row">
+              <div class="drill-exercise-label">
+                <%= icon_svg(:list, css_class: 'icon-xs') %>
+                <span>DRILL EXERCISE</span>
+              </div>
+              <div class="prompt-badges-practice">
+                <% if @default_prompt_data[:difficulty] %>
+                  <span class="difficulty-badge difficulty-<%= @default_prompt_data[:difficulty].downcase %>">
+                    <%= @default_prompt_data[:difficulty].capitalize %>
+                  </span>
+                <% end %>
+              </div>
             </div>
+            <h3 class="drill-title-practice"><%= params[:drill_title] %></h3>
           </div>
 
-          <!-- Description (optional, if exists) -->
-          <% if @default_prompt_data[:description].present? %>
-            <p class="prompt-description-practice"><%= @default_prompt_data[:description] %></p>
-          <% end %>
-        </div>
+          <!-- Drill Instructions -->
+          <div class="drill-instructions">
+            <h4 class="drill-section-label">Instructions:</h4>
+            <p class="drill-description-text"><%= params[:drill_description] %></p>
+          </div>
 
-        <!-- Full Prompt Text -->
-        <div class="prompt-text-practice" data-prompts-target="content">
-          <% if params[:drill_title].present? %>
-            <%= params[:drill_title] %>
-          <% else %>
-            <%= @default_prompt %>
+          <!-- Drill Reasoning (Why this drill) -->
+          <% if params[:drill_reasoning].present? %>
+            <div class="drill-reasoning">
+              <p class="drill-reasoning-text"><%= params[:drill_reasoning] %></p>
+            </div>
           <% end %>
-        </div>
+
+          <!-- Speaking Prompt -->
+          <div class="drill-prompt-section">
+            <h4 class="drill-section-label">Speaking Prompt:</h4>
+            <div class="prompt-text-practice" data-prompts-target="content">
+              <%= @default_prompt %>
+            </div>
+          </div>
+        <% else %>
+          <!-- Regular Mode - Standard Display -->
+          <div class="prompt-header">
+            <!-- Title and Badges Row -->
+            <div class="prompt-title-row">
+              <h3 class="prompt-title-practice" data-prompts-target="title"><%= @default_prompt_data[:title] || "Practice Prompt" %></h3>
+              <div class="prompt-badges-practice">
+                <% if @default_prompt_data[:difficulty] %>
+                  <span class="difficulty-badge difficulty-<%= @default_prompt_data[:difficulty].downcase %>">
+                    <%= @default_prompt_data[:difficulty].capitalize %>
+                  </span>
+                <% end %>
+              </div>
+            </div>
+
+            <!-- Description (optional, if exists) -->
+            <% if @default_prompt_data[:description].present? %>
+              <p class="prompt-description-practice"><%= @default_prompt_data[:description] %></p>
+            <% end %>
+          </div>
+
+          <!-- Full Prompt Text -->
+          <div class="prompt-text-practice" data-prompts-target="content">
+            <%= @default_prompt %>
+          </div>
+        <% end %>
 
         <!-- Footer -->
         <div class="prompt-footer-practice">

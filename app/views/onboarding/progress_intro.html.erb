@@ -113,10 +113,20 @@
     }
   });
 
-  // Initialize chart on page load (works for both direct loads and Turbo navigations)
-  document.addEventListener('turbo:load', function() {
+  // Function to initialize the chart
+  function initializeProgressChart() {
     const canvas = document.getElementById('progressChart');
     if (!canvas) return; // Exit if we're not on the progress intro page
+
+    // Check if Chart.js is loaded
+    if (typeof Chart === 'undefined') {
+      // If Chart.js isn't loaded yet, wait a bit and try again
+      setTimeout(initializeProgressChart, 50);
+      return;
+    }
+
+    // Prevent duplicate initialization
+    if (window.progressChartInstance) return;
 
     const ctx = canvas.getContext('2d');
 
@@ -204,7 +214,17 @@
         }
       }
     });
-  });
+  }
+
+  // Initialize chart on page load (works for both direct loads and Turbo navigations)
+  document.addEventListener('turbo:load', initializeProgressChart);
+
+  // Also try to initialize immediately in case turbo:load already fired
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeProgressChart);
+  } else {
+    initializeProgressChart();
+  }
 </script>
 
 <style>
