@@ -188,8 +188,8 @@ class User < ApplicationRecord
     subscription_status == "free_trial" && trial_expires_at&.past?
   end
 
-  # Extend trial based on daily practice (calendar day logic)
-  # If user practices on day X, they get free access through end of day X+1
+  # Extend trial based on daily practice
+  # Each qualifying session resets the trial to 24 hours from now
   def extend_trial_for_practice!(session)
     # Only extend for users on free trial
     return false unless subscription_free_trial?
@@ -198,22 +198,16 @@ class User < ApplicationRecord
     duration_seconds = session.analysis_data&.dig("duration_seconds")&.to_f || 0
     return false unless duration_seconds >= 55
 
-    # Session completed on calendar day = free access through end of next day
-    session_date = session.created_at.to_date
-    new_expiry = session_date.tomorrow.end_of_day
+    # Reset trial to 24 hours from now
+    new_expiry = 24.hours.from_now
 
-    # Track this qualifying session
-    update_column(:last_qualifying_session_at, session.created_at)
-
-    # Only extend if it would increase the trial period
-    if trial_expires_at.nil? || new_expiry > trial_expires_at
-      update_column(:trial_expires_at, new_expiry)
-      Rails.logger.info "Trial extended for user #{id} until #{new_expiry} (session on #{session_date})"
-      true
-    else
-      Rails.logger.info "Trial not extended for user #{id} - already expires at #{trial_expires_at} (but marked as practiced)"
-      true # Return true since they did practice, even if trial wasn't extended
-    end
+    # Track this qualifying session and reset trial
+    update_columns(
+      last_qualifying_session_at: session.created_at,
+      trial_expires_at: new_expiry
+    )
+    Rails.logger.info "Trial reset for user #{id} to #{new_expiry} (session #{session.id})"
+    true
   end
 
   # Check if user has completed a practice session today

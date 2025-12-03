@@ -163,12 +163,12 @@
         <% if current_user.practiced_today? %>
           <div class="sidebar-badge-title">✅ Today's Practice Done!</div>
           <div class="sidebar-badge-subtitle">
-            Free until <%= Date.tomorrow.end_of_day.strftime('%b %d, %I:%M %p') %>
+            Free for <%= current_user.trial_hours_remaining %>h - practice again to refresh!
           </div>
         <% else %>
           <div class="sidebar-badge-title">🎯 Practice = Free Forever</div>
           <div class="sidebar-badge-subtitle">
-            Complete 1+ min session today → Free tomorrow!
+            Complete 1+ min session → Free for 24h!
           </div>
           <div class="sidebar-badge-expiry">
             Trial expires in <%= current_user.trial_hours_remaining %>h
