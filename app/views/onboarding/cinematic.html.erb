@@ -14,9 +14,12 @@
     </svg>
   <% end %>
 
-  <!-- Continue Button -->
-  <%= link_to "#{onboarding_pricing_path}?t=#{Time.now.to_i}", class: 'skip-btn', data: { turbo: false } do %>
+  <!-- Continue Button - Prominent CTA that appears after animation -->
+  <%= link_to "#{onboarding_pricing_path}?t=#{Time.now.to_i}", class: 'continue-btn-cinematic', data: { turbo: false } do %>
     Continue
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="arrow-icon">
+      <path d="M5 12h14M12 5l7 7-7 7"/>
+    </svg>
   <% end %>
 
   <!-- Animated Messages -->
@@ -95,23 +98,52 @@
     color: #1e293b;
   }
 
-  /* Skip Button */
-  .skip-btn {
+  /* Continue Button - Prominent CTA */
+  .continue-btn-cinematic {
     position: absolute;
-    top: 1.5rem;
-    right: 1.5rem;
-    padding: 0.5rem 1rem;
-    font-size: 1rem;
-    font-weight: 600;
-    color: #FF8C42;
+    bottom: 3rem;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 1rem 2.5rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #FFFFFF;
+    background: linear-gradient(135deg, #FF8C42 0%, #FF7028 100%);
+    border-radius: 50px;
     text-decoration: none;
-    z-index: 10;
-    transition: all 0.2s ease;
+    z-index: 100;
+    box-shadow: 0 8px 24px rgba(255, 140, 66, 0.4);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    opacity: 0;
+    animation: fadeInButton 0.5s ease-in-out 3.5s forwards, gentleBounce 2s ease-in-out 4s infinite;
+    transition: all 0.3s ease;
   }
 
-  .skip-btn:hover {
-    color: #FF7028;
-    transform: scale(1.05);
+  .continue-btn-cinematic:hover {
+    box-shadow: 0 12px 32px rgba(255, 140, 66, 0.6);
+    transform: translateX(-50%) translateY(-2px);
+  }
+
+  .continue-btn-cinematic .arrow-icon {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.3s ease;
+  }
+
+  .continue-btn-cinematic:hover .arrow-icon {
+    transform: translateX(4px);
+  }
+
+  @keyframes fadeInButton {
+    0% { opacity: 0; transform: translateX(-50%) translateY(20px); }
+    100% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+
+  @keyframes gentleBounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(-8px); }
   }
 
   /* Messages Container */
@@ -307,32 +339,11 @@
     .free-forever-highlight {
       padding: 1.25rem 2rem;
     }
+
+    .continue-btn-cinematic {
+      bottom: 2rem;
+      padding: 0.875rem 2rem;
+      font-size: 1.125rem;
+    }
   }
 </style>
-
-<script>
-  // Ensure this only runs once per page visit
-  (function() {
-    // Check if we've already set up the redirect
-    if (window.cinematicRedirectInitialized) return;
-    window.cinematicRedirectInitialized = true;
-
-    // Auto-advance to pricing page after 4.5 seconds
-    // Using Turbo.visit to maintain consistency with Turbo navigation
-    var redirectTimer = setTimeout(function() {
-      // Add cache-busting timestamp to ensure fresh page load
-      var cacheBustUrl = '<%= onboarding_pricing_path %>' + '?t=' + Date.now();
-      if (typeof Turbo !== 'undefined') {
-        Turbo.visit(cacheBustUrl);
-      } else {
-        // Fallback to location.href if Turbo isn't available
-        window.location.href = cacheBustUrl;
-      }
-    }, 4500);
-
-    // Clean up timer if user navigates away manually
-    document.addEventListener('turbo:before-visit', function() {
-      clearTimeout(redirectTimer);
-    }, { once: true });
-  })();
-</script>
