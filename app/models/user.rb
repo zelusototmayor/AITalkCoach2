@@ -194,13 +194,16 @@ class User < ApplicationRecord
     # Only extend for users on free trial
     return false unless subscription_free_trial?
 
-    # Only extend if session is at least 1 minute
+    # Only extend if session is at least ~1 minute (55s to account for timing)
     duration_seconds = session.analysis_data&.dig("duration_seconds")&.to_f || 0
-    return false unless duration_seconds >= 60
+    return false unless duration_seconds >= 55
 
     # Session completed on calendar day = free access through end of next day
     session_date = session.created_at.to_date
     new_expiry = session_date.tomorrow.end_of_day
+
+    # Track this qualifying session
+    update_column(:last_qualifying_session_at, session.created_at)
 
     # Only extend if it would increase the trial period
     if trial_expires_at.nil? || new_expiry > trial_expires_at
@@ -208,8 +211,8 @@ class User < ApplicationRecord
       Rails.logger.info "Trial extended for user #{id} until #{new_expiry} (session on #{session_date})"
       true
     else
-      Rails.logger.info "Trial not extended for user #{id} - already expires at #{trial_expires_at}"
-      false
+      Rails.logger.info "Trial not extended for user #{id} - already expires at #{trial_expires_at} (but marked as practiced)"
+      true # Return true since they did practice, even if trial wasn't extended
     end
   end
 
@@ -217,7 +220,7 @@ class User < ApplicationRecord
   def practiced_today?
     sessions.where(completed: true)
             .where("DATE(created_at) = ?", Date.current)
-            .where("json_extract(analysis_data, '$.duration_seconds') >= ?", 60)
+            .where("json_extract(analysis_data, '$.duration_seconds') >= ?", 55)
             .exists?
   end
 
