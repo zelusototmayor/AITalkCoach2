@@ -7,7 +7,7 @@ Rails.application.configure do
     policy.default_src :self, :https
 
     # Allow specific script sources (Google Analytics requires unsafe-inline)
-    policy.script_src :self, :unsafe_inline, "https://cdn.jsdelivr.net", "https://unpkg.com", "https://www.googletagmanager.com", "https://www.google-analytics.com", "https://ssl.google-analytics.com", "https://js.stripe.com", "https://cdn.mxpnl.com"
+    policy.script_src :self, :unsafe_inline, "https://cdn.jsdelivr.net", "https://unpkg.com", "https://www.googletagmanager.com", "https://www.google-analytics.com", "https://ssl.google-analytics.com", "https://js.stripe.com", "https://cdn.mxpnl.com", "https://accounts.google.com", "https://appleid.cdn-apple.com"
 
     # Allow specific style sources
     policy.style_src :self, :unsafe_inline, "https://fonts.googleapis.com"
@@ -19,13 +19,13 @@ Rails.application.configure do
     policy.font_src :self, "https://fonts.gstatic.com"
 
     # Allow connections to specific hosts (including Google Apps Script for partner form)
-    policy.connect_src :self, "https://api.openai.com", "https://api.deepgram.com", "https://api.stripe.com", "https://www.google-analytics.com", "https://region1.google-analytics.com", "https://analytics.google.com", "https://stats.g.doubleclick.net", "https://www.googletagmanager.com", "https://script.google.com", "https://script.googleusercontent.com", "https://cdn.jsdelivr.net", "https://cdn.mxpnl.com", "https://api-eu.mixpanel.com"
+    policy.connect_src :self, "https://api.openai.com", "https://api.deepgram.com", "https://api.stripe.com", "https://www.google-analytics.com", "https://region1.google-analytics.com", "https://analytics.google.com", "https://stats.g.doubleclick.net", "https://www.googletagmanager.com", "https://script.google.com", "https://script.googleusercontent.com", "https://cdn.jsdelivr.net", "https://cdn.mxpnl.com", "https://api-eu.mixpanel.com", "https://accounts.google.com", "https://www.googleapis.com", "https://appleid.apple.com"
 
     # Media sources for audio/video
     policy.media_src :self, :blob
 
-    # Frame sources (for Stripe payment elements)
-    policy.frame_src :self, "https://js.stripe.com"
+    # Frame sources (for Stripe payment elements and Google One Tap)
+    policy.frame_src :self, "https://js.stripe.com", "https://accounts.google.com"
 
     # Object sources
     policy.object_src :none
