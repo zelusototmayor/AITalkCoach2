@@ -3,17 +3,35 @@ class Auth::OauthController < ApplicationController
 
   # POST /auth/oauth/google
   # Web OAuth callback for Google Sign-In
+  # Accepts either:
+  #   - credential: Google ID token (from One Tap)
+  #   - access_token + user_info: OAuth access token flow (fallback)
   def google
     credential = params[:credential]
-
-    if credential.blank?
-      flash[:alert] = "Google sign-in failed. Please try again."
-      return redirect_to auth_sessions_new_path
-    end
+    access_token = params[:access_token]
+    user_info = params[:user_info]
 
     begin
-      # Verify the Google ID token
-      token_data = ::Auth::OauthTokenVerifier.verify_google(credential)
+      if credential.present?
+        # ID token flow (One Tap)
+        token_data = ::Auth::OauthTokenVerifier.verify_google(credential)
+      elsif access_token.present? && user_info.present?
+        # Access token flow (OAuth popup fallback)
+        # user_info is already fetched by client from Google's userinfo endpoint
+        token_data = {
+          email: user_info["email"],
+          name: user_info["name"],
+          google_uid: user_info["sub"],
+          email_verified: user_info["email_verified"]
+        }
+
+        unless token_data[:email_verified]
+          raise ::Auth::OauthTokenVerifier::VerificationError, "Email not verified with Google"
+        end
+      else
+        flash[:alert] = "Google sign-in failed. Please try again."
+        return redirect_or_json_error("Google sign-in failed. Please try again.")
+      end
 
       # Find or create user
       result = ::Auth::OauthUserService.find_or_create_from_oauth(
@@ -32,12 +50,10 @@ class Auth::OauthController < ApplicationController
       handle_post_oauth_redirect(user, result[:is_new_user])
     rescue ::Auth::OauthTokenVerifier::VerificationError => e
       Rails.logger.warn "Google OAuth verification failed: #{e.message}"
-      flash[:alert] = "Google sign-in failed: #{e.message}"
-      redirect_to auth_sessions_new_path
+      redirect_or_json_error("Google sign-in failed: #{e.message}")
     rescue ::Auth::OauthUserService::OauthError => e
       Rails.logger.error "Google OAuth user creation failed: #{e.message}"
-      flash[:alert] = "Failed to create account: #{e.message}"
-      redirect_to auth_sessions_new_path
+      redirect_or_json_error("Failed to create account: #{e.message}")
     end
   end
 
@@ -128,10 +144,26 @@ class Auth::OauthController < ApplicationController
     # Check if user needs onboarding
     if user.needs_onboarding?
       flash[:notice] = is_new_user ? "Welcome! Let's get you started." : "Welcome back! Please complete your profile."
-      redirect_to onboarding_splash_path
+      redirect_path = onboarding_splash_path
     else
       flash[:notice] = is_new_user ? "Welcome to AI Talk Coach!" : "Welcome back!"
-      redirect_to practice_path
+      redirect_path = practice_path
+    end
+
+    # Handle JSON requests (from JavaScript OAuth flows)
+    if request.format.json? || request.content_type&.include?("application/json")
+      render json: { success: true, redirect_url: redirect_path }, status: :ok
+    else
+      redirect_to redirect_path
+    end
+  end
+
+  def redirect_or_json_error(message)
+    if request.format.json? || request.content_type&.include?("application/json")
+      render json: { error: message }, status: :unprocessable_entity
+    else
+      flash[:alert] = message
+      redirect_to auth_sessions_new_path
     end
   end
 end

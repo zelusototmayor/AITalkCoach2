@@ -6,6 +6,8 @@ export default class extends Controller {
     clientId: String
   }
 
+  static targets = ["button"]
+
   connect() {
     this.loadGoogleScript()
   }
@@ -40,17 +42,81 @@ export default class extends Controller {
       cancel_on_tap_outside: true
     })
 
-    // Render the Google Sign-In button
-    const buttonContainer = this.element.querySelector("#google-signin-button")
-    if (buttonContainer) {
-      window.google.accounts.id.renderButton(buttonContainer, {
-        type: "standard",
-        shape: "rectangular",
-        theme: "outline",
-        size: "large",
-        text: "continue_with",
-        width: "100%"
+    // Mark as ready
+    this.googleReady = true
+  }
+
+  // Called when user clicks our custom button
+  signIn(event) {
+    event.preventDefault()
+
+    if (!this.googleReady) {
+      this.showError("Google Sign-In is still loading. Please try again.")
+      return
+    }
+
+    // Use the One Tap prompt to trigger sign-in
+    window.google.accounts.id.prompt((notification) => {
+      if (notification.isNotDisplayed()) {
+        // Fall back to OAuth2 popup if One Tap is not available
+        this.fallbackSignIn()
+      } else if (notification.isSkippedMoment()) {
+        // User dismissed, do nothing
+      }
+    })
+  }
+
+  fallbackSignIn() {
+    // Use OAuth2 authorization code flow as fallback
+    const client = window.google.accounts.oauth2.initTokenClient({
+      client_id: this.clientIdValue,
+      scope: "email profile",
+      callback: (tokenResponse) => {
+        if (tokenResponse.access_token) {
+          this.handleAccessToken(tokenResponse.access_token)
+        }
+      }
+    })
+    client.requestAccessToken()
+  }
+
+  async handleAccessToken(accessToken) {
+    try {
+      this.setLoading(true)
+
+      // Get user info from Google
+      const userInfoResponse = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+        headers: { Authorization: `Bearer ${accessToken}` }
       })
+      const userInfo = await userInfoResponse.json()
+
+      // Send to our backend
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content
+      const result = await fetch("/auth/oauth/google", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": csrfToken,
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({
+          access_token: accessToken,
+          user_info: userInfo
+        })
+      })
+
+      if (result.ok) {
+        const data = await result.json().catch(() => ({}))
+        window.location.href = data.redirect_url || "/practice"
+      } else {
+        const data = await result.json().catch(() => ({}))
+        this.showError(data.error || "Google sign-in failed. Please try again.")
+      }
+    } catch (error) {
+      console.error("Google sign-in error:", error)
+      this.showError("Google sign-in failed. Please try again.")
+    } finally {
+      this.setLoading(false)
     }
   }
 
@@ -79,8 +145,8 @@ export default class extends Controller {
       })
 
       if (result.ok) {
-        // Redirect will be handled by the controller
-        window.location.href = result.url || "/practice"
+        const data = await result.json().catch(() => ({}))
+        window.location.href = data.redirect_url || "/practice"
       } else {
         const data = await result.json().catch(() => ({}))
         this.showError(data.error || "Google sign-in failed. Please try again.")
