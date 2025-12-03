@@ -210,7 +210,10 @@ class OnboardingController < ApplicationController
 
   # Screen 4.75: Cinematic "Free Forever" animation
   def cinematic
-    # Just renders the cinematic animation page
+    # Set aggressive cache-control headers to prevent caching
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, private, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
   end
 
   # Screen 5: Pricing & payment collection

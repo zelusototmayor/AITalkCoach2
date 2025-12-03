@@ -1,6 +1,9 @@
 <% content_for :title, "Free Forever - AI Talk Coach" %>
 <% content_for :head do %>
   <meta name="turbo-cache-control" content="no-cache">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
 <% end %>
 
 <div class="cinematic-container">
@@ -12,7 +15,7 @@
   <% end %>
 
   <!-- Continue Button -->
-  <%= link_to onboarding_pricing_path, class: 'skip-btn', data: { turbo: false } do %>
+  <%= link_to "#{onboarding_pricing_path}?t=#{Time.now.to_i}", class: 'skip-btn', data: { turbo: false } do %>
     Continue
   <% end %>
 
@@ -317,11 +320,13 @@
     // Auto-advance to pricing page after 4.5 seconds
     // Using Turbo.visit to maintain consistency with Turbo navigation
     var redirectTimer = setTimeout(function() {
+      // Add cache-busting timestamp to ensure fresh page load
+      var cacheBustUrl = '<%= onboarding_pricing_path %>' + '?t=' + Date.now();
       if (typeof Turbo !== 'undefined') {
-        Turbo.visit('<%= onboarding_pricing_path %>');
+        Turbo.visit(cacheBustUrl);
       } else {
         // Fallback to location.href if Turbo isn't available
-        window.location.href = '<%= onboarding_pricing_path %>';
+        window.location.href = cacheBustUrl;
       }
     }, 4500);
 
