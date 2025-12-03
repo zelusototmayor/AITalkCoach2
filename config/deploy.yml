@@ -56,6 +56,9 @@ env:
     - SMTP_PORT
     - SMTP_USERNAME
     - SMTP_PASSWORD
+    # Stripe payment processing
+    - STRIPE_PUBLISHABLE_KEY
+    - STRIPE_SECRET_KEY
   clear:
     # Run the Solid Queue Supervisor inside the web server's Puma process to do jobs.
     # When you start using multiple servers, you should split out job processing to a dedicated machine.
