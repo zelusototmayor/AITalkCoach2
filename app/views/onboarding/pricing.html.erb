@@ -141,6 +141,18 @@
         </div>
       </div>
 
+      <!-- Free Forever Banner -->
+      <div class="free-forever-banner">
+        <div class="free-forever-icon">✨</div>
+        <div class="free-forever-content">
+          <div class="free-forever-title">Practice Daily = Free Forever</div>
+          <div class="free-forever-description">
+            Complete a 1-minute session every day and your free access extends automatically.
+            No charges as long as you keep practicing!
+          </div>
+        </div>
+      </div>
+
       <!-- Payment Method Section -->
       <div class="payment-section">
         <div class="payment-header">Payment Method</div>
@@ -198,7 +210,7 @@
             class="primary-btn btn-large"
             data-onboarding-payment-target="submitBtn"
             data-action="click->onboarding-payment#submitPayment">
-      <span data-onboarding-payment-target="submitText">Start 3-Day Free Trial</span>
+      <span data-onboarding-payment-target="submitText">Start Free Trial</span>
       <span data-onboarding-payment-target="submitLoader" class="btn-loader" style="display: none;"></span>
     </button>
     <p class="continue-note" data-onboarding-payment-target="billingNote">Then €60.00 billed annually</p>
@@ -513,6 +525,40 @@
   /* Features Section */
   .features-section {
     margin-bottom: 1.5rem;
+  }
+
+  /* Free Forever Banner */
+  .free-forever-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.875rem;
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    border: 2px solid #10b981;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .free-forever-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+  }
+
+  .free-forever-content {
+    flex: 1;
+  }
+
+  .free-forever-title {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: #065f46;
+    margin-bottom: 0.25rem;
+  }
+
+  .free-forever-description {
+    font-size: 0.8125rem;
+    color: #047857;
+    line-height: 1.4;
   }
 
   .features-title {
