@@ -2,7 +2,7 @@ export default {
   expo: {
     name: "AI Talk Coach",
     slug: "ai-talk-coach",
-    version: "1.0.4",
+    version: "1.0.5",
     orientation: "portrait",
     icon: "./assets/logo.png",
     userInterfaceStyle: "light",
