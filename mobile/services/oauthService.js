@@ -2,16 +2,34 @@
 // Handles Google and Apple authentication flows
 
 import { Platform } from 'react-native';
-import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import * as AppleAuthentication from 'expo-apple-authentication';
 
 const API_BASE_URL = __DEV__
-  ? 'http://192.168.100.42:3002'
+  ? 'http://192.168.100.47:3002'
   : 'https://app.aitalkcoach.com';
+
+// Dynamically import Google Sign-In to avoid crash in Expo Go
+let GoogleSignin = null;
+let statusCodes = null;
+let googleSignInAvailable = false;
+
+try {
+  const googleModule = require('@react-native-google-signin/google-signin');
+  GoogleSignin = googleModule.GoogleSignin;
+  statusCodes = googleModule.statusCodes;
+  googleSignInAvailable = true;
+} catch (e) {
+  console.log('Google Sign-In native module not available (expected in Expo Go)');
+}
 
 // Configure Google Sign-In
 // Note: You need to set the webClientId and iosClientId from Google Cloud Console
 export function configureGoogleSignIn() {
+  if (!googleSignInAvailable || !GoogleSignin) {
+    console.log('Google Sign-In not available - skipping configuration');
+    return;
+  }
+
   GoogleSignin.configure({
     // Get from Google Cloud Console -> Credentials -> OAuth 2.0 Client IDs
     webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || '204728762120-fck6u9oqfj97mosoai568ova6fkp2fic.apps.googleusercontent.com',
@@ -21,10 +39,22 @@ export function configureGoogleSignIn() {
 }
 
 /**
+ * Check if Google Sign-In is available
+ * @returns {boolean}
+ */
+export function isGoogleSignInAvailable() {
+  return googleSignInAvailable;
+}
+
+/**
  * Sign in with Google
  * @returns {Promise<Object>} Response with user, token, refresh_token
  */
 export async function signInWithGoogle() {
+  if (!googleSignInAvailable || !GoogleSignin) {
+    throw new Error('Google Sign-In is not available. Please use a development build.');
+  }
+
   try {
     // Check if Google Play Services are available (Android)
     await GoogleSignin.hasPlayServices();
@@ -44,11 +74,11 @@ export async function signInWithGoogle() {
 
     return backendResponse;
   } catch (error) {
-    if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+    if (statusCodes && error.code === statusCodes.SIGN_IN_CANCELLED) {
       throw new Error('Google sign-in was cancelled');
-    } else if (error.code === statusCodes.IN_PROGRESS) {
+    } else if (statusCodes && error.code === statusCodes.IN_PROGRESS) {
       throw new Error('Google sign-in already in progress');
-    } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+    } else if (statusCodes && error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
       throw new Error('Google Play Services not available');
     }
     console.error('Google sign-in error:', error);
@@ -181,6 +211,10 @@ async function sendAppleTokenToBackend(identityToken, userData) {
  * Sign out from Google (clears cached credentials)
  */
 export async function signOutGoogle() {
+  if (!googleSignInAvailable || !GoogleSignin) {
+    return;
+  }
+
   try {
     await GoogleSignin.signOut();
   } catch (error) {

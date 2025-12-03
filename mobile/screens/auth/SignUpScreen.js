@@ -28,11 +28,16 @@ export default function SignUpScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isOAuthLoading, setIsOAuthLoading] = useState(false);
 
-  // Check if Apple Sign In is available
+  // Check if Apple Sign In is available (always show on iOS for better UX)
   useEffect(() => {
     const checkAppleAvailability = async () => {
-      const available = await oauthService.isAppleSignInAvailable();
-      setIsAppleAvailable(available);
+      // On iOS, always show the Apple button - the system will handle unavailability
+      if (Platform.OS === 'ios') {
+        setIsAppleAvailable(true);
+      } else {
+        const available = await oauthService.isAppleSignInAvailable();
+        setIsAppleAvailable(available);
+      }
     };
     checkAppleAvailability();
   }, []);

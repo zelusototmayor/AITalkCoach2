@@ -159,6 +159,7 @@ Rails.application.routes.draw do
       # OAuth routes
       post "oauth/google", to: "oauth#google"
       post "oauth/apple", to: "oauth#apple"
+      get "oauth/apple", to: "oauth#apple"  # Handle Apple redirect flow
       # Apple callback route (configured in Apple Developer Console)
       post "callback/apple", to: "oauth#apple"
       get "callback/apple", to: "oauth#apple"

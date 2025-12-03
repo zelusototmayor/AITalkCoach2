@@ -7,7 +7,7 @@ import * as SecureStore from 'expo-secure-store';
 // For development: use your local IP or ngrok URL
 // For production: use your production domain
 const API_BASE_URL = __DEV__
-  ? 'http://192.168.100.42:3002' // Local IP for development (iOS simulator needs actual IP)
+  ? 'http://192.168.100.47:3002' // Local IP for development (iOS simulator needs actual IP)
   : 'https://app.aitalkcoach.com';
 
 /**
