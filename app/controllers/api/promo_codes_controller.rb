@@ -1,5 +1,5 @@
 class Api::PromoCodesController < ApplicationController
-  before_action :require_login
+  skip_before_action :require_login
 
   def validate
     code = params[:code]&.strip&.upcase
