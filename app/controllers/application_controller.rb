@@ -220,6 +220,7 @@ class ApplicationController < ActionController::Base
     controller_name == "blog_posts" ||
     controller_name == "trial_sessions" ||
     controller_path.starts_with?("onboarding/") ||
+    controller_name == "onboarding" ||
     controller_name == "feedback" ||
     controller_name == "webhooks" ||
     controller_path.starts_with?("admin/")
