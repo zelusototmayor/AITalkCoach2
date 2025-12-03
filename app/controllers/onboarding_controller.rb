@@ -2,7 +2,7 @@ class OnboardingController < ApplicationController
   before_action :require_login
   skip_before_action :require_onboarding
   before_action :redirect_lifetime_users
-  before_action :redirect_if_completed, except: [ :complete ]
+  before_action :redirect_if_completed, except: [ :pricing, :complete ]
 
   # Screen 0: Splash screen with animated logo
   def splash
