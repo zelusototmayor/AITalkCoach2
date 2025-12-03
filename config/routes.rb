@@ -255,6 +255,9 @@ Rails.application.routes.draw do
           get :status
         end
       end
+
+      # Promo code validation (for onboarding payment)
+      post 'validate_promo_code', to: 'promo_codes#validate'
     end
 
     # Admin routes
