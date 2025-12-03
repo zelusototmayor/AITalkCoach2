@@ -1,5 +1,7 @@
 class Api::PromoCodesController < ApplicationController
-  skip_before_action :require_login
+  # No authentication required - promo code validation is a public Stripe lookup
+  # Skip onboarding redirect for this API endpoint
+  skip_before_action :require_onboarding
 
   def validate
     code = params[:code]&.strip&.upcase
