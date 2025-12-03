@@ -1909,7 +1909,8 @@ h4 { font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem; }
 
 /* Page Headers */
 .page-header {
-  margin-bottom: 2rem;
+  margin-bottom: 1.25rem;
+  padding-top: 0.5rem;
   text-align: center;
 }
 
@@ -3855,13 +3856,20 @@ h4 { font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem; }
   }
 }
 
+/* Prompts Page Container */
+.prompts-index {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0.5rem 1rem;
+}
+
 /* Adaptive Prompts Section */
 .adaptive-prompts-section {
   background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
   border: 2px solid #fed7aa;
   border-radius: 12px;
-  padding: 2rem;
-  margin-bottom: 2rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
   position: relative;
 }
 
@@ -3880,7 +3888,11 @@ h4 { font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem; }
 
 .section-header {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
+}
+
+.section-header .section-content {
+  display: inline-block;
 }
 
 .section-header h2 {
@@ -3912,7 +3924,7 @@ h4 { font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem; }
 
 .adaptive-prompts-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
   gap: 1rem;
 }
 
@@ -4430,7 +4442,7 @@ textarea:focus {
 .history-page {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 1rem;
+  padding: 0.5rem 1rem;
 }
 
 /* Breadcrumbs */
@@ -8204,7 +8216,7 @@ textarea:focus {
 .session-show-redesign {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 1.5rem;
+  padding: 1.25rem;
 }
 
 /* Top Navigation */
@@ -8212,8 +8224,8 @@ textarea:focus {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
   border-bottom: 1px solid #e5e7eb;
 }
 
@@ -8265,8 +8277,8 @@ textarea:focus {
 .analysis-main-grid {
   display: grid;
   grid-template-columns: 1fr 320px;
-  gap: 2rem;
-  margin-bottom: 2rem;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
 @media (max-width: 1024px) {
@@ -8282,14 +8294,14 @@ textarea:focus {
 .analysis-main-column {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.5rem;
 }
 
 /* Compact Metrics Row (4 cards) */
 .metrics-row-compact {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 @media (max-width: 768px) {
@@ -8308,12 +8320,12 @@ textarea:focus {
   background: white;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
-  padding: 1.5rem 1rem;
+  padding: 1.25rem 0.875rem;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
   transition: all 0.2s;
 }
 
@@ -8606,14 +8618,14 @@ textarea:focus {
 .analysis-sidebar {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 
 .sidebar-widget {
   background: white;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
-  padding: 1.5rem;
+  padding: 1.25rem;
 }
 
 /* Progress Deltas */
@@ -8959,16 +8971,16 @@ textarea:focus {
 .progress-plan-page {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 1.5rem 1rem;
 }
 
-.page-header {
+.progress-plan-page .page-header {
   text-align: center;
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
 }
 
-.page-header h1 {
-  font-size: 2.25rem;
+.progress-plan-page .page-header h1 {
+  font-size: 2rem;
   font-weight: 700;
   color: #0f172a;
   margin-bottom: 0.75rem;

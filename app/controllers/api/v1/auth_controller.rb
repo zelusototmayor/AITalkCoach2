@@ -163,7 +163,7 @@ class Api::V1::AuthController < Api::V1::BaseController
     update_params = {
       onboarding_completed_at: Time.current,
       trial_starts_at: Time.current,
-      trial_expires_at: 30.days.from_now  # Extended trial for testing
+      trial_expires_at: 24.hours.from_now
     }
 
     # Save demographics from onboarding

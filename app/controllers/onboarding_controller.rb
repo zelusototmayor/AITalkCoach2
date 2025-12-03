@@ -294,12 +294,11 @@ class OnboardingController < ApplicationController
 
   # Finalize onboarding
   def complete
-    # FOR TESTING: Grant extended trial (30 days) until Stripe is integrated
-    # TODO: Change this to 24.hours.from_now once payment is integrated
+    # Grant 24-hour trial that renews daily with practice
     current_user.update!(
       onboarding_completed_at: Time.current,
       trial_starts_at: Time.current,
-      trial_expires_at: 30.days.from_now  # Extended trial for testing
+      trial_expires_at: 24.hours.from_now
     )
 
     # Migrate trial session to full session if it exists, is completed, and is not mock data

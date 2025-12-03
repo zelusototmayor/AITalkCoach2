@@ -9,15 +9,9 @@
   <% if @adaptive_prompts.any? %>
     <div class="adaptive-prompts-section">
       <div class="section-header">
-        <div class="section-icon">🎯</div>
         <div class="section-content">
           <h2>Recommended for You</h2>
-          <p class="section-description">
-            Based on your recent sessions, these prompts will help you work on:
-            <% @user_weaknesses.each_with_index do |weakness, index| %>
-              <span class="weakness-tag"><%= weakness.humanize %></span><%= ', ' unless index == @user_weaknesses.length - 1 %>
-            <% end %>
-          </p>
+          <p class="section-description">Based on your recent sessions, these prompts will help you work on: <% @user_weaknesses.each_with_index do |weakness, index| %><span class="weakness-tag"><%= weakness.humanize %></span><%= ', ' unless index == @user_weaknesses.length - 1 %><% end %></p>
         </div>
       </div>
       
