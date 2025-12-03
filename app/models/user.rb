@@ -1,5 +1,6 @@
 class User < ApplicationRecord
-  has_secure_password
+  # Disable built-in validations to allow social-only accounts (no password)
+  has_secure_password validations: false
 
   has_many :sessions, dependent: :destroy
   has_many :weekly_focuses, dependent: :destroy, class_name: "WeeklyFocus"
@@ -9,7 +10,7 @@ class User < ApplicationRecord
 
   validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :name, presence: true, length: { minimum: 2, maximum: 50 }
-  validates :password, length: { minimum: 6 }, if: -> { new_record? || !password.nil? }
+  validates :password, length: { minimum: 6 }, if: :password_required?
   validates :preferred_language, inclusion: { in: -> (_) { LanguageService.supported_language_codes } }, allow_blank: false
   validates :target_wpm, numericality: { only_integer: true, greater_than_or_equal_to: 60, less_than_or_equal_to: 240 }, allow_nil: true
 
@@ -302,5 +303,34 @@ class User < ApplicationRecord
 
   def admin?
     admin == true
+  end
+
+  # ============================================================================
+  # OAUTH / SOCIAL AUTH METHODS
+  # ============================================================================
+
+  # Check if password is required for this user
+  # Not required for social-only accounts (have OAuth UID but no password yet)
+  def password_required?
+    # Not required if user has OAuth credentials
+    return false if google_uid.present? || apple_uid.present?
+
+    # Required for new records or when password is being changed
+    new_record? || password.present?
+  end
+
+  # Check if this is a social-only account (no password set)
+  def social_only_account?
+    password_digest.blank? && (google_uid.present? || apple_uid.present?)
+  end
+
+  # Check if user signed up via OAuth
+  def oauth_user?
+    google_uid.present? || apple_uid.present?
+  end
+
+  # Check if user can reset password (must have password-based account)
+  def can_reset_password?
+    password_digest.present?
   end
 end

@@ -22,8 +22,12 @@ export default {
         NSPhotoLibraryUsageDescription: "AI Talk Coach needs access to save recorded sessions for your review."
       },
       config: {
-        usesNonExemptEncryption: false
-      }
+        usesNonExemptEncryption: false,
+        googleSignIn: {
+          reservedClientId: "com.googleusercontent.apps.204728762120-4rs348t5dqaf6o3utqarsjg4gd7nadf6"
+        }
+      },
+      usesAppleSignIn: true
     },
     android: {
       package: "com.aitalkcoach.app",

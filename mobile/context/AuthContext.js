@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as authService from '../services/authService';
+import * as oauthService from '../services/oauthService';
 import analytics from '../services/analytics';
 import * as subscriptionService from '../services/subscriptionService';
 
@@ -28,6 +29,8 @@ export const AuthProvider = ({ children }) => {
   // Initialize auth state from stored tokens
   useEffect(() => {
     initializeAuth();
+    // Configure Google Sign-In
+    oauthService.configureGoogleSignIn();
   }, []);
 
   const initializeAuth = async () => {
@@ -208,6 +211,129 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const loginWithGoogle = async () => {
+    try {
+      const response = await oauthService.signInWithGoogle();
+
+      if (response.success) {
+        // Store tokens securely
+        await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, response.token);
+        await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, response.refresh_token);
+
+        // Store user data
+        await AsyncStorage.setItem(USER_DATA_KEY, JSON.stringify(response.user));
+
+        setUser(response.user);
+        setIsAuthenticated(true);
+
+        // Initialize RevenueCat for subscription management
+        await subscriptionService.initializePurchases(response.user.id.toString());
+
+        // Track login/signup and identify user
+        analytics.identify(response.user.id.toString(), {
+          name: response.user.name,
+          email: response.user.email,
+          auth_provider: 'google',
+          onboarding_completed: response.user.onboarding_completed || false,
+        });
+
+        const eventName = response.is_new_user ? 'User Signed Up' : 'User Logged In';
+        analytics.track(eventName, {
+          user_id: response.user.id,
+          email: response.user.email,
+          method: 'google',
+          was_linked: response.was_linked || false,
+        });
+
+        return { success: true, isNewUser: response.is_new_user };
+      } else {
+        return {
+          success: false,
+          error: response.error || 'Google login failed'
+        };
+      }
+    } catch (error) {
+      console.error('Google login error:', error);
+
+      // Track login error
+      analytics.track('Login Error', {
+        method: 'google',
+        error: error.message || 'Google sign-in failed',
+      });
+
+      return {
+        success: false,
+        error: error.message || 'Google sign-in failed. Please try again.'
+      };
+    }
+  };
+
+  const loginWithApple = async () => {
+    try {
+      // Check if Apple Sign In is available
+      const isAvailable = await oauthService.isAppleSignInAvailable();
+      if (!isAvailable) {
+        return {
+          success: false,
+          error: 'Apple Sign In is not available on this device'
+        };
+      }
+
+      const response = await oauthService.signInWithApple();
+
+      if (response.success) {
+        // Store tokens securely
+        await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, response.token);
+        await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, response.refresh_token);
+
+        // Store user data
+        await AsyncStorage.setItem(USER_DATA_KEY, JSON.stringify(response.user));
+
+        setUser(response.user);
+        setIsAuthenticated(true);
+
+        // Initialize RevenueCat for subscription management
+        await subscriptionService.initializePurchases(response.user.id.toString());
+
+        // Track login/signup and identify user
+        analytics.identify(response.user.id.toString(), {
+          name: response.user.name,
+          email: response.user.email,
+          auth_provider: 'apple',
+          onboarding_completed: response.user.onboarding_completed || false,
+        });
+
+        const eventName = response.is_new_user ? 'User Signed Up' : 'User Logged In';
+        analytics.track(eventName, {
+          user_id: response.user.id,
+          email: response.user.email,
+          method: 'apple',
+          was_linked: response.was_linked || false,
+        });
+
+        return { success: true, isNewUser: response.is_new_user };
+      } else {
+        return {
+          success: false,
+          error: response.error || 'Apple login failed'
+        };
+      }
+    } catch (error) {
+      console.error('Apple login error:', error);
+
+      // Track login error
+      analytics.track('Login Error', {
+        method: 'apple',
+        error: error.message || 'Apple sign-in failed',
+      });
+
+      return {
+        success: false,
+        error: error.message || 'Apple sign-in failed. Please try again.'
+      };
+    }
+  };
+
   const logout = async () => {
     try {
       // Track logout before clearing user data
@@ -220,6 +346,9 @@ export const AuthProvider = ({ children }) => {
       if (token) {
         await authService.logout(token);
       }
+
+      // Sign out from Google if signed in
+      await oauthService.signOutGoogle();
 
       // Log out from RevenueCat
       await subscriptionService.logoutUser();
@@ -381,6 +510,8 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated,
     login,
     signup,
+    loginWithGoogle,
+    loginWithApple,
     logout,
     getAccessToken,
     updateUserData,

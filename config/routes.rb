@@ -21,6 +21,8 @@ Rails.application.routes.draw do
       post 'auth/refresh', to: 'auth#refresh'
       get 'auth/me', to: 'auth#me'
       post 'auth/logout', to: 'auth#logout'
+      post 'auth/google', to: 'oauth#google'
+      post 'auth/apple', to: 'oauth#apple'
       post 'auth/forgot_password', to: 'auth#forgot_password'
       post 'auth/reset_password', to: 'auth#reset_password'
       post 'auth/complete_onboarding', to: 'auth#complete_onboarding'
@@ -153,6 +155,13 @@ Rails.application.routes.draw do
       resources :registrations, only: [ :new, :create ], path: "signup"
       resources :sessions, only: [ :new, :create, :destroy ], path: "login"
       resources :password_resets, only: [ :new, :create, :edit, :update ], path: "password", param: :token
+
+      # OAuth routes
+      post "oauth/google", to: "oauth#google"
+      post "oauth/apple", to: "oauth#apple"
+      # Apple callback route (configured in Apple Developer Console)
+      post "callback/apple", to: "oauth#apple"
+      get "callback/apple", to: "oauth#apple"
     end
 
     # Onboarding flow

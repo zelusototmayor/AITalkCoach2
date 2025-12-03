@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,9 +13,11 @@ import {
 import AnimatedBackground from '../../components/AnimatedBackground';
 import { COLORS, SPACING } from '../../constants/colors';
 import { useAuth } from '../../context/AuthContext';
+import * as oauthService from '../../services/oauthService';
 
 export default function SignUpScreen({ navigation }) {
-  const { signup } = useAuth();
+  const { signup, loginWithGoogle, loginWithApple } = useAuth();
+  const [isAppleAvailable, setIsAppleAvailable] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -24,6 +26,16 @@ export default function SignUpScreen({ navigation }) {
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [isOAuthLoading, setIsOAuthLoading] = useState(false);
+
+  // Check if Apple Sign In is available
+  useEffect(() => {
+    const checkAppleAvailability = async () => {
+      const available = await oauthService.isAppleSignInAvailable();
+      setIsAppleAvailable(available);
+    };
+    checkAppleAvailability();
+  }, []);
 
   const validateForm = () => {
     const newErrors = {};
@@ -106,6 +118,44 @@ export default function SignUpScreen({ navigation }) {
     // Clear error for this field when user starts typing
     if (errors[field]) {
       setErrors({ ...errors, [field]: null });
+    }
+  };
+
+  const handleGoogleSignUp = async () => {
+    setIsOAuthLoading(true);
+    setErrors({});
+
+    try {
+      const result = await loginWithGoogle();
+
+      if (!result.success) {
+        setErrors({ general: result.error || 'Google sign-up failed. Please try again.' });
+      }
+      // Navigation handled automatically on success
+    } catch (error) {
+      console.error('Google sign-up error:', error);
+      setErrors({ general: 'Google sign-up failed. Please try again.' });
+    } finally {
+      setIsOAuthLoading(false);
+    }
+  };
+
+  const handleAppleSignUp = async () => {
+    setIsOAuthLoading(true);
+    setErrors({});
+
+    try {
+      const result = await loginWithApple();
+
+      if (!result.success) {
+        setErrors({ general: result.error || 'Apple sign-up failed. Please try again.' });
+      }
+      // Navigation handled automatically on success
+    } catch (error) {
+      console.error('Apple sign-up error:', error);
+      setErrors({ general: 'Apple sign-up failed. Please try again.' });
+    } finally {
+      setIsOAuthLoading(false);
     }
   };
 
@@ -194,14 +244,46 @@ export default function SignUpScreen({ navigation }) {
         </View>
 
         <TouchableOpacity
-          style={[styles.continueButton, isLoading && styles.continueButtonDisabled]}
+          style={[styles.continueButton, (isLoading || isOAuthLoading) && styles.continueButtonDisabled]}
           onPress={handleSignUp}
-          disabled={isLoading}
+          disabled={isLoading || isOAuthLoading}
         >
           <Text style={styles.continueButtonText}>
             {isLoading ? 'Creating account...' : 'Continue'}
           </Text>
         </TouchableOpacity>
+
+        {/* OAuth Divider */}
+        <View style={styles.dividerContainer}>
+          <View style={styles.divider} />
+          <Text style={styles.dividerText}>or sign up with</Text>
+          <View style={styles.divider} />
+        </View>
+
+        {/* Social Sign Up Buttons */}
+        <View style={styles.socialButtonsContainer}>
+          <TouchableOpacity
+            style={[styles.socialButton, (isLoading || isOAuthLoading) && styles.socialButtonDisabled]}
+            onPress={handleGoogleSignUp}
+            disabled={isLoading || isOAuthLoading}
+          >
+            <Text style={styles.socialButtonText}>
+              {isOAuthLoading ? 'Signing up...' : 'Continue with Google'}
+            </Text>
+          </TouchableOpacity>
+
+          {isAppleAvailable && (
+            <TouchableOpacity
+              style={[styles.socialButton, styles.appleButton, (isLoading || isOAuthLoading) && styles.socialButtonDisabled]}
+              onPress={handleAppleSignUp}
+              disabled={isLoading || isOAuthLoading}
+            >
+              <Text style={[styles.socialButtonText, styles.appleButtonText]}>
+                {isOAuthLoading ? 'Signing up...' : 'Continue with Apple'}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
 
         <TouchableOpacity
           style={styles.loginLink}
@@ -323,5 +405,47 @@ const styles = StyleSheet.create({
   },
   continueButtonDisabled: {
     opacity: 0.6,
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: SPACING.lg,
+  },
+  divider: {
+    flex: 1,
+    height: 1,
+    backgroundColor: COLORS.border,
+  },
+  dividerText: {
+    marginHorizontal: SPACING.md,
+    fontSize: 14,
+    color: COLORS.textSecondary,
+  },
+  socialButtonsContainer: {
+    gap: SPACING.sm,
+    marginBottom: SPACING.lg,
+  },
+  socialButton: {
+    backgroundColor: COLORS.cardBackground,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  socialButtonDisabled: {
+    opacity: 0.6,
+  },
+  socialButtonText: {
+    color: COLORS.text,
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  appleButton: {
+    backgroundColor: '#000',
+    borderColor: '#000',
+  },
+  appleButtonText: {
+    color: '#fff',
   },
 });
