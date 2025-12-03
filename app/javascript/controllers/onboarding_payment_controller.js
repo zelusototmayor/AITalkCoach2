@@ -181,7 +181,9 @@ export default class extends Controller {
 
     // Update UI to show selected plan
     this.planRadioTargets.forEach(radio => {
-      const card = radio.closest('.pricing-card-compact')
+      const card = radio.closest('.plan-card')
+      if (!card) return // Guard against missing parent element
+
       if (radio.checked) {
         card.classList.add('selected')
 
