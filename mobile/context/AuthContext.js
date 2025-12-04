@@ -270,15 +270,6 @@ export const AuthProvider = ({ children }) => {
 
   const loginWithApple = async () => {
     try {
-      // Check if Apple Sign In is available
-      const isAvailable = await oauthService.isAppleSignInAvailable();
-      if (!isAvailable) {
-        return {
-          success: false,
-          error: 'Apple Sign In is not available on this device'
-        };
-      }
-
       const response = await oauthService.signInWithApple();
 
       if (response.success) {

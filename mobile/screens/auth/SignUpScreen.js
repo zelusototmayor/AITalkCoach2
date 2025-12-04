@@ -18,6 +18,7 @@ import * as oauthService from '../../services/oauthService';
 export default function SignUpScreen({ navigation }) {
   const { signup, loginWithGoogle, loginWithApple } = useAuth();
   const [isAppleAvailable, setIsAppleAvailable] = useState(false);
+  const [isGoogleAvailable, setIsGoogleAvailable] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -28,9 +29,12 @@ export default function SignUpScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isOAuthLoading, setIsOAuthLoading] = useState(false);
 
-  // Check if Apple Sign In is available (always show on iOS for better UX)
+  // Check OAuth availability
   useEffect(() => {
-    const checkAppleAvailability = async () => {
+    const checkOAuthAvailability = async () => {
+      // Google Sign-In requires native module (not available in Expo Go)
+      setIsGoogleAvailable(oauthService.isGoogleSignInAvailable());
+
       // On iOS, always show the Apple button - the system will handle unavailability
       if (Platform.OS === 'ios') {
         setIsAppleAvailable(true);
@@ -39,7 +43,7 @@ export default function SignUpScreen({ navigation }) {
         setIsAppleAvailable(available);
       }
     };
-    checkAppleAvailability();
+    checkOAuthAvailability();
   }, []);
 
   const validateForm = () => {
