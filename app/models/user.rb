@@ -298,6 +298,63 @@ class User < ApplicationRecord
   end
 
   # ============================================================================
+  # TOUR METHODS
+  # ============================================================================
+
+  AVAILABLE_TOURS = %w[practice session_results coach progress].freeze
+
+  # Check if a specific tour has been completed
+  def tour_completed?(tour_name)
+    tours = tours_completed_hash
+    tours&.dig(tour_name.to_s).present?
+  end
+
+  # Parse tours_completed JSON (handles both Hash and String)
+  def tours_completed_hash
+    case tours_completed
+    when Hash
+      tours_completed
+    when String
+      JSON.parse(tours_completed) rescue {}
+    else
+      {}
+    end
+  end
+
+  # Mark a tour as completed
+  def complete_tour!(tour_name)
+    return false unless AVAILABLE_TOURS.include?(tour_name.to_s)
+
+    updated_tours = tours_completed_hash.merge(tour_name.to_s => Time.current.iso8601)
+    update!(tours_completed: updated_tours)
+    true
+  end
+
+  # Reset all tours (for retake feature)
+  def reset_tours!
+    update!(tours_completed: {})
+  end
+
+  # Reset a specific tour
+  def reset_tour!(tour_name)
+    return false unless AVAILABLE_TOURS.include?(tour_name.to_s)
+
+    updated_tours = tours_completed_hash.except(tour_name.to_s)
+    update!(tours_completed: updated_tours)
+    true
+  end
+
+  # Get list of completed tour names
+  def completed_tour_names
+    tours_completed_hash.keys
+  end
+
+  # Check if any tours are pending
+  def has_pending_tours?
+    completed_tour_names.length < AVAILABLE_TOURS.length
+  end
+
+  # ============================================================================
   # ADMIN METHODS
   # ============================================================================
 

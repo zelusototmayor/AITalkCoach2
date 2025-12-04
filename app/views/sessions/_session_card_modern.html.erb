@@ -1,23 +1,25 @@
 <div class="session-card-modern" data-state="<%= session.processing_state %>">
   <div class="card-header">
-    <div class="card-title">
-      <%= session.title %>
+    <div class="card-header-top">
+      <div class="card-title">
+        <%= session.title %>
+      </div>
+      <div class="completion-badge">
+        <% case session.processing_state %>
+        <% when 'completed' %>
+          <span class="badge badge-completed">DONE</span>
+        <% when 'processing' %>
+          <span class="badge badge-processing">PROCESSING</span>
+        <% when 'pending' %>
+          <span class="badge badge-pending">PENDING</span>
+        <% when 'failed' %>
+          <span class="badge badge-failed">FAILED</span>
+        <% end %>
+      </div>
     </div>
     <div class="card-meta">
       <span class="session-date"><%= session.created_at.strftime("%b %d, %Y at %I:%M %p") %></span>
       <span class="session-language"><%= session.language.upcase %></span>
-    </div>
-    <div class="completion-badge">
-      <% case session.processing_state %>
-      <% when 'completed' %>
-        <span class="badge badge-completed">DONE</span>
-      <% when 'processing' %>
-        <span class="badge badge-processing">PROCESSING</span>
-      <% when 'pending' %>
-        <span class="badge badge-pending">PENDING</span>
-      <% when 'failed' %>
-        <span class="badge badge-failed">FAILED</span>
-      <% end %>
     </div>
   </div>
 

@@ -223,6 +223,15 @@
           <main class="main-content" id="main-content" role="main" tabindex="-1">
             <%= yield %>
           </main>
+
+          <%# App Tour / Guided Walkthrough %>
+          <% if should_show_tour? %>
+            <div data-controller="tour"
+                 data-tour-name-value="<%= current_tour_name %>"
+                 data-tour-steps-value="<%= tour_steps_json(current_tour_name) %>"
+                 data-tour-auto-start-value="true">
+            </div>
+          <% end %>
         </div>
       <% end %>
     <% else %>

@@ -13,7 +13,7 @@
       <div class="dashboard-row-top">
         <!-- Last Session Insight (Enhanced, 50% width) -->
         <% if @last_session_insight %>
-          <div class="last-session-card">
+          <div class="last-session-card" data-tour="insight-card">
             <div class="card-header-compact">
               <%= icon_svg(:activity, css_class: 'header-icon') %>
               <div>
@@ -55,7 +55,7 @@
             <% end %>
 
             <!-- All Metrics Grid (3 columns x 2 rows) -->
-            <div class="metrics-grid-compact">
+            <div class="metrics-grid-compact" data-tour="metrics-grid">
               <%
                 metrics_config = [
                   { key: :filler_rate, label: 'Filler', is_percent: true, inverse: true, multiplier: 100, decimals: 1 },
@@ -127,7 +127,7 @@
         <% end %>
 
         <!-- Weekly Goal (60% width) -->
-        <div class="weekly-goal-card">
+        <div class="weekly-goal-card" data-tour="weekly-goals">
           <div class="card-header-compact">
             <%= icon_svg(:target, css_class: 'header-icon') %>
             <div>
@@ -179,7 +179,7 @@
       </div>
 
       <!-- Row 2: Today's Focus (Full Width, Horizontal Drills) -->
-      <div class="todays-focus-section">
+      <div class="todays-focus-section" data-tour="todays-focus">
         <div class="section-header">
           <%= icon_svg(:list, css_class: 'header-icon') %>
           <h3>Today's Focus</h3>

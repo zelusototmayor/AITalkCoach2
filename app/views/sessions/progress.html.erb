@@ -8,12 +8,12 @@
 
   <% if @recent_sessions.any? %>
     <!-- Main Chart Section (Large, Center) -->
-    <div class="chart-section">
+    <div class="chart-section" data-tour="progress-chart">
       <div class="chart-header">
         <h2 class="chart-title" data-metric-explorer-target="chartTitle">Overall Score</h2>
 
         <!-- Time Range Options -->
-        <div class="time-range-options">
+        <div class="time-range-options" data-tour="time-filters">
           <button class="time-btn <%= @time_range == '7' ? 'active' : '' %>"
                   data-range="7"
                   data-action="click->metric-explorer#changeTimeRange"
@@ -66,7 +66,7 @@
     </div>
 
     <!-- Interactive Metric Cards (Click to explore) -->
-    <div class="interactive-metrics-grid">
+    <div class="interactive-metrics-grid" data-tour="metric-cards">
       <%
         detail_metrics = [
           {

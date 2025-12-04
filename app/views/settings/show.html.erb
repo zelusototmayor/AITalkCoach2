@@ -66,6 +66,39 @@
           </div>
         <% end %>
       </div>
+
+      <!-- App Tours Section -->
+      <div class="settings-card tour-reset-section">
+        <h2>App Tours</h2>
+        <p class="tour-description">
+          Retake the guided tours to refresh your knowledge of the app's features.
+        </p>
+
+        <div class="tour-status">
+          <% User::AVAILABLE_TOURS.each do |tour_name| %>
+            <div class="tour-item">
+              <span class="tour-name"><%= tour_name.humanize %></span>
+              <% if current_user.tour_completed?(tour_name) %>
+                <span class="tour-completed-badge">Completed</span>
+              <% else %>
+                <span class="tour-pending-badge">Not started</span>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+
+        <%= form_with url: reset_tours_path, method: :post, local: true do %>
+          <button type="submit" class="tour-reset-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+              <path d="M21 3v5h-5"/>
+              <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+              <path d="M8 16H3v5"/>
+            </svg>
+            Reset All Tours
+          </button>
+        <% end %>
+      </div>
     </div>
   </div>
 </div>
@@ -260,6 +293,54 @@
 
 .wpm-info-box p:last-child {
   margin-bottom: 0;
+}
+
+/* Tour Reset Section */
+.tour-description {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 1.25rem;
+}
+
+.tour-status {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.tour-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.tour-name {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.tour-completed-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #059669;
+  background: #d1fae5;
+  padding: 0.25rem 0.625rem;
+  border-radius: 12px;
+}
+
+.tour-pending-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  background: #f3f4f6;
+  padding: 0.25rem 0.625rem;
+  border-radius: 12px;
 }
 
 @media (max-width: 768px) {

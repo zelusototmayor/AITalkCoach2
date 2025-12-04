@@ -1,5 +1,5 @@
 <% if @priority_recommendations&.dig(:focus_this_week)&.any? %>
-  <div class="coach-recommendation-section">
+  <div class="coach-recommendation-section" data-tour="coach-recommendations">
     <div class="section-label-small">COACH RECOMMENDATION</div>
     <h2 class="section-heading"><%= icon_svg(:target, css_class: 'icon-inline') %> Next Step</h2>
 

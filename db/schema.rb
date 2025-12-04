@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_12_03_190225) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_04_171224) do
   create_table "action_text_rich_texts", force: :cascade do |t|
     t.string "name", null: false
     t.text "body"
@@ -263,6 +263,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_12_03_190225) do
     t.string "google_uid"
     t.string "apple_uid"
     t.string "auth_provider"
+    t.json "tours_completed", default: {}
     t.index ["apple_subscription_id"], name: "index_users_on_apple_subscription_id"
     t.index ["apple_uid"], name: "index_users_on_apple_uid", unique: true, where: "apple_uid IS NOT NULL"
     t.index ["google_uid"], name: "index_users_on_google_uid", unique: true, where: "google_uid IS NOT NULL"

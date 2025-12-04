@@ -22,7 +22,7 @@
       </div>
 
       <!-- Current Prompt Display - Library Style -->
-      <div class="prompt-card practice-prompt-card" data-prompts-target="display" data-prompt-identifier="<%= @default_prompt_data[:identifier] %>">
+      <div class="prompt-card practice-prompt-card" data-tour="prompt-card" data-prompts-target="display" data-prompt-identifier="<%= @default_prompt_data[:identifier] %>">
         <% if params[:drill_title].present? && params[:drill_description].present? %>
           <!-- Drill Mode - Enriched Display -->
           <div class="prompt-header">
@@ -154,7 +154,7 @@
         </div>
 
         <div class="timer-start-layout">
-          <button type="button" class="start-btn-compact"
+          <button type="button" class="start-btn-compact" data-tour="record-button"
                   data-practice-timer-target="startBtn"
                   data-action="click->practice-timer#startSession">
             <%= icon_svg(:play, css_class: 'icon-inline') %> Start <span data-practice-timer-target="durationText"><%= trial_mode? ? '30s' : '60s' %></span>
@@ -628,7 +628,7 @@
             <% end %>
           </div>
 
-          <div class="library-footer">
+          <div class="library-footer" data-tour="browse-prompts">
             <%= link_to "Browse All Prompts →", prompts_path, class: "browse-all-link" %>
           </div>
         </div>

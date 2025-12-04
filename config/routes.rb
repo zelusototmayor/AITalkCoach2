@@ -233,6 +233,10 @@ Rails.application.routes.draw do
     # Feedback
     post "/feedback", to: "feedback#create"
 
+    # Tours
+    post "/tours/:tour_name/complete", to: "tours#complete", as: :complete_tour
+    post "/tours/reset", to: "tours#reset", as: :reset_tours
+
     # Subscription routes
     resource :subscription, only: [ :create, :show ], controller: "subscription" do
       collection do

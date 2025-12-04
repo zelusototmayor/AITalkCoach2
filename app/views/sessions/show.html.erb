@@ -73,7 +73,7 @@
     <h1 class="session-title-main">Practice Session #<%= @session.id %> · <%= @session.created_at.strftime("%b %d") %></h1>
 
     <!-- Media Player Section (MOVED TO TOP) -->
-    <div class="media-player-section-top">
+    <div class="media-player-section-top" data-tour="media-player">
       <div class="player-container">
         <% if @session.media_files.attached? %>
           <% media_file = @session.media_files.first %>
@@ -117,7 +117,7 @@
       <!-- Left Column: Main Analysis -->
       <div class="analysis-main-column">
         <!-- 4 Compact Metrics Cards -->
-        <div class="metrics-row-compact">
+        <div class="metrics-row-compact" data-tour="metrics">
           <% if @session.analysis_data['overall_score']&.present? %>
             <%
               # Fix for overall_score: check if it's already a percentage (>1) or a decimal
@@ -294,7 +294,7 @@
       </div>
 
       <!-- Right Sidebar -->
-      <div class="analysis-sidebar">
+      <div class="analysis-sidebar" data-tour="trends">
         <!-- Progress vs Last Session -->
         <div class="sidebar-widget">
           <div class="section-label-small">PROGRESS VS LAST SESSION</div>
@@ -409,7 +409,7 @@
 
     <!-- Full Transcript Section -->
     <% if @session.analysis_data['transcript']&.present? %>
-      <div class="transcript-section-modern"
+      <div class="transcript-section-modern" data-tour="transcript"
            data-controller="transcript"
            data-transcript-target="section">
         <div class="transcript-header-modern">
