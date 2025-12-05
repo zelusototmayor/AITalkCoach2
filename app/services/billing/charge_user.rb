@@ -17,7 +17,7 @@ module Billing
     def call
       validate_user!
 
-      amount = calculate_amount
+      amount = calculate_amount_with_discount
 
       begin
         # Create and confirm payment intent
@@ -31,8 +31,9 @@ module Billing
           description: "#{user.subscription_plan.titleize} subscription for #{user.email}",
           metadata: {
             user_id: user.id,
-            plan: user.subscription_plan
-          }
+            plan: user.subscription_plan,
+            promo_code: user.promo_code
+          }.compact
         )
 
         if payment_intent.status == "succeeded"
@@ -60,14 +61,54 @@ module Billing
       raise ArgumentError, "User must have a subscription plan" unless user.subscription_plan.present?
     end
 
-    def calculate_amount
-      case user.subscription_plan
+    def calculate_amount_with_discount
+      base_amount = case user.subscription_plan
       when "yearly"
         YEARLY_AMOUNT
       when "monthly"
         MONTHLY_AMOUNT
       else
         raise ArgumentError, "Invalid subscription plan: #{user.subscription_plan}"
+      end
+
+      # Apply promo code discount if present
+      if user.promo_code.present?
+        discount = fetch_promo_code_discount(user.promo_code)
+        if discount
+          discounted = apply_discount(base_amount, discount)
+          Rails.logger.info "Applied promo code #{user.promo_code} to user #{user.id}: #{base_amount} -> #{discounted} cents"
+          return discounted
+        end
+      end
+
+      base_amount
+    end
+
+    def fetch_promo_code_discount(code)
+      promotion_code = ::Stripe::PromotionCode.list(
+        code: code.upcase,
+        active: true,
+        limit: 1
+      ).data.first
+
+      return nil unless promotion_code
+
+      promotion_code.coupon
+    rescue ::Stripe::StripeError => e
+      Rails.logger.error "Failed to fetch promo code #{code}: #{e.message}"
+      nil
+    end
+
+    def apply_discount(amount, coupon)
+      if coupon.percent_off
+        # Percentage discount
+        discount = (amount * coupon.percent_off / 100.0).round
+        [ amount - discount, 0 ].max
+      elsif coupon.amount_off
+        # Fixed amount discount (amount_off is in cents)
+        [ amount - coupon.amount_off, 0 ].max
+      else
+        amount
       end
     end
 
@@ -81,11 +122,19 @@ module Billing
         1.month.from_now
       end
 
+      # Clear promo code if it was a "once" type (first payment only)
+      should_clear_promo = false
+      if user.promo_code.present?
+        coupon = fetch_promo_code_discount(user.promo_code)
+        should_clear_promo = coupon&.duration == "once"
+      end
+
       # Update user to active subscriber
       user.update!(
         subscription_status: "active",
         subscription_started_at: Time.current,
-        current_period_end: next_billing_date
+        current_period_end: next_billing_date,
+        promo_code: should_clear_promo ? nil : user.promo_code
       )
 
       # Send receipt email
