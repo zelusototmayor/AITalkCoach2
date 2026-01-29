@@ -42,8 +42,7 @@ module Billing
     end
 
     def create_portal_session(return_url:)
-      customer = user.stripe_customer
-      return nil unless customer
+      customer = user.get_or_create_stripe_customer
 
       ::Stripe::BillingPortal::Session.create(
         customer: customer.id,
