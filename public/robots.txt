@@ -1,1 +1,29 @@
-# See https://www.robotstxt.org/robotstxt.html for documentation on how to use the robots.txt file
+# AI Talk Coach robots.txt
+# See https://www.robotstxt.org/robotstxt.html
+
+User-agent: *
+Allow: /
+
+# Marketing pages to index
+Allow: /
+Allow: /blog
+Allow: /blog/*
+Allow: /pricing
+Allow: /privacy
+Allow: /terms
+Allow: /contact
+Allow: /practice
+
+# Block authenticated app routes
+Disallow: /login
+Disallow: /signup
+Disallow: /onboarding/
+Disallow: /sessions/
+Disallow: /progress
+Disallow: /coach
+Disallow: /settings
+Disallow: /api/
+Disallow: /admin/
+
+# Sitemap
+Sitemap: https://aitalkcoach.com/sitemap.xml
