@@ -2,6 +2,20 @@
 <html lang="en">
   <head>
     <%= display_meta_tags %>
+    <link rel="canonical" href="<%= request.base_url + request.path %>">
+
+    <script type="application/ld+json">
+      <%= {
+        "@context" => "https://schema.org",
+        "@type" => "SoftwareApplication",
+        "name" => "AI Talk Coach",
+        "applicationCategory" => "EducationalApplication",
+        "operatingSystem" => "Web",
+        "url" => "https://aitalkcoach.com/",
+        "description" => (@meta_tags&.dig(:description).presence || "Master your communication skills with AI-powered speech coaching. Get feedback, track progress, and become a more confident speaker.")
+      }.to_json.html_safe %>
+    </script>
+
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
