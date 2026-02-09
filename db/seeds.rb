@@ -1729,3 +1729,109 @@ if File.exist?(Rails.root.join('public/blog-images/podcast-delivery.webp'))
 end
 
 puts "Featured images attached successfully!"
+
+# --- Blog Post 9: Speech Anxiety ---
+BlogPost.find_or_create_by!(slug: "overcome-speech-anxiety") do |post|
+  post.title = "How to Overcome Speech Anxiety: 7 Techniques That Actually Work"
+  post.content = <<~HTML
+    <div class="trix-content">
+      <h2>Speech anxiety is universal — but it's also fixable</h2>
+
+    <p>Roughly 75% of people experience some form of glossophobia — the fear of public speaking. It ranks above the fear of death in most surveys. Your palms sweat, your voice shakes, your mind goes blank mid-sentence.</p>
+
+    <p>Here's the thing: speech anxiety isn't a personality flaw. It's a physiological response. Your brain interprets standing in front of a group as a threat, and it activates the same fight-or-flight system that helped your ancestors outrun predators.</p>
+
+    <p>The good news? You can retrain that response. Not with vague advice like "just relax" — but with specific, evidence-based techniques that change how your body and brain react to speaking situations.</p>
+
+    <h2>1. Controlled breathing resets your nervous system</h2>
+
+    <p>When anxiety hits, your breathing becomes shallow and fast. This triggers more adrenaline, which makes you feel worse. It's a feedback loop.</p>
+
+    <p>Break it with box breathing: inhale for 4 counts, hold for 4, exhale for 4, hold for 4. Do this for 2 minutes before you speak.</p>
+
+    <p>This isn't meditation — it's neuroscience. Slow exhales activate your parasympathetic nervous system, literally telling your brain the threat isn't real.</p>
+
+    <p><strong>Pro tip:</strong> Practice box breathing daily, not just before speeches. The more your body knows the pattern, the faster it works under pressure.</p>
+
+    <h2>2. Exposure therapy — start absurdly small</h2>
+
+    <p>The #1 evidence-based treatment for any phobia is gradual exposure. For speech anxiety, that means speaking in progressively larger or more challenging settings.</p>
+
+    <p>Start smaller than you think you need to:</p>
+
+    <ul>
+      <li>Record yourself reading a paragraph aloud. Watch it back.</li>
+      <li>Practice a 30-second introduction in front of a mirror.</li>
+      <li>Use an AI speech coach to practice with zero judgment.</li>
+      <li>Speak up once in your next meeting — even just to agree with someone.</li>
+      <li>Give a 2-minute talk to a friend or family member.</li>
+    </ul>
+
+    <p>Each small exposure teaches your nervous system that speaking doesn't actually result in danger. Over time, the anxiety response weakens.</p>
+
+    <h2>3. Reframe anxiety as excitement</h2>
+
+    <p>Harvard research by Alison Wood Brooks found that people who said "I am excited" before a stressful performance did measurably better than those who tried to calm down.</p>
+
+    <p>Why? Anxiety and excitement produce nearly identical physiological responses — elevated heart rate, adrenaline, heightened focus. The difference is the label your brain assigns.</p>
+
+    <p>Instead of fighting the adrenaline, channel it. Tell yourself: "This energy means I care about doing well." It sounds simplistic, but the research is robust.</p>
+
+    <h2>4. Practice with real-time feedback</h2>
+
+    <p>One reason speech anxiety persists is that most people avoid practicing. And when they do practice, they have no objective feedback on what's actually happening.</p>
+
+    <p>You might think you're speaking too fast, but are you? You might feel like you said "um" constantly, but was it really that bad?</p>
+
+    <p>AI-powered speech coaching tools like <a href="https://aitalkcoach.com">AI Talk Coach</a> give you instant, objective feedback on your pace, filler words, clarity, and delivery. This removes the guesswork and lets you focus on measurable improvement.</p>
+
+    <p>When you can see your progress in data — "I went from 12 filler words per minute to 3" — anxiety drops because confidence rises.</p>
+
+    <h2>5. Prepare your opening cold</h2>
+
+    <p>The first 30 seconds of any talk is when anxiety peaks. After that, most speakers settle in.</p>
+
+    <p>So memorize your opening. Not the whole talk — just the first 2-3 sentences. Practice them until you could deliver them in your sleep.</p>
+
+    <p>This gives you a "runway" past the worst anxiety. By the time you finish your rehearsed opening, your body has realized nothing bad is happening, and you can flow naturally into the rest.</p>
+
+    <h2>6. Shift focus from yourself to your audience</h2>
+
+    <p>Speech anxiety is fundamentally self-focused: "What if I mess up? What if they judge me? What if I forget my words?"</p>
+
+    <p>Flip the script. Ask instead: "What does my audience need? How can I help them? What's the one thing I want them to take away?"</p>
+
+    <p>This isn't just a mindset trick — it changes your cognitive load. When you're thinking about serving others, there's less mental bandwidth available for anxious thoughts.</p>
+
+    <h2>7. Build a consistent practice habit</h2>
+
+    <p>Speech anxiety doesn't disappear after one good talk. It fades with consistent practice over weeks and months.</p>
+
+    <p>The most effective approach is short, frequent practice sessions:</p>
+
+    <ul>
+      <li>5 minutes daily beats 1 hour weekly</li>
+      <li>Record and review at least twice a week</li>
+      <li>Track metrics over time (filler words, pace, confidence rating)</li>
+      <li>Gradually increase difficulty (longer talks, tougher topics, bigger audiences)</li>
+    </ul>
+
+    <p>Tools like AI Talk Coach make this practical — you can practice a 2-minute speech, get instant feedback, and track your progress over time, all from your phone or laptop.</p>
+
+    <h2>The bottom line</h2>
+
+    <p>Speech anxiety is not something you're stuck with. It's a learnable, trainable skill — like any other. The people who seem "naturally confident" speakers have simply logged more reps.</p>
+
+    <p>Start with breathing. Practice in small doses. Get objective feedback. Track your progress. The anxiety will shrink as your competence grows.</p>
+
+    <p>Ready to start practicing? <a href="https://aitalkcoach.com">Try AI Talk Coach</a> — it's like having a personal speech coach available 24/7, without the judgment.</p>
+    </div>
+  HTML
+  post.excerpt = "75% of people fear public speaking. Here are 7 evidence-based techniques to overcome speech anxiety — from breathing exercises to AI-powered practice."
+  post.meta_description = "Overcome speech anxiety with 7 proven techniques: controlled breathing, gradual exposure, reframing, and AI-powered practice. Start building confidence today."
+  post.meta_keywords = "speech anxiety, overcome fear of public speaking, glossophobia, public speaking tips, speech coaching, AI speech coach"
+  post.author = "AI Talk Coach"
+  post.published = true
+  post.published_at = Time.new(2026, 2, 9, 10, 0, 0)
+end
+puts "  Created blog post: How to Overcome Speech Anxiety"
