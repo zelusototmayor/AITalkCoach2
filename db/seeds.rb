@@ -1835,3 +1835,8 @@ BlogPost.find_or_create_by!(slug: "overcome-speech-anxiety") do |post|
   post.published_at = Time.new(2026, 2, 9, 10, 0, 0)
 end
 puts "  Created blog post: How to Overcome Speech Anxiety"
+
+# Load daily SEO blog seed files
+Dir[Rails.root.join("db/seeds/seo_blog_*.rb")].sort.each do |seed_file|
+  load seed_file
+end
