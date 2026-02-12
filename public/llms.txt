@@ -1,0 +1,13 @@
+# AI Talk Coach
+> AI-powered speaking coach for founders, professionals, and creators. Practice live, get analytics, improve clarity and confidence.
+
+## Primary URLs
+- https://aitalkcoach.com/
+- https://aitalkcoach.com/blog
+- https://aitalkcoach.com/pricing
+
+## Core Topics
+- Public speaking practice
+- Communication coaching
+- Filler-word reduction
+- Speech pacing and clarity analytics
