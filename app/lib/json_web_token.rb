@@ -3,7 +3,7 @@ require 'jwt'
 
 class JsonWebToken
   # Secret key for signing tokens - use Rails secret key base
-  SECRET_KEY = Rails.application.credentials.secret_key_base || Rails.application.secrets.secret_key_base
+  SECRET_KEY = Rails.application.credentials.secret_key_base || ENV["SECRET_KEY_BASE"]
 
   # Encode a payload into a JWT token
   # Default expiration is 24 hours
