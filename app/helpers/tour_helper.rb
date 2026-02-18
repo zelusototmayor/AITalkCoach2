@@ -118,14 +118,14 @@ module TourHelper
     return nil unless logged_in? && current_user.onboarding_completed?
 
     tour_name = case controller_name
-                when "sessions"
+    when "sessions"
                   case action_name
                   when "index" then "practice"
                   when "show" then "session_results"
                   when "coach" then "coach"
                   when "progress" then "progress"
                   end
-                end
+    end
 
     return nil unless tour_name
     return nil if current_user.tour_completed?(tour_name)

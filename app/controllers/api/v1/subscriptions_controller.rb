@@ -21,7 +21,7 @@ module Api
             stripe_subscription_id: current_user.stripe_subscription_id,
             # Apple details
             apple_subscription_id: current_user.apple_subscription_id,
-            revenuecat_customer_id: current_user.revenuecat_customer_id,
+            revenuecat_customer_id: current_user.revenuecat_customer_id
           }
         }
       end
@@ -73,7 +73,7 @@ module Api
               can_access_app: current_user.can_access_app?,
               status: current_user.subscription_status,
               platform: current_user.subscription_platform,
-              plan: current_user.subscription_plan,
+              plan: current_user.subscription_plan
             }
           }
         rescue StandardError => e
@@ -137,7 +137,7 @@ module Api
                 can_access_app: current_user.can_access_app?,
                 status: current_user.subscription_status,
                 platform: current_user.subscription_platform,
-                plan: current_user.subscription_plan,
+                plan: current_user.subscription_plan
               }
             }
           else

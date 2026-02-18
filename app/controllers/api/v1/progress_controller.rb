@@ -1,7 +1,7 @@
 class Api::V1::ProgressController < Api::V1::BaseController
   # GET /api/v1/progress
   def index
-    time_range = params[:range] || '7'
+    time_range = params[:range] || "7"
 
     # Get all completed sessions
     sessions = current_user.sessions
@@ -59,7 +59,7 @@ class Api::V1::ProgressController < Api::V1::BaseController
       sessions.last(7)
     when "10"
       # Last 10 days
-      sessions.where('created_at >= ?', 10.days.ago)
+      sessions.where("created_at >= ?", 10.days.ago)
     when "10_sessions"
       # Last 10 sessions
       sessions.last(10)
@@ -71,7 +71,7 @@ class Api::V1::ProgressController < Api::V1::BaseController
       # Custom date range: custom:YYYY-MM-DD:YYYY-MM-DD
       start_date = Date.parse($1) rescue 7.days.ago.to_date
       end_date = Date.parse($2) rescue Date.today
-      sessions.where('created_at >= ? AND created_at <= ?', start_date.beginning_of_day, end_date.end_of_day)
+      sessions.where("created_at >= ? AND created_at <= ?", start_date.beginning_of_day, end_date.end_of_day)
     else
       sessions.last(7)
     end
@@ -101,7 +101,7 @@ class Api::V1::ProgressController < Api::V1::BaseController
   def prepare_skill_snapshot(sessions)
     return {} if sessions.empty?
 
-    recent_count = [5, sessions.count].min
+    recent_count = [ 5, sessions.count ].min
     recent_sessions = sessions.last(recent_count)
     baseline_sessions = sessions
 
@@ -182,12 +182,12 @@ class Api::V1::ProgressController < Api::V1::BaseController
     when "7"
       sessions.last(7)
     when "10"
-      sessions.where('created_at >= ?', 10.days.ago)
+      sessions.where("created_at >= ?", 10.days.ago)
     when /^custom:(.+):(.+)$/
       # Custom date range: custom:YYYY-MM-DD:YYYY-MM-DD
       start_date = Date.parse($1) rescue 7.days.ago.to_date
       end_date = Date.parse($2) rescue Date.today
-      sessions.where('created_at >= ? AND created_at <= ?', start_date.beginning_of_day, end_date.end_of_day)
+      sessions.where("created_at >= ? AND created_at <= ?", start_date.beginning_of_day, end_date.end_of_day)
     else
       sessions.last(10) # Default to last 10 sessions
     end
@@ -225,7 +225,7 @@ class Api::V1::ProgressController < Api::V1::BaseController
 
     return {} if recent_5.empty?
 
-    metrics = [:overall_score, :filler_rate, :wpm, :clarity_score, :fluency_score, :engagement_score, :pace_consistency]
+    metrics = [ :overall_score, :filler_rate, :wpm, :clarity_score, :fluency_score, :engagement_score, :pace_consistency ]
     trends = {}
 
     metrics.each do |metric|
@@ -233,9 +233,9 @@ class Api::V1::ProgressController < Api::V1::BaseController
 
       if previous_5.any?
         prev_avg = calculate_average(previous_5, metric.to_s)
-        trends[metric] = recent_avg > prev_avg ? 'up' : (recent_avg < prev_avg ? 'down' : 'neutral')
+        trends[metric] = recent_avg > prev_avg ? "up" : (recent_avg < prev_avg ? "down" : "neutral")
       else
-        trends[metric] = 'neutral'
+        trends[metric] = "neutral"
       end
     end
 

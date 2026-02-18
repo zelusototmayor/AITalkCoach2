@@ -47,7 +47,7 @@ namespace :blog do
 
   desc "Export blog post images to public directory"
   task export_images: :environment do
-    require 'fileutils'
+    require "fileutils"
 
     puts "Exporting blog post images..."
 
@@ -63,7 +63,7 @@ namespace :blog do
       destination = images_dir.join(filename)
 
       # Copy the image file
-      File.open(destination, 'wb') do |file|
+      File.open(destination, "wb") do |file|
         file.write(post.featured_image.download)
       end
 

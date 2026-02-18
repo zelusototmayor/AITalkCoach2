@@ -145,7 +145,7 @@ module Sessions
       # Apply relevance penalty if applicable (second off-topic attempt)
       if @relevance_penalty && metrics_data.dig(:overall_scores, :overall_score)
         original_score = metrics_data[:overall_scores][:overall_score]
-        penalized_score = [original_score - @relevance_penalty, 0].max
+        penalized_score = [ original_score - @relevance_penalty, 0 ].max
         metrics_data[:overall_scores][:overall_score] = penalized_score
         metrics_data[:overall_scores][:relevance_penalty_applied] = @relevance_penalty
         Rails.logger.info "Applied relevance penalty: #{original_score} -> #{penalized_score}"
@@ -871,7 +871,7 @@ module Sessions
 
       # Optional: Add delay in development to make progress visible
       # Set SLOW_PROCESSING=true to see incremental progress updates
-      if Rails.env.development? && ENV['SLOW_PROCESSING'] == 'true'
+      if Rails.env.development? && ENV["SLOW_PROCESSING"] == "true"
         sleep(2)
         Rails.logger.debug "Progress update: #{stage} at #{progress_percent}%"
       end

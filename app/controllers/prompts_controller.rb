@@ -158,7 +158,7 @@ class PromptsController < ApplicationController
 
   def filter_prompts_by_tags(prompts, tags)
     return prompts if tags.blank?
-    tag_array = tags.is_a?(String) ? tags.split(',') : tags
+    tag_array = tags.is_a?(String) ? tags.split(",") : tags
     prompts.select { |p| (p[:tags] & tag_array).any? }
   end
 

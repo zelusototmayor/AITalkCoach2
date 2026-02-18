@@ -473,7 +473,7 @@ module Analysis
         target_percent = (area[:target_value] * 100).round(1)
 
         # Get most common filler words from specific issues
-        common_fillers = area[:specific_issues]&.map { |issue| issue[0] }&.take(2) || ["um", "uh"]
+        common_fillers = area[:specific_issues]&.map { |issue| issue[0] }&.take(2) || [ "um", "uh" ]
         filler_examples = common_fillers.join(" and ")
 
         [

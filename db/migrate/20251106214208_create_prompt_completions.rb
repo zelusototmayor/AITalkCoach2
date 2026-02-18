@@ -9,6 +9,6 @@ class CreatePromptCompletions < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :prompt_completions, [:user_id, :prompt_identifier], unique: true
+    add_index :prompt_completions, [ :user_id, :prompt_identifier ], unique: true
   end
 end

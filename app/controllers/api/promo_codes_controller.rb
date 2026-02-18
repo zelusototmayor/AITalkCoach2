@@ -7,7 +7,7 @@ class Api::PromoCodesController < ApplicationController
     code = params[:code]&.strip&.upcase
 
     if code.blank?
-      render json: { valid: false, error: 'Code is required' }, status: :unprocessable_entity
+      render json: { valid: false, error: "Code is required" }, status: :unprocessable_entity
       return
     end
 
@@ -32,11 +32,11 @@ class Api::PromoCodesController < ApplicationController
         end
 
         # Add duration information
-        if coupon.duration == 'once'
+        if coupon.duration == "once"
           discount_text += " (first payment)"
-        elsif coupon.duration == 'repeating' && coupon.duration_in_months
+        elsif coupon.duration == "repeating" && coupon.duration_in_months
           discount_text += " (#{coupon.duration_in_months} months)"
-        elsif coupon.duration == 'forever'
+        elsif coupon.duration == "forever"
           discount_text += " (forever)"
         end
 
@@ -48,14 +48,14 @@ class Api::PromoCodesController < ApplicationController
       else
         render json: {
           valid: false,
-          error: 'Invalid or expired promo code'
+          error: "Invalid or expired promo code"
         }, status: :unprocessable_entity
       end
     rescue ::Stripe::StripeError => e
       Rails.logger.error("Stripe promo code validation error: #{e.message}")
       render json: {
         valid: false,
-        error: 'Unable to validate promo code. Please try again.'
+        error: "Unable to validate promo code. Please try again."
       }, status: :unprocessable_entity
     end
   end

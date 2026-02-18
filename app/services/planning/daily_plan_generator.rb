@@ -293,9 +293,9 @@ module Planning
 
       # Calculate averages and patterns
       {
-        avg_filler_rate: recent_sessions.filter_map { |s| s.analysis_data["filler_rate"] }.sum / [recent_sessions.count, 1].max,
-        avg_wpm: recent_sessions.filter_map { |s| s.analysis_data["wpm"] }.sum / [recent_sessions.count, 1].max,
-        avg_clarity: recent_sessions.filter_map { |s| s.analysis_data["clarity_score"] }.sum / [recent_sessions.count, 1].max,
+        avg_filler_rate: recent_sessions.filter_map { |s| s.analysis_data["filler_rate"] }.sum / [ recent_sessions.count, 1 ].max,
+        avg_wpm: recent_sessions.filter_map { |s| s.analysis_data["wpm"] }.sum / [ recent_sessions.count, 1 ].max,
+        avg_clarity: recent_sessions.filter_map { |s| s.analysis_data["clarity_score"] }.sum / [ recent_sessions.count, 1 ].max,
         total_filler_issues: recent_sessions.sum { |s| s.issues.where(category: "filler_words").count },
         sessions_this_week: @user.sessions.where("created_at >= ?", @weekly_focus&.week_start || 1.week.ago).where(completed: true).count,
         target_sessions: @weekly_focus&.target_sessions_per_week || 10,
@@ -315,13 +315,13 @@ module Planning
       case @weekly_focus.focus_type
       when "reduce_fillers"
         values = recent_sessions.filter_map { |s| s.analysis_data["filler_rate"] }
-        values.sum / [values.count, 1].max
+        values.sum / [ values.count, 1 ].max
       when "improve_pace"
         values = recent_sessions.filter_map { |s| s.analysis_data["wpm"] }
-        values.sum / [values.count, 1].max
+        values.sum / [ values.count, 1 ].max
       when "enhance_clarity"
         values = recent_sessions.filter_map { |s| s.analysis_data["clarity_score"] }
-        values.sum / [values.count, 1].max
+        values.sum / [ values.count, 1 ].max
       else
         @weekly_focus.starting_value
       end

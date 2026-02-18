@@ -2,37 +2,37 @@ module Analysis
   class AchievementDetector
     ACHIEVEMENT_TYPES = {
       streak: {
-        thresholds: [3, 7, 14, 30, 60, 100],
+        thresholds: [ 3, 7, 14, 30, 60, 100 ],
         icon: "🔥",
         title_template: "%{count}-Day Practice Streak",
         description_template: "Practiced for %{count} consecutive days"
       },
       session_milestone: {
-        thresholds: [5, 10, 25, 50, 100, 250, 500],
+        thresholds: [ 5, 10, 25, 50, 100, 250, 500 ],
         icon: "🎯",
         title_template: "%{count} Sessions Completed",
         description_template: "Completed %{count} total practice sessions"
       },
       filler_improvement: {
-        thresholds: [10, 25, 50, 75],
+        thresholds: [ 10, 25, 50, 75 ],
         icon: "💎",
         title_template: "%{count}% Filler Reduction",
         description_template: "Reduced filler words by %{count}% from your baseline"
       },
       clarity_master: {
-        thresholds: [80, 85, 90, 95],
+        thresholds: [ 80, 85, 90, 95 ],
         icon: "✨",
         title_template: "%{count}% Clarity Score",
         description_template: "Achieved %{count}% or higher clarity score"
       },
       pace_control: {
-        thresholds: [3, 5, 10],
+        thresholds: [ 3, 5, 10 ],
         icon: "⚡",
         title_template: "%{count} Sessions in Ideal Pace Range",
         description_template: "Maintained target pace in %{count} consecutive sessions"
       },
       weekly_focus_champion: {
-        thresholds: [1, 3, 5, 10],
+        thresholds: [ 1, 3, 5, 10 ],
         icon: "🏆",
         title_template: "%{count} Weekly Goals Completed",
         description_template: "Successfully completed %{count} weekly focus goals"

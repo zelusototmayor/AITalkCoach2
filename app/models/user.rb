@@ -11,7 +11,7 @@ class User < ApplicationRecord
   validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :name, presence: true, length: { minimum: 2, maximum: 50 }
   validates :password, length: { minimum: 6 }, if: :password_required?
-  validates :preferred_language, inclusion: { in: -> (_) { LanguageService.supported_language_codes } }, allow_blank: false
+  validates :preferred_language, inclusion: { in: ->(_) { LanguageService.supported_language_codes } }, allow_blank: false
   validates :target_wpm, numericality: { only_integer: true, greater_than_or_equal_to: 60, less_than_or_equal_to: 240 }, allow_nil: true
 
   # Serialize speaking_goal as JSON array

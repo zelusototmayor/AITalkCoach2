@@ -14,39 +14,39 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
     # Allow mobile app to access session-related endpoints
     resource "/sessions*",
       headers: :any,
-      methods: [:get, :post, :put, :patch, :delete, :options, :head],
+      methods: [ :get, :post, :put, :patch, :delete, :options, :head ],
       credentials: false,
-      expose: ['Authorization'] # Allow Authorization header in responses
+      expose: [ "Authorization" ] # Allow Authorization header in responses
 
     # Allow mobile app to access API endpoints
     resource "/api/*",
       headers: :any,
-      methods: [:get, :post, :put, :patch, :delete, :options, :head],
+      methods: [ :get, :post, :put, :patch, :delete, :options, :head ],
       credentials: false,
-      expose: ['Authorization'] # Allow Authorization header in responses
+      expose: [ "Authorization" ] # Allow Authorization header in responses
 
     # Allow mobile app to access weekly focus endpoints
     resource "/weekly_focuses/*",
       headers: :any,
-      methods: [:get, :post, :put, :patch, :delete, :options, :head],
+      methods: [ :get, :post, :put, :patch, :delete, :options, :head ],
       credentials: false
 
     # Allow mobile app to access coach recommendations
     resource "/coach*",
       headers: :any,
-      methods: [:get, :post, :put, :patch, :delete, :options, :head],
+      methods: [ :get, :post, :put, :patch, :delete, :options, :head ],
       credentials: false
 
     # Allow mobile app to access progress data
     resource "/progress*",
       headers: :any,
-      methods: [:get, :post, :put, :patch, :delete, :options, :head],
+      methods: [ :get, :post, :put, :patch, :delete, :options, :head ],
       credentials: false
 
     # Allow mobile app to access practice session list
     resource "/practice*",
       headers: :any,
-      methods: [:get, :post, :put, :patch, :delete, :options, :head],
+      methods: [ :get, :post, :put, :patch, :delete, :options, :head ],
       credentials: false
   end
 end

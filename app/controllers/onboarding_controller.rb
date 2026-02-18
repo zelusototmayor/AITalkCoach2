@@ -235,12 +235,12 @@ class OnboardingController < ApplicationController
     elsif request.post?
       # Skip Stripe in development mode
       if Rails.env.development?
-        selected_plan = params[:selected_plan] || 'monthly'
+        selected_plan = params[:selected_plan] || "monthly"
         promo_code = params[:promo_code]
 
         current_user.update!(
           subscription_plan: selected_plan,
-          stripe_payment_method_id: 'mock_payment_method_for_development',
+          stripe_payment_method_id: "mock_payment_method_for_development",
           promo_code: promo_code
         )
         redirect_to onboarding_complete_path

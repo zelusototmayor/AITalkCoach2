@@ -1,7 +1,7 @@
 class BlogPostsController < ApplicationController
   include MetaTagsHelper
 
-  before_action :set_blog_post, only: [:show]
+  before_action :set_blog_post, only: [ :show ]
 
   def index
     @blog_posts = BlogPost.published.recent.page(params[:page]).per(12)

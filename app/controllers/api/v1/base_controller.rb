@@ -1,4 +1,4 @@
-require 'jwt'
+require "jwt"
 
 class Api::V1::BaseController < ActionController::API
   # Skip CSRF for API requests
@@ -16,14 +16,14 @@ class Api::V1::BaseController < ActionController::API
 
   def authenticate_request
     @current_user = decode_token
-    render json: { error: 'Unauthorized' }, status: :unauthorized unless @current_user
+    render json: { error: "Unauthorized" }, status: :unauthorized unless @current_user
   end
 
   def decode_token
-    header = request.headers['Authorization']
+    header = request.headers["Authorization"]
     return nil unless header
 
-    token = header.split(' ').last
+    token = header.split(" ").last
     decoded = JsonWebToken.decode(token)
     return nil unless decoded
 
@@ -42,26 +42,26 @@ class Api::V1::BaseController < ActionController::API
   def authenticate_request
     return if @skip_auth
     @current_user = decode_token
-    render json: { error: 'Unauthorized' }, status: :unauthorized unless @current_user
+    render json: { error: "Unauthorized" }, status: :unauthorized unless @current_user
   end
 
   # Error responses
   def not_found
-    render json: { error: 'Resource not found' }, status: :not_found
+    render json: { error: "Resource not found" }, status: :not_found
   end
 
   def unprocessable_entity(exception)
     render json: {
-      error: 'Validation failed',
+      error: "Validation failed",
       errors: exception.record.errors.full_messages
     }, status: :unprocessable_entity
   end
 
   def unauthorized
-    render json: { error: 'Invalid token' }, status: :unauthorized
+    render json: { error: "Invalid token" }, status: :unauthorized
   end
 
   def token_expired
-    render json: { error: 'Token has expired' }, status: :unauthorized
+    render json: { error: "Token has expired" }, status: :unauthorized
   end
 end

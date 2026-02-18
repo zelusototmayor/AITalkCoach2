@@ -16,50 +16,50 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       # Authentication
-      post 'auth/login', to: 'auth#login'
-      post 'auth/signup', to: 'auth#signup'
-      post 'auth/refresh', to: 'auth#refresh'
-      get 'auth/me', to: 'auth#me'
-      post 'auth/logout', to: 'auth#logout'
-      post 'auth/google', to: 'oauth#google'
-      post 'auth/apple', to: 'oauth#apple'
-      post 'auth/forgot_password', to: 'auth#forgot_password'
-      post 'auth/reset_password', to: 'auth#reset_password'
-      post 'auth/complete_onboarding', to: 'auth#complete_onboarding'
-      patch 'auth/update_profile', to: 'auth#update_profile'
-      patch 'auth/update_language', to: 'auth#update_language'
-      patch 'auth/update_target_wpm', to: 'auth#update_target_wpm'
-      delete 'auth/account', to: 'auth#delete_account'
+      post "auth/login", to: "auth#login"
+      post "auth/signup", to: "auth#signup"
+      post "auth/refresh", to: "auth#refresh"
+      get "auth/me", to: "auth#me"
+      post "auth/logout", to: "auth#logout"
+      post "auth/google", to: "oauth#google"
+      post "auth/apple", to: "oauth#apple"
+      post "auth/forgot_password", to: "auth#forgot_password"
+      post "auth/reset_password", to: "auth#reset_password"
+      post "auth/complete_onboarding", to: "auth#complete_onboarding"
+      patch "auth/update_profile", to: "auth#update_profile"
+      patch "auth/update_language", to: "auth#update_language"
+      patch "auth/update_target_wpm", to: "auth#update_target_wpm"
+      delete "auth/account", to: "auth#delete_account"
 
       # Sessions
-      resources :sessions, only: [:index, :show, :create, :destroy] do
+      resources :sessions, only: [ :index, :show, :create, :destroy ] do
         member do
-          get 'status'
-          post 'retake'
-          post 'continue_anyway'
+          get "status"
+          post "retake"
+          post "continue_anyway"
         end
       end
 
       # Progress
-      get 'progress', to: 'progress#index'
+      get "progress", to: "progress#index"
 
       # Coach
-      get 'coach', to: 'coach#index'
+      get "coach", to: "coach#index"
 
       # Prompts
-      get 'prompts', to: 'prompts#index'
-      get 'prompts/daily', to: 'sessions#daily_prompt'
-      get 'prompts/shuffle', to: 'sessions#shuffle_prompt'
-      post 'prompts/complete', to: 'sessions#complete_prompt'
+      get "prompts", to: "prompts#index"
+      get "prompts/daily", to: "sessions#daily_prompt"
+      get "prompts/shuffle", to: "sessions#shuffle_prompt"
+      post "prompts/complete", to: "sessions#complete_prompt"
 
       # Subscriptions (Apple IAP via RevenueCat)
-      get 'subscriptions/status', to: 'subscriptions#status'
-      post 'subscriptions/sync', to: 'subscriptions#sync'
-      post 'subscriptions/restore', to: 'subscriptions#restore'
+      get "subscriptions/status", to: "subscriptions#status"
+      post "subscriptions/sync", to: "subscriptions#sync"
+      post "subscriptions/restore", to: "subscriptions#restore"
     end
 
     # Web-specific API routes (promo codes)
-    post 'validate_promo_code', to: 'promo_codes#validate'
+    post "validate_promo_code", to: "promo_codes#validate"
   end
 
   # RevenueCat webhook (outside subdomain constraints, accepts any request)
@@ -99,7 +99,7 @@ Rails.application.routes.draw do
     root "landing#index"
 
     # Blog routes
-    resources :blog_posts, only: [:index, :show], path: "blog", param: :slug
+    resources :blog_posts, only: [ :index, :show ], path: "blog", param: :slug
 
     # Legal pages
     get "privacy", to: "legal#privacy", as: :privacy_policy
@@ -192,7 +192,7 @@ Rails.application.routes.draw do
     # Convenient aliases
     get "/login", to: "auth/sessions#new"
     post "/login", to: "auth/sessions#create"
-    match "/logout", to: "auth/sessions#destroy", via: [:get, :delete], as: :logout
+    match "/logout", to: "auth/sessions#destroy", via: [ :get, :delete ], as: :logout
     get "/signup", to: "auth/registrations#new"
     post "/signup", to: "auth/registrations#create"
 
@@ -271,7 +271,7 @@ Rails.application.routes.draw do
       end
 
       # Promo code validation (for onboarding payment)
-      post 'validate_promo_code', to: 'promo_codes#validate'
+      post "validate_promo_code", to: "promo_codes#validate"
     end
 
     # Admin routes

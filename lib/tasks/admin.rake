@@ -1,6 +1,6 @@
 namespace :admin do
   desc "Make a user an admin"
-  task :create, [:email] => :environment do |t, args|
+  task :create, [ :email ] => :environment do |t, args|
     email = args[:email]
 
     if email.blank?
@@ -24,7 +24,7 @@ namespace :admin do
   end
 
   desc "Remove admin privileges from a user"
-  task :remove, [:email] => :environment do |t, args|
+  task :remove, [ :email ] => :environment do |t, args|
     email = args[:email]
 
     if email.blank?
@@ -48,7 +48,7 @@ namespace :admin do
   end
 
   desc "List all admin users"
-  task :list => :environment do
+  task list: :environment do
     admins = User.where(admin: true)
 
     if admins.empty?

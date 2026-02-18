@@ -239,9 +239,9 @@ class SessionsController < ApplicationController
     # For mobile API in development, use user_id param instead of current_user
     user = if request.format.json? && Rails.env.development? && params[:user_id]
              User.find_by(id: params[:user_id]) || User.first # Fallback to first user if not found
-           else
+    else
              current_user
-           end
+    end
 
     # Get all completed sessions for progress tracking
     # Note: We load all sessions (not just last 30 days) to ensure users with historical data
@@ -593,9 +593,9 @@ class SessionsController < ApplicationController
     # For mobile API in development
     user = if request.format.json? && Rails.env.development? && params[:user_id]
              User.find_by(id: params[:user_id]) || User.first
-           else
+    else
              current_user
-           end
+    end
 
     prompt_selector = PromptSelector.new(user)
     prompt = prompt_selector.daily_prompt
@@ -608,9 +608,9 @@ class SessionsController < ApplicationController
     # For mobile API in development
     user = if request.format.json? && Rails.env.development? && params[:user_id]
              User.find_by(id: params[:user_id]) || User.first
-           else
+    else
              current_user
-           end
+    end
 
     prompt_selector = PromptSelector.new(user)
     prompt = prompt_selector.shuffle_prompt
@@ -623,9 +623,9 @@ class SessionsController < ApplicationController
     # For mobile API in development
     user = if request.format.json? && Rails.env.development? && params[:user_id]
              User.find_by(id: params[:user_id]) || User.first
-           else
+    else
              current_user
-           end
+    end
 
     PromptSelector.mark_completed(user, params[:prompt_identifier], params[:session_id])
 
@@ -1747,7 +1747,7 @@ class SessionsController < ApplicationController
 
     return {} if recent_5.empty?
 
-    metrics = [:overall_score, :filler_rate, :pace_wpm, :clarity_score, :fluency_score, :engagement_score, :pace_consistency]
+    metrics = [ :overall_score, :filler_rate, :pace_wpm, :clarity_score, :fluency_score, :engagement_score, :pace_consistency ]
     trends = {}
 
     metrics.each do |metric|
@@ -1755,9 +1755,9 @@ class SessionsController < ApplicationController
 
       if previous_5.any?
         prev_avg = previous_5.map { |s| s.analysis_data[metric.to_s].to_f }.compact.sum / previous_5.length
-        trends[metric] = recent_avg > prev_avg ? 'up' : (recent_avg < prev_avg ? 'down' : 'neutral')
+        trends[metric] = recent_avg > prev_avg ? "up" : (recent_avg < prev_avg ? "down" : "neutral")
       else
-        trends[metric] = 'neutral'
+        trends[metric] = "neutral"
       end
     end
 

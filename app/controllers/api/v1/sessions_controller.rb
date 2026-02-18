@@ -1,5 +1,5 @@
 class Api::V1::SessionsController < Api::V1::BaseController
-  before_action :set_default_language, only: [:create]
+  before_action :set_default_language, only: [ :create ]
 
   # GET /api/v1/sessions
   def index
