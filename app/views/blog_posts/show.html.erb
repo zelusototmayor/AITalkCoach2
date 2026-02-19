@@ -71,3 +71,37 @@
   }
 }
 </script>
+
+<!-- FAQPage Structured Data for blog posts (captures informational long-tail queries) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is the fastest way to improve speaking clarity with AI?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Use short, focused practice sessions with immediate feedback on filler words, pacing, and structure. AI Talk Coach helps you run these repetitions daily so improvements compound over time."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can AI Talk Coach help me practice before real meetings, interviews, or presentations?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. You can simulate real scenarios, rehearse high-stakes answers, and tighten delivery before speaking live. This is especially useful for founders, job seekers, and professionals who need concise communication."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Which article should I read next after '<%= j @blog_post.title %>'?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Visit the AI Talk Coach blog for related guides on public speaking, interview prep, objection handling, and communication drills you can practice immediately."
+      }
+    }
+  ]
+}
+</script>
