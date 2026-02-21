@@ -1,3 +1,36 @@
+<script type="application/ld+json">
+  <%= raw({
+    "@context" => "https://schema.org",
+    "@type" => "FAQPage",
+    "mainEntity" => [
+      {
+        "@type" => "Question",
+        "name" => "What is the best way to practice public speaking alone?",
+        "acceptedAnswer" => {
+          "@type" => "Answer",
+          "text" => "Use short, repeatable speaking sessions with objective feedback on pacing, filler words, clarity, and structure."
+        }
+      },
+      {
+        "@type" => "Question",
+        "name" => "Can an AI speaking coach help with job interview practice?",
+        "acceptedAnswer" => {
+          "@type" => "Answer",
+          "text" => "Yes. AI speaking coaches help candidates rehearse interview answers, detect delivery issues, and improve confidence with fast iteration loops."
+        }
+      },
+      {
+        "@type" => "Question",
+        "name" => "How often should I practice speaking to improve quickly?",
+        "acceptedAnswer" => {
+          "@type" => "Answer",
+          "text" => "Most people improve with 4 to 5 focused sessions per week, each lasting around 20 to 30 minutes."
+        }
+      }
+    ]
+  }.to_json) %>
+</script>
+
 <div class="blog-container">
   <header class="blog-header">
     <h1>Blog</h1>
