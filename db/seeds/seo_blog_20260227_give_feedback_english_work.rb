@@ -184,7 +184,7 @@ BlogPost.find_or_create_by!(slug: 'how-to-give-feedback-in-english-at-work-non-n
   post.title       = 'How to Give Feedback in English at Work (Guide for Non-Native Professionals)'
   post.content     = content
   post.excerpt     = 'Giving feedback in a second language is one of the hardest professional communication challenges. This guide gives you the exact phrases, structures, and techniques non-native speakers use to deliver clear, respectful feedback that actually lands.'
-  post.meta_description = 'Struggling to give feedback in English at work? Learn the exact phrases, structures, and techniques non-native speakers use to deliver clear, respectful feedback that lands.'
+  post.meta_description = 'Learn how to give feedback in English at work. Phrases, structures, and techniques for non-native speakers.'
   post.published   = true
   post.published_at = Time.current
 end

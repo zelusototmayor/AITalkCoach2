@@ -1,7 +1,7 @@
 BlogPost.find_or_create_by!(slug: "overcome-public-speaking-anxiety-tips") do |post|
   post.title = "10 Practical Tips to Overcome Public Speaking Anxiety (Glossophobia)"
   post.excerpt = "Fear of public speaking is one of the most common phobias. Whether it's a board meeting or a wedding toast, these 10 actionable strategies—from 'box breathing' to 'reframing anxiety as excitement'—will help you stay calm and deliver with confidence."
-  post.meta_description = "Master public speaking anxiety with 10 proven tips. Learn how to handle glossophobia, use box breathing, reframe nerves as excitement, and practice effectively with AI."
+  post.meta_description = "Overcome public speaking anxiety with 10 proven tips. Box breathing, reframing nerves, and AI practice techniques."
   post.meta_keywords = "public speaking anxiety tips, overcome glossophobia, fear of public speaking, presentation anxiety, speaking confidence"
   post.published = true
   post.published_at = Time.current

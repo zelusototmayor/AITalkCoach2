@@ -1,5 +1,5 @@
 slug = "how-to-prepare-for-a-job-interview-in-english-non-native-speaker"
-meta_description = "Non-native English speaker preparing for a job interview? This guide covers the exact techniques — question prep, pronunciation drills, and AI practice — to walk in confident and get the offer."
+meta_description = "Job interview prep for non-native English speakers. Question prep, pronunciation drills, and AI practice to boost confidence."
 excerpt = "Job interviews are stressful. Doing them in your second language adds a whole extra layer. Here's a concrete, step-by-step system non-native English speakers use to prepare, sound confident, and get the offer."
 
 title = "How to Prepare for a Job Interview in English as a Non-Native Speaker"

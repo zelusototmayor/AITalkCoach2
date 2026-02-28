@@ -3,7 +3,7 @@
 title = "5 Ways an AI Public Speaking Coach Can Transform Your Presentation Skills"
 slug = "5-ways-ai-public-speaking-coach-transform-skills"
 excerpt = "Public speaking is a daunting task for many, but the emergence of AI public speaking coaches is changing the game. Discover how AI can provide instant feedback, reduce anxiety, and help you master your message."
-meta_description = "Discover the top 5 benefits of using an AI public speaking coach to improve your confidence, clarity, and delivery. Master public speaking with AI-powered feedback."
+meta_description = "Top 5 benefits of an AI public speaking coach. Improve confidence, clarity, and delivery with AI-powered feedback."
 
 content = <<~MARKDOWN
   ## Mastering the Stage: The Rise of the AI Public Speaking Coach

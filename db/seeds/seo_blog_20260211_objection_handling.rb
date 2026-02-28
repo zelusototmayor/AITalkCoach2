@@ -1,7 +1,7 @@
 BlogPost.find_or_create_by!(slug: "ai-objection-handling-training") do |post|
   post.title = "AI Objection Handling Training: A Practical Drill System for Sales Teams"
   post.excerpt = "Most reps lose deals in the same moments: budget pushback, timing stalls, and competitor comparisons. This guide shows how to train objection handling with AI using measurable weekly drills."
-  post.meta_description = "Build objection handling confidence with AI roleplay drills. Learn a weekly sales training system for price, timing, and competitor objections with measurable scoring."
+  post.meta_description = "Build objection handling skills with AI roleplay drills. A weekly sales training system for price, timing, and competitor objections."
   post.published = true
   post.published_at = Time.current
   post.content = <<~HTML

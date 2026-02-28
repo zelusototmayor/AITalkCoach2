@@ -1,5 +1,5 @@
 slug = "how-to-speak-confidently-in-meetings-as-non-native-english-speaker"
-meta_description = "Non-native English speaker struggling to speak up in meetings? This guide gives you the exact techniques to build confidence, reduce filler words, and sound more professional at work."
+meta_description = "Build confidence speaking English in meetings. Techniques to reduce filler words and sound professional at work."
 excerpt = "Speaking up in meetings is hard enough — doing it in your second language is even harder. Here are the concrete techniques non-native English professionals use to communicate confidently at work."
 
 title = "How to Speak Confidently in Meetings as a Non-Native English Speaker"

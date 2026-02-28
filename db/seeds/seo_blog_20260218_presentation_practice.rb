@@ -4,7 +4,7 @@
 
 title = "How to Practice Presentation Skills with AI: A Step-by-Step Guide"
 slug = "how-to-practice-presentation-skills-with-ai"
-meta_description = "Learn how to practice presentation skills with AI. Get real-time feedback on clarity, pace, and filler words — without booking a coach or finding a practice partner."
+meta_description = "Practice presentation skills with AI. Get real-time feedback on clarity, pace, and filler words — no coach needed."
 excerpt = "Most people practice presentations by talking to a mirror. AI gives you something the mirror can't: objective feedback. Here's how to build a repeatable practice routine using AI Talk Coach."
 
 content = <<~HTML

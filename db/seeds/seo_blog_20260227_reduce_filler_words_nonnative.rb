@@ -4,7 +4,7 @@
 
 slug = "how-to-reduce-filler-words-in-english-non-native-speaker"
 title = "How to Reduce Filler Words When Speaking English (Non-Native Speaker Guide)"
-meta_description = "Struggling with 'um,' 'uh,' and 'like' in English? This guide gives non-native speakers the exact techniques to reduce filler words, speak more fluently, and sound more professional in any situation."
+meta_description = "Reduce filler words in English. Techniques for non-native speakers to sound more fluent and professional."
 excerpt = "Filler words aren't just a bad habit — for non-native English speakers, they're a symptom of cognitive load. Here's how to fix the root cause and speak with fewer fillers, starting today."
 
 body = File.read(Rails.root.join("blog/2026-02-27-how-to-reduce-filler-words-in-english-non-native-speaker.md"))
