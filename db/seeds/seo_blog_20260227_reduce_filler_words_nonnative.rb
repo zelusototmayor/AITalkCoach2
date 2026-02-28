@@ -13,7 +13,7 @@ BlogPost.find_or_initialize_by(slug: slug).tap do |post|
   post.title = title
   post.meta_description = meta_description
   post.excerpt = excerpt
-  post.body = body
+  post.content = body
   post.published_at = Time.zone.parse("2026-02-27 06:00:00")
   post.save!
   puts "✅ Seeded: #{title}"
