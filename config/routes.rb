@@ -147,6 +147,10 @@ Rails.application.routes.draw do
   # APPLICATION (app.aitalkcoach.com)
   # =============================================================================
   constraints subdomain: "app" do
+    # Redirect blog on app subdomain to marketing site
+    get "blog", to: redirect("https://aitalkcoach.com/blog")
+    get "blog/*path", to: redirect("https://aitalkcoach.com/blog/%{path}")
+
     # Redirect root on app subdomain to practice
     root "sessions#index", as: :app_root
 
