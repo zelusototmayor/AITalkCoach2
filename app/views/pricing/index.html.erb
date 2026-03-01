@@ -196,7 +196,127 @@
       </div>
     </div>
 
-    <!-- FAQs or Back Link -->
+    <!-- Pricing FAQ Section with JSON-LD Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is there a free trial for AI Talk Coach?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. You get 24 hours of full free access when you sign up — no credit card required. If you practice for at least 1 minute per day, your free access extends by another 24 hours. Keep practicing daily and you can use AI Talk Coach indefinitely for free."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I cancel my subscription at any time?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, you can cancel anytime directly from your account settings. There are no cancellation fees and no lock-in periods. If you cancel, your subscription stays active until the end of your current billing period."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is the difference between the monthly and annual plans?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The annual plan gives you the same full access as the monthly plan at a significantly reduced price — you get several months free compared to paying month-to-month. Both plans include unlimited practice sessions, all feedback types, and progress tracking."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What happens when my free trial ends?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "When your trial period ends, you can choose to subscribe to a paid plan or continue extending your free access by practicing daily. You will never be charged automatically — there is no credit card required to start."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does AI Talk Coach work for non-native English speakers?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes — this is one of our most common use cases. AI Talk Coach gives you instant feedback on clarity, pace, filler word frequency, and speaking patterns. Many non-native speakers use it to practice for job interviews, presentations, meetings, and video calls in English. The AI adapts to your accent and provides consistent, objective feedback every session."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What types of speaking can I practice?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "AI Talk Coach supports a wide range of speaking scenarios: presentations, job interviews, sales pitches, one-on-ones, public speaking, and general English fluency practice. The AI gives you feedback on filler words, speaking pace, clarity, and confidence signals — across all scenario types."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is there a plan for language coaches or corporate teams?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. The Coach Plan is designed for language coaches, corporate trainers, and L&D professionals who want to track student or team progress. It includes multi-user management, detailed analytics, and dedicated support. Contact us at zsottomayor@gmail.com for pricing and setup."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How quickly will I improve my speaking with AI Talk Coach?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Most users see measurable improvement in specific behaviours — like filler word reduction and pace control — within their first week of daily practice. Broader confidence improvements typically show up within 2–3 weeks. The key is consistency: 10–15 minutes per day produces significantly faster results than occasional longer sessions."
+          }
+        }
+      ]
+    }
+    </script>
+
+    <div style="margin-top: 4rem; max-width: 780px; margin-left: auto; margin-right: auto;">
+      <h2 style="font-size: 1.75rem; font-weight: 800; text-align: center; margin-bottom: 2rem; color: var(--text);">
+        Pricing Questions
+      </h2>
+
+      <div style="display: flex; flex-direction: column; gap: 0;">
+        <% pricing_faqs = [
+          {
+            q: "Is there a free trial?",
+            a: "Yes — 24 hours of full access, no credit card required. Practice 1+ minute daily and your free access auto-extends another 24 hours. Keep practising daily and you may never need to pay."
+          },
+          {
+            q: "Can I cancel at any time?",
+            a: "Yes. Cancel anytime from your account settings. No fees, no lock-in. Your access stays active until the end of your current billing cycle."
+          },
+          {
+            q: "What's the difference between monthly and annual?",
+            a: "Same full access — annual saves you several months of cost compared to month-to-month. Both include unlimited sessions, all feedback types, and progress tracking."
+          },
+          {
+            q: "Does it work for non-native English speakers?",
+            a: "Absolutely — this is one of our most popular use cases. You get objective feedback on pace, clarity, and filler words every session, regardless of accent. Many users practice for job interviews, presentations, and video calls in English."
+          },
+          {
+            q: "What can I practice?",
+            a: "Presentations, job interviews, sales pitches, video calls, one-on-ones, and general English fluency. The AI adapts to any scenario and gives you specific, actionable feedback each time."
+          },
+          {
+            q: "Is there a plan for coaches or teams?",
+            a: "Yes — the Coach Plan includes multi-user management and team analytics. Email zsottomayor@gmail.com to discuss your team's needs."
+          }
+        ] %>
+
+        <% pricing_faqs.each_with_index do |faq, i| %>
+          <div style="border-bottom: 1px solid var(--border); padding: 1.25rem 0; <%= i == 0 ? 'border-top: 1px solid var(--border);' : '' %>">
+            <h3 style="font-size: 1rem; font-weight: 700; color: var(--text); margin: 0 0 0.5rem 0;">
+              <%= faq[:q] %>
+            </h3>
+            <p style="font-size: 0.9rem; color: var(--muted); margin: 0; line-height: 1.6;">
+              <%= faq[:a] %>
+            </p>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Back Link -->
     <div style="text-align: center; margin-top: 3rem;">
       <%= link_to '← Back to Home', root_path, style: 'color: var(--brand-500); text-decoration: none; font-weight: 600;' %>
     </div>
