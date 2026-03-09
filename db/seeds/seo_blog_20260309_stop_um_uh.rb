@@ -1,13 +1,12 @@
 # SEO Blog Seed — 2026-03-09
 # Keyword: how to stop saying um and uh when speaking
-# Cluster: filler words, public speaking, communication skills, speech habits
+# Cluster: filler words, public speaking, communication skills
 # Volume est: 1,900/mo | Difficulty: Low
 
 slug = "how-to-stop-saying-um-and-uh-when-speaking"
 title = "How to Stop Saying Um and Uh When Speaking (5 Proven Techniques)"
-meta_description = "Stop saying um and uh with 5 proven techniques: record yourself, embrace the pause, slow down, use transitional phrases, and practice with AI feedback."
-excerpt = "Filler words are a habit — and habits change. Here are 5 proven techniques to stop saying um and uh and sound more confident every time you speak."
-
+meta_description = "Learn how to stop saying um and uh when speaking with 5 proven techniques. Cut filler words fast and sound more confident with AI-powered practice."
+excerpt = "Filler words like 'um' and 'uh' undermine your credibility — even when your content is strong. Here are 5 proven techniques to eliminate them for good."
 body = File.read(Rails.root.join("blog/2026-03-09-how-to-stop-saying-um-and-uh-when-speaking.md"))
 
 BlogPost.find_or_initialize_by(slug: slug).tap do |post|
