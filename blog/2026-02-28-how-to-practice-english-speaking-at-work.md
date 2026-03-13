@@ -1,3 +1,13 @@
+---
+title: "How to Practice English Speaking at Work (Without the Embarrassment)"
+slug: "how-to-practice-english-speaking-at-work"
+date: "2026-02-28"
+meta_description: "Practicing English speaking at work feels risky — every mistake is in front of colleagues. This guide shows low-risk methods to build fluency and confidence on the job."
+tags: ["english speaking", "workplace english", "non-native speaker", "AI speech coach", "communication skills"]
+image: "/public/blog-images/ai-speech-coach.png"
+published: true
+---
+
 # How to Practice English Speaking at Work (Without the Embarrassment)
 
 **Primary keyword:** how to practice english speaking at work  

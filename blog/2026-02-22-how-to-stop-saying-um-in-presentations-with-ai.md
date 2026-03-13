@@ -1,3 +1,13 @@
+---
+title: "How to Stop Saying Um in Presentations (Using AI Feedback)"
+slug: "how-to-stop-saying-um-in-presentations-with-ai"
+date: "2026-02-22"
+meta_description: "Filler words kill your credibility in presentations. Here's why willpower alone doesn't work — and how AI-powered feedback helps you stop saying um for good."
+tags: ["filler words", "presentations", "AI speech coach", "public speaking", "communication skills"]
+image: "/public/blog-images/ai-speech-coach.png"
+published: true
+---
+
 # How to Stop Saying "Um" in Presentations (Using AI Feedback)
 
 Filler words kill credibility. Research from the University of Michigan shows speakers who use fewer fillers are rated 15–20% more competent and trustworthy by audiences.

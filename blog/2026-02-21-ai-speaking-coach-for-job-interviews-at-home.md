@@ -1,3 +1,13 @@
+---
+title: "AI Speaking Coach for Job Interviews at Home: A 30-Minute Practice System"
+slug: "ai-speaking-coach-for-job-interviews-at-home"
+date: "2026-02-21"
+meta_description: "Interview anxiety makes you ramble or freeze. This 30-minute daily practice system using an AI speaking coach can help you answer clearly and confidently at home."
+tags: ["job interview", "AI speech coach", "interview preparation", "public speaking"]
+image: "/public/blog-images/ai-speech-coach.png"
+published: true
+---
+
 # AI Speaking Coach for Job Interviews at Home: A 30-Minute Practice System
 
 If interview anxiety makes you ramble, freeze, or overtalk, practicing alone can still work—if you get objective feedback.

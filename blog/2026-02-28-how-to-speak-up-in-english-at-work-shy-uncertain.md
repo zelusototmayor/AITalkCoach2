@@ -1,3 +1,13 @@
+---
+title: "How to Speak Up More in English at Work When You're Shy or Unsure"
+slug: "how-to-speak-up-in-english-at-work-shy-uncertain"
+date: "2026-02-28"
+meta_description: "Shyness and uncertainty in English make you go quiet when you should speak up. Here's a practical guide to contributing more confidently in meetings and conversations at work."
+tags: ["speak up at work", "english confidence", "non-native speaker", "communication skills", "AI speech coach"]
+image: "/public/blog-images/ai-speech-coach.png"
+published: true
+---
+
 # How to Speak Up More in English at Work When You're Shy or Unsure
 
 **Primary keyword:** how to speak up at work in english  

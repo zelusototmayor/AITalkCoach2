@@ -1,3 +1,13 @@
+---
+title: "How to Give Feedback in English at Work (Guide for Non-Native Professionals)"
+slug: "how-to-give-feedback-in-english-at-work-non-native-speaker"
+date: "2026-02-27"
+meta_description: "Giving feedback in English as a non-native speaker is uncomfortable. This guide gives you the phrases, structure, and practice method to do it with clarity and confidence."
+tags: ["english at work", "non-native speaker", "feedback", "communication skills", "AI speech coach"]
+image: "/public/blog-images/ai-speech-coach.png"
+published: true
+---
+
 # How to Give Feedback in English at Work (Guide for Non-Native Professionals)
 
 **Target keyword:** how to give feedback in english at work  
