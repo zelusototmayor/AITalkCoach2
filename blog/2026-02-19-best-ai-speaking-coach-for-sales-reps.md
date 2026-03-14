@@ -199,3 +199,7 @@ That's the whole system.
 ---
 
 *AI Talk Coach is a web-based speaking practice app used by sales reps, founders, and professionals in 11 languages. Freemium. No credit card required to start.*
+
+---
+
+*Related reading: [How to practice your sales pitch with AI](/blog/how-to-practice-your-sales-pitch-with-ai) | [How to stop saying um and uh when speaking](/blog/how-to-stop-saying-um-and-uh-when-speaking) | [How to handle difficult questions in presentations](/blog/how-to-handle-difficult-questions-in-presentations)*
