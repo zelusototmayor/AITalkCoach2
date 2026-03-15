@@ -1,3 +1,12 @@
+---
+title: "Soft Skills Training for Remote Teams: What Actually Works in 2026"
+slug: "soft-skills-training-for-remote-teams"
+date: "2026-03-07"
+meta_description: "Remote teams can't rely on environmental cues for communication. Here's what soft skills training for remote teams actually looks like when it works — and what to skip."
+tags: ["soft skills", "remote teams", "team communication", "professional development", "AI speech coach"]
+published: true
+---
+
 <div class="trix-content">
 
 <h2>Why soft skills matter more for remote teams</h2>

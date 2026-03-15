@@ -1,3 +1,12 @@
+---
+title: "How to Disagree Professionally in English at Work"
+slug: "how-to-disagree-professionally-in-english-at-work"
+date: "2026-03-03"
+meta_description: "Disagreeing at work without damaging relationships is a skill. Here are the exact phrases and techniques to push back professionally in English — for native and non-native speakers."
+tags: ["professional communication", "english at work", "workplace communication", "communication skills", "non-native speakers"]
+published: true
+---
+
 # How to Disagree Professionally in English at Work
 
 **Primary keyword:** how to disagree professionally in English at work

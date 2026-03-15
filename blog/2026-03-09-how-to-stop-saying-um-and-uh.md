@@ -1,3 +1,12 @@
+---
+title: "How to Stop Saying "Um" and "Uh": The Complete Guide to Eliminating Filler Words"
+slug: "how-to-stop-saying-um-and-uh"
+date: "2026-03-09"
+meta_description: "Filler words like "um," "uh," and "like" undermine your authority. Here's a proven, science-backed approach to eliminate them for good — with daily AI practice."
+tags: ["filler words", "um and uh", "public speaking", "communication skills", "AI speech coach"]
+published: true
+---
+
 # How to Stop Saying "Um" and "Uh": The Complete Guide to Eliminating Filler Words
 
 **Target keyword:** how to stop saying um and uh  

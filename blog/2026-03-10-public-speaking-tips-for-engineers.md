@@ -1,3 +1,12 @@
+---
+title: "Public Speaking Tips for Engineers: How to Present Technical Ideas With Confidence"
+slug: "public-speaking-tips-for-engineers"
+date: "2026-03-10"
+meta_description: "Engineers are trained to be precise and complete — which are liabilities on a stage. These public speaking tips for engineers will help you communicate technical ideas with confidence."
+tags: ["public speaking", "engineers", "technical communication", "presentation skills", "communication skills"]
+published: true
+---
+
 # Public Speaking Tips for Engineers: How to Present Technical Ideas With Confidence
 
 Most engineers are brilliant at solving hard problems. Talking about those problems in front of people? That's the part that feels unnatural.

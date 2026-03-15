@@ -1,3 +1,12 @@
+---
+title: "How to Sound More Confident Speaking English in Meetings (Even If You're Not Fluent Yet)"
+slug: "how-to-sound-more-confident-speaking-english-in-meetings"
+date: "2026-03-07"
+meta_description: "Not a native English speaker? These practical techniques help you sound more confident in English meetings — without waiting until your English is 'good enough.'"
+tags: ["speaking confidence", "english in meetings", "non-native speakers", "professional english", "communication skills"]
+published: true
+---
+
 # How to Sound More Confident Speaking English in Meetings (Even If You're Not Fluent Yet)
 
 If you freeze, rush, or go blank in English meetings, you're not bad at communication — you're overloaded.

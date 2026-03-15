@@ -1,3 +1,12 @@
+---
+title: "How to Sound Confident on Video Calls When English Isn't Your First Language"
+slug: "how-to-sound-confident-on-video-calls-english-non-native"
+date: "2026-03-01"
+meta_description: "Non-native English speaker who freezes up on Zoom or Teams calls? These 8 techniques will help you sound clearer, more confident, and more authoritative — starting with your next meeting."
+tags: ["video call confidence", "english non-native speakers", "zoom english", "professional communication", "AI speech coach"]
+published: true
+---
+
 # How to Sound Confident on Video Calls When English Isn't Your First Language
 
 **Primary keyword:** how to sound confident on video calls  

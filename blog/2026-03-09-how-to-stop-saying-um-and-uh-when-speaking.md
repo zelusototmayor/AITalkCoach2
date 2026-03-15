@@ -1,3 +1,12 @@
+---
+title: "How to Stop Saying Um and Uh When Speaking (5 Proven Techniques)"
+slug: "how-to-stop-saying-um-and-uh-when-speaking"
+date: "2026-03-09"
+meta_description: "Filler words undermine your credibility. These 5 proven techniques will help you stop saying um and uh when speaking — permanently."
+tags: ["filler words", "um and uh", "public speaking", "communication skills", "AI speech coach"]
+published: true
+---
+
 # How to Stop Saying Um and Uh When Speaking (5 Proven Techniques)
 
 Filler words like "um" and "uh" creep into almost every conversation. Whether you're pitching an idea, presenting to a board, or answering an interview question, those little sounds can chip away at your credibility — even when your content is solid. The good news: learning how to stop saying um and uh when speaking is a skill, not a personality trait. With the right techniques and deliberate practice, you can clean up your speech faster than you think.
