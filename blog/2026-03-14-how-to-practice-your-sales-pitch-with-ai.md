@@ -154,6 +154,7 @@ The best time to practice your pitch is before a deal is on the line, not after 
 *Related reading:*
 - [How to stop saying um and uh when speaking](/blog/how-to-stop-saying-um-and-uh-when-speaking)
 - [How to handle difficult questions in presentations](/blog/how-to-handle-difficult-questions-in-presentations)
+- [How to overcome fear of public speaking](/blog/how-to-overcome-fear-of-public-speaking)
 - [How to build executive presence in AI interviews](/blog/how-to-build-executive-presence-ai-interviews)
 
 ---
