@@ -196,4 +196,4 @@ The gap between how confident you sound and how confident you feel is trainable.
 
 [Try AITalkCoach free](https://aitalkcoach.com) — speak, get feedback, hear the difference.
 
-*Related reading: [How to stop saying um and uh](/blog/how-to-stop-saying-um-and-uh) | [Public speaking tips for introverts](/blog/public-speaking-tips-for-introverts) | [How to handle difficult questions in presentations](/blog/how-to-handle-difficult-questions-in-presentations)*
+*Related reading: [How to stop saying um and uh](/blog/how-to-stop-saying-um-and-uh) | [Public speaking tips for introverts](/blog/public-speaking-tips-for-introverts) | [How to handle difficult questions in presentations](/blog/how-to-handle-difficult-questions-in-presentations) | [How to prepare for networking events when small talk terrifies you](/blog/how-to-prepare-for-networking-events-small-talk)*

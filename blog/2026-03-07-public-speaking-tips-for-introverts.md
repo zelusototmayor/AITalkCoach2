@@ -104,3 +104,5 @@ published: true
 </ol>
 
 <p>Consistency compounds. The introvert who practices in private performs confidently in public. Start now.</p>
+
+<p><em>Related reading: <a href="/blog/how-to-prepare-for-networking-events-small-talk">How to Prepare for Networking Events When Small Talk Terrifies You</a> | <a href="/blog/how-to-sound-more-confident-when-speaking">How to Sound More Confident When Speaking</a></em></p>
