@@ -154,5 +154,6 @@ Public speaking is a delivery skill — it covers voice projection, body languag
 - [How to Stop Rambling When Presenting at Work](/blog/how-to-stop-rambling-when-presenting-at-work) — Keep your message tight and focused
 - [How to Give a Better Presentation at Work](/blog/how-to-give-a-better-presentation-at-work) — The complete guide to professional presentations
 - [How to Lead a Meeting With Confidence](/blog/how-to-lead-a-meeting-with-confidence) — Run meetings that people actually want to attend
+- [How to Improve Speaking Skills for Career Advancement](/blog/how-to-improve-speaking-skills-for-career-advancement) — The speaking skills that actually get you promoted
 
 Ready to practice your storytelling skills with real-time AI feedback? [Try AI TalkCoach free](https://aitalkcoach.com) — get instant feedback on pacing, filler words, and delivery every time you practice.
