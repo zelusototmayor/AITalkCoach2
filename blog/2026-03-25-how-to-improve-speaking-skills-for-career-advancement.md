@@ -159,3 +159,4 @@ The three most common career-limiting speaking habits are: (1) taking too long t
 - [How to Improve Storytelling Skills for Work](/blog/how-to-improve-storytelling-skills-for-work)
 - [How to Improve Active Listening Skills at Work](/blog/how-to-improve-active-listening-skills-at-work)
 - [How to Handle Difficult Questions in Presentations](/blog/how-to-handle-difficult-questions-in-presentations)
+- [How to Stop Rambling When You Speak](/blog/how-to-stop-rambling-when-you-speak)
