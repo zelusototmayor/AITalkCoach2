@@ -30,7 +30,7 @@ Here is the hardest truth about rambling: you cannot fix what you cannot hear.
 
 Most people who ramble are genuinely surprised when they see a recording of themselves. They thought they were being thorough. They thought the tangents were helpful. They thought they were giving context. When they actually watch the playback, they see a completely different picture — a speaker who lost the thread, who buried the main point under six supporting points, who repeated the same idea three different ways without adding any new information.
 
-This is why willpower alone does not work. You cannot apply a technique in the moment if you do not have accurate feedback about the moment. You need to see yourself the way your audience sees you, and most people never do.
+This is why willpower alone does not work. You cannot apply a technique without accurate feedback. You need to see yourself the way your audience sees you, and most people never do.
 
 ## Techniques to Stop Rambling
 
@@ -98,8 +98,6 @@ Different situations have different costs. Knowing where your rambling matters m
 
 **Leadership and management.** When you are running meetings or managing a team, rambling is a tax on everyone's time. People who speak concisely in leadership roles read as more decisive, more confident, and more in control — even if the underlying decisions are the same. The format of your communication changes how your authority is perceived.
 
-**High-stakes conversations.** Difficult feedback, salary negotiations, performance reviews, disagreements with senior stakeholders — all of these situations require saying exactly what you mean and stopping. Rambling in high-stakes conversations gives the other person too many threads to pull on and undermines the clarity of your actual position.
-
 ## Building the Habit Over Time
 
 Rambling is not eliminated in one practice session. It is a habit built over years of anxiety, unclear thinking, and never hearing yourself as others hear you. Undoing it requires deliberate repetition over weeks.
@@ -107,6 +105,8 @@ Rambling is not eliminated in one practice session. It is a habit built over yea
 The fastest path: practice daily on low-stakes conversations, not just before big events. When you get a question from a colleague, try the answer-first structure. When you are explaining something to a friend, notice if you are using the three-point discipline. The habit forms in ordinary situations, then shows up naturally under pressure.
 
 Weekly self-review of a recording — even two minutes of something you said at work — keeps the feedback loop active without consuming significant time.
+
+If you want faster progress, pick one recurring speaking context this week (team update, client call, interview prep), record three short answers, and review them with clear criteria. Consistency beats intensity.
 
 ---
 
