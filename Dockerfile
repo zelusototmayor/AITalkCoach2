@@ -62,7 +62,7 @@ COPY --from=build "${BUNDLE_PATH}" "${BUNDLE_PATH}"
 COPY --from=build /rails /rails
 
 # Ensure bin scripts are executable (permissions can be lost in multi-stage builds)
-RUN chmod +x /rails/bin/*
+RUN chmod 755 /rails/bin/*
 
 # Run and own only the runtime files as a non-root user for security
 RUN groupadd --system --gid 1000 rails && \
