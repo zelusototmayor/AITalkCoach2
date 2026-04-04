@@ -4,7 +4,7 @@
 
 slug = "how-to-practice-english-speaking-at-work"
 title = "How to Practice English Speaking at Work (Without the Embarrassment)"
-meta_description = "Non-native speaker who wants to practice English at work but dreads sounding bad? 7 low-risk techniques to build fluency on the job without risking your professional reputation."
+meta_description = "Non-native speaker who dreads sounding bad at work? 7 low-risk techniques to build English fluency on the job without risking your professional reputation."
 excerpt = "The best place to practice English is at work — but it's also the place where making mistakes feels highest-stakes. Here's how to use your workday to build fluency without putting your professional reputation at risk."
 
 body = File.read(Rails.root.join("blog/2026-02-28-how-to-practice-english-speaking-at-work.md"))
