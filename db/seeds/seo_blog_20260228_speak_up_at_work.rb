@@ -4,7 +4,7 @@
 
 slug = "how-to-speak-up-in-english-at-work-shy-uncertain"
 title = "How to Speak Up More in English at Work When You're Shy or Unsure"
-meta_description = "Non-native English speaker who goes quiet in meetings? Practical strategies to speak up confidently at work — from pre-loading contributions to the 3-second rule."
+meta_description = "Non-native English speaker who goes quiet in meetings? Practical strategies to speak up confidently at work — from pre-loading to the 3-second rule."
 excerpt = "Most non-native speakers don't stay quiet in meetings because their English is bad. They stay quiet because they're calculating risk in real time — and the math keeps telling them to wait. Here's how to change that."
 
 body = File.read(Rails.root.join("blog/2026-02-28-how-to-speak-up-in-english-at-work-shy-uncertain.md"))

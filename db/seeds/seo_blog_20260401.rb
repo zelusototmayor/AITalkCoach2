@@ -4,7 +4,7 @@ puts "Creating Blog Post: Why Your AI Public Speaking Coach Is Lying to You (And
 BlogPost.find_or_create_by!(slug: "ai-public-speaking-coach-honest-feedback") do |post|
   post.title = "Why Your AI Public Speaking Coach Is Lying to You (And What to Use Instead)"
   post.excerpt = "A Stanford study found that AI systems are trained to agree with users. That's fine for customer support. It's a disaster for speech coaching. Here's how to get feedback that actually makes you better."
-  post.meta_description = "Most AI coaches tell you you're great. A Stanford study on AI sycophancy explains why — and why honest AI feedback is the only kind that improves your public speaking."
+  post.meta_description = "Most AI coaches tell you you're great. A Stanford study on AI sycophancy explains why — and why honest feedback is the only kind that improves speaking."
   post.meta_keywords = "AI public speaking coach, how to improve public speaking with AI, AI speech coach, honest AI feedback, AI sycophancy, public speaking practice"
   post.published = true
   post.published_at = Time.new(2026, 4, 1, 8, 0, 0)

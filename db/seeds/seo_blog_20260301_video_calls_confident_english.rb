@@ -6,7 +6,7 @@
 
 slug = "how-to-sound-confident-on-video-calls-english-non-native"
 title = "How to Sound Confident on Video Calls When English Isn't Your First Language"
-meta_description = "Non-native English speaker who freezes up on Zoom or Teams calls? These 8 techniques will help you sound clearer, more confident, and more authoritative — starting with your next meeting."
+meta_description = "Non-native English speaker who freezes on Zoom or Teams? These 8 techniques help you sound clearer, more confident, and more authoritative — starting now."
 excerpt = "Video calls remove most of the things non-native speakers rely on to communicate: body language, proximity, real-time visual feedback. Here's how to build the specific confidence you need for the remote English speaking environment."
 
 body = File.read(Rails.root.join("blog/2026-03-01-how-to-sound-confident-on-video-calls-english-non-native.md"))

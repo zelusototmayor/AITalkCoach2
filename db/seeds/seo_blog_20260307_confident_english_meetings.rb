@@ -5,7 +5,7 @@
 
 slug = "how-to-sound-more-confident-speaking-english-in-meetings"
 title = "How to Sound More Confident Speaking English in Meetings (Even If You're Not Fluent Yet)"
-meta_description = "Learn how to sound more confident speaking English in meetings with a practical framework: entry phrases, 3-sentence structure, filler control, and daily drills for non-native professionals."
+meta_description = "Sound more confident speaking English in meetings with a practical framework: entry phrases, 3-sentence structure, filler control, and daily drills."
 excerpt = "A practical system for non-native professionals who want to speak clearly and confidently in English meetings — without memorizing perfect scripts."
 
 body = File.read(Rails.root.join("blog/2026-03-07-how-to-sound-more-confident-speaking-english-in-meetings.md"))
