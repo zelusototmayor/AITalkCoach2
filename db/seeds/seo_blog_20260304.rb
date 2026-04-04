@@ -1,16 +1,15 @@
 # SEO Blog Post - 2026-03-04
 puts "Creating Blog Post: 7 Ways AI Can Help You Conquer Public Speaking Anxiety"
-BlogPost.create!(
-  title: "7 Ways AI Can Help You Conquer Public Speaking Anxiety",
-  slug: "7-ways-ai-can-help-you-conquer-public-speaking-anxiety",
-  excerpt: "Public speaking is the world's #1 fear. Learn how new AI tools are helping thousands practice in private, get instant feedback, and conquer the stage.",
-  meta_description: "Discover how AI speech coaches are transforming public speaking training, helping you overcome anxiety with judgment-free practice.",
-  meta_keywords: "public speaking anxiety, AI speech coach, glossophobia, speech training, overcome fear of public speaking, AI communication tools",
-  published: true,
-  published_at: Time.current,
-  author: "AI Talk Coach Team",
-  reading_time: 5,
-  content: <<~HTML
+BlogPost.find_or_create_by!(slug: "7-ways-ai-can-help-you-conquer-public-speaking-anxiety") do |post|
+  post.title = "7 Ways AI Can Help You Conquer Public Speaking Anxiety"
+  post.excerpt = "Public speaking is the world's #1 fear. Learn how new AI tools are helping thousands practice in private, get instant feedback, and conquer the stage."
+  post.meta_description = "Discover how AI speech coaches are transforming public speaking training, helping you overcome anxiety with judgment-free practice."
+  post.meta_keywords = "public speaking anxiety, AI speech coach, glossophobia, speech training, overcome fear of public speaking, AI communication tools"
+  post.published = true
+  post.published_at = Time.current
+  post.author = "AI Talk Coach Team"
+  post.reading_time = 5
+  post.content = <<~HTML
     <div class="trix-content">
     <h2>The Fear of Public Speaking (Glossophobia)</h2>
     <p>For millions of people, the mere thought of standing in front of an audience triggers sweaty palms, a racing heart, and a dry mouth. Glossophobia, or the fear of public speaking, affects up to 75% of the population. But in 2026, technology is offering a new solution: <strong>AI Speech Coaching</strong>.</p>
@@ -44,4 +43,4 @@ BlogPost.create!(
     <p>Ready to start your journey? Try <a href="/">AI Talk Coach</a> today and see the difference for yourself.</p>
     </div>
   HTML
-)
+end
