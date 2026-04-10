@@ -249,3 +249,4 @@ Related reading:
 - [Public Speaking Practice App: How to Choose One That Actually Improves Your Speaking](/blog/public-speaking-practice-app)
 - [How to Practice a Speech at Home](/blog/how-to-practice-a-speech-at-home)
 - [How to Calm Nerves Before a Presentation](/blog/how-to-calm-nerves-before-a-presentation)
+- [Communication Skills for Managers: How to Lead Conversations That Get Results](/blog/communication-skills-for-managers)
