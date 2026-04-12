@@ -244,5 +244,6 @@ Related reading:
 
 - [How to Sound More Confident When Speaking](/blog/how-to-sound-more-confident-when-speaking)
 - [How to Stop Saying Um and Uh](/blog/how-to-stop-saying-um-and-uh)
+- [Presentation Skills Training: What Actually Works and How to Build the Practice Habit](/blog/presentation-skills-training)
 - [How to Give a Better Presentation at Work](/blog/how-to-give-a-better-presentation-at-work)
 - [How to Practice Your Sales Pitch with AI](/blog/how-to-practice-your-sales-pitch-with-ai)

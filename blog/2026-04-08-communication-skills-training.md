@@ -246,6 +246,7 @@ Small daily reps create visible communication gains within a month.
 
 Related reading:
 - [How to Stop Rambling When You Speak](/blog/how-to-stop-rambling-when-you-speak)
+- [Presentation Skills Training: What Actually Works and How to Build the Practice Habit](/blog/presentation-skills-training)
 - [Public Speaking Practice App: How to Choose One That Actually Improves Your Speaking](/blog/public-speaking-practice-app)
 - [How to Practice a Speech at Home](/blog/how-to-practice-a-speech-at-home)
 - [How to Calm Nerves Before a Presentation](/blog/how-to-calm-nerves-before-a-presentation)
