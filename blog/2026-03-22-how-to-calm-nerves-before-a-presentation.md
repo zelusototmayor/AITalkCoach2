@@ -159,3 +159,4 @@ AI speaking tools simulate the experience of presenting to an audience by giving
 - [How to Give a Better Presentation at Work](/blog/how-to-give-a-better-presentation-at-work)
 - [How to Stop Saying Um and Uh When Speaking](/blog/how-to-stop-saying-um-and-uh)
 - [How to Lead a Meeting With Confidence](/blog/how-to-lead-a-meeting-with-confidence)
+- [How to Prepare for a Job Interview Presentation (And Actually Nail It)](/blog/how-to-prepare-for-a-job-interview-presentation)

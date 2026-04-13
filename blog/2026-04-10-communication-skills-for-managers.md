@@ -119,6 +119,7 @@ Switching from contribution to direction without explaining the change. A new ma
 - [How to Lead a Meeting with Confidence](/blog/how-to-lead-a-meeting-with-confidence)
 - [How to Improve Storytelling Skills for Work](/blog/how-to-improve-storytelling-skills-for-work)
 - [AI Speech Coaching vs. Human Coaching: Which One Do You Need?](/blog/ai-speech-coaching-vs-human)
+- [How to Prepare for a Job Interview Presentation (And Actually Nail It)](/blog/how-to-prepare-for-a-job-interview-presentation)
 
 ---
 
